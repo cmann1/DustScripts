@@ -1,0 +1,8 @@
+# Ignore everything in the root
+/*
+# Un-ignore all of subtree
+!.gitignore
+!README.md
+!/lib/
+!/ed/
+!/shared/

@@ -1,0 +1,27 @@
+enum ColType
+{
+	
+	Enemy			= 1,
+	Filth			= 2,
+	Particle		= 3,
+	Prop			= 4,
+	Player			= 5,
+	Spring			= 6,
+	Hittable		= 7,
+	Hitbox			= 8,
+	Poi				= 9,
+	PoiArea			= 10,
+	Projectile		= 11,
+	Camera_node		= 12,
+	Emitter			= 13,
+	Cleansed		= 14,
+	Ai_controller	= 15,
+	Trigger			= 16,
+	CheckPoint		= 17,
+	LevelBoundary	= 18,
+	LevelStart		= 19,
+	TriggerArea		= 20,
+	KillZone		= 21,
+	Null			= 22,
+	
+}
