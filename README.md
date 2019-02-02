@@ -6,7 +6,10 @@
 3. Click the text box, type **ed/prop-path.cpp** and hit enter
 
 #### Prop Path
-* **place:** Use this "button" to palce the props in the map before deleting the trigger.
+A script trigger for placing props along a user defined path.  
+Place a PropPath trigger, use the controls to select a prop and create the path - a live preview will be rendered.  
+When you're happy with the results, press the "place" button and delete the trigger.
+* **place:** Use this "button" to place the props in the map.
 * **hide_props:** Don't render props for testing.
 * **hide_overlays:** Don't render the curves and handles. Useful for checking prop placement without other stuff in the way.
 * **smart_handles:** If checked control points on this and adjacent curves will be kept parallel and will be moved along with vertices.
