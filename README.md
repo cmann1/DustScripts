@@ -22,7 +22,7 @@
 	* **palette:** The prop's palette
 	* **scale_x/y:** The scale of the prop. **NOTE:** This doesn't seem to work. Prop scales aren't remembered.
 	* **rotation:** The prop's rotation
-	* **scale_sx/y:** The starting scale of the prop. The prop's scale will change from this scale at the start of the path, to scale_ex/y at the end of the path.
+	* **scale_sx/y:** The starting scale of the prop. The prop's scale will change from this scale at the start of the path, to **scale_ex/y** at the end of the path.
 	* **scale_ex/y:** The ending scale of the prop
 
 ##### Controls
