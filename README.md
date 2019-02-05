@@ -29,6 +29,6 @@ When you're happy with the results, press the "place" button and delete the trig
 	* **scale_ex/y:** The ending scale of the prop
 
 ##### Controls
-NOTE: Right now these only work in game, and not in the editor.
+NOTE: These are now supported in the latest Dustmod.
 * **Left mouse**: Move handles.
 * **Middle mouse**: Move handles as if the **smart_handles** option is off.
