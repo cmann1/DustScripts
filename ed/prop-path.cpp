@@ -197,7 +197,7 @@ class PropPath : trigger_base
 		
 		bool smart_handles = this.smart_handles;
 
-		if(left_mouse_down || middle_mouse_down)
+		if(self.editor_selected() && left_mouse_down || middle_mouse_down)
 		{
 			if(middle_mouse_down)
 				smart_handles = !smart_handles;
