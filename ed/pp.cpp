@@ -1,7 +1,11 @@
-#include '../common-old/PropGroupNames.cpp';
-#include '../common-old/math.cpp';
-#include '../common-old/drawing_utils.cpp';
-#include '../common-old/utils.cpp';
+//#include '../common-old/PropGroupNames.cpp';
+#include '../lib/props.cpp';
+#include '../lib/std.cpp';
+#include '../lib/drawing/common.cpp';
+#include '../lib/camera.cpp';
+//#include '../common-old/math.cpp';
+//#include '../common-old/drawing_utils.cpp';
+//#include '../common-old/utils.cpp';
 
 enum State
 {
@@ -497,7 +501,7 @@ class script
 			}
 			
 			g.draw_rectangle_hud(21, 21, x1, y1, x2, y2, 0, 0x11FFFFFF);
-			outline_rect(g, x1, y1, x2, y2, 21, 21, 0.5, 0x66FFFFFF, false);
+			outline_rect_hud(g, x1, y1, x2, y2, 21, 21, 0.5, 0x66FFFFFF);
 			
 			if(state == PickOrigin)
 			{
@@ -506,8 +510,8 @@ class script
 				const float w = 0.5;
 				const float s = 20;
 				const uint c = 0x66FFFFFF;
-				draw_line(g, x-s, y, x+s, y, 21, 21, w, c, false);
-				draw_line(g, x, y-s, x, y+s, 21, 21, w, c, false);
+				g.draw_line(21, 21, x - s, y, x + s, y, w, c);
+				g.draw_line(21, 21, x, y - s, x, y + s, w, c);
 			}
 		}
 		
