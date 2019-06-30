@@ -119,15 +119,14 @@ class EntityOutliner
 			string sprite_name;
 			uint frame;
 			float face;
-			float draw_offset_x, draw_offset_y;
+			float draw_offset_x = c.draw_offset_x();
+			float draw_offset_y = c.draw_offset_y();
 			
 			if(c.attack_state() == ATTACK_TYPE_IDLE)
 			{
 				sprite_name = c.sprite_index();
 				frame = uint(c.state_timer());
 				face = c.face();
-				draw_offset_x = c.draw_offset_x();
-				draw_offset_y = c.draw_offset_y();
 			}
 			else
 			{
