@@ -1,4 +1,5 @@
 const int ATTACK_TYPE_IDLE = 0;
+const int ENTITY_STATE_WALLRUN = 11;
 
 float lerp(float a, float b, float x)
 {
@@ -119,6 +120,7 @@ class EntityOutliner
 			uint frame;
 			float face;
 			float draw_offset_x, draw_offset_y;
+			
 			if(c.attack_state() == ATTACK_TYPE_IDLE)
 			{
 				sprite_name = c.sprite_index();
@@ -132,8 +134,13 @@ class EntityOutliner
 				sprite_name = c.attack_sprite_index();
 				frame = uint(c.attack_timer());
 				face = c.attack_face();
-				draw_offset_x = draw_offset_y = 0;
+				
+				if(c.state() == ENTITY_STATE_WALLRUN)
+				{
+					draw_offset_x = draw_offset_y = 0;
+				}
 			}
+			
 			frame = frame % spr.get_animation_length(sprite_name);
 			
 			const float x = lerp(c.prev_x(), c.x(), sub_frame) + draw_offset_x;
