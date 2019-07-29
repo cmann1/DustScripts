@@ -64,6 +64,7 @@ class EntityOutliner
 	[colour,alpha] uint colour = 0xFFFFFFFF;
 	[text] bool draw_double = false;
 	[text] bool ignore_prisms = false;
+	[text] bool outline_player = true;
 	
 	[text] int apple_layer = 18;
 	[text] int apple_sublayer = 6;
@@ -155,6 +156,9 @@ class EntityOutliner
 			}
 			else if(type_name.substr(0, 5) == "dust_")
 			{
+				if(!outline_player)
+					continue;
+				
 				layer = player_layer;
 				sublayer = player_sublayer;
 			}
