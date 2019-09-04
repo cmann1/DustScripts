@@ -1,3 +1,12 @@
+# Lib
+A collection of common and useful classes and functions.
+I recommend putting this in the `script_src` root so they can be easily included in any map.
+At the very least I'll include "lib/std.cpp" in most projects, which contains some of the most common things I use, such as `puts` overloads for various types.
+
+# Shared
+A collection of stand-alone scripts to add predefined functionality to a map, eg. outlining entities.
+Once added to a map and compiled, left click the script name to save it as a preset so that it can easily be added to other maps in the future.
+
 # Editor Utils
 
 #### General Installation
@@ -29,6 +38,6 @@ When you're happy with the results, press the "place" button and delete the trig
 	* **scale_ex/y:** The ending scale of the prop
 
 ##### Controls
-NOTE: These are now supported in the latest Dustmod.
+NOTE: These are now supported in-editor in the latest Dustmod.
 * **Left mouse**: Move handles.
 * **Middle mouse**: Move handles as if the **smart_handles** option is off.
