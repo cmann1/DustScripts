@@ -6,6 +6,7 @@ enum EmitterId
 	DustGround = 1,
 	Fireflies = 58,
 	FireflyDense = 66,
+	FireflySparse = 105,
 	KingZone = 122,
 	KingZoneBlue = 125,
 	KingZoneRed = 126,

@@ -1,3 +1,5 @@
+#include "enums/EmitterId.cpp";
+
 entity@ create_emitter(int id, float x, float y, int width, int height, int layer, int sub_layer)
 {
 	entity@ emitter = create_entity("entity_emitter");
@@ -13,7 +15,7 @@ entity@ create_emitter(int id, float x, float y, int width, int height, int laye
 	return emitter;
 }
 
-EmitterId get_emitter_if_for_area(int area)
+EmitterId get_emitter_id_for_area(int area)
 {
 	switch(area)
 	{
