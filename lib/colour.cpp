@@ -59,3 +59,14 @@ float hue_to_rgb(float p, float q, float t)
 	if(t < 2/3.0) return p + (q - p) * (2/3.0 - t) * 6;
 	return p;
 }
+
+uint rgba(float r, float g, float b, float a = 1)
+{
+	return (uint(round(a * 255)) << 24) + (uint(round(r * 255)) << 16) + (uint(round(g * 255)) << 8) + uint(round(b * 255));
+}
+
+uint set_alpha(uint colour, float a)
+{
+	colour &= 0x00FFFFFF;
+	return colour | (uint(round(a * 255)) << 24);
+}

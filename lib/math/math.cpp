@@ -1,3 +1,5 @@
+#include "../std.cpp";
+
 const float PI = 3.1415926535897932384626433832795;
 const float PI2 = PI * 2;
 const float HALF_PI = PI / 2;
@@ -6,6 +8,35 @@ const float RAD2DEG = 1.0 / PI * 180.0;
 
 //const float NaN = float(0x7fc00000);
 //const float Infinity = float(0x7f800000);
+
+float rand_rotation()
+{
+	return rand_range(0, 260);
+}
+
+float clamp01(float value)
+{
+	if(value < 0) value = 0;
+	if(value > 1) value = 1;
+	
+	return value;
+}
+
+float clamp(float value, float min, float max)
+{
+	if(value < min) value = min;
+	if(value > max) value = max;
+	
+	return value;
+}
+
+int clamp(int value, int min, int max)
+{
+	if(value < min) value = min;
+	if(value > max) value = max;
+	
+	return value;
+}
 
 float dot(float x1, float y1, float x2, float y2)
 {

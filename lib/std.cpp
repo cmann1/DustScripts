@@ -7,6 +7,11 @@ const float SCREEN_TOP = -450;
 const float SCREEN_RIGHT = 800;
 const float SCREEN_BOTTOM = 450;
 
+int tile_coord(float v)
+{
+	return int(floor(v * PIXEL2TILE));
+}
+
 string str(float x)
 {
 	return formatFloat(x, '', 0, 3);
