@@ -11,7 +11,7 @@ const float RAD2DEG = 1.0 / PI * 180.0;
 
 float rand_rotation()
 {
-	return rand_range(0, 260);
+	return rand_range(0, 360);
 }
 
 float clamp01(float value)
@@ -144,8 +144,28 @@ float cross_product_z(float a_x, float a_y, float b_x, float b_y) {
 }
 
 // Orientation is positive if abc is counterclockwise, negative if clockwise.
+// Note: Dustforce has positive y going down the screen, so clockwise becomes
+// counterclockwise and vice versa.
 // (It is actually twice the area of triangle abc, calculated using the
 // Shoelace formula: http://en.wikipedia.org/wiki/Shoelace_formula .)
 float orientation(float a_x, float a_y, float b_x, float b_y, float c_x, float c_y) {
     return cross_product_z(a_x, a_y, b_x, b_y) + cross_product_z(b_x, b_y, c_x, c_y) + cross_product_z(c_x, c_y, a_x, a_y);
+}
+
+// Does line ab intersect line cd?
+bool lines_intersect(float a_x, float a_y, float b_x, float b_y, float c_x, float c_y, float d_x, float d_y) {
+    // Before expanding cross products:
+    // return (
+    //     cross_product_z(a_x - c_x, a_y - c_y, d_x - c_x, d_y - c_y) < 0 and
+    //     cross_product_z(b_x - c_x, b_y - c_y, d_x - c_x, d_y - c_y) > 0 and
+    //     cross_product_z(d_x - a_x, d_y - a_y, b_x - a_x, b_y - a_y) < 0 and
+    //     cross_product_z(c_x - a_x, c_y - a_y, b_x - a_x, b_y - a_y) > 0
+    // );
+
+    return (
+         (a_x - c_x) * (d_y - c_y) - (a_y - c_y) * (d_x - c_x) < 0 and
+         (b_x - c_x) * (d_y - c_y) - (b_y - c_y) * (d_x - c_x) > 0 and
+         (d_x - a_x) * (b_y - a_y) - (d_y - a_y) * (b_x - a_x) < 0 and
+         (c_x - a_x) * (b_y - a_y) - (c_y - a_y) * (b_x - a_x) > 0
+    );
 }
