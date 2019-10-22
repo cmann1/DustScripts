@@ -60,9 +60,30 @@ float hue_to_rgb(float p, float q, float t)
 	return p;
 }
 
+uint rgba(int r, int g, int b, int a = 255)
+{
+	return (uint(a) << 24) + (uint(r) << 16) + (uint(g) << 8) + uint(b);
+}
+
 uint rgba(float r, float g, float b, float a = 1)
 {
 	return (uint(round(a * 255)) << 24) + (uint(round(r * 255)) << 16) + (uint(round(g * 255)) << 8) + uint(round(b * 255));
+}
+
+void int_to_rgba(uint colour, int &out r, int &out g, int &out b, int &out a)
+{
+	a = (colour >> 24) & 0xFF;
+	r = (colour >> 16) & 0xFF;
+	g = (colour >> 8) & 0xFF;
+	b = (colour) & 0xFF;
+}
+
+void int_to_rgba(uint colour, float &out r, float &out g, float &out b, float &out a)
+{
+	a = ((colour >> 24) & 0xFF) / 255;
+	r = ((colour >> 16) & 0xFF) / 255;
+	g = ((colour >> 8) & 0xFF) / 255;
+	b = ((colour) & 0xFF) / 255;
 }
 
 uint set_alpha(uint colour, float a)

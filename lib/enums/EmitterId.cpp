@@ -1,8 +1,10 @@
 enum EmitterId
 {
 	
+	// Main
+	
 	DropletLong = 131,
-	Droplet = 113,
+	Droplets = 113,
 	DustGround = 1,
 	Fireflies = 58,
 	FireflyDense = 66,
@@ -20,27 +22,158 @@ enum EmitterId
 	WaterfallBack = 49,
 	WaterfallTop = 41,
 	
+	// The rest
 	
-	Cleansed1 = 39,
+	NoName = 0,
+	// DustGround = 1,
+	DustRoof = 2,
+	DustWall = 3,
+	 
+	// LeafGround = 4,
+	LeafRoof = 5,
+	LeafWall = 6,
+	 
+	// TrashGround = 7,
+	TrashRoof = 8,
+	TrashWall = 9,
+	 
+	// SlimeGround = 10,
+	SlimeRoof = 11,
+	SlimeWall = 12,
+	 
+	DustGroundCreate = 13,
+	DustRoofCreate = 14,
+	DustWallCreate = 15,
+	 
+	LeafGroundCreate = 16,
+	LeafRoofCreate = 17,
+	LeafWallCreate = 18,
+	 
+	TrashGroundCreate = 19,
+	TrashRoofCreate = 20,
+	TrashWallCreate = 21,
+	 
+	SlimeGroundCreate = 22,
+	SlimeRoofCreate = 23,
+	SlimeWallCreate = 24,
+	 
+	DustGroundDestroy = 25,
+	DustRoofDestroy = 26,
+	DustWallDestroy = 27,
+	 
+	LeafGroundDestroy = 28,
+	LeafRoofDestroy = 29,
+	LeafWallDestroy = 30,
+	 
+	TrashGroundDestroy = 31,
+	TrashRoofDestroy = 32,
+	TrashWallDestroy = 33,
+	 
+	SlimeGroundDestroy = 34,
+	SlimeRoofDestroy = 35,
+	SlimeWallDestroy = 36,
+	 
+	GargoyleBig = 37,
+	Hit1 = 38,
+	Maid = 40,
+	// WaterfallTop = 41,
+	// Waterfall = 42,
+	NoName1 = 43,
+	Critter = 44,
+	Hit2 = 45,
 	Cleansed2 = 46,
-	Cleansed3 = 46,
-	Cleansed4 = 90,
-	Cleansed5 = 81,
-	
-	Cleansed3b = 99,
-	
-	CleansedFb1 = 68,
+	Flag = 47,
+	Bear = 48,
+	// WaterfallBack = 49,
+	Wolf = 50,
+	Book = 51,
+	Stoneboss = 52,
+	GargoyleSmall = 53,
+	Stonebro = 54,
+	Porcupine = 55,
+	PorcupineSpike = 56,
+	Knight = 57,
+	// Fireflies = 58,
+	ChestScrolls = 59,
+	ChestTreasure = 60,
+	Key = 61,
+	Door = 62,
+	Scrolls = 63,
+	Treasure = 64,
+	GargoyleSmallFlap = 65,
+	// FireflyDense = 66,
 	CleansedFb2 = 67,
-	CleansedFb3 = 115,
-	CleansedFb4 = 104,
+	CleansedFb1 = 68,
+	Butler = 69,
+	 
+	// PolygonsGround = 70,
+	PlygonsRoof = 71,
+	PolygonsWall = 72,
+	PolygonsGroundCreate = 73,
+	PlygonsRoofCreate = 74,
+	PolygonsGroundDestroy = 76,
+	PolygonsRoofDestroy = 77,
+	PolygonsWallDestroy = 78,
+	 
 	CleansedFb5 = 79,
-	
-	// Aliases for area tile emitters
-	
-	TileCleansedMansion	= CleansedFb1,
-	TileCleansedForest	= CleansedFb2,
-	TileCleansedCity	= CleansedFb3,
-	TileCleansedLab		= CleansedFb4,
-	TileCleansedVirtual	= CleansedFb5,
+	TutorialSquare = 80,
+	Cleansed5 = 81,
+	TutorialHexagon = 82,
+	LeafDev = 83,
+	Apple = 84,
+	SlimeBall = 85,
+	SlimeBallFlap = 86,
+	Hit4 = 87,
+	 
+	SlimeBarrel = 88,
+	SlimeBarrelFlap = 89,
+	Cleansed4 = 90,
+	SlimeBeast = 91,
+	SlimWave = 92,
+	SlimeBarrelAttack = 93,
+	SlimeWave = 94,
+	 
+	TrashBall = 95,
+	TrashBallFlap = 96,
+	TrashCan = 97,
+	Hit3 = 98,
+	Cleansed3 = 99,
+	TrashBag = 100,
+	TrashBeast = 101,
+	TrashBeastAttack = 102,
+	TrashTire = 103,
+	 
+	CleansedFb4 = 104,
+	// FireflySparse = 105,
+	NoName2 = 106,
+	// Sparks = 107,
+	 
+	DustManTrail = 108,
+	DustGirlTrail = 109,
+	DustKidTrail = 110,
+	DustWorthTrail = 111,
+	VDustManTrail = 112,
+	 
+	// Droplets = 113,
+	// Rain = 114,
+	CleansedFb3 = 115,
+	SparksGround = 116,
+	SparksRoof = 117,
+	SparksWall = 118,
+	 
+	LeafSpriteTrail = 119,
+	DustWraithTrail = 120,
+	NoName3 = 121,
+	// KingZone = 122,
+	SlimeBossTrail = 123,
+	TrashKingTrail = 124,
+	 
+	// KingZoneBlue = 125,
+	// KingZoneRed = 126,
+	PlayerAttack2 = 127,
+	PlayerAttackH2 = 128,
+	PlayerAttack3 = 129,
+	PlayerAttackH3 = 130,
+	// DropletLong = 131,
 	
 }
