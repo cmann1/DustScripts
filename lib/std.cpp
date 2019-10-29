@@ -6,6 +6,7 @@ const float SCREEN_LEFT = -800;
 const float SCREEN_TOP = -450;
 const float SCREEN_RIGHT = 800;
 const float SCREEN_BOTTOM = 450;
+const float SCREEN_WIDTH_F = 1920.0 / 1080;
 
 int tile_coord(float v)
 {
@@ -80,4 +81,19 @@ int rand_range(int min, int max)
 float rand_range(float min, float max)
 {
 	return min + (max - min) * frand();
+}
+
+int round_int(float x)
+{
+	return int(round(x));
+}
+
+int floor_int(float x)
+{
+	return int(floor(x));
+}
+
+int ceil_int(float x)
+{
+	return int(ceil(x));
 }

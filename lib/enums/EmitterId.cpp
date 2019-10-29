@@ -176,4 +176,12 @@ enum EmitterId
 	PlayerAttackH3 = 130,
 	// DropletLong = 131,
 	
+	// Aliases for area tile emitters (Maybe)
+	
+	TileCleansedMansion	= CleansedFb1,
+	TileCleansedForest	= CleansedFb2,
+	TileCleansedCity	= CleansedFb3,
+	TileCleansedLab		= CleansedFb4,
+	TileCleansedVirtual	= CleansedFb5,
+	
 }

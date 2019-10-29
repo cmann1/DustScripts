@@ -5,6 +5,7 @@ const float PI2 = PI * 2;
 const float HALF_PI = PI / 2;
 const float DEG2RAD = 1.0 / 180.0 * PI;
 const float RAD2DEG = 1.0 / PI * 180.0;
+const float EPSILON = 5.3E-5;
 
 //const float NaN = float(0x7fc00000);
 //const float Infinity = float(0x7f800000);
@@ -153,19 +154,78 @@ float orientation(float a_x, float a_y, float b_x, float b_y, float c_x, float c
 }
 
 // Does line ab intersect line cd?
-bool lines_intersect(float a_x, float a_y, float b_x, float b_y, float c_x, float c_y, float d_x, float d_y) {
-    // Before expanding cross products:
-    // return (
-    //     cross_product_z(a_x - c_x, a_y - c_y, d_x - c_x, d_y - c_y) < 0 and
-    //     cross_product_z(b_x - c_x, b_y - c_y, d_x - c_x, d_y - c_y) > 0 and
-    //     cross_product_z(d_x - a_x, d_y - a_y, b_x - a_x, b_y - a_y) < 0 and
-    //     cross_product_z(c_x - a_x, c_y - a_y, b_x - a_x, b_y - a_y) > 0
-    // );
+bool lines_intersect(float a_x, float a_y, float b_x, float b_y, float c_x, float c_y, float d_x, float d_y)
+{
+	// Before expanding cross products:
+	// return (
+	//     cross_product_z(a_x - c_x, a_y - c_y, d_x - c_x, d_y - c_y) < 0 and
+	//     cross_product_z(b_x - c_x, b_y - c_y, d_x - c_x, d_y - c_y) > 0 and
+	//     cross_product_z(d_x - a_x, d_y - a_y, b_x - a_x, b_y - a_y) < 0 and
+	//     cross_product_z(c_x - a_x, c_y - a_y, b_x - a_x, b_y - a_y) > 0
+	// );
 
-    return (
-         (a_x - c_x) * (d_y - c_y) - (a_y - c_y) * (d_x - c_x) < 0 and
-         (b_x - c_x) * (d_y - c_y) - (b_y - c_y) * (d_x - c_x) > 0 and
-         (d_x - a_x) * (b_y - a_y) - (d_y - a_y) * (b_x - a_x) < 0 and
-         (c_x - a_x) * (b_y - a_y) - (c_y - a_y) * (b_x - a_x) > 0
-    );
+	return (
+		(a_x - c_x) * (d_y - c_y) - (a_y - c_y) * (d_x - c_x) < 0 and
+		(b_x - c_x) * (d_y - c_y) - (b_y - c_y) * (d_x - c_x) > 0 and
+		(d_x - a_x) * (b_y - a_y) - (d_y - a_y) * (b_x - a_x) < 0 and
+		(c_x - a_x) * (b_y - a_y) - (c_y - a_y) * (b_x - a_x) > 0
+	);
+}
+
+bool line_line_intersection(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy, float &out x, float &out y, float & out t)
+{
+	float s1x = bx - ax;
+	float s1y = by - ay;
+	float s2x = dx - cx;
+	float s2y = dy - cy;
+	
+	float det = (-s2x * s1y + s1x * s2y);
+	
+	if(det < EPSILON && det > -EPSILON)
+	{
+		x = 0;
+		y = 0;
+		t = 0;
+		return false;
+	}
+	
+	t = (s2x * (ay - cy) - s2y * (ax - cx)) / det;
+
+	if(t < 0 || t > 1)
+	{
+		x = 0;
+		y = 0;
+		return false;
+	}
+	
+	float s = (-s1y * (ax - cx) + s1x * (ay - cy)) / det;
+	
+	if(s < 0 || s > 1)
+	{
+		x = 0;
+		y = 0;
+		return false;
+	}
+	
+	x = ax + s1x * t;
+	y = ay + s1y * t;
+	return true;
+}
+
+bool line_rectangle_intersection(float ax, float ay, float bx, float by, float r1x, float r1y, float r2x, float r2y, float &out x, float &out y, float &out t)
+{
+	// Top
+	if(line_line_intersection(ax, ay, bx, by, r1x, r1y, r2x, r1y, x, y, t))
+		return true;
+	// Bottom
+	if(line_line_intersection(ax, ay, bx, by, r2x, r1y, r2x, r2y, x, y, t))
+		return true;
+	// Left
+	if(line_line_intersection(ax, ay, bx, by, r1x, r1y, r1x, r2y, x, y, t))
+		return true;
+	// Right
+	if(line_line_intersection(ax, ay, bx, by, r2x, r1y, r2x, r2y, x, y, t))
+		return true;
+	
+	return false;
 }

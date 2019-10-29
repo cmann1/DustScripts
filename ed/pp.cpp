@@ -1,11 +1,7 @@
-//#include '../common-old/PropGroupNames.cpp';
 #include '../lib/props.cpp';
 #include '../lib/std.cpp';
 #include '../lib/drawing/common.cpp';
 #include '../lib/camera.cpp';
-//#include '../common-old/math.cpp';
-//#include '../common-old/drawing_utils.cpp';
-//#include '../common-old/utils.cpp';
 
 enum State
 {
@@ -448,8 +444,8 @@ class script
 				
 				if(player.light_intent() != 0)
 				{
-					origin_x = floor(origin_x / 48.0) * 48.0;
-					origin_y = floor(origin_y / 48.0) * 48.0;
+					origin_x = round(origin_x / 48.0) * 48.0;
+					origin_y = round(origin_y / 48.0) * 48.0;
 				}
 				
 				if(player.taunt_intent() != 0)
@@ -507,11 +503,11 @@ class script
 			{
 				float x, y;
 				world_to_screen(cam, origin_x, origin_y, x, y);
-				const float w = 0.5;
+				const float w = 1.5;
 				const float s = 20;
-				const uint c = 0x66FFFFFF;
-				g.draw_line(21, 21, x - s, y, x + s, y, w, c);
-				g.draw_line(21, 21, x, y - s, x, y + s, w, c);
+				const uint c = 0x99FF0000;
+				g.draw_rectangle_hud(21, 21, x - s, y -  w, x + s, y + w, 0, c);
+				g.draw_rectangle_hud(21, 21, x - w, y - s, x + w, y + s, 0, c);
 			}
 		}
 		

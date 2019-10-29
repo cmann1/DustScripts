@@ -275,7 +275,7 @@ class SpriteGroupSprite
 		int layer, int sub_layer, float x, float y, float rotation, float scale_x, float scale_y, uint colour=0xFFFFFFFF, uint frame=0, uint palette=0)
 	{
 		@this.spr = spr;
-		this.sprite_set =sprite_set;
+		this.sprite_set = sprite_set;
 		this.sprite_name = sprite_name;
 		
 		this.layer = layer;
