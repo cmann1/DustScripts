@@ -43,7 +43,7 @@ class script : callback_base
 		defaults = entity_outliner;
 	}
 	
-	void step(int entities)
+	void step_post(int entities)
 	{
 		if(entity_outliner.enabled)
 			entity_outliner.step(entities);
@@ -94,6 +94,7 @@ class EntityOutliner
 		for(int i = 0; i < entities; i++)
 		{
 			controllable@ c = entity_by_index(i).as_controllable();
+			
 			if(@c != null and c.life() > 0)
 			{
 				dustman@ dm = c.as_dustman();
