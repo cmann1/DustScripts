@@ -54,8 +54,9 @@ class PropPath : trigger_base
 	int dragged_vertex_index = -1;
 	float dragged_vertex_dx;
 	float dragged_vertex_dy;
-	float vertex_radius = pow(5, 2);
+	float vertex_radius = pow(7, 2);
 	int mouse_dragged_vertex_index = -1;
+	int mouse_over_vertex_index = -1;
 	
 	int t = 0;
 
@@ -197,10 +198,12 @@ class PropPath : trigger_base
 		
 		bool smart_handles = this.smart_handles;
 
-		if(self.editor_selected() && left_mouse_down || middle_mouse_down)
+		if(self.editor_selected())
 		{
 			if(middle_mouse_down)
 				smart_handles = !smart_handles;
+				
+			mouse_over_vertex_index = -1;
 			
 			if(mouse_dragged_vertex_index == -1)
 			{
@@ -213,31 +216,41 @@ class PropPath : trigger_base
 					dx = curve.x1 - mouse_x; dy = curve.y1 - mouse_y;
 					if(dx * dx + dy * dy <= vertex_radius)
 					{
-						mouse_dragged_vertex_index = i * 8;
+						mouse_over_vertex_index = i * 8;
 						break;
 					}
 					
 					dx = curve.x2 - mouse_x; dy = curve.y2 - mouse_y;
 					if(dx * dx + dy * dy <= vertex_radius)
 					{
-						mouse_dragged_vertex_index = i * 8 + 2;
+						mouse_over_vertex_index = i * 8 + 2;
 						break;
 					}
 					
 					dx = curve.x3 - mouse_x; dy = curve.y3 - mouse_y;
 					if(dx * dx + dy * dy <= vertex_radius)
 					{
-						mouse_dragged_vertex_index = i * 8 + 4;
+						mouse_over_vertex_index = i * 8 + 4;
 						break;
 					}
 					
 					dx = curve.x4 - mouse_x; dy = curve.y4 - mouse_y;
 					if(dx * dx + dy * dy <= vertex_radius)
 					{
-						mouse_dragged_vertex_index = i * 8 + 6;
+						mouse_over_vertex_index = i * 8 + 6;
 						break;
 					}
 				}
+			}
+			
+			if(left_mouse_down || middle_mouse_down)
+			{
+				if(mouse_dragged_vertex_index == -1)
+					mouse_dragged_vertex_index = mouse_over_vertex_index;
+			}
+			else
+			{
+				mouse_dragged_vertex_index = -1;
 			}
 			
 			if(mouse_dragged_vertex_index != -1)
@@ -447,24 +460,41 @@ class PropPath : trigger_base
 	void editor_draw(float sub_frame)
 	{
 		const float segment_length = 5;
-		const bool is_selected = self.editor_selected() || true;
+		const bool is_selected = self.editor_selected();
 		const int curve_count = int(curves.length());
 		
 		float total_length = 0;
 		const int layer = 22; // prop_def.layer;
+		
+		if(mouse_over_vertex_index != -1 || mouse_dragged_vertex_index != -1)
+		{
+			int index = mouse_dragged_vertex_index != -1 ? mouse_dragged_vertex_index : mouse_over_vertex_index;
+			const int dragged_handle = index % 8;
+			Bezier@ curve = @curves[index / 8];
+			
+			if(dragged_handle == 0)
+				draw_dot(g, layer, 23, curve.x1, curve.y1, 8, 0xFFFFFFFF, 0);
+			else if(dragged_handle == 2)
+				draw_dot(g, layer, 243, curve.x2, curve.y2, 7, 0xFFFFFFFF, 45);
+			else if(dragged_handle == 4)
+				draw_dot(g, layer, 23, curve.x3, curve.y3, 7, 0xFFFFFFFF, 45);
+			else if(dragged_handle == 6)
+				draw_dot(g, layer, 23, curve.x4, curve.y4, 8, 0xFFFFFFFF, 0);
+		}
 		
 		for(int i = 0; i < curve_count; i++)
 		{
 			Bezier@ curve = @curves[i];
 			total_length += curve.length;
 			
-			if(hide_overlays)
+			if(hide_overlays && !is_selected)
 				continue;
 				
 			float x1 = curve.x1;
 			float y1 = curve.y1;
 			float x2 = 0, y2 = 0;
 			float d = segment_length;
+			
 			while(d <= curve.length)
 			{
 				x2 = curve.mx(d);
@@ -474,6 +504,7 @@ class PropPath : trigger_base
 				y1 = y2;
 				d += segment_length;
 			}
+			
 			g.draw_line_world(layer, 24, x1, y1, x2, y2, 3, 0xFF3333FF);
 			
 			if(is_selected)
