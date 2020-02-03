@@ -27,6 +27,7 @@ class PropDef
 	[text] float scale_x = 1;
 	[text] float scale_y = 1;
 	[angle] float rotation;
+	[text] float rotation_rand = 0;
 	[text] float scale_sx = 1;
 	[text] float scale_sy = 1;
 	[text] float scale_ex = 1;
@@ -36,7 +37,7 @@ class PropDef
 	{
 		layer_start = (layer * 25 + sub_layer);
 		layer_end   = (end_layer != -1 ? end_layer : layer) * 25 + (end_sub_layer < 0 ? sub_layer : end_sub_layer);
-		layer_count = layer_end - layer_start + 1;// + start_layer_offset + end_layer_offset;
+		layer_count = layer_end - layer_start;// + start_layer_offset + end_layer_offset;
 	}
 	
 	void calculate_layers(int total_sub_layer, int &out current_layer, int &out current_sub_layer)
@@ -550,6 +551,8 @@ class PropPath : trigger_base
 		
 		if(curve_count > 0 && !hide_props)
 		{
+			srand(0);
+			
 			const float spacing = prop_def.spacing;
 			float d = spacing;
 			float total_d = d;
@@ -636,7 +639,7 @@ class PropPath : trigger_base
 				
 				spr.draw(current_layer, current_sub_layer, prop_def.frame, prop_def.palette,
 					x1, y1,
-					angle + prop_def.rotation,
+					angle + prop_def.rotation + rand_range(-prop_def.rotation_rand, prop_def.rotation_rand),
 					prop_def.scale_x * (scale_sx + d_scale_x * t),
 					prop_def.scale_y * (scale_sy + d_scale_y * t),
 					0xFFFFFFFF
