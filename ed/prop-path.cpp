@@ -15,11 +15,13 @@ class PropDef
 	[text] uint prop_set = 1;
 	[text] uint prop_group = 0;
 	[text] uint prop_index = 8;
-	[text] float origin_x = 0;
+	[text] float origin_x = 0.1;
 	[text] float origin_y = 0.5;
 	[text] float spacing = 55; 
 	[text] int layer = 19;
 	[text] int sub_layer = 19;
+	[text] int end_layer = -1;
+	[text] int end_sub_layer = -1;
 	[text] int frame = 0;
 	[text] int palette = 0;
 	[text] float scale_x = 1;
@@ -29,6 +31,24 @@ class PropDef
 	[text] float scale_sy = 1;
 	[text] float scale_ex = 1;
 	[text] float scale_ey = 1;
+	
+	void calculate_layer_ranges(int &out layer_start, int &out layer_end, int &out layer_count)
+	{
+		layer_start = (layer * 25 + sub_layer);
+		layer_end   = (end_layer != -1 ? end_layer : layer) * 25 + int(max(0, end_sub_layer));
+		layer_count = layer_end - layer_start + 1;// + start_layer_offset + end_layer_offset;
+	}
+	
+	void calculate_layers(int layer_start, int layer_count, int total_sub_layer, int &out current_layer, int &out current_sub_layer)
+	{
+		current_layer = (total_sub_layer / 25);
+		current_sub_layer = (total_sub_layer % 25);
+	}
+	
+	void calculate_layers(int layer_start, int layer_count, float t, int &out current_layer, int &out current_sub_layer)
+	{
+		calculate_layers(layer_start, layer_count, int(layer_start + layer_count * t), current_layer, current_sub_layer);
+	}
 }
 
 class PropPath : trigger_base
@@ -111,6 +131,10 @@ class PropPath : trigger_base
 			float d_scale_x = prop_def.scale_ex - scale_sx;
 			float d_scale_y = prop_def.scale_ey - scale_sy;
 			
+			int layer_start, layer_end, layer_count;
+			prop_def.calculate_layer_ranges(layer_start, layer_end, layer_count);
+			float layer_current = layer_start;
+			
 			while(true)
 			{
 				const float t = total_d / total_length;
@@ -120,6 +144,10 @@ class PropPath : trigger_base
 				const float angle = atan2(y2 - y1, x2 - x1) * RAD2DEG + prop_def.rotation;
 				const float scale_x = prop_def.scale_x * (scale_sx + d_scale_x * t);
 				const float scale_y = prop_def.scale_y * (scale_sy + d_scale_y * t);
+				
+				float base_t = (total_d - spacing) / (total_length - spacing);
+				int current_layer, current_sub_layer;
+				prop_def.calculate_layers(layer_start, layer_count, base_t, current_layer, current_sub_layer);
 				
 				spr.real_position(x1, y1, angle, x, y, scale_x, scale_y);
 				prop@ p = create_prop();
@@ -132,8 +160,8 @@ class PropPath : trigger_base
 				p.prop_group(prop_def.prop_group);
 				p.prop_index(prop_def.prop_index);
 				p.palette(prop_def.palette);
-				p.layer(prop_def.layer);
-				p.sub_layer(prop_def.sub_layer);
+				p.layer(current_layer);
+				p.sub_layer(current_sub_layer);
 				g.add_prop(p);
 				
 				d += spacing;
@@ -461,6 +489,7 @@ class PropPath : trigger_base
 	{
 		const float segment_length = 5;
 		const bool is_selected = self.editor_selected();
+		const bool draw = is_selected || ! hide_overlays;
 		const int curve_count = int(curves.length());
 		
 		float total_length = 0;
@@ -487,7 +516,7 @@ class PropPath : trigger_base
 			Bezier@ curve = @curves[i];
 			total_length += curve.length;
 			
-			if(hide_overlays && !is_selected)
+			if(!draw)
 				continue;
 				
 			float x1 = curve.x1;
@@ -499,7 +528,9 @@ class PropPath : trigger_base
 			{
 				x2 = curve.mx(d);
 				y2 = curve.my(d);
+				
 				g.draw_line_world(layer, 24, x1, y1, x2, y2, 3, 0xFF3333FF);
+				
 				x1 = x2;
 				y1 = y2;
 				d += segment_length;
@@ -507,16 +538,13 @@ class PropPath : trigger_base
 			
 			g.draw_line_world(layer, 24, x1, y1, x2, y2, 3, 0xFF3333FF);
 			
-			if(is_selected)
-			{
-				g.draw_line_world(layer, 24, curve.x1, curve.y1, curve.x2, curve.y2, 2, 0xFFFF44FF);
-				g.draw_line_world(layer, 24, curve.x3, curve.y3, curve.x4, curve.y4, 2, 0xFFFF44FF);
-				
-				draw_dot(g, layer, 24, curve.x1, curve.y1, 5, 0xFFEE3333, 0);
-				draw_dot(g, layer, 24, curve.x2, curve.y2, 4, 0xFFEE4488, 45);
-				draw_dot(g, layer, 24, curve.x3, curve.y3, 4, 0xFFFF4444, 45);
-				draw_dot(g, layer, 24, curve.x4, curve.y4, 5, 0xFFFF0000, 0);
-			}
+			g.draw_line_world(layer, 24, curve.x1, curve.y1, curve.x2, curve.y2, 2, 0xFFFF44FF);
+			g.draw_line_world(layer, 24, curve.x3, curve.y3, curve.x4, curve.y4, 2, 0xFFFF44FF);
+			
+			draw_dot(g, layer, 24, curve.x1, curve.y1, 5, 0xFFEE3333, 0);
+			draw_dot(g, layer, 24, curve.x2, curve.y2, 4, 0xFFEE4488, 45);
+			draw_dot(g, layer, 24, curve.x3, curve.y3, 4, 0xFFFF4444, 45);
+			draw_dot(g, layer, 24, curve.x4, curve.y4, 5, 0xFFFF0000, 0);
 		}
 		
 		if(curve_count > 0 && !hide_props)
@@ -534,13 +562,22 @@ class PropPath : trigger_base
 			float d_scale_x = prop_def.scale_ex - scale_sx;
 			float d_scale_y = prop_def.scale_ey - scale_sy;
 			
+			int layer_start, layer_end, layer_count;
+			prop_def.calculate_layer_ranges(layer_start, layer_end, layer_count);
+			float layer_current = layer_start;
+			
 			while(true)
 			{
 				const float t = total_d / total_length;
 				const float x2 = curve.mx(d);
 				const float y2 = curve.my(d);
 				const float angle = atan2(y2 - y1, x2 - x1) * RAD2DEG;
-				spr.draw(prop_def.layer, prop_def.sub_layer, prop_def.frame, prop_def.palette,
+				
+				float base_t = (total_d - spacing) / (total_length - spacing);
+				int current_layer, current_sub_layer;
+				prop_def.calculate_layers(layer_start, layer_count, base_t, current_layer, current_sub_layer);
+				
+				spr.draw(current_layer, current_sub_layer, prop_def.frame, prop_def.palette,
 					x1, y1,
 					angle + prop_def.rotation,
 					prop_def.scale_x * (scale_sx + d_scale_x * t),
@@ -552,6 +589,7 @@ class PropPath : trigger_base
 				total_d += spacing;
 				x1 = x2;
 				y1 = y2;
+				
 				if(d > curve.length)
 				{
 					if(curve_index >= curve_count)
