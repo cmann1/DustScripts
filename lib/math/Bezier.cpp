@@ -17,6 +17,7 @@ class Bezier
 	bool requires_update = true;
 	
 	Bezier() {}
+	
 	Bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, int num_arcs=10)
 	{
 		this.x1 = x1;
@@ -77,9 +78,11 @@ class Bezier
 	{
         int low = 0, high = num_arcs;
 		int index = 0;
+		
         while(low < high)
 		{
-            index = low + (((high - low) / 2) | 0);
+            index = low + ((high - low) / 2);
+			
             if(arc_lengths[index] < distance)
 			{
                 low = index + 1;
@@ -89,19 +92,22 @@ class Bezier
                 high = index;
             }
         }
+		
         if(arc_lengths[index] > distance)
 		{
             index--;
         }
+		
+		if(index < 0)
+			index = 0;
+		else if(index >= num_arcs)
+			index = num_arcs - 1;
 
         float lengthBefore = arc_lengths[index];
-        if(lengthBefore == distance)
-		{
-            return float(index) / num_arcs;
-
-        } else {
-            return (index + (distance - lengthBefore) / (arc_lengths[index + 1] - lengthBefore)) / num_arcs;
-        }
+		
+		return lengthBefore == distance
+			? float(index) / num_arcs
+			: (index + (distance - lengthBefore) / (arc_lengths[index + 1] - lengthBefore)) / num_arcs;
     }
 	
 	float mx(float distance)

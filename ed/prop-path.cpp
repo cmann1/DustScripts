@@ -35,11 +35,11 @@ class PropDef
 	void calculate_layer_ranges(int &out layer_start, int &out layer_end, int &out layer_count)
 	{
 		layer_start = (layer * 25 + sub_layer);
-		layer_end   = (end_layer != -1 ? end_layer : layer) * 25 + int(max(0, end_sub_layer));
+		layer_end   = (end_layer != -1 ? end_layer : layer) * 25 + (end_sub_layer < 0 ? sub_layer : end_sub_layer);
 		layer_count = layer_end - layer_start + 1;// + start_layer_offset + end_layer_offset;
 	}
 	
-	void calculate_layers(int layer_start, int layer_count, int total_sub_layer, int &out current_layer, int &out current_sub_layer)
+	void calculate_layers(int total_sub_layer, int &out current_layer, int &out current_sub_layer)
 	{
 		current_layer = (total_sub_layer / 25);
 		current_sub_layer = (total_sub_layer % 25);
@@ -47,7 +47,7 @@ class PropDef
 	
 	void calculate_layers(int layer_start, int layer_count, float t, int &out current_layer, int &out current_sub_layer)
 	{
-		calculate_layers(layer_start, layer_count, int(layer_start + layer_count * t), current_layer, current_sub_layer);
+		calculate_layers(int(layer_start + layer_count * t), current_layer, current_sub_layer);
 	}
 }
 
@@ -63,6 +63,7 @@ class PropPath : trigger_base
 	[text] bool hide_props = false;
 	[text] bool hide_overlays = false;
 	[text] bool smart_handles = true;
+	[text] bool accurate = true;
 	[text] array<Bezier> curves;
 	[text] PropDef prop_def;
 	
@@ -566,12 +567,68 @@ class PropPath : trigger_base
 			prop_def.calculate_layer_ranges(layer_start, layer_end, layer_count);
 			float layer_current = layer_start;
 			
+//			if(is_selected)
+//				puts('--------------');
+//			
 			while(true)
 			{
-				const float t = total_d / total_length;
-				const float x2 = curve.mx(d);
-				const float y2 = curve.my(d);
-				const float angle = atan2(y2 - y1, x2 - x1) * RAD2DEG;
+//				float current_d = d;
+				float t = total_d / total_length;
+				float x2, y2;
+				float dx, dy;
+				float dist, diff;
+				float prev_diff = 0;
+				int flip_count = 0;
+					
+//				if(is_selected)
+//					puts('  ---------- '  + t + ', ' + d + ' / ' + curve.length);
+				
+				do
+				{
+					x2 = curve.mx(d);
+					y2 = curve.my(d);
+					dx = x2 - x1;
+					dy = y2 - y1;
+					dist = sqrt(dx * dx + dy * dy);
+					diff = spacing - dist;
+					
+					if(!accurate)
+					{
+						break;
+					}
+					
+					if(prev_diff == 0)
+					{
+						prev_diff = diff * 0.5;
+					}
+					
+//					if(is_selected)
+//						puts('    ' +dist+'  ' + prev_diff+' > '+diff);
+					
+					d += diff;
+					
+					if(d >= curve.length)
+					{
+						x2 = curve.x4;
+						y2 = curve.y4;
+						dist = curve.length - d;
+						break;
+					}
+					
+					if(diff < 0 && prev_diff > 0 || diff > 0 && prev_diff < 0)
+					{
+						if(++flip_count > 4)
+							break;
+					}
+					
+					if(flip_count > 0 && abs(diff) >= abs(prev_diff))
+						break;
+					
+					prev_diff = diff;
+				}
+				while(abs(diff) > 1);
+				
+				float angle = atan2(dy, dx) * RAD2DEG;
 				
 				float base_t = (total_d - spacing) / (total_length - spacing);
 				int current_layer, current_sub_layer;
@@ -585,12 +642,12 @@ class PropPath : trigger_base
 					0xFFFFFFFF
 				);
 				
-				d += spacing;
-				total_d += spacing;
+				d += dist;
+				total_d += dist;
 				x1 = x2;
 				y1 = y2;
 				
-				if(d > curve.length)
+				if(d >= curve.length || dist <= 0)
 				{
 					if(curve_index >= curve_count)
 						break;
