@@ -22,6 +22,7 @@ When you're happy with the results, press the "place" button and delete the trig
 * **hide_props:** Don't render props for testing.
 * **hide_overlays:** Don't render the curves and handles. Useful for checking prop placement without other stuff in the way.
 * **smart_handles:** If checked control points on this and adjacent curves will be kept parallel and will be moved along with vertices.
+* **accurate:** Tries to place props more accurately. Useful if the curve has tight corners.
 * **curves:** The path is made up of one or more bezier curves. Use the +/- buttons to and and remove segments.
 	* Points 1 and 4 are start and end points
 	* Points 1 and 2 control the shape of the curve
@@ -30,6 +31,7 @@ When you're happy with the results, press the "place" button and delete the trig
 	* **origin_x/y:** A range from 0 to 1. The point (relative to its bounding box) around which the prop is placed. 0,0 would be the top left corner, and 1,1 the bottom right
 	* **spacing:** The amount of space on the path between each prop placed.
 	* **layer:** The layer/sub_layer the prop is placed on.
+	* **end_layer:** If not -1, props will slowly transition along the curve from **layer** to this layer.
 	* **frame:** The prop's frame
 	* **palette:** The prop's palette
 	* **scale_x/y:** The scale of the prop. **NOTE:** This doesn't seem to work. Prop scales aren't remembered.
