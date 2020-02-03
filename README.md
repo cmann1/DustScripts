@@ -6,6 +6,10 @@ At the very least I'll include "lib/std.cpp" in most projects, which contains so
 # Shared
 A collection of stand-alone scripts to add predefined functionality to a map, eg. outlining entities.
 Once added to a map and compiled, left click the script name to save it as a preset so that it can easily be added to other maps in the future.
+- **Entity outliner** - Draws a configurable outlines around entities
+- **Breakable wall** - Allows you to mark rectangular regions of tiles as breakable
+- **Prop wind** - Will make certain props sway in the wind
+ - **Shadows** - Casts shadows from tiles
 
 # Editor Utils
 
@@ -14,7 +18,18 @@ Once added to a map and compiled, left click the script name to save it as a pre
 2. Open the script tab in the editor.
 3. Click the text box, type **ed/prop-path.cpp** and hit enter
 
-#### Prop Path
+#### Props (pp.cpp)
+The main script has a utility for selecting and outputting code that can be used to draw them inside of a script.
+- **PropMover** - A trigger that can be used to move props between layers and sub layers
+
+#### Tiles (t.cpp)
+- **RemoveTileEdges** - Removes edges from selected tiles
+
+#### Emitters (em.cpp)
+- **SetEmitterSubLayer** - allows setting emitter sub layers
+- **SetEmitterRotation** - allows setting emitter rotation
+
+#### Prop Path (prop-path.cpp)
 A script trigger for placing props along a user defined path.  
 Place a PropPath trigger, use the controls to select a prop and create the path - a live preview will be rendered.  
 When you're happy with the results, press the "place" button and delete the trigger.
@@ -39,7 +54,7 @@ When you're happy with the results, press the "place" button and delete the trig
 	* **scale_sx/y:** The starting scale of the prop. The prop's scale will change from this scale at the start of the path, to **scale_ex/y** at the end of the path.
 	* **scale_ex/y:** The ending scale of the prop
 
-##### Controls
+###### Controls
 NOTE: These are now supported in-editor in the latest Dustmod.
 * **Left mouse**: Move handles.
 * **Middle mouse**: Move handles as if the **smart_handles** option is off.
