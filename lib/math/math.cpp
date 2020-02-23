@@ -218,7 +218,7 @@ bool line_rectangle_intersection(float ax, float ay, float bx, float by, float r
 	if(line_line_intersection(ax, ay, bx, by, r1x, r1y, r2x, r1y, x, y, t))
 		return true;
 	// Bottom
-	if(line_line_intersection(ax, ay, bx, by, r2x, r1y, r2x, r2y, x, y, t))
+	if(line_line_intersection(ax, ay, bx, by, r1x, r2y, r2x, r2y, x, y, t))
 		return true;
 	// Left
 	if(line_line_intersection(ax, ay, bx, by, r1x, r1y, r1x, r2y, x, y, t))
