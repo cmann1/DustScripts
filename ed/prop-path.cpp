@@ -61,6 +61,8 @@ class PropPath : trigger_base
 	[text] bool place = false;
 	[hidden] bool place_prev = false;
 
+	[text] bool relative = true;
+	[text] bool randomise_constantly = false;
 	[text] bool hide_props = false;
 	[text] bool hide_overlays = false;
 	[text] bool smart_handles = true;
@@ -115,6 +117,14 @@ class PropPath : trigger_base
 		
 		if(curve_count > 0)
 		{
+			if(!randomise_constantly)
+			{
+				srand(0);
+			}
+			
+			float tx = self.x();
+			float ty = self.y();
+			
 			float total_length = 0;
 			for(int i = 0; i < curve_count; i++)
 				total_length += curves[i].length;
@@ -127,7 +137,7 @@ class PropPath : trigger_base
 			float x1 = curve.x1;
 			float y1 = curve.y1;
 			float x, y;
-			
+
 			const float scale_sx = prop_def.scale_sx;
 			const float scale_sy = prop_def.scale_sy;
 			float d_scale_x = prop_def.scale_ex - scale_sx;
@@ -143,7 +153,7 @@ class PropPath : trigger_base
 				
 				const float x2 = curve.mx(d);
 				const float y2 = curve.my(d);
-				const float angle = atan2(y2 - y1, x2 - x1) * RAD2DEG + prop_def.rotation;
+				const float angle = (atan2(y2 - y1, x2 - x1) * RAD2DEG) + prop_def.rotation + rand_range(-prop_def.rotation_rand, prop_def.rotation_rand);
 				const float scale_x = prop_def.scale_x * (scale_sx + d_scale_x * t);
 				const float scale_y = prop_def.scale_y * (scale_sy + d_scale_y * t);
 				
@@ -153,8 +163,8 @@ class PropPath : trigger_base
 				
 				spr.real_position(x1, y1, angle, x, y, scale_x, scale_y);
 				prop@ p = create_prop();
-				p.x(x);
-				p.y(y);
+				p.x(relative ? tx + x : x);
+				p.y(relative ? ty + y : y);
 				p.rotation(angle);
 				p.scale_x(scale_x);
 				p.scale_y(scale_y);
@@ -187,7 +197,7 @@ class PropPath : trigger_base
 	void editor_step()
 	{
 		const int curve_count = curves.length();
-		
+
 		if(vertex_count != curve_count * 8)
 		{
 			const int count_prev = vertex_count / 8;
@@ -201,8 +211,8 @@ class PropPath : trigger_base
 					const bool p = i > 0;
 					Bezier@ cp = p ? @curves[i - 1] : null;
 					Bezier@ curve = @curves[i];
-					previous_curve_values[vi    ] = curve.x1 = p ? cp.x4 : self.x() - 100;
-					previous_curve_values[vi + 1] = curve.y1 = p ? cp.y4 : self.y();
+					previous_curve_values[vi    ] = curve.x1 = p ? cp.x4 : (relative ? -100.0 : self.x() - 100.0);
+					previous_curve_values[vi + 1] = curve.y1 = p ? cp.y4 : (relative ? 0 : self.y());
 					previous_curve_values[vi + 2] = curve.x2 = curve.x1 + (p ? (cp.x4 - cp.x3) :  50);
 					previous_curve_values[vi + 3] = curve.y2 = curve.y1 + (p ? (cp.y4 - cp.y3) : -50);
 					previous_curve_values[vi + 4] = curve.x3 = curve.x1 + 150;
@@ -220,11 +230,14 @@ class PropPath : trigger_base
 		
 		if(place != place_prev)
 			place_props();
-			
+		
+		float tx = relative ? self.x() : 0;
+		float ty = relative ? self.y() : 0;
+		
 		const bool left_mouse_down = g.mouse_state(0) & 4 != 0;
 		const bool middle_mouse_down = g.mouse_state(0) & 16 != 0;
-		const float mouse_x = g.mouse_x_world(0, 22); //prop_def.layer);
-		const float mouse_y = g.mouse_y_world(0, 22); //prop_def.layer);
+		const float mouse_x = g.mouse_x_world(0, 22) - tx;
+		const float mouse_y = g.mouse_y_world(0, 22) - ty;
 		
 		bool smart_handles = this.smart_handles;
 
@@ -493,6 +506,8 @@ class PropPath : trigger_base
 		const bool is_selected = self.editor_selected();
 		const bool draw = is_selected || ! hide_overlays;
 		const int curve_count = int(curves.length());
+		float x = relative ? self.x() : 0;
+		float y = relative ? self.y() : 0;
 		
 		float total_length = 0;
 		const int layer = 22; // prop_def.layer;
@@ -504,13 +519,13 @@ class PropPath : trigger_base
 			Bezier@ curve = @curves[index / 8];
 			
 			if(dragged_handle == 0)
-				draw_dot(g, layer, 23, curve.x1, curve.y1, 8, 0xFFFFFFFF, 0);
+				draw_dot(g, layer, 23, x + curve.x1, y + curve.y1, 8, 0xFFFFFFFF, 0);
 			else if(dragged_handle == 2)
-				draw_dot(g, layer, 243, curve.x2, curve.y2, 7, 0xFFFFFFFF, 45);
+				draw_dot(g, layer, 243, x + curve.x2, y + curve.y2, 7, 0xFFFFFFFF, 45);
 			else if(dragged_handle == 4)
-				draw_dot(g, layer, 23, curve.x3, curve.y3, 7, 0xFFFFFFFF, 45);
+				draw_dot(g, layer, 23, x + curve.x3, y + curve.y3, 7, 0xFFFFFFFF, 45);
 			else if(dragged_handle == 6)
-				draw_dot(g, layer, 23, curve.x4, curve.y4, 8, 0xFFFFFFFF, 0);
+				draw_dot(g, layer, 23, x + curve.x4, y + curve.y4, 8, 0xFFFFFFFF, 0);
 		}
 		
 		for(int i = 0; i < curve_count; i++)
@@ -531,28 +546,31 @@ class PropPath : trigger_base
 				x2 = curve.mx(d);
 				y2 = curve.my(d);
 				
-				g.draw_line_world(layer, 24, x1, y1, x2, y2, 3, 0xFF3333FF);
+				g.draw_line_world(layer, 24, x + x1, y + y1, x + x2, y + y2, 3, 0xFF3333FF);
 				
 				x1 = x2;
 				y1 = y2;
 				d += segment_length;
 			}
 			
-			g.draw_line_world(layer, 24, x1, y1, x2, y2, 3, 0xFF3333FF);
+			g.draw_line_world(layer, 24, x + x1, y + y1, x + x2, y + y2, 3, 0xFF3333FF);
 			
-			g.draw_line_world(layer, 24, curve.x1, curve.y1, curve.x2, curve.y2, 2, 0xFFFF44FF);
-			g.draw_line_world(layer, 24, curve.x3, curve.y3, curve.x4, curve.y4, 2, 0xFFFF44FF);
+			g.draw_line_world(layer, 24, x + curve.x1, y + curve.y1, x + curve.x2, y + curve.y2, 2, 0xFFFF44FF);
+			g.draw_line_world(layer, 24, x + curve.x3, y + curve.y3, x + curve.x4, y + curve.y4, 2, 0xFFFF44FF);
 			
-			draw_dot(g, layer, 24, curve.x1, curve.y1, 5, 0xFFEE3333, 0);
-			draw_dot(g, layer, 24, curve.x2, curve.y2, 4, 0xFFEE4488, 45);
-			draw_dot(g, layer, 24, curve.x3, curve.y3, 4, 0xFFFF4444, 45);
-			draw_dot(g, layer, 24, curve.x4, curve.y4, 5, 0xFFFF0000, 0);
+			draw_dot(g, layer, 24, x + curve.x1, y + curve.y1, 5, 0xFFEE3333, 0);
+			draw_dot(g, layer, 24, x + curve.x2, y + curve.y2, 4, 0xFFEE4488, 45);
+			draw_dot(g, layer, 24, x + curve.x3, y + curve.y3, 4, 0xFFFF4444, 45);
+			draw_dot(g, layer, 24, x + curve.x4, y + curve.y4, 5, 0xFFFF0000, 0);
 		}
 		
 		if(curve_count > 0 && !hide_props)
 		{
-			srand(0);
-			
+			if(!randomise_constantly)
+			{
+				srand(0);
+			}
+
 			const float spacing = prop_def.spacing;
 			float d = spacing;
 			float total_d = d;
@@ -631,15 +649,15 @@ class PropPath : trigger_base
 				}
 				while(abs(diff) > 1);
 				
-				float angle = atan2(dy, dx) * RAD2DEG;
+				float angle = (atan2(dy, dx) * RAD2DEG) + prop_def.rotation + rand_range(-prop_def.rotation_rand, prop_def.rotation_rand);
 				
 				float base_t = (total_d - spacing) / (total_length - spacing);
 				int current_layer, current_sub_layer;
 				prop_def.calculate_layers(layer_start, layer_count, base_t, current_layer, current_sub_layer);
 				
 				spr.draw(current_layer, current_sub_layer, prop_def.frame, prop_def.palette,
-					x1, y1,
-					angle + prop_def.rotation + rand_range(-prop_def.rotation_rand, prop_def.rotation_rand),
+					x + x1, y + y1,
+					angle,
 					prop_def.scale_x * (scale_sx + d_scale_x * t),
 					prop_def.scale_y * (scale_sy + d_scale_y * t),
 					0xFFFFFFFF
