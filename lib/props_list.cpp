@@ -13,7 +13,7 @@ class PropIndex
 	
 	PropIndex() { }
 	
-	PropData(uint set, uint group, uint index, uint palettes, string name)
+	PropIndex(uint set, uint group, uint index, uint palettes, string name)
 	{
 		this.set = set;
 		this.group = group;
