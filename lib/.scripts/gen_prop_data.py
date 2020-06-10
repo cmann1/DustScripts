@@ -71,12 +71,12 @@ class PropIndex
 		this.name = name;
 	}
 	
-	string sprite_set_name()
+	string sprite_set_name() const
 	{
 		return 'props' + set;
 	}
 	
-	string sprite_name()
+	string sprite_name() const
 	{
 		return PROP_GROUP_NAMES[group] + '_' + index;
 	}

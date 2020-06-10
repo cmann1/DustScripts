@@ -22,12 +22,12 @@ class PropIndex
 		this.name = name;
 	}
 	
-	string sprite_set_name()
+	string sprite_set_name() const
 	{
 		return 'props' + set;
 	}
 	
-	string sprite_name()
+	string sprite_name() const
 	{
 		return PROP_GROUP_NAMES[group] + '_' + index;
 	}
@@ -140,7 +140,7 @@ const array<array<PropIndex>> PROP_INDICES = {
 		PropIndex(2, 5, 19, 1, "Mushroom Red Big"),
 		PropIndex(2, 5, 20, 1, "Mushroom Red Group"),
 		PropIndex(2, 5, 21, 1, "Mushroom White Group"),
-		PropIndex(2, 5, 22, 1, "Mushroom Whtie Big"),
+		PropIndex(2, 5, 22, 1, "Mushroom White Big"),
 		PropIndex(2, 5, 23, 1, "Mushroom Blue Big"),
 		PropIndex(2, 5, 24, 1, "Mushroom Blue Group"),
 		PropIndex(2, 5, 25, 1, "Apple"),
@@ -192,7 +192,7 @@ const array<array<PropIndex>> PROP_INDICES = {
 		PropIndex(1, 11, 1, 1, "Barrel"),
 		PropIndex(1, 11, 2, 1, "Barrel Side"),
 		PropIndex(1, 11, 3, 1, "Crate Big"),
-		PropIndex(1, 11, 4, 1, "Create Small"),
+		PropIndex(1, 11, 4, 1, "Crate Small"),
 	},
 	{ // study
 		PropIndex(1, 12, 1, 1, "Globe"),
