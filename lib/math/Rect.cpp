@@ -84,4 +84,9 @@ class Rect
 		return pos.x <= x2 && pos.x >= x1 && pos.y <= y2 && pos.y >= y1;
 	}
 	
+	string to_string()
+	{
+		return '[' + x1 + ',' + y1 + ' > ' + x2 + ',' + y2 + ']';
+	}
+	
 }
