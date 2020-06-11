@@ -112,34 +112,6 @@ class script
 		
 		move_tail(mouse_x, mouse_y);
 		
-		// Move the tail towards the position
-		float tail_delta_x = tail_x - mouse_x;
-		float tail_delta_y = tail_y - mouse_y;
-		float tail_angle = atan2(tail_delta_y, tail_delta_x);
-		const float tail_t = 1 - clamp01(smoothing * DT);
-		tail_x -= tail_delta_x * tail_t;
-		tail_y -= tail_delta_y * tail_t;
-		
-		// Clamp the tail distance
-		tail_delta_x = tail_x - mouse_x;
-		tail_delta_y = tail_y - mouse_y;
-		const float tail_distance = tail_delta_x * tail_delta_x + tail_delta_y * tail_delta_y;
-		const float tail_dist_min = smoothing * 0.1;
-		const float tail_dist_max = smoothing * 2.5;
-		
-		if(tail_dist_min > 0 && tail_distance < tail_dist_min * tail_dist_min)
-		{
-			tail_x = mouse_x + cos(tail_angle) * tail_dist_min;
-			tail_y = mouse_y + sin(tail_angle) * tail_dist_min;
-		}
-		
-		if(tail_dist_max >= 0 && tail_distance > tail_dist_max * tail_dist_max)
-		{
-			tail_x = mouse_x + cos(tail_angle) * tail_dist_max;
-			tail_y = mouse_y + sin(tail_angle) * tail_dist_max;
-		}
-		
-		
 		if(ui.right_mouse_down)
 		{
 			if(ui.right_mouse_press)
@@ -158,8 +130,8 @@ class script
 		
 		if(smoothing > 0)
 		{
-			tail_delta_x = mouse_x - tail_x;
-			tail_delta_y = mouse_y - tail_y;
+			const float tail_delta_x = mouse_x - tail_x;
+			const float tail_delta_y = mouse_y - tail_y;
 			draw_angle = atan2(tail_delta_y, tail_delta_x);
 		}
 		else
