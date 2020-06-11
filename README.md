@@ -80,7 +80,7 @@ An editor script for quickly placing props.
 - **draw** - Disables the prop brush. Make sure to turn off when using other tools.
 - **preview** - Shows a preview of the first brush.
 - **spread_mul** - A global multiplier for brush spread.
-- **angle_nul** - A global multiplier for brush angle.
+- **angle_mul** - A global multiplier for brush angle.
 - **smoothing** - Smooths the brush angle. Only relevant when **brush.rotate_to_dir** is set.
 - **brush**
     - **brush.active** - Can be used to disable individual brushes.
