@@ -74,6 +74,22 @@ class Rect
 		y2 = min(y2, other.y2);
 	}
 	
+	void expand(float amount)
+	{
+		x1 -= amount;
+		y1 -= amount;
+		x2 += amount;
+		y2 += amount;
+	}
+	
+	void offset(float x, float y)
+	{
+		x1 += x;
+		y1 += y;
+		x2 += x;
+		y2 += y;
+	}
+	
 	bool overlaps_point(float x, float y)
 	{
 		return x <= x2 && x >= x1 && y <= y2 && y >= y1;
