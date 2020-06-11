@@ -110,6 +110,8 @@ class PropSelector : ButtonClickHandler
 				PropIcon@ propIcon = PropIcon(ui, @this, propIndex);
 				propsContainer.addChild(propIcon);
 			}
+			
+			groupContainer.scroll_into_view = groupContainer.children.findByRef(group);
 		}
 	}
 	

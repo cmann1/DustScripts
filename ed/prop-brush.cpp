@@ -4,7 +4,7 @@
 
 /*
  * PropSelector:
- * 	Scroll into view for ScrollView
+ * 	Some props aren't reselected when opening prop selector window
  */
 
 class script
@@ -58,6 +58,9 @@ class script
 		{
 			if(!prop_selector.visible)
 			{
+				prop_selector.select_group(null);
+				prop_selector.select_prop(null);
+				
 				if(has_sprite)
 				{
 					prop_selector.select_prop(prop_set, prop_group, prop_index, prop_palette);
