@@ -30,8 +30,8 @@ for set_index in prop_data:
 			_, _, rect_uw, rect_uh = sprite_data['palettes'][0][0]['rect_uv']
 			
 			ox, oy = sprite_data['origin'] if 'origin' in sprite_data else (0.5, 0.5)
-			ox = (ox * rect_w - x) / w
-			oy = (oy * rect_h - y) / h
+			ox = (ox * rect_w) / w
+			oy = (oy * rect_h) / h
 			
 			x += rect_x
 			y += rect_y
