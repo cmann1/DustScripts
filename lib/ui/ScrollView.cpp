@@ -44,7 +44,6 @@ class ScrollView : Container
 		float new_scroll = -1;
 		
 		const bool is_horizontal = direction == Direction::Horizontal;
-		const float axis2_end = is_horizontal ? rect.y2 : rect.x2;
 		const float axis1_size = is_horizontal ? rect.width : rect.height;
 		const float axis2_size = is_horizontal ? rect.height : rect.width;
 		
@@ -63,6 +62,7 @@ class ScrollView : Container
 			
 			float child_x1, child_y1, child_x2, child_y2;
 			float child_axis1_size = is_horizontal ? child.width : child.height;
+			float child_axis2_size = is_horizontal ? child.height : child.width;
 			
 			if(is_horizontal)
 			{
@@ -95,8 +95,6 @@ class ScrollView : Container
 				}
 			}
 			
-			float axis2_extents = is_horizontal ? child_y2 : child_x2;
-			
 			if(child_axis1_size > current_axis1_size)
 			{
 				current_axis1_size = child_axis1_size;
@@ -107,16 +105,14 @@ class ScrollView : Container
 				content_size = axis1 + child_axis1_size;
 			}
 			
-			if(axis2_index >= columns || axis2_extents > axis2_end)
+			axis2 += child_axis2_size + padding;
+			
+			if(axis2_index >= columns || axis2 > axis2_size)
 			{
 				axis2_index = 0;
 				axis2 = 0;
 				axis1 += current_axis1_size + padding;
 				current_axis1_size = 0;
-			}
-			else
-			{
-				axis2 += (is_horizontal ? child.width : child.height) + padding;
 			}
 		}
 		
