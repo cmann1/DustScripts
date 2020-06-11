@@ -1,3 +1,33 @@
+void draw_circle(scene@ g, float x, float y, float radius, uint segments, uint layer, uint sub_layer, float thickness=2, uint colour=0xFFFFFFFF, bool world=true)
+{
+	if(segments < 3) segments = 3;
+	
+	float angle = 0;
+	float angle_step = PI * 2 / segments;
+	
+	for(uint i = 0; i < segments; i++)
+	{
+		if(world)
+		{
+			g.draw_line(
+				layer, sub_layer, 
+				x + cos(angle) * radius, y + sin(angle) * radius,
+				x + cos(angle + angle_step) * radius, y + sin(angle + angle_step) * radius,
+				thickness, colour);
+		}
+		else
+		{
+			g.draw_line_hud(
+				layer, sub_layer, 
+				x + cos(angle) * radius, y + sin(angle) * radius,
+				x + cos(angle + angle_step) * radius, y + sin(angle + angle_step) * radius,
+				thickness, colour);
+		}
+		
+		angle += angle_step;
+	}
+}
+
 void fill_circle(scene@ g, uint layer, uint sub_layer, const float x, const float y, const float radius, int segments, uint colour1, uint colour2)
 {
 	float prev_x = x + radius;
