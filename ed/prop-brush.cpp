@@ -10,6 +10,7 @@ class script
 {
 	
 	[text] bool draw = false;
+	[text] bool preview = true;
 	/** A multiplier for spread affecting all props in the brush */
 	[text] float spread_mul = 1;
 	/** A multiplier for angle affecting all props in the brush */
@@ -24,7 +25,7 @@ class script
 	private int selected_brush_def_index = -1;
 	
 	private bool started = false;
-	private Sprite sprite;
+	private sprites@ sprite;
 	
 	private float tail_x;
 	private float tail_y;
@@ -37,6 +38,7 @@ class script
 	script()
 	{
 		@g = get_scene();
+		@sprite = create_sprites();
 	}
 	
 	void start()
@@ -274,6 +276,11 @@ class script
 			const uint range_colour = alpha | 0x4444ff;
 			const float overlay_angle = @brush == null || brush.rotate_to_dir  ? draw_angle : 0;
 			
+			if(preview && !ui.right_mouse_down && @brush != null)
+			{
+				brush.preview(@sprite, mouse_x, mouse_y, overlay_angle, angle_mul, alpha | 0xffffff);
+			}
+			
 			// Draw tail
 //			g.draw_line(
 //				mouse_layer, 24,
@@ -472,42 +479,14 @@ class BrushDef
 			}
 			
 			PropSelection@ prop_selection = valid_props[rand_range(0, prop_count - 1)];
-			const PropBounds@ bounds = @prop_selection.prop_bounds;
-			const Pivot pivot_alignment = prop_selection.pivot;
-			Vec2 pivot;
 			
-			if(pivot_alignment == Centre)
-				pivot.set(0.5, 0.5);
-			else if(pivot_alignment == Origin)
-				pivot.set(bounds.origin_x, bounds.origin_y);
-			else if(pivot_alignment == TopLeft)
-				pivot.set(0.0, 0.0);
-			else if(pivot_alignment == Top)
-				pivot.set(0.5, 0.0);
-			else if(pivot_alignment == TopRight)
-				pivot.set(1.0, 0.0);
-			else if(pivot_alignment == Right)
-				pivot.set(1.0, 0.5);
-			else if(pivot_alignment == BottomRight)
-				pivot.set(1.0, 1.0);
-			else if(pivot_alignment == Bottom)
-				pivot.set(0.5, 1.0);
-			else if(pivot_alignment == BottomLeft)
-				pivot.set(0.0, 1.0);
-			else if(pivot_alignment == Left)
-				pivot.set(0.0, 0.5);
-			else if(pivot_alignment == Custom)
-				pivot.set(prop_selection.pivot_x, prop_selection.pivot_y);
-			
-			const float offset_x = bounds.x + bounds.width * pivot.x;
-			const float offset_y = bounds.y + bounds.height * pivot.y;
 			float ox, oy;
+			calculate_prop_offset(prop_selection, angle, ox, oy);
 			
-			rotate(offset_x, offset_y, angle, ox, oy);
 			prop@ p = create_prop();
 			p.rotation(angle * RAD2DEG);
-			p.x(x - ox);
-			p.y(y - oy);
+			p.x(x + ox);
+			p.y(y + oy);
 			p.prop_set(prop_selection.prop_set);
 			p.prop_group(prop_selection.prop_group);
 			p.prop_index(prop_selection.prop_index);
@@ -525,6 +504,71 @@ class BrushDef
 		{
 			this.dist = amount;
 		}
+	}
+	
+	private void calculate_prop_offset(PropSelection@ prop_selection, float angle, float &out ox, float &out oy)
+	{
+		const PropBounds@ bounds = @prop_selection.prop_bounds;
+		const Pivot pivot_alignment = prop_selection.pivot;
+		Vec2 pivot;
+		
+		if(pivot_alignment == Centre)
+			pivot.set(0.5, 0.5);
+		else if(pivot_alignment == Origin)
+			pivot.set(bounds.origin_x, bounds.origin_y);
+		else if(pivot_alignment == TopLeft)
+			pivot.set(0.0, 0.0);
+		else if(pivot_alignment == Top)
+			pivot.set(0.5, 0.0);
+		else if(pivot_alignment == TopRight)
+			pivot.set(1.0, 0.0);
+		else if(pivot_alignment == Right)
+			pivot.set(1.0, 0.5);
+		else if(pivot_alignment == BottomRight)
+			pivot.set(1.0, 1.0);
+		else if(pivot_alignment == Bottom)
+			pivot.set(0.5, 1.0);
+		else if(pivot_alignment == BottomLeft)
+			pivot.set(0.0, 1.0);
+		else if(pivot_alignment == Left)
+			pivot.set(0.0, 0.5);
+		else if(pivot_alignment == Custom)
+			pivot.set(prop_selection.pivot_x, prop_selection.pivot_y);
+		
+		const float offset_x = bounds.x + bounds.width * pivot.x;
+		const float offset_y = bounds.y + bounds.height * pivot.y;
+		
+		rotate(offset_x, offset_y, angle, ox, oy);
+		
+		ox = -ox;
+		oy = -oy;
+	}
+	
+	void preview(sprites@ sprite, float x, float y, float base_angle, float angle_mul, uint colour)
+	{
+		if(prop_count == 0)
+			return;
+		
+		PropSelection@ prop_selection = valid_props[0];
+		
+		float angle_min = 0;
+		float angle_max = 0;
+		calculate_angle(angle_mul, angle_min, angle_max);
+		float angle = lerp_angle(angle_min, angle_max, 0.5);
+		
+		if(rotate_to_dir)
+		{
+			angle += base_angle;
+		}
+		
+		float ox, oy;
+		calculate_prop_offset(prop_selection, angle, ox, oy);
+		
+		sprite.add_sprite_set(prop_selection.sprite_set);
+		sprite.draw_world(
+			layer, sub_layer, prop_selection.sprite_name, 0, prop_selection.prop_palette,
+			x + ox, y + oy, angle * RAD2DEG,
+			1, 1, colour);
 	}
 	
 	void calculate_angle(float angle_mul, float &out min, float &out max)
