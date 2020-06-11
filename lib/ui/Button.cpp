@@ -31,7 +31,6 @@ class Button : Element
 	{
 		this.height = height;
 		const float padding = max(height - icon.height, 0);
-		puts(padding);
 		width = icon.width + padding;
 	}
 	
