@@ -271,6 +271,7 @@ class script
 			const float radius = max(@brush != null ? brush.spread * spread_mul : 0, 20);
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
+			const uint range_colour = alpha | 0x4444ff;
 			const float overlay_angle = @brush == null || brush.rotate_to_dir  ? draw_angle : 0;
 			
 			// Draw tail
@@ -296,7 +297,7 @@ class script
 					mouse_x, mouse_y,
 					mouse_x + cos(overlay_angle + angle_min) * radius,
 					mouse_y + sin(overlay_angle + angle_min) * radius,
-					thickness, colour);
+					thickness, range_colour);
 			}
 			
 			if(abs(angle_max) > 0.001)
@@ -306,7 +307,7 @@ class script
 					mouse_x, mouse_y,
 					mouse_x + cos(overlay_angle + angle_max) * radius,
 					mouse_y + sin(overlay_angle + angle_max) * radius,
-					thickness, colour);
+					thickness, range_colour);
 			}
 		}
 	}
