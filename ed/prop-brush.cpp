@@ -128,7 +128,7 @@ class script
 				BrushDef@ b = @brushes[i];
 				const float mx = b.layer < 12 ? g.mouse_x_world(0, b.layer) : mouse_x;
 				const float my = b.layer < 12 ? g.mouse_y_world(0, b.layer) : mouse_y;
-				brushes[i].draw(g, mx, my, mouse_distance, dx, dy, draw_angle);
+				brushes[i].draw(g, mx, my, mouse_distance, dx, dy, draw_angle, spread_mul, angle_mul);
 			}
 		}
 		
@@ -184,8 +184,14 @@ class script
 			const uint mouse_layer = @brush != null ? brush.layer : 19;
 			
 			// TODO: Use brush angle
-			const float angle_min = normalize_angle(@brush != null ? brush.angle_min * DEG2RAD : 0);
-			const float angle_max = normalize_angle(@brush != null ? brush.angle_max * DEG2RAD : 0);
+			float angle_min = 0;
+			float angle_max = 0;
+			
+			if(@brush != null)
+			{
+				brush.calculate_angle(angle_mul, angle_min, angle_max);
+			}
+			
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint alpha = ui.right_mouse_down ? 0x44000000 : 0xaa000000;
@@ -336,7 +342,7 @@ class BrushDef
 		}
 	}
 	
-	void draw(scene@ g, float mouse_x, float mouse_y, float dist, float dx, float dy, float draw_angle)
+	void draw(scene@ g, float mouse_x, float mouse_y, float dist, float dx, float dy, float draw_angle, float spread_mul, float angle_mul)
 	{
 		if(!active || prop_count == 0)
 			return;
@@ -425,6 +431,25 @@ class BrushDef
 		
 		t += DT;
 		this.dist += dist;
+	}
+	
+	void calculate_angle(float angle_mul, float &out min, float &out max)
+	{
+		float angle_min = normalize_angle(this.angle_min * DEG2RAD);
+		float angle_max = normalize_angle(this.angle_max * DEG2RAD);
+		
+		if(angle_mul == 1)
+		{
+			min = angle_min;
+			max = angle_max;
+			return;
+		}
+		
+		float range = shortest_angle(angle_min, angle_max);
+		float mid = angle_min + range * 0.5;
+		
+		min = mid - range * 0.5 * angle_mul;
+		max = mid + range * 0.5 * angle_mul;
 	}
 	
 	private void update_next_place_t()
