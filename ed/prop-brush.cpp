@@ -324,7 +324,8 @@ class script
 class BrushDef
 {
 	
-	private float UNITS_PER_DENSITY = 500;
+	private float DISTANCE_UNITS = 500;
+	private float TIME_UNITS = 1;
 	
 	[text] bool active = true;
 	/** Placed props will have a random rotation between these values (relative to the mouse direction if rotate_to_dir is checked) */
@@ -334,8 +335,10 @@ class BrushDef
 	[text] bool rotate_to_dir;
 	/** The radius of the circle props will randomly be placed in */
 	[text] float spread = 48;
-	/** The number of props per UNITS_PER_DENSITY units, or props per second if the spray option is checked */
+	/** The number of props per DISTANCE_UNITS units, or props per TIME_UNITS seconds if the spray option is checked */
 	[text] float density = 4;
+	/** If true props will be uniformly spaced */
+	[text] bool uniform;
 	/** If checked props will be placed continuously will the mouse is held down */
 	[text] bool spray = false;
 	[text] uint layer = 17;
@@ -347,6 +350,10 @@ class BrushDef
 	
 	private float t;
 	private float dist;
+	private float next_t;
+	private float next_t_gap;
+	private float next_t_boundary;
+	private bool has_placed;
 	PropSelection@ selected_prop = null;
 	
 	void init()
@@ -412,7 +419,18 @@ class BrushDef
 	
 	void start_draw()
 	{
-		t = dist = 1 + frand() * 0.75;
+		next_t = next_t_boundary = 0;
+		calculate_next_t(spray ? TIME_UNITS : DISTANCE_UNITS);
+		t = dist = next_t;
+		
+	}
+	
+	private void calculate_next_t(float unit)
+	{
+		next_t_gap = unit / density;
+		next_t_boundary += next_t_gap;
+		next_t = uniform ? next_t_boundary : next_t_boundary - rand_range(0.0, next_t_gap);
+		has_placed = false;
 	}
 	
 	void draw(scene@ g, float mouse_x, float mouse_y, float dist, float dx, float dy, float draw_angle, float spread_mul, float angle_mul)
@@ -420,19 +438,23 @@ class BrushDef
 		if(!active || prop_count == 0)
 			return;
 		
-		t += DT * density;
-		this.dist += (dist / UNITS_PER_DENSITY * density);
-		float amount = spray ? t : this.dist;
+		const float start_t = spray ? t : this.dist;
+		const float offset_t = (next_t_boundary - start_t);
+		t += DT;
+		this.dist += dist;
+		const float t_delta = spray ? DT : dist;
+		const float mode_t = spray ? t : this.dist;
 		
 		// TODO: Clusters
-		while(amount >= 1)
+		
+		while(mode_t >= next_t)
 		{
-			amount--;
-			
 			// Uniform random point in circle
 			float angle = rand_range(-PI, PI);
 			float circ_dist = sqrt(frand()) * spread * spread_mul;
-			const float dt = frand();
+			const float dt = uniform
+				? (t_delta != 0 ? (next_t - start_t - offset_t) / t_delta : 0)
+				: frand();
 			float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 			float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 			
@@ -462,15 +484,8 @@ class BrushDef
 			p.layer(layer);
 			p.sub_layer(sub_layer);
 			g.add_prop(p);
-		}
-		
-		if(spray)
-		{
-			t = amount;
-		}
-		else
-		{
-			this.dist = amount;
+			
+			calculate_next_t(spray ? TIME_UNITS : DISTANCE_UNITS);
 		}
 	}
 	
