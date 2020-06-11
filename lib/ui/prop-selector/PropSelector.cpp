@@ -186,13 +186,8 @@ class PropSelector : ButtonClickHandler
 	{
 		if(group < 0 || group >= PROP_INDICES.size())
 			return;
-			
+		
 		if(palette < 0)
-			return;
-		
-		const array<PropIndex>@ groupData = PROP_INDICES[group];
-		
-		if(index < 0 || index >= groupData.size())
 			return;
 		
 		select_group(groupNames[group]);

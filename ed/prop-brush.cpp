@@ -2,11 +2,6 @@
 #include '../lib/drawing/Sprite.cpp';
 #include '../lib/ui/prop-selector/PropSelector.cpp';
 
-/*
- * PropSelector:
- * 	Some props aren't reselected when opening prop selector window
- */
-
 class script
 {
 	
