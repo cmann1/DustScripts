@@ -11,13 +11,13 @@ class ScrollView : Container
 	Direction direction = Direction::Vertical;
 	uint columns = 1;
 	float padding = 0;
-	float scrollAmount = 33;
+	float scroll_amount = 33;
 	
 	Scrollbar@ scrollbar;
 	
 	float scroll;
-	float contentSize;
-	float scrollMax;
+	float content_size;
+	float scroll_max;
 	
 	ScrollView(UI@ ui)
 	{
@@ -35,7 +35,7 @@ class ScrollView : Container
 			 
 			 if(ui.mouse_scroll(dir))
 			 {
-				 scroll = clamp(scroll + dir * scrollAmount, 0, scrollMax);
+				 scroll = clamp(scroll + dir * scroll_amount, 0, scroll_max);
 			 }
 		}
 		
@@ -49,7 +49,7 @@ class ScrollView : Container
 		uint axis2_index = 0;
 		float axis1_size = 0;
 		
-		contentSize = 0;
+		content_size = 0;
 		
 		for(uint i = 0; i < children.size(); i++)
 		{
@@ -86,9 +86,9 @@ class ScrollView : Container
 				axis1_size = child_axis1_size;
 			}
 			
-			if(axis1 + child_axis1_size > contentSize)
+			if(axis1 + child_axis1_size > content_size)
 			{
-				contentSize = axis1 + child_axis1_size;
+				content_size = axis1 + child_axis1_size;
 			}
 			
 			if(axis2_index >= columns || axis2_extents > axis2_end)
@@ -104,13 +104,13 @@ class ScrollView : Container
 			}
 		}
 		
-		scrollMax = max(contentSize - (is_horizontal ? rect.width : rect.height), 0);
+		scroll_max = max(content_size - (is_horizontal ? rect.width : rect.height), 0);
 		
-		float newScroll = scrollbar.draw(g, rect, scroll, scrollMax, direction);
+		float newScroll = scrollbar.draw(g, rect, scroll, scroll_max, direction);
 		
 		if(newScroll >= 0)
 		{
-			scroll = clamp(newScroll, 0, scrollMax);
+			scroll = clamp(newScroll, 0, scroll_max);
 		}
 	}
 	
