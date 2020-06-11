@@ -282,11 +282,11 @@ class script
 			}
 			
 			// Draw tail
-			g.draw_line(
-				mouse_layer, 24,
-				mouse_x, mouse_y,
-				tail_x, tail_y,
-				1, alpha | 0x0000ff);
+//			g.draw_line(
+//				mouse_layer, 24,
+//				mouse_x, mouse_y,
+//				tail_x, tail_y,
+//				1, alpha | 0x0000ff);
 			
 			draw_circle(g, mouse_x, mouse_y, radius, 32, mouse_layer, 24, thickness, colour);
 			
@@ -347,10 +347,6 @@ class BrushDef
 	
 	private float t;
 	private float dist;
-	private float last_placed;
-	private float next_place;
-	private float next_place_reset;
-	private bool has_placed;
 	PropSelection@ selected_prop = null;
 	
 	void init()
@@ -416,35 +412,7 @@ class BrushDef
 	
 	void start_draw()
 	{
-		t = 0;
-		dist = 0;
-		last_placed = 0;
-		next_place = 9999999;
-		next_place_reset = 0;
-		has_placed = false;
-		
-		if(spray)
-		{
-			update_next_place(t, 1);
-		}
-		else
-		{
-			update_next_place(dist, UNITS_PER_DENSITY);
-		}
-	}
-	
-	private void update_next_place(float value, float unit)
-	{
-		next_place = value + rand_range(0.0, unit / density);
-		next_place_reset += unit / density;
-		has_placed = false;
-	}
-	
-	private void update_next_place_dist()
-	{
-		next_place = dist + rand_range(0.0, 100 / density);
-		next_place_reset += 100 / density;
-		has_placed = false;
+		t = dist = 1 + frand() * 0.75;
 	}
 	
 	void draw(scene@ g, float mouse_x, float mouse_y, float dist, float dx, float dy, float draw_angle, float spread_mul, float angle_mul)
