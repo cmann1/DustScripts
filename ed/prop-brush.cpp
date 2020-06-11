@@ -372,11 +372,14 @@ class BrushDef
 			// TODO: Use brush angle and spread multipliers
 			// Uniform random point in circle
 			float angle = rand_range(-PI, PI);
-			float circ_dist = sqrt(frand()) * spread;
+			float circ_dist = sqrt(frand()) * spread * spread_mul;
 			float x = mouse_x + cos(angle) * circ_dist;
 			float y = mouse_y + sin(angle) * circ_dist;
 			
-			angle = rand_range(angle_min * DEG2RAD, angle_max * DEG2RAD);
+			float angle_min = 0;
+			float angle_max = 0;
+			calculate_angle(angle_mul, angle_min, angle_max);
+			angle = rand_range(angle_min, angle_max);
 			
 			if(rotate_to_dir)
 			{
