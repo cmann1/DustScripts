@@ -14,6 +14,8 @@ class script
 	[text] float spread_mul = 1;
 	/** A multiplier for angle affecting all props in the brush */
 	[text] float angle_mul = 1;
+	/** How much to smooth placement angles based on mouse movement */
+	[text] float smoothing = 20;
 	[text] array<BrushDef> brushes;
 	
 	private scene@ g;
@@ -24,6 +26,8 @@ class script
 	private bool started = false;
 	private Sprite sprite;
 	
+	private float tail_x;
+	private float tail_y;
 	private float prev_x;
 	private float prev_y;
 	private float prev_angle;
@@ -104,6 +108,36 @@ class script
 		const float mouse_x = g.mouse_x_world(0, 19);
 		const float mouse_y = g.mouse_y_world(0, 19);
 		
+		move_tail(mouse_x, mouse_y);
+		
+		// Move the tail towards the position
+		float tail_delta_x = tail_x - mouse_x;
+		float tail_delta_y = tail_y - mouse_y;
+		float tail_angle = atan2(tail_delta_y, tail_delta_x);
+		const float tail_t = 1 - clamp01(smoothing * DT);
+		tail_x -= tail_delta_x * tail_t;
+		tail_y -= tail_delta_y * tail_t;
+		
+		// Clamp the tail distance
+		tail_delta_x = tail_x - mouse_x;
+		tail_delta_y = tail_y - mouse_y;
+		const float tail_distance = tail_delta_x * tail_delta_x + tail_delta_y * tail_delta_y;
+		const float tail_dist_min = smoothing * 0.1;
+		const float tail_dist_max = smoothing * 2.5;
+		
+		if(tail_dist_min > 0 && tail_distance < tail_dist_min * tail_dist_min)
+		{
+			tail_x = mouse_x + cos(tail_angle) * tail_dist_min;
+			tail_y = mouse_y + sin(tail_angle) * tail_dist_min;
+		}
+		
+		if(tail_dist_max >= 0 && tail_distance > tail_dist_max * tail_dist_max)
+		{
+			tail_x = mouse_x + cos(tail_angle) * tail_dist_max;
+			tail_y = mouse_y + sin(tail_angle) * tail_dist_max;
+		}
+		
+		
 		if(ui.right_mouse_down)
 		{
 			if(ui.right_mouse_press)
@@ -119,8 +153,17 @@ class script
 		const float dx = mouse_x - prev_x;
 		const float dy = mouse_y - prev_y;
 		const float mouse_angle = mouse_distance > 0.001 ? atan2(dy, dx) : prev_angle;
-		// TODO: Smooth angle by creating a tail point
-		draw_angle = lerp_angle(lerp_angle(mouse_angle, prev_angle, 0.5), prev_angle2, 0.5);
+		
+		if(smoothing > 0)
+		{
+			tail_delta_x = mouse_x - tail_x;
+			tail_delta_y = mouse_y - tail_y;
+			draw_angle = atan2(tail_delta_y, tail_delta_x);
+		}
+		else
+		{
+			draw_angle = lerp_angle(lerp_angle(mouse_angle, prev_angle, 0.5), prev_angle2, 0.5);
+		}
 		
 		if(ui.right_mouse_down)
 		{
@@ -137,6 +180,36 @@ class script
 		prev_y = mouse_y;
 		prev_angle2 = prev_angle;
 		prev_angle = mouse_angle;
+	}
+	
+	void move_tail(float mouse_x, float mouse_y)
+	{
+		// Move the tail towards the position
+		float tail_delta_x = tail_x - mouse_x;
+		float tail_delta_y = tail_y - mouse_y;
+		float tail_angle = atan2(tail_delta_y, tail_delta_x);
+		const float tail_t = 1 - clamp01(smoothing * DT);
+		tail_x -= tail_delta_x * tail_t;
+		tail_y -= tail_delta_y * tail_t;
+		
+		// Clamp the tail distance
+		tail_delta_x = tail_x - mouse_x;
+		tail_delta_y = tail_y - mouse_y;
+		const float tail_distance = tail_delta_x * tail_delta_x + tail_delta_y * tail_delta_y;
+		const float tail_dist_min = smoothing * 0.1;
+		const float tail_dist_max = smoothing * 2.5;
+		
+		if(tail_dist_min > 0 && tail_distance < tail_dist_min * tail_dist_min)
+		{
+			tail_x = mouse_x + cos(tail_angle) * tail_dist_min;
+			tail_y = mouse_y + sin(tail_angle) * tail_dist_min;
+		}
+		
+		if(tail_dist_max >= 0 && tail_distance > tail_dist_max * tail_dist_max)
+		{
+			tail_x = mouse_x + cos(tail_angle) * tail_dist_max;
+			tail_y = mouse_y + sin(tail_angle) * tail_dist_max;
+		}
 	}
 	
 	void editor_draw(float sub_frame)
@@ -199,6 +272,13 @@ class script
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const float overlay_angle = @brush == null || brush.rotate_to_dir  ? draw_angle : 0;
+			
+			// Draw tail
+//			g.draw_line(
+//				mouse_layer, 24,
+//				mouse_x, mouse_y,
+//				tail_x, tail_y,
+//				1, alpha | 0x0000ff);
 			
 			draw_circle(g, mouse_x, mouse_y, radius, 32, mouse_layer, 24, thickness, colour);
 			
@@ -444,25 +524,6 @@ class BrushDef
 		{
 			this.dist = amount;
 		}
-		
-//		bool place = false;
-//		
-//		
-//		if(!has_placed && value >= next_place)
-//		{
-//			place = true;
-//			has_placed = true;
-//		}
-//		
-//		if(value >= next_place_reset)
-//		{
-//			update_next_place(value, spray ? 1.0 : UNITS_PER_DENSITY);
-//		}
-//		
-//		if(place)
-//		{
-//			
-//		}
 	}
 	
 	void calculate_angle(float angle_mul, float &out min, float &out max)
