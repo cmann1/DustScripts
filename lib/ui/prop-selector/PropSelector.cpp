@@ -106,8 +106,8 @@ class PropSelector : ButtonClickHandler
 			
 			for(uint i = 0; i < groupIndices.size(); i++)
 			{
-				const PropIndex@ propIndex = @groupIndices[i];
-				PropIcon@ propIcon = PropIcon(ui, @this, propIndex);
+				const PropIndex@ prop_index = @groupIndices[i];
+				PropIcon@ propIcon = PropIcon(ui, @this, prop_index);
 				propsContainer.addChild(propIcon);
 			}
 			
