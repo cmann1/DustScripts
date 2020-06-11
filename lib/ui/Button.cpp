@@ -24,6 +24,17 @@ class Button : Element
 		height = icon.height + ui.padding * 2;
 	}
 	
+	/*
+	 * Sets the height and attempts to match padding horizontally
+	 */
+	void fit_to_height(float height)
+	{
+		this.height = height;
+		const float padding = max(height - icon.height, 0);
+		puts(padding);
+		width = icon.width + padding;
+	}
+	
 	void draw(scene@ g, Rect rect)
 	{
 		Rect r(rect.x1, rect.y1, rect.x1 + width, rect.y1 + height);
