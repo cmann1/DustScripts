@@ -313,6 +313,8 @@ class BrushDef
 	/** Placed props will have a random rotation between these values (relative to the mouse direction if rotate_to_dir is checked) */
 	[text] float angle_min = -180;
 	[text] float angle_max =  180;
+	/** If larger than zero, the angle will be increased by this much after each prop is placed, otherwise a random angle is chosen. */
+	[text] float angle_step = 0;
 	/** Rotates along the direction of the mouse */
 	[text] bool rotate_to_dir;
 	/** The radius of the circle props will randomly be placed in */
@@ -341,7 +343,7 @@ class BrushDef
 	private float next_t;
 	private float next_t_gap;
 	private float next_t_boundary;
-	private bool has_placed;
+	private float place_angle;
 	PropSelection@ selected_prop = null;
 	
 	void init()
@@ -420,7 +422,7 @@ class BrushDef
 		next_t = next_t_boundary = 0;
 		calculate_next_t(spray ? TIME_UNITS : DISTANCE_UNITS);
 		t = dist = next_t;
-		
+		place_angle = 0;
 	}
 	
 	private void calculate_next_t(float unit)
@@ -428,7 +430,6 @@ class BrushDef
 		next_t_gap = unit / density;
 		next_t_boundary += next_t_gap;
 		next_t = uniform ? next_t_boundary : next_t_boundary - rand_range(0.0, next_t_gap);
-		has_placed = false;
 	}
 	
 	void erase(scene@ g, float x, float y, float spread_mul)
@@ -477,7 +478,6 @@ class BrushDef
 				? (frand() <= cluster_chance ? (rand_range(cluster_min, cluster_max)) : 1)
 				: 1;
 			
-			// TODO: sequential rotation
 			for(uint i = 0 ; i < cluster_count; i++)
 			{
 				// Uniform random point in circle
@@ -489,10 +489,18 @@ class BrushDef
 				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 				
-				float angle_min = 0;
-				float angle_max = 0;
-				calculate_angle(angle_mul, angle_min, angle_max);
-				angle = rand_range(angle_min, angle_max);
+				if(angle_step <= 0)
+				{
+					float angle_min = 0;
+					float angle_max = 0;
+					calculate_angle(angle_mul, angle_min, angle_max);
+					angle = rand_range(angle_min, angle_max);
+				}
+				else
+				{
+					angle = (this.angle_min + (place_angle % (this.angle_max - this.angle_min))) * DEG2RAD;
+					place_angle += angle_step;
+				}
 				
 				if(rotate_to_dir)
 				{
