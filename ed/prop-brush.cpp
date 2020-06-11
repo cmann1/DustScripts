@@ -252,7 +252,7 @@ class script
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint alpha = ui.right_mouse_down ? 0x44000000 : 0xaa000000;
-			const float radius = max(@brush != null ? brush.spread * spread_mul : 0, 20);
+			const float radius = max(@brush != null ? brush.spread * spread_mul : 0, 10);
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const uint range_colour = alpha | 0x4444ff;
