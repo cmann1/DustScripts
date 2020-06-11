@@ -183,11 +183,13 @@ class script
 			
 			const uint mouse_layer = @brush != null ? brush.layer : 19;
 			
-			// TODO: Use brush angle and spread multipliers
+			// TODO: Use brush angle
+			const float angle_min = normalize_angle(@brush != null ? brush.angle_min * DEG2RAD : 0);
+			const float angle_max = normalize_angle(@brush != null ? brush.angle_max * DEG2RAD : 0);
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint alpha = ui.right_mouse_down ? 0x44000000 : 0xaa000000;
-			const float radius = max(brush.spread, 24);
+			const float radius = max(brush.spread * spread_mul, 24);
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			
@@ -199,6 +201,26 @@ class script
 				mouse_x + cos(draw_angle) * radius,
 				mouse_y + sin(draw_angle) * radius,
 				thickness, colour);
+			
+			if(abs(angle_min) > 0.001)
+			{
+				g.draw_line(
+					mouse_layer, 24,
+					mouse_x, mouse_y,
+					mouse_x + cos(draw_angle + angle_min) * radius,
+					mouse_y + sin(draw_angle + angle_min) * radius,
+					thickness, colour);
+			}
+			
+			if(abs(angle_max) > 0.001)
+			{
+				g.draw_line(
+					mouse_layer, 24,
+					mouse_x, mouse_y,
+					mouse_x + cos(draw_angle + angle_max) * radius,
+					mouse_y + sin(draw_angle + angle_max) * radius,
+					thickness, colour);
+			}
 		}
 	}
 	
