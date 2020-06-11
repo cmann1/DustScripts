@@ -24,6 +24,8 @@ void draw_arrow(scene@ g, uint layer, uint sub_layer, float x1, float y1, float 
 	else
 	{
 		g.draw_line_hud(layer, sub_layer, x1, y1, x2, y2, width, colour);
+		g.draw_line_hud(layer, sub_layer, x3, y3, x4 + dy, y4 - dx, width, colour);
+		g.draw_line_hud(layer, sub_layer, x3, y3, x4 - dy, y4 + dx, width, colour);
 	}
 }
 
