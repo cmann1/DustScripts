@@ -91,6 +91,11 @@ void normalize(float x, float y, float &out out_x, float &out out_y)
 	out_y = len != 0 ? y / len : 0;
 }
 
+float normalize_angle(float theta)
+{
+	return theta - PI2 * floor((theta + PI) / PI2);
+}
+
 void project(float ax, float ay, float bx, float by, float &out out_x, float &out out_y)
 {
 	const float dp = dot(ax, ay, bx, by);
