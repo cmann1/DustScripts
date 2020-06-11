@@ -29,7 +29,7 @@ The main script has a utility for selecting and outputting code that can be used
 - **SetEmitterSubLayer** - allows setting emitter sub layers
 - **SetEmitterRotation** - allows setting emitter rotation
 
-#### Prop Path (prop-path.cpp)
+## Prop Path (prop-path.cpp)
 A script trigger for placing props along a user defined path.  
 Place a PropPath trigger, use the controls to select a prop and create the path - a live preview will be rendered.  
 When you're happy with the results, press the "place" button and delete the trigger.
