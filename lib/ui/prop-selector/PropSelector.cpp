@@ -4,6 +4,7 @@
 #include '../Align.cpp';
 #include '../ScrollView.cpp';
 #include '../Button.cpp';
+#include '../label.cpp';
 #include '../shapes/ShapeCross.cpp';
 #include 'GroupName.cpp';
 #include 'PropIcon.cpp';
@@ -21,6 +22,7 @@ class PropSelector : ButtonClickHandler
 	ScrollView@ propsContainer;
 	ScrollView@ palettesContainer;
 	Button@ close_button;
+	Button@ clear_button;
 	
 	GroupName@ selected_group = null;
 	PropIcon@ selected_prop_icon = null;
@@ -45,9 +47,15 @@ class PropSelector : ButtonClickHandler
 		@groupContainer = ScrollView(ui);
 		@propsContainer = ScrollView(ui);
 		@palettesContainer = ScrollView(ui);
-		@close_button= Button(ui, ShapeCross(ui));
-		close_button.width = close_button.height = TITLE_BAR_HEIGHT - ui.padding * 2;
+		@close_button = Button(ui, ShapeCross(ui));
+		@clear_button = Button(ui, Label(ui, 'Clear'));
+		
+		const float height = TITLE_BAR_HEIGHT - ui.padding * 2;
+		close_button.width = close_button.height = height;
+		clear_button.fit_to_height(height);
+		
 		@close_button.click_listener = this;
+		@clear_button.click_listener = this;
 		
 		groupContainer.padding = ui.padding;
 		
@@ -281,6 +289,12 @@ class PropSelector : ButtonClickHandler
 		
 		close_button.draw(g, rect);
 		
+		rect.set(
+			rect.x1 - PADDING - clear_button.width, rect.y1,
+			rect.x1 - PADDING, rect.y2);
+		
+		clear_button.draw(g, rect);
+		
 		// Groups
 		// ----------------------------------------
 		
@@ -333,6 +347,12 @@ class PropSelector : ButtonClickHandler
 		if(@button == @close_button)
 		{
 			hide();
+		}
+		else if(@button == @clear_button)
+		{
+			result = None;
+			@result_prop = null; 
+			result_palette = 0;
 		}
 	}
 	

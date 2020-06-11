@@ -1,3 +1,5 @@
+#include '../Element.cpp';
+
 class Shape : Element
 {
 	

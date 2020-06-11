@@ -5,7 +5,6 @@
 /*
  * PropSelector:
  * 	Scroll into view for ScrollView
- * 	Clear button
  */
 
 class script
@@ -110,6 +109,8 @@ class script
 				prop_index = 0;
 				prop_palette = 0;
 				has_sprite = false;
+				
+				prop_selector.hide();
 			}
 		}
 		
