@@ -345,6 +345,11 @@ class BrushDef
 	[text] uint sub_layer = 19;
 	
 	[text] array<PropSelection> props;
+	
+	[text] float cluster_chance = 0.5;
+	[text] uint cluster_min = 1;
+	[text] uint cluster_max = 1;
+	
 	array<PropSelection@> valid_props;
 	int prop_count;
 	
@@ -445,45 +450,52 @@ class BrushDef
 		const float t_delta = spray ? DT : dist;
 		const float mode_t = spray ? t : this.dist;
 		
-		// TODO: Clusters
+		// TODO: Erasing
 		
 		while(mode_t >= next_t)
 		{
-			// Uniform random point in circle
-			float angle = rand_range(-PI, PI);
-			float circ_dist = sqrt(frand()) * spread * spread_mul;
-			const float dt = uniform
-				? (t_delta != 0 ? (next_t - start_t - offset_t) / t_delta : 0)
-				: frand();
-			float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
-			float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
+			const uint cluster_count = cluster_chance > 0 && cluster_max > 1
+				? (frand() <= cluster_chance ? (rand_range(cluster_min, cluster_max)) : 1)
+				: 1;
 			
-			float angle_min = 0;
-			float angle_max = 0;
-			calculate_angle(angle_mul, angle_min, angle_max);
-			angle = rand_range(angle_min, angle_max);
-			
-			if(rotate_to_dir)
+			for(uint i = 0 ; i < cluster_count; i++)
 			{
-				angle += draw_angle;
+				// Uniform random point in circle
+				float angle = rand_range(-PI, PI);
+				float circ_dist = sqrt(frand()) * spread * spread_mul;
+				const float dt = uniform
+					? (t_delta != 0 ? (next_t - start_t - offset_t) / t_delta : 0)
+					: frand();
+				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
+				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
+				
+				float angle_min = 0;
+				float angle_max = 0;
+				calculate_angle(angle_mul, angle_min, angle_max);
+				angle = rand_range(angle_min, angle_max);
+				
+				if(rotate_to_dir)
+				{
+					angle += draw_angle;
+				}
+				
+				PropSelection@ prop_selection = valid_props[rand_range(0, prop_count - 1)];
+				
+				float ox, oy;
+				calculate_prop_offset(prop_selection, angle, ox, oy);
+				
+				prop@ p = create_prop();
+				p.rotation(angle * RAD2DEG);
+				p.x(x + ox);
+				p.y(y + oy);
+				p.prop_set(prop_selection.prop_set);
+				p.prop_group(prop_selection.prop_group);
+				p.prop_index(prop_selection.prop_index);
+				p.palette(prop_selection.prop_palette);
+				p.layer(layer);
+				p.sub_layer(sub_layer);
+				g.add_prop(p);
 			}
-			
-			PropSelection@ prop_selection = valid_props[rand_range(0, prop_count - 1)];
-			
-			float ox, oy;
-			calculate_prop_offset(prop_selection, angle, ox, oy);
-			
-			prop@ p = create_prop();
-			p.rotation(angle * RAD2DEG);
-			p.x(x + ox);
-			p.y(y + oy);
-			p.prop_set(prop_selection.prop_set);
-			p.prop_group(prop_selection.prop_group);
-			p.prop_index(prop_selection.prop_index);
-			p.palette(prop_selection.prop_palette);
-			p.layer(layer);
-			p.sub_layer(sub_layer);
-			g.add_prop(p);
 			
 			calculate_next_t(spray ? TIME_UNITS : DISTANCE_UNITS);
 		}
