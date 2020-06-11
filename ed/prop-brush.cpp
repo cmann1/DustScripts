@@ -146,7 +146,17 @@ class script
 				BrushDef@ b = @brushes[i];
 				const float mx = b.layer < 12 ? g.mouse_x_world(0, b.layer) : mouse_x;
 				const float my = b.layer < 12 ? g.mouse_y_world(0, b.layer) : mouse_y;
-				brushes[i].draw(g, mx, my, mouse_distance, dx, dy, draw_angle, spread_mul, angle_mul);
+				b.draw(g, mx, my, mouse_distance, dx, dy, draw_angle, spread_mul, angle_mul);
+			}
+		}
+		else if(ui.middle_mouse_down)
+		{
+			for(uint i = 0; i < brushes.size(); i++)
+			{
+				BrushDef@ b = @brushes[i];
+				const float mx = b.layer < 12 ? g.mouse_x_world(0, b.layer) : mouse_x;
+				const float my = b.layer < 12 ? g.mouse_y_world(0, b.layer) : mouse_y;
+				b.erase(g, mx, my, spread_mul);
 			}
 		}
 		
@@ -410,6 +420,34 @@ class BrushDef
 		has_placed = false;
 	}
 	
+	void erase(scene@ g, float x, float y, float spread_mul)
+	{
+		const float r = spread * spread_mul;
+		int count = g.get_prop_collision(y - r, y + r, x - r, x + r);
+		
+		for(int i = 0; i < count; i++)
+		{
+			prop@ p = g.get_prop_collision_index(uint(i));
+			
+			if(p.layer() != layer)
+				continue;
+			
+			const uint prop_set = p.prop_set();
+			const uint prop_group = p.prop_group();
+			const uint prop_index = p.prop_index();
+			
+			for(uint j = 0; j < props.size(); j++)
+			{
+				PropSelection@ prop_selection = @props[j];
+				
+				if(prop_selection.prop_set == prop_set && prop_selection.prop_group == prop_group && prop_selection.prop_index == prop_index)
+				{
+					g.remove_prop(p);
+				}
+			}
+		}
+	}
+	
 	void draw(scene@ g, float mouse_x, float mouse_y, float dist, float dx, float dy, float draw_angle, float spread_mul, float angle_mul)
 	{
 		if(!active || prop_count == 0)
@@ -421,8 +459,6 @@ class BrushDef
 		this.dist += dist;
 		const float t_delta = spray ? DT : dist;
 		const float mode_t = spray ? t : this.dist;
-		
-		// TODO: Erasing
 		
 		while(mode_t >= next_t)
 		{
