@@ -195,17 +195,18 @@ class script
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint alpha = ui.right_mouse_down ? 0x44000000 : 0xaa000000;
-			const float radius = max(brush.spread * spread_mul, 24);
+			const float radius = max(@brush != null ? brush.spread * spread_mul : 0, 24);
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
+			const float overlay_angle = @brush == null || brush.rotate_to_dir  ? draw_angle : 0;
 			
 			draw_circle(g, mouse_x, mouse_y, radius, 32, mouse_layer, 24, thickness, colour);
 			
 			g.draw_line(
 				mouse_layer, 24,
 				mouse_x, mouse_y,
-				mouse_x + cos(draw_angle) * radius,
-				mouse_y + sin(draw_angle) * radius,
+				mouse_x + cos(overlay_angle) * radius,
+				mouse_y + sin(overlay_angle) * radius,
 				thickness, colour);
 			
 			if(abs(angle_min) > 0.001)
@@ -213,8 +214,8 @@ class script
 				g.draw_line(
 					mouse_layer, 24,
 					mouse_x, mouse_y,
-					mouse_x + cos(draw_angle + angle_min) * radius,
-					mouse_y + sin(draw_angle + angle_min) * radius,
+					mouse_x + cos(overlay_angle + angle_min) * radius,
+					mouse_y + sin(overlay_angle + angle_min) * radius,
 					thickness, colour);
 			}
 			
@@ -223,8 +224,8 @@ class script
 				g.draw_line(
 					mouse_layer, 24,
 					mouse_x, mouse_y,
-					mouse_x + cos(draw_angle + angle_max) * radius,
-					mouse_y + sin(draw_angle + angle_max) * radius,
+					mouse_x + cos(overlay_angle + angle_max) * radius,
+					mouse_y + sin(overlay_angle + angle_max) * radius,
 					thickness, colour);
 			}
 		}
@@ -369,7 +370,6 @@ class BrushDef
 		
 		if(place)
 		{
-			// TODO: Use brush angle and spread multipliers
 			// Uniform random point in circle
 			float angle = rand_range(-PI, PI);
 			float circ_dist = sqrt(frand()) * spread * spread_mul;
