@@ -16,7 +16,7 @@ class script
 	/** A multiplier for angle affecting all props in the brush */
 	[text] float angle_mul = 1;
 	/** How much to smooth placement angles based on mouse movement */
-	[text] float smoothing = 20;
+	[text] float smoothing = 50;
 	[text] array<BrushDef> brushes;
 	
 	private scene@ g;
@@ -198,8 +198,8 @@ class script
 		tail_delta_x = tail_x - mouse_x;
 		tail_delta_y = tail_y - mouse_y;
 		const float tail_distance = tail_delta_x * tail_delta_x + tail_delta_y * tail_delta_y;
-		const float tail_dist_min = smoothing * 0.1;
-		const float tail_dist_max = smoothing * 2.5;
+		const float tail_dist_min = smoothing * 0.15;
+		const float tail_dist_max = smoothing * 0.5;
 		
 		if(tail_dist_min > 0 && tail_distance < tail_dist_min * tail_dist_min)
 		{
@@ -282,11 +282,11 @@ class script
 			}
 			
 			// Draw tail
-//			g.draw_line(
-//				mouse_layer, 24,
-//				mouse_x, mouse_y,
-//				tail_x, tail_y,
-//				1, alpha | 0x0000ff);
+			g.draw_line(
+				mouse_layer, 24,
+				mouse_x, mouse_y,
+				tail_x, tail_y,
+				1, alpha | 0x0000ff);
 			
 			draw_circle(g, mouse_x, mouse_y, radius, 32, mouse_layer, 24, thickness, colour);
 			
