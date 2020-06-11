@@ -119,6 +119,7 @@ class script
 		const float dx = mouse_x - prev_x;
 		const float dy = mouse_y - prev_y;
 		const float mouse_angle = mouse_distance > 0.001 ? atan2(dy, dx) : prev_angle;
+		// TODO: Smooth angle by creating a tail point
 		draw_angle = lerp_angle(lerp_angle(mouse_angle, prev_angle, 0.5), prev_angle2, 0.5);
 		
 		if(ui.right_mouse_down)
@@ -183,7 +184,6 @@ class script
 			
 			const uint mouse_layer = @brush != null ? brush.layer : 19;
 			
-			// TODO: Use brush angle
 			float angle_min = 0;
 			float angle_max = 0;
 			
@@ -195,7 +195,7 @@ class script
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint alpha = ui.right_mouse_down ? 0x44000000 : 0xaa000000;
-			const float radius = max(@brush != null ? brush.spread * spread_mul : 0, 24);
+			const float radius = max(@brush != null ? brush.spread * spread_mul : 0, 20);
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const float overlay_angle = @brush == null || brush.rotate_to_dir  ? draw_angle : 0;
@@ -236,6 +236,8 @@ class script
 class BrushDef
 {
 	
+	private float UNITS_PER_DENSITY = 500;
+	
 	[text] bool active = true;
 	/** Placed props will have a random rotation between these values (relative to the mouse direction if rotate_to_dir is checked) */
 	[text] float angle_min = -180;
@@ -244,7 +246,7 @@ class BrushDef
 	[text] bool rotate_to_dir;
 	/** The radius of the circle props will randomly be placed in */
 	[text] float spread = 48;
-	/** The number of props per 100 units, or props per second if the spray option is checked */
+	/** The number of props per UNITS_PER_DENSITY units, or props per second if the spray option is checked */
 	[text] float density = 4;
 	/** If checked props will be placed continuously will the mouse is held down */
 	[text] bool spray = false;
@@ -335,12 +337,26 @@ class BrushDef
 		
 		if(spray)
 		{
-			update_next_place_t();
+			update_next_place(t, 1);
 		}
 		else
 		{
-			// TODO: Update distance for density per units
+			update_next_place(dist, UNITS_PER_DENSITY);
 		}
+	}
+	
+	private void update_next_place(float value, float unit)
+	{
+		next_place = value + rand_range(0.0, unit / density);
+		next_place_reset += unit / density;
+		has_placed = false;
+	}
+	
+	private void update_next_place_dist()
+	{
+		next_place = dist + rand_range(0.0, 100 / density);
+		next_place_reset += 100 / density;
+		has_placed = false;
 	}
 	
 	void draw(scene@ g, float mouse_x, float mouse_y, float dist, float dx, float dy, float draw_angle, float spread_mul, float angle_mul)
@@ -348,33 +364,21 @@ class BrushDef
 		if(!active || prop_count == 0)
 			return;
 		
-		bool place = false;
+		t += DT * density;
+		this.dist += (dist / UNITS_PER_DENSITY * density);
+		float amount = spray ? t : this.dist;
 		
-		if(spray)
+		// TODO: Clusters
+		while(amount >= 1)
 		{
-			if(!has_placed && t >= next_place)
-			{
-				place = true;
-				has_placed = true;
-			}
+			amount--;
 			
-			if(t >= next_place_reset)
-			{
-				update_next_place_t();
-			}
-		}
-		else
-		{
-			// TODO: Density per units
-		}
-		
-		if(place)
-		{
 			// Uniform random point in circle
 			float angle = rand_range(-PI, PI);
 			float circ_dist = sqrt(frand()) * spread * spread_mul;
-			float x = mouse_x + cos(angle) * circ_dist;
-			float y = mouse_y + sin(angle) * circ_dist;
+			const float dt = frand();
+			float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
+			float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 			
 			float angle_min = 0;
 			float angle_max = 0;
@@ -432,8 +436,33 @@ class BrushDef
 			g.add_prop(p);
 		}
 		
-		t += DT;
-		this.dist += dist;
+		if(spray)
+		{
+			t = amount;
+		}
+		else
+		{
+			this.dist = amount;
+		}
+		
+//		bool place = false;
+//		
+//		
+//		if(!has_placed && value >= next_place)
+//		{
+//			place = true;
+//			has_placed = true;
+//		}
+//		
+//		if(value >= next_place_reset)
+//		{
+//			update_next_place(value, spray ? 1.0 : UNITS_PER_DENSITY);
+//		}
+//		
+//		if(place)
+//		{
+//			
+//		}
 	}
 	
 	void calculate_angle(float angle_mul, float &out min, float &out max)
@@ -453,13 +482,6 @@ class BrushDef
 		
 		min = mid - range * 0.5 * angle_mul;
 		max = mid + range * 0.5 * angle_mul;
-	}
-	
-	private void update_next_place_t()
-	{
-		next_place = t + rand_range(0.0, 1 / density);
-		next_place_reset += 1 / density;
-		has_placed = false;
 	}
 	
 }
