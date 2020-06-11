@@ -3,13 +3,20 @@ A collection of common and useful classes and functions.
 I recommend putting this in the `script_src` root so they can be easily included in any map.
 At the very least I'll include "lib/std.cpp" in most projects, which contains some of the most common things I use, such as `puts` overloads for various types.
 
+- **drawing** - Drawing related utilities.
+- **easing** - A collection of easing functions.
+- **enums** - Built-in constants defined as enums, such as entity and var types.
+- **math** - Math and geometry related classes and functions. Use `math.cpp` for most commonly needed functionality, eg. `dot`, `distance`, `lerp`.
+- **tiles** - Tile related utilities.
+- **ui** - UI related code. Contains scrollbars, mouse handling, etc. used by `PropSelector`, currently probably not very general purpose or useful.
+
 # Shared
 A collection of stand-alone scripts to add predefined functionality to a map, eg. outlining entities.
 Once added to a map and compiled, left click the script name to save it as a preset so that it can easily be added to other maps in the future.
 - **Entity outliner** - Draws a configurable outlines around entities
 - **Breakable wall** - Allows you to mark rectangular regions of tiles as breakable
 - **Prop wind** - Will make certain props sway in the wind
- - **Shadows** - Casts shadows from tiles
+- **Shadows** - Casts shadows from tiles
 
 # Editor Utils
 
