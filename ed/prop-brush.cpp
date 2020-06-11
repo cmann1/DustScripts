@@ -327,6 +327,7 @@ class BrushDef
 	[text] uint sub_layer = 19;
 	
 	[text] array<PropSelection> props;
+	[hidden] uint props_size;
 	
 	[text] float cluster_chance = 0.5;
 	[text] uint cluster_min = 1;
@@ -345,7 +346,9 @@ class BrushDef
 	
 	void init()
 	{
-		for(uint i = 0; i < props.size(); i++)
+		props_size = props.size();
+		
+		for(uint i = 0; i < props_size; i++)
 		{
 			props[i].init();
 		}
@@ -355,7 +358,15 @@ class BrushDef
 	
 	bool check_select_prop(bool visible)
 	{
-		for(uint i = 0; i < props.size(); i++)
+		const uint new_props_size = props.size();
+		
+		if(new_props_size != props_size)
+		{
+			props_size = new_props_size;
+			update_prop_count();
+		}
+		
+		for(uint i = 0; i < new_props_size; i++)
 		{
 			PropSelection@ prop_selection = @props[i];
 			
