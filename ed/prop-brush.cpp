@@ -466,6 +466,7 @@ class BrushDef
 				? (frand() <= cluster_chance ? (rand_range(cluster_min, cluster_max)) : 1)
 				: 1;
 			
+			// TODO: sequential rotation
 			for(uint i = 0 ; i < cluster_count; i++)
 			{
 				// Uniform random point in circle
@@ -557,7 +558,7 @@ class BrushDef
 		float angle_min = 0;
 		float angle_max = 0;
 		calculate_angle(angle_mul, angle_min, angle_max);
-		float angle = lerp_angle(angle_min, angle_max, 0.5);
+		float angle = lerp(angle_min, angle_max, 0.5);
 		
 		if(rotate_to_dir)
 		{
@@ -576,8 +577,8 @@ class BrushDef
 	
 	void calculate_angle(float angle_mul, float &out min, float &out max)
 	{
-		float angle_min = normalize_angle(this.angle_min * DEG2RAD);
-		float angle_max = normalize_angle(this.angle_max * DEG2RAD);
+		float angle_min = this.angle_min * DEG2RAD;
+		float angle_max = this.angle_max * DEG2RAD;
 		
 		if(angle_mul == 1)
 		{
