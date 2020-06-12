@@ -357,15 +357,18 @@ class script
 			
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
-			const uint alpha = ui.right_mouse_down ? 0x44000000 : 0xaa000000;
-			const float real_radius = !place_on_tiles
-				? (@brush != null ? max(brush.spread * spread_mul, 0) : 0)
-				: place_on_tiles_distance;
+			const uint on_alpha = 0xaa000000;
+			const uint off_alpha = 0x44000000;
+			const uint alpha = ui.right_mouse_down ? off_alpha : on_alpha;
+			const float brush_radius = @brush != null ? max(brush.spread * spread_mul, 0) : 0;
+			const float real_radius = !place_on_tiles ? brush_radius : place_on_tiles_distance;
 			const float radius = max(real_radius, 15);
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const uint range_colour = alpha | 0x4444ff;
 			float overlay_angle = @brush == null || brush.rotate_to_dir || place_on_tiles  ? draw_angle : 0;
+			float sprite_x = mouse_x;
+			float sprite_y = mouse_y;
 			
 			if(place_on_tiles)
 			{
@@ -377,17 +380,22 @@ class script
 					tile_x, tile_y, overlay_angle)
 				)
 				{
+					sprite_x = tile_x;
+					sprite_y = tile_y;
+					
 					g.draw_line(
 						22, 22, 
 						mouse_x, mouse_y,
 						tile_x, tile_y,
-						2, alpha | 0xff00ff);
+						2, off_alpha | 0xff00ff);
+					
+					draw_circle(g, tile_x, tile_y, brush_radius, 32, mouse_layer, 24, thickness, off_alpha | (colour & 0xffffff));
 				}
 			}
 			
 			if(preview && !ui.right_mouse_down && !ui.middle_mouse_down && @brush != null)
 			{
-				brush.preview(@sprite, mouse_x, mouse_y, overlay_angle, angle_mul, alpha | 0xffffff);
+				brush.preview(@sprite, sprite_x, sprite_y, overlay_angle, angle_mul, alpha | 0xffffff);
 			}
 			
 			// Draw tail
