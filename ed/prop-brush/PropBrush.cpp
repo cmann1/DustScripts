@@ -179,6 +179,10 @@ class script
 				b.erase(g, mx, my, spread_mul);
 			}
 		}
+		else
+		{
+			
+		}
 		
 		prev_x = mouse_x;
 		prev_y = mouse_y;
@@ -198,13 +202,7 @@ class script
 		{
 			const float dx = x - result_x;
 			const float dy = y - result_y;
-			const float length = sqrt(dx * dy + dy * dy);
-			
-//			g.draw_line(
-//					22, 22, 
-//					x, y,
-//					result_x, result_y,
-//					1, 0xFFFF00FF);
+			const float length = sqrt(dx * dx + dy * dy);
 					
 			if(length <= radius)
 			{
@@ -312,7 +310,25 @@ class script
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const uint range_colour = alpha | 0x4444ff;
-			const float overlay_angle = @brush == null || brush.rotate_to_dir || place_on_tiles  ? draw_angle : 0;
+			float overlay_angle = @brush == null || brush.rotate_to_dir || place_on_tiles  ? draw_angle : 0;
+			
+			if(place_on_tiles)
+			{
+				float tile_x, tile_y;
+				
+				if(snap_to_tiles(
+					mouse_x, mouse_y, overlay_angle, place_on_tiles_distance,
+					place_on_tiles_layer > 0 && place_on_tiles_layer <= 20 || @brush == null ? place_on_tiles_layer : brush.layer,
+					tile_x, tile_y, overlay_angle)
+				)
+				{
+					g.draw_line(
+						22, 22, 
+						mouse_x, mouse_y,
+						tile_x, tile_y,
+						2, alpha | 0xff00ff);
+				}
+			}
 			
 			if(preview && !ui.right_mouse_down && !ui.middle_mouse_down && @brush != null)
 			{

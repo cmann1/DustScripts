@@ -188,7 +188,6 @@ class BrushDef
 				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 				
-				// TODO: Better preview when place_on_tile is one, also calculate and show snap line while not drawing
 				// TODO: Left mouse and scroll to adjust spread
 				// TODO: Add scale options
 				if(abs(angle_step) < EPSILON)
