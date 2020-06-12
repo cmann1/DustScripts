@@ -115,4 +115,4 @@ An editor script for quickly placing props.
 - If there are alternate palettes, they are shown below, otherwise the prop is selected and the window closed.
 - Click the selected prop again to quickly select the first palette, or click one of the palettes to select that.
 - **IMPORTANT:** Mouse hud values are not reported properly by Dustmod, if the mouse is not aligning with the hud correctly, move it to the edge of the Dustmod window to "calibrate" it.
-- **IMPORTANT:** There's an issue with Dustforce that causes rendering glitches when there are too many textures on screen. Some prop icons might display incorrectly because of this - when that happens hold the middle mouse button to show only that icon. 
+- **IMPORTANT:** There's an issue with Dustforce that causes rendering glitches when there are too many textures on screen. Some prop icons might display incorrectly because of this - when that happens hold the right mouse button to show only that icon. 

@@ -32,7 +32,7 @@ class PropIcon : Element
 		
 		if(is_mouse_over)
 		{
-			if(ui.middle_mouse_down)
+			if(ui.right_mouse_down)
 			{
 				@propSelector.focused_prop = this;
 			}

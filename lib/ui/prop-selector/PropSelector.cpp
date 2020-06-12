@@ -333,7 +333,7 @@ class PropSelector : ButtonClickHandler
 		
 		ui.post_draw();
 		
-		if(!ui.middle_mouse_down)
+		if(!ui.right_mouse_down)
 		{
 			@focused_prop = null;
 		}
