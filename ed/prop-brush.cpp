@@ -547,11 +547,11 @@ class BrushDef
 				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 				
-				// TODO: Allow angles less than zero
+				// TODO: Error if angle_step is not zero, and angle_min == angle_max
 				// TODO: Always use tile angle when place_on_tiles is true
 				// TODO: Left mouse and scroll to adjust spread
 				// TODO: Add scale options
-				if(angle_step <= 0)
+				if(abs(angle_step) < EPSILON)
 				{
 					float angle_min = 0;
 					float angle_max = 0;

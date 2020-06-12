@@ -89,7 +89,7 @@ An editor script for quickly placing props.
     - **brush.active** - Can be used to disable individual brushes.
     - **brush.angle_min** - Placed props will have a random rotation between these values (relative to the mouse direction if **brush.rotate_to_dir** is checked)
     - **brush.angle_max** - Same as **angle_min**
-    - **brush.angle_step** - If larger than zero, the angle will be increased by this much after each prop is placed, otherwise a random angle is chosen.
+    - **brush.angle_step** - If not equal to zero, the angle will be increased by this much after each prop is placed, otherwise a random angle is chosen. (All angles are always between **angle_min** and **angle_max**)
     - **brush.rotate_to_dir** - If checked prop angle will be relative to the direction of the mouse.
     - **brush.spread** - Props will be placed in a random position in a circle with this radius.
     - **brush.density** - The number of props by distance moved, or by seconds if the **spray** option is checked.
