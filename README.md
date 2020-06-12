@@ -75,6 +75,7 @@ An editor script for quickly placing props.
 - Set the prop values, or press **select_prop** button to open the prop selection window.
 - Right click and drag to place props.
 - Middle click to erase props.
+- use left button + wheel to adjust the spread of all active brushes.
 
 ##### Properties:
 - **draw** - Disables the prop brush. Make sure to turn off when using other tools.

@@ -37,6 +37,7 @@ class BrushDef
 	array<PropSelection@> valid_props;
 	int prop_count;
 	
+	private float spread_stored;
 	private float t;
 	private float dist;
 	private float next_t;
@@ -88,6 +89,16 @@ class BrushDef
 		}
 		
 		return false;
+	}
+	
+	void store_spread()
+	{
+		spread_stored = spread;
+	}
+	
+	void adjust_spread(float amount)
+	{
+		spread = max(0, spread_stored + amount);
 	}
 	
 	void update_prop(const PropIndex@ prop_data, uint palette = 0)
@@ -181,14 +192,14 @@ class BrushDef
 			{
 				// Uniform random point in circle
 				float angle = rand_range(-PI, PI);
-				float circ_dist = sqrt(frand()) * spread * spread_mul;
+				float circ_dist = max(0, sqrt(frand()) * spread * spread_mul);
 				const float dt = uniform
 					? (t_delta != 0 ? (next_t - start_t - offset_t) / t_delta : 0)
 					: frand();
 				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 				
-				// TODO: Left mouse and scroll to adjust spread
+				// TODO: Preview: Show real radius when readius is smaller than preview min size
 				// TODO: Add scale options
 				if(abs(angle_step) < EPSILON)
 				{

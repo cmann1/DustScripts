@@ -44,6 +44,9 @@ class script
 	private float prev_angle2;
 	private float draw_angle;
 	
+	private float spread_adjustment;
+	private float place_on_tiles_distance_stored;
+	
 	script()
 	{
 		@g = get_scene();
@@ -70,9 +73,54 @@ class script
 		
 		ui.step();
 		
+		/* Adjust spread with left mouse + mouse wheel
+		 * */
+		
+		bool store_spread = ui.left_mouse_press;
+		float spread_adjustment_delta;
+		bool adjust_spread = !store_spread && ui.left_mouse_down && ui.mouse_scroll(spread_adjustment_delta);
+		
+		if(adjust_spread)
+		{
+			spread_adjustment -= spread_adjustment_delta;
+		}
+		
+		if(store_spread)
+		{
+			spread_adjustment = 0;
+		}
+		
+		if(place_on_tiles)
+		{
+			if(store_spread)
+			{
+				place_on_tiles_distance_stored = place_on_tiles_distance;
+			}
+			
+			if(adjust_spread)
+			{
+				place_on_tiles_distance = place_on_tiles_distance_stored + spread_adjustment;
+			}
+		}
+		
+		/* Update brushes and show prop selector
+		 * */
+		
 		for(uint i = 0; i < brushes.size(); i++)
 		{
 			BrushDef@ brush_def = @brushes[i];
+			
+			if(!place_on_tiles && brush_def.active)
+			{
+				if(store_spread)
+				{
+					brush_def.store_spread();
+				}
+				else if(adjust_spread)
+				{
+					brush_def.adjust_spread(spread_adjustment);
+				}
+			}
 			
 			if(!brush_def.check_select_prop(prop_selector.visible))
 				continue;
@@ -306,7 +354,7 @@ class script
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint alpha = ui.right_mouse_down ? 0x44000000 : 0xaa000000;
-			const float radius = !place_on_tiles ? max(@brush != null ? brush.spread * spread_mul : 0, 10) : place_on_tiles_distance;
+			const float radius = !place_on_tiles ? max(@brush != null ? max(brush.spread * spread_mul, 0) : 0, 10) : place_on_tiles_distance;
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const uint range_colour = alpha | 0x4444ff;

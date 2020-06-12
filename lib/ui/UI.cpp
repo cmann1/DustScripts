@@ -117,6 +117,11 @@ class UI
 		 return dir != 0;
 	}
 	
+	int mouse_scroll()
+	{
+		 return (mouse_state & 1 != 0) ? -1 : ((mouse_state & 2 != 0) ? 1 : 0);
+	}
+	
 	// Drawing
 	// -------------------------------
 	
