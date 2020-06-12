@@ -102,6 +102,7 @@ An editor script for quickly placing props.
     - **brush.flip_y** - Props will be reandimly flipped vertically.
     - **brush.scale_min** - Scale range. Only works on Dustmod maps.
     - **brush.scale_max** - Scale range. Only works on Dustmod maps.
+    - **brush.cycle_props** - If checked, instead of a random prop for the list, all props in the list will be cycled through sequentially.
     - **brush.prop** - A single brush can have multiple props. One of these is selected randomly everytime a prop is placed. 
         - **brush.prop.prop_set** - The prop set. These valeus can be set manually, but using the prop selector below is recommended.
         - **brush.prop.prop_group** - The prop group.
