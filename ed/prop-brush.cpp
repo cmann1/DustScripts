@@ -547,7 +547,6 @@ class BrushDef
 				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 				
-				// TODO: Error if angle_step is not zero, and angle_min == angle_max
 				// TODO: Always use tile angle when place_on_tiles is true
 				// TODO: Left mouse and scroll to adjust spread
 				// TODO: Add scale options
@@ -560,7 +559,8 @@ class BrushDef
 				}
 				else
 				{
-					angle = (this.angle_min + (place_angle % (this.angle_max - this.angle_min))) * DEG2RAD;
+					const float angle_delta = this.angle_max - this.angle_min;
+					angle = (angle_delta == 0) ? angle_min : (this.angle_min + (place_angle % angle_delta)) * DEG2RAD;
 					place_angle += angle_step;
 				}
 				
