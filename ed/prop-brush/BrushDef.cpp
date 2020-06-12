@@ -188,9 +188,9 @@ class BrushDef
 				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 				
+				// TODO: Better preview when place_on_tile is one, also calculate and show snap line while not drawing
 				// TODO: Left mouse and scroll to adjust spread
 				// TODO: Add scale options
-				// TODO: Offset broken when angle is not zero and flipped
 				if(abs(angle_step) < EPSILON)
 				{
 					float angle_min = 0;
@@ -213,23 +213,26 @@ class BrushDef
 				PropSelection@ prop_selection = valid_props[rand_range(0, prop_count - 1)];
 				
 				float ox, oy;
-				calculate_prop_offset(prop_selection, angle, ox, oy);
+				float scale_x = 1;
+				float scale_y = 1;
 				
 				prop@ p = create_prop();
 				
 				if(flip_x && rand() % 2 == 0)
 				{
-					ox = -ox;
-					p.scale_x(-1);
+					scale_x = -1;
 				}
 				
 				if(flip_y && rand() % 2 == 0)
 				{
-					oy = -oy;
-					p.scale_y(-1);
+					scale_y = -1;
 				}
 				
+				calculate_prop_offset(prop_selection, angle, scale_x, scale_y, ox, oy);
+				
 				p.rotation(angle * RAD2DEG);
+				p.scale_x(scale_x);
+				p.scale_y(scale_y);
 				p.x(x + ox);
 				p.y(y + oy);
 				p.prop_set(prop_selection.prop_set);
@@ -245,7 +248,7 @@ class BrushDef
 		}
 	}
 	
-	private void calculate_prop_offset(PropSelection@ prop_selection, float angle, float &out ox, float &out oy)
+	private void calculate_prop_offset(PropSelection@ prop_selection, float angle, float scale_x, float scale_y, float &out ox, float &out oy)
 	{
 		const PropBounds@ bounds = @prop_selection.prop_bounds;
 		const Pivot pivot_alignment = prop_selection.pivot;
@@ -277,7 +280,7 @@ class BrushDef
 		const float offset_x = bounds.x + bounds.width * pivot.x;
 		const float offset_y = bounds.y + bounds.height * pivot.y;
 		
-		rotate(offset_x, offset_y, angle, ox, oy);
+		rotate(offset_x * scale_x, offset_y * scale_y, angle, ox, oy);
 		
 		ox = -ox;
 		oy = -oy;
@@ -301,7 +304,7 @@ class BrushDef
 		}
 		
 		float ox, oy;
-		calculate_prop_offset(prop_selection, angle, ox, oy);
+		calculate_prop_offset(prop_selection, angle, 1, 1, ox, oy);
 		
 		sprite.add_sprite_set(prop_selection.sprite_set);
 		sprite.draw_world(

@@ -166,7 +166,6 @@ class script
 						continue;
 				}
 				
-				// TODO: Options to flip horizontally or vertically
 				b.draw(g, mx, my, mouse_distance, dx, dy, draw_angle, place_on_tiles, spread_mul, angle_mul);
 			}
 		}
@@ -201,11 +200,11 @@ class script
 			const float dy = y - result_y;
 			const float length = sqrt(dx * dy + dy * dy);
 			
-			g.draw_line(
-					22, 22, 
-					x, y,
-					result_x, result_y,
-					1, 0xFFFF00FF);
+//			g.draw_line(
+//					22, 22, 
+//					x, y,
+//					result_x, result_y,
+//					1, 0xFFFF00FF);
 					
 			if(length <= radius)
 			{
