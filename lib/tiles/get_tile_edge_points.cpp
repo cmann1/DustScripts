@@ -1,6 +1,6 @@
 #include 'TileShape.cpp';
 
-bool get_tile_top_edge(int shape, float &out x1, float &out y1, float &out x2, float &out y2)
+bool get_tile_top_edge_points(int shape, float &out x1, float &out y1, float &out x2, float &out y2)
 {
 	switch(shape)
 	{
@@ -59,7 +59,7 @@ bool get_tile_top_edge(int shape, float &out x1, float &out y1, float &out x2, f
 	return true;
 }
 
-bool get_tile_bottom_edge(int shape, float &out x1, float &out y1, float &out x2, float &out y2)
+bool get_tile_bottom_edge_points(int shape, float &out x1, float &out y1, float &out x2, float &out y2)
 {
 	switch(shape)
 	{
@@ -118,7 +118,7 @@ bool get_tile_bottom_edge(int shape, float &out x1, float &out y1, float &out x2
 	return true;
 }
 
-bool get_tile_left_edge(int shape, float &out x1, float &out y1, float &out x2, float &out y2)
+bool get_tile_left_edge_points(int shape, float &out x1, float &out y1, float &out x2, float &out y2)
 {
 	switch(shape)
 	{
@@ -176,7 +176,7 @@ bool get_tile_left_edge(int shape, float &out x1, float &out y1, float &out x2, 
 	return true;
 }
 
-bool get_tile_right_edge(int shape, float &out x1, float &out y1, float &out x2, float &out y2)
+bool get_tile_right_edge_points(int shape, float &out x1, float &out y1, float &out x2, float &out y2)
 {
 	switch(shape)
 	{
