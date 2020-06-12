@@ -66,7 +66,7 @@ NOTE: These are now supported in-editor in the latest Dustmod.
 * **Left mouse**: Move handles.
 * **Middle mouse**: Move handles as if the **smart_handles** option is off.
 
-### Prop Brush (prop-brush.cpp)
+### Prop Brush (prop-brush/PropBrush.cpp)
 An editor script for quickly placing props.
 
 ##### Basic usage:
