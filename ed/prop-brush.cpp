@@ -258,7 +258,7 @@ class script
 			const uint range_colour = alpha | 0x4444ff;
 			const float overlay_angle = @brush == null || brush.rotate_to_dir  ? draw_angle : 0;
 			
-			if(preview && !ui.right_mouse_down && @brush != null)
+			if(preview && !ui.right_mouse_down && !ui.middle_mouse_down && @brush != null)
 			{
 				brush.preview(@sprite, mouse_x, mouse_y, overlay_angle, angle_mul, alpha | 0xffffff);
 			}
