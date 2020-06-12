@@ -166,7 +166,7 @@ class script
 				}
 				
 				// TODO: Options to flip horizontally or vertically
-				b.draw(g, mx, my, mouse_distance, dx, dy, draw_angle, spread_mul, angle_mul);
+				b.draw(g, mx, my, mouse_distance, dx, dy, draw_angle, place_on_tiles, spread_mul, angle_mul);
 			}
 		}
 		else if(ui.middle_mouse_down)
@@ -312,7 +312,7 @@ class script
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const uint range_colour = alpha | 0x4444ff;
-			const float overlay_angle = @brush == null || brush.rotate_to_dir  ? draw_angle : 0;
+			const float overlay_angle = @brush == null || brush.rotate_to_dir || place_on_tiles  ? draw_angle : 0;
 			
 			if(preview && !ui.right_mouse_down && !ui.middle_mouse_down && @brush != null)
 			{
@@ -518,7 +518,7 @@ class BrushDef
 		}
 	}
 	
-	void draw(scene@ g, float mouse_x, float mouse_y, float dist, float dx, float dy, float draw_angle, float spread_mul, float angle_mul)
+	void draw(scene@ g, float mouse_x, float mouse_y, float dist, float dx, float dy, float draw_angle, bool force_angle, float spread_mul, float angle_mul)
 	{
 		if(!active || prop_count == 0)
 			return;
@@ -547,9 +547,9 @@ class BrushDef
 				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 				
-				// TODO: Always use tile angle when place_on_tiles is true
 				// TODO: Left mouse and scroll to adjust spread
 				// TODO: Add scale options
+				// TODO: Offset broken when angle is not zero and flipped
 				if(abs(angle_step) < EPSILON)
 				{
 					float angle_min = 0;
@@ -564,7 +564,7 @@ class BrushDef
 					place_angle += angle_step;
 				}
 				
-				if(rotate_to_dir)
+				if(rotate_to_dir || force_angle)
 				{
 					angle += draw_angle;
 				}
