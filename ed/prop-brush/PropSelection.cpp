@@ -16,6 +16,9 @@ class PropSelection
 	[text] float pivot_x = 0.5;
 	[text] float pivot_y = 0.5;
 	
+	[text] bool clone;
+	[hidden] bool clone_prev;
+	
 	[hidden] bool has_sprite;
 	string sprite_set;
 	string sprite_name;
@@ -63,6 +66,30 @@ class PropSelection
 		int index = prop_index_to_array_index(prop_set, prop_group, prop_index);
 		
 		@prop_bounds = index != -1 ? PROP_BOUNDS[prop_group][index] : null;
+	}
+
+	PropSelection copy()
+	{
+		PropSelection p;
+
+		p.prop_set = prop_set;
+		p.prop_group = prop_group;
+		p.prop_index = prop_index;
+		p.prop_palette = prop_palette;
+
+		p.select_prop = select_prop;
+		p.select_prop_prev = select_prop_prev;
+
+		p.pivot = pivot;
+		p.pivot_x = pivot_x;
+		p.pivot_y = pivot_y;
+
+		p.has_sprite = has_sprite;
+		p.sprite_set = sprite_set;
+		p.sprite_name = sprite_name;
+		@p.prop_bounds = @prop_bounds;
+
+		return p;
 	}
 	
 }

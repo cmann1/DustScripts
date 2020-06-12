@@ -64,7 +64,7 @@ class BrushDef
 	
 	bool check_select_prop(bool visible)
 	{
-		const uint new_props_size = props.size();
+		uint new_props_size = props.size();
 		
 		if(new_props_size != props_size)
 		{
@@ -75,6 +75,13 @@ class BrushDef
 		for(uint i = 0; i < new_props_size; i++)
 		{
 			PropSelection@ prop_selection = @props[i];
+			
+			if(prop_selection.clone != prop_selection.clone_prev)
+			{
+				prop_selection.clone_prev = prop_selection.clone;
+				props.resize(++new_props_size);
+				props[new_props_size - 1] = prop_selection.copy();
+			}
 			
 			if(prop_selection.select_prop == prop_selection.select_prop_prev)
 				continue;
