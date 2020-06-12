@@ -8,6 +8,10 @@ const float SCREEN_RIGHT = 800;
 const float SCREEN_BOTTOM = 450;
 const float SCREEN_WIDTH_F = 1920.0 / 1080;
 
+const float MAX_FLOAT =  3.402823466e+38;
+const float MIN_FLOAT = -3.402823466e+38;
+const float SMALLEST_FLOAT = 1.175494351e-38;
+
 int tile_coord(float v)
 {
 	return int(floor(v * PIXEL2TILE));
