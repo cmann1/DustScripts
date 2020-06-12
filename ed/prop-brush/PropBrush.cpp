@@ -8,6 +8,21 @@
 #include '../../lib/ui/prop-selector/PropSelector.cpp';
 #include 'BrushDef.cpp';
 
+/* TODO:
+ *    - Option to cycle props instead of choose randomly
+ *    - "Clone" button for brush
+ *    - "Clone" button for prop
+ *    - Custom toolbar:
+ *        - Check/Radio buttons to set which property to adjust with the scroll wheel. None can be checked to disable entirely
+ *            - Option to control increments
+ *        - Toggle draw on and off
+ *        - Toggle preview
+ *        - Smoothing slider
+ *        - Place on tiles
+ *        - etc. place as many options her as possible.
+ * 
+ */
+
 class script
 {
 	
