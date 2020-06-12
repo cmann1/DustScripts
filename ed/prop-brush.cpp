@@ -381,6 +381,8 @@ class BrushDef
 	[text] bool uniform;
 	/** If checked props will be placed continuously will the mouse is held down */
 	[text] bool spray = false;
+	[text] bool flip_x;
+	[text] bool flip_y;
 	[text] uint layer = 17;
 	[text] uint sub_layer = 19;
 	
@@ -545,6 +547,10 @@ class BrushDef
 				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 				
+				// TODO: Allow angles less than zero
+				// TODO: Always use tile angle when place_on_tiles is true
+				// TODO: Left mouse and scroll to adjust spread
+				// TODO: Add scale options
 				if(angle_step <= 0)
 				{
 					float angle_min = 0;
@@ -569,6 +575,19 @@ class BrushDef
 				calculate_prop_offset(prop_selection, angle, ox, oy);
 				
 				prop@ p = create_prop();
+				
+				if(flip_x && rand() % 2 == 0)
+				{
+					ox = -ox;
+					p.scale_x(-1);
+				}
+				
+				if(flip_y && rand() % 2 == 0)
+				{
+					oy = -oy;
+					p.scale_y(-1);
+				}
+				
 				p.rotation(angle * RAD2DEG);
 				p.x(x + ox);
 				p.y(y + oy);
