@@ -96,10 +96,12 @@ An editor script for quickly placing props.
     - **brush.density** - The number of props by distance moved, or by seconds if the **spray** option is checked.
     - **brush.uniform** - Place props with a more uniform distribution.
     - **brush.spray** - Props are placed based on distance moved, or continuously over time if **spray** is checked.
-    - **brush.flip_x** - Props will be reandimly flipped horizontally.
-    - **brush.flip_y** - Props will be reandimly flipped vertically.
     - **brush.layer** - The layer to place the prop on.
     - **brush.sub_layer** - The sub-layer to place the prop on.
+    - **brush.flip_x** - Props will be reandimly flipped horizontally.
+    - **brush.flip_y** - Props will be reandimly flipped vertically.
+    - **brush.scale_min** - Scale range. Only works on Dustmod maps.
+    - **brush.scale_max** - Scale range. Only works on Dustmod maps.
     - **brush.prop** - A single brush can have multiple props. One of these is selected randomly everytime a prop is placed. 
         - **brush.prop.prop_set** - The prop set. These valeus can be set manually, but using the prop selector below is recommended.
         - **brush.prop.prop_group** - The prop group.

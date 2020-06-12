@@ -354,7 +354,10 @@ class script
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint alpha = ui.right_mouse_down ? 0x44000000 : 0xaa000000;
-			const float radius = !place_on_tiles ? max(@brush != null ? max(brush.spread * spread_mul, 0) : 0, 10) : place_on_tiles_distance;
+			const float real_radius = !place_on_tiles
+				? (@brush != null ? max(brush.spread * spread_mul, 0) : 0)
+				: place_on_tiles_distance;
+			const float radius = max(real_radius, 15);
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const uint range_colour = alpha | 0x4444ff;
@@ -390,7 +393,7 @@ class script
 //				tail_x, tail_y,
 //				1, alpha | 0x0000ff);
 			
-			draw_circle(g, mouse_x, mouse_y, radius, 32, mouse_layer, 24, thickness, colour);
+			draw_circle(g, mouse_x, mouse_y, real_radius, 32, mouse_layer, 24, thickness, colour);
 			
 			g.draw_line(
 				mouse_layer, 24,

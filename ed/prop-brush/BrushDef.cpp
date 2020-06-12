@@ -22,10 +22,12 @@ class BrushDef
 	[text] bool uniform;
 	/** If checked props will be placed continuously will the mouse is held down */
 	[text] bool spray = false;
-	[text] bool flip_x;
-	[text] bool flip_y;
 	[text] uint layer = 17;
 	[text] uint sub_layer = 19;
+	[text] bool flip_x;
+	[text] bool flip_y;
+	[text] float scale_min = 1;
+	[text] float scale_max = 1;
 	
 	[text] array<PropSelection> props;
 	[hidden] uint props_size;
@@ -199,8 +201,6 @@ class BrushDef
 				float x = mouse_x - (dx * dt) + cos(angle) * circ_dist;
 				float y = mouse_y - (dy * dt) + sin(angle) * circ_dist;
 				
-				// TODO: Preview: Show real radius when readius is smaller than preview min size
-				// TODO: Add scale options
 				if(abs(angle_step) < EPSILON)
 				{
 					float angle_min = 0;
@@ -228,14 +228,19 @@ class BrushDef
 				
 				prop@ p = create_prop();
 				
+				if(scale_min != 1 || scale_max != 1)
+				{
+					scale_x = scale_y = rand_range(scale_min, scale_max);
+				}
+				
 				if(flip_x && rand() % 2 == 0)
 				{
-					scale_x = -1;
+					scale_x = -scale_x;
 				}
 				
 				if(flip_y && rand() % 2 == 0)
 				{
-					scale_y = -1;
+					scale_y = -scale_y;
 				}
 				
 				calculate_prop_offset(prop_selection, angle, scale_x, scale_y, ox, oy);
