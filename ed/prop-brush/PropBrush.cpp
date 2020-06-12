@@ -75,13 +75,13 @@ class script
 		 * */
 		
 		float spread_adjustment;
-		bool adjust_spread = ui.mouse_scroll(spread_adjustment);
+		bool adjust_spread = ui.left_mouse_down && ui.mouse_scroll(spread_adjustment);
 		spread_adjustment = -spread_adjustment;
 		
-		if(!ui.left_mouse_down)
-		{
-			spread_adjustment *= 5;
-		}
+//		if(!ui.left_mouse_down)
+//		{
+			spread_adjustment *= 2;
+//		}
 		
 		if(place_on_tiles)
 		{
