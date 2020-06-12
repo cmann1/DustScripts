@@ -30,7 +30,7 @@ bool closest_tile(scene@ g, float x, float y, float radius, uint layer, int &out
 			const int tile_type = tile.type();
 			float check_normal_x, check_normal_y;
 			
-//			if(point_in_tile(g, x, y, tx, ty, tile_type, check_normal_x, check_normal_y, layer))
+//			if(point_in_tile(x, y, tx, ty, tile_type, check_normal_x, check_normal_y, layer))
 //				continue;
 				
 			float check_x, check_y;
