@@ -93,14 +93,9 @@ class BrushDef
 		return false;
 	}
 	
-	void store_spread()
-	{
-		spread_stored = spread;
-	}
-	
 	void adjust_spread(float amount)
 	{
-		spread = max(0, spread_stored + amount);
+		spread = max(0, spread + amount);
 	}
 	
 	void update_prop(const PropIndex@ prop_data, uint palette = 0)

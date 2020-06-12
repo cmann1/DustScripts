@@ -44,8 +44,6 @@ class script
 	private float prev_angle2;
 	private float draw_angle;
 	
-	private float spread_adjustment;
-	private float place_on_tiles_distance_stored;
 	
 	script()
 	{
@@ -73,33 +71,23 @@ class script
 		
 		ui.step();
 		
-		/* Adjust spread with left mouse + mouse wheel
+		/* Adjust spread with mouse wheel
 		 * */
 		
-		bool store_spread = ui.left_mouse_press;
-		float spread_adjustment_delta;
-		bool adjust_spread = !store_spread && ui.left_mouse_down && ui.mouse_scroll(spread_adjustment_delta);
+		float spread_adjustment;
+		bool adjust_spread = ui.mouse_scroll(spread_adjustment);
+		spread_adjustment = -spread_adjustment;
 		
-		if(adjust_spread)
+		if(!ui.left_mouse_down)
 		{
-			spread_adjustment -= spread_adjustment_delta;
-		}
-		
-		if(store_spread)
-		{
-			spread_adjustment = 0;
+			spread_adjustment *= 5;
 		}
 		
 		if(place_on_tiles)
 		{
-			if(store_spread)
-			{
-				place_on_tiles_distance_stored = place_on_tiles_distance;
-			}
-			
 			if(adjust_spread)
 			{
-				place_on_tiles_distance = place_on_tiles_distance_stored + spread_adjustment;
+				place_on_tiles_distance = max(0, place_on_tiles_distance + spread_adjustment);
 			}
 		}
 		
@@ -112,11 +100,7 @@ class script
 			
 			if(!place_on_tiles && brush_def.active)
 			{
-				if(store_spread)
-				{
-					brush_def.store_spread();
-				}
-				else if(adjust_spread)
+				if(adjust_spread)
 				{
 					brush_def.adjust_spread(spread_adjustment);
 				}
