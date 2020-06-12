@@ -115,9 +115,11 @@ An editor script for quickly placing props.
             - **Custom** - Use the custom values defined below.
         - **brush.prop.pivot_x** - A value in the range **0** - **1**. Only used when **pivot** is set to **Custom**.
         - **brush.prop.pivot_y** - Same as **pivot_x**.
+        - **brush.prop.clone** - Click to clone this prop and add it to the end of the list.
     - **brush.cluster_chance** - Each attempt to place a prop will have a chance to be placed in a larger cluster. Set to zero to never cluster.
     - **brush.cluster_min** - The minimum number of props in a cluster. Set this and **cluster_max** to **1** to never cluster.
     - **brush.cluster_max** - The maximum number of props in a cluster.
+    - **brush.clone** - Click to clone this brush and add it to the end of the list.
 
 ##### Prop Selection Window:
 - Click a prop to select it.

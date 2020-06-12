@@ -37,10 +37,12 @@ class BrushDef
 	[text] uint cluster_min = 1;
 	[text] uint cluster_max = 1;
 	
+	[text] bool clone;
+	[hidden] bool clone_prev;
+	
 	array<PropSelection@> valid_props;
 	int prop_count;
 	
-	private float spread_stored;
 	private float t;
 	private float dist;
 	private float next_t;
@@ -79,8 +81,8 @@ class BrushDef
 			if(prop_selection.clone != prop_selection.clone_prev)
 			{
 				prop_selection.clone_prev = prop_selection.clone;
-				props.resize(++new_props_size);
-				props[new_props_size - 1] = prop_selection.copy();
+				props.insertLast(prop_selection.copy());
+				new_props_size++;
 			}
 			
 			if(prop_selection.select_prop == prop_selection.select_prop_prev)
@@ -352,6 +354,48 @@ class BrushDef
 		
 		min = mid - range * 0.5 * angle_mul;
 		max = mid + range * 0.5 * angle_mul;
+	}
+	
+	BrushDef copy()
+	{
+		BrushDef b;
+		
+		b.active = active;
+		b.angle_min = angle_min;
+		b.angle_max = angle_max;
+		b.angle_step = angle_step;
+		b.rotate_to_dir = rotate_to_dir;
+		b.spread = spread;
+		b.density = density;
+		b.uniform = uniform;
+		b.spray = spray;
+		b.layer = layer;
+		b.sub_layer = sub_layer;
+		b.flip_x = flip_x;
+		b.flip_y = flip_y;
+		b.scale_min = scale_min;
+		b.scale_max = scale_max;
+
+		b.cycle_props = cycle_props;
+		b.props = props;
+		b.props_size = props_size;
+
+		b.cluster_chance = cluster_chance;
+		b.cluster_min = cluster_min;
+		b.cluster_max = cluster_max;
+
+		// Copy props array
+		
+		b.props.resize(props.size());
+		
+		for(uint i = 0; i < props.size(); i++)
+		{
+			b.props[i] = props[i].copy();
+		}
+
+		b.update_prop_count();
+
+		return b;
 	}
 	
 }

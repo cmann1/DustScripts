@@ -9,11 +9,11 @@
 #include 'BrushDef.cpp';
 
 /* TODO:
- *    - "Clone" button for brush
- *    - "Clone" button for prop
  *    - Custom toolbar:
  *        - Check/Radio buttons to set which property to adjust with the scroll wheel. None can be checked to disable entirely
  *            - Option to control increments
+ *        - Toggle erasing only matching props, or any props
+ *            - Toggle erasing onlky matching layer, or any layer
  *        - Toggle draw on and off
  *        - Toggle preview
  *        - Smoothing slider
@@ -111,6 +111,12 @@ class script
 		for(uint i = 0; i < brushes.size(); i++)
 		{
 			BrushDef@ brush_def = @brushes[i];
+			
+			if(brush_def.clone != brush_def.clone_prev)
+			{
+				brush_def.clone_prev = brush_def.clone;
+				brushes.insertLast(brush_def.copy());
+			}
 			
 			if(!place_on_tiles && brush_def.active)
 			{
