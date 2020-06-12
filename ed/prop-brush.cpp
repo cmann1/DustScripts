@@ -1,5 +1,6 @@
 #include '../lib/std.cpp';
 #include '../lib/math/math.cpp';
+#include '../lib/tiles/closest_tile.cpp';
 #include '../lib/drawing/circle.cpp';
 #include '../lib/props.cpp';
 #include '../lib/props_bounds.cpp';
@@ -17,6 +18,12 @@ class script
 	[text] float angle_mul = 1;
 	/** How much to smooth placement angles based on mouse movement */
 	[text] float smoothing = 50;
+	/** If true props snap to the nearest tile's surface */
+	[text] bool place_on_tiles;
+	/** How far to check for tiles when **place_on_tiles** is on */
+	[text] float place_on_tiles_distance = 30;
+	/** Which layer to snap to when **place_on_tiles** is on. -1 will use the brush's layer */
+	[text] int place_on_tiles_layer = -1;
 	[text] array<BrushDef> brushes;
 	
 	private scene@ g;
@@ -26,6 +33,7 @@ class script
 	
 	private bool started = false;
 	private sprites@ sprite;
+	private raycast@ ray = null;
 	
 	private float tail_x;
 	private float tail_y;
@@ -144,8 +152,20 @@ class script
 			for(uint i = 0; i < brushes.size(); i++)
 			{
 				BrushDef@ b = @brushes[i];
-				const float mx = b.layer < 12 ? g.mouse_x_world(0, b.layer) : mouse_x;
-				const float my = b.layer < 12 ? g.mouse_y_world(0, b.layer) : mouse_y;
+				float mx = b.layer < 12 ? g.mouse_x_world(0, b.layer) : mouse_x;
+				float my = b.layer < 12 ? g.mouse_y_world(0, b.layer) : mouse_y;
+				
+				if(place_on_tiles)
+				{
+					if(!snap_to_tiles(
+						mx, my, draw_angle, place_on_tiles_distance,
+						place_on_tiles_layer <= 0 || place_on_tiles_layer > 20 ? b.layer : place_on_tiles_layer,
+						mx, my, draw_angle)
+					)
+						continue;
+				}
+				
+				// TODO: Options to flip horizontally or vertically
 				b.draw(g, mx, my, mouse_distance, dx, dy, draw_angle, spread_mul, angle_mul);
 			}
 		}
@@ -164,6 +184,42 @@ class script
 		prev_y = mouse_y;
 		prev_angle2 = prev_angle;
 		prev_angle = mouse_angle;
+	}
+	
+	bool snap_to_tiles(float x, float y, float angle, float radius, uint layer, float &out out_x, float &out out_y, float &out out_angle)
+	{
+		int tile_x, tile_y;
+		float result_x, result_y;
+		float normal_x, normal_y;
+		
+		if(closest_tile(g,
+			x, y, radius,
+			layer, tile_x, tile_y, result_x, result_y, normal_x, normal_y))
+		{
+			const float dx = x - result_x;
+			const float dy = y - result_y;
+			const float length = sqrt(dx * dy + dy * dy);
+			
+//			g.draw_line(
+//					22, 22, 
+//					x, y,
+//					result_x, result_y,
+//					1, 0xFFFF00FF);
+					
+			if(length <= radius)
+			{
+				out_x = result_x;
+				out_y = result_y;
+				const float l = sqrt(dx * dx + dy * dy);
+				out_angle = dot(dx, dy, normal_x, normal_y) < 0 ? atan2(-dx / l, dy / l) : atan2(dx / l, -dy / l);
+				return true;
+			}
+		}
+		
+		out_x = x;
+		out_y = y;
+		out_angle = angle;
+		return false;
 	}
 	
 	void move_tail(float mouse_x, float mouse_y)
@@ -252,7 +308,7 @@ class script
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint alpha = ui.right_mouse_down ? 0x44000000 : 0xaa000000;
-			const float radius = max(@brush != null ? brush.spread * spread_mul : 0, 10);
+			const float radius = !place_on_tiles ? max(@brush != null ? brush.spread * spread_mul : 0, 10) : place_on_tiles_distance;
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const uint range_colour = alpha | 0x4444ff;

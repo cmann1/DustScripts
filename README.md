@@ -82,6 +82,9 @@ An editor script for quickly placing props.
 - **spread_mul** - A global multiplier for brush spread.
 - **angle_mul** - A global multiplier for brush angle.
 - **smoothing** - Smooths the brush angle. Only relevant when **brush.rotate_to_dir** is set.
+- **place_on_tiles** - If checked props snap to the nearest tile's surface.
+- **place_on_tiles_distance** - How far to check for tiles when **place_on_tiles** is on.
+- **place_on_tiles_layer** - Which layer to snap to when **place_on_tiles** is on. -1 will use the brush's layer.
 - **brush**
     - **brush.active** - Can be used to disable individual brushes.
     - **brush.angle_min** - Placed props will have a random rotation between these values (relative to the mouse direction if **brush.rotate_to_dir** is checked)

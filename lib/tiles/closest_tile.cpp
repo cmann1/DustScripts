@@ -10,10 +10,10 @@ bool closest_tile(scene@ g, float x, float y, float radius, uint layer, int &out
 	int end_x = ceil_int((x + radius + 1) * PIXEL2TILE);
 	int end_y = ceil_int((y + radius + 1) * PIXEL2TILE);
 	
-	outline_rect(g,
-		start_x * TILE2PIXEL, start_y * TILE2PIXEL,
-		end_x * TILE2PIXEL, end_y * TILE2PIXEL,
-		layer, 24, 1);
+//	outline_rect(g,
+//		start_x * TILE2PIXEL, start_y * TILE2PIXEL,
+//		end_x * TILE2PIXEL, end_y * TILE2PIXEL,
+//		layer, 24, 1);
 	
 	float closest_dist = MAX_FLOAT;
 	bool found_tile = false;
