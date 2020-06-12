@@ -218,8 +218,9 @@ class BrushDef
 				}
 				
 				
-				prop_index = cycle_props ? prop_index + 1 : rand_range(0, prop_count - 1);
+				prop_index = cycle_props ? prop_index : rand_range(0, prop_count - 1);
 				PropSelection@ prop_selection = valid_props[prop_index % prop_count];
+				prop_index++;
 				
 				float ox, oy;
 				float scale_x = 1;
@@ -305,7 +306,7 @@ class BrushDef
 		if(prop_count == 0)
 			return;
 		
-		PropSelection@ prop_selection = valid_props[0];
+		PropSelection@ prop_selection = valid_props[cycle_props ? (prop_index % prop_count) : 0];
 		
 		float angle_min = 0;
 		float angle_max = 0;

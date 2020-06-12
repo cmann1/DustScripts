@@ -9,7 +9,6 @@
 #include 'BrushDef.cpp';
 
 /* TODO:
- *    - Option to cycle props instead of choose randomly
  *    - "Clone" button for brush
  *    - "Clone" button for prop
  *    - Custom toolbar:
