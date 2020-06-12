@@ -1,4 +1,4 @@
-#include 'std.cpp';
+#include '../std.cpp';
 #include 'TileShape.cpp';
 
 bool point_in_tile(scene@ g, float x, float y, int tile_ix, int tile_iy, int type, float &out normal_x, float &out normal_y, int layer=19)
@@ -168,39 +168,59 @@ bool is_valid_edge(int shape, int side)
 	switch(side)
 	{
 		case 0: // Top
-			return	shape == TileShape::Big2 or
+			return	shape == TileShape::Big1 or
+					shape == TileShape::Big2 or
 					shape == TileShape::Big3 or
+					shape == TileShape::Big5 or
 					shape == TileShape::Big6 or
 					shape == TileShape::Big7 or
+					shape == TileShape::Small1 or
 					shape == TileShape::Small3 or
+					shape == TileShape::Small5 or
 					shape == TileShape::Small7 or
+					shape == TileShape::HalfA or
 					shape == TileShape::HalfB or
-					shape == TileShape::HalfC;
+					shape == TileShape::HalfC or
+					shape == TileShape::HalfD;
 		case 1: // Bottom
 			return	shape == TileShape::Big1 or
+					shape == TileShape::Big3 or
 					shape == TileShape::Big4 or
 					shape == TileShape::Big5 or
+					shape == TileShape::Big7 or
 					shape == TileShape::Big8 or
 					shape == TileShape::Small1 or
+					shape == TileShape::Small3 or
 					shape == TileShape::Small5 or
+					shape == TileShape::Small7 or
 					shape == TileShape::HalfA or
+					shape == TileShape::HalfB or
+					shape == TileShape::HalfC or
 					shape == TileShape::HalfD;
 		case 2: // Left
 			return	shape == TileShape::Big1 or
 					shape == TileShape::Big2 or
+					shape == TileShape::Big4 or
+					shape == TileShape::Big6 or
 					shape == TileShape::Big7 or
 					shape == TileShape::Big8 or
 					shape == TileShape::Small2 or
+					shape == TileShape::Small4 or
+					shape == TileShape::Small6 or
 					shape == TileShape::Small8 or
 					shape == TileShape::HalfA or
 					shape == TileShape::HalfB;
 		case 3: // Right
-			return	shape == TileShape::Big3 or
+			return	shape == TileShape::Big2 or
+					shape == TileShape::Big3 or
 					shape == TileShape::Big4 or
 					shape == TileShape::Big5 or
 					shape == TileShape::Big6 or
+					shape == TileShape::Big8 or
+					shape == TileShape::Small2 or
 					shape == TileShape::Small4 or
 					shape == TileShape::Small6 or
+					shape == TileShape::Small8 or
 					shape == TileShape::HalfC or
 					shape == TileShape::HalfD;
 	}
