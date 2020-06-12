@@ -6,6 +6,7 @@ bool point_in_tile(scene@ g, float x, float y, int tile_ix, int tile_iy, int typ
 	const float tile_x = (x - float(tile_ix * TILE2PIXEL)) * PIXEL2TILE;
 	const float tile_y = (y - float(tile_iy * TILE2PIXEL)) * PIXEL2TILE;
 	
+		return false;
 	// Right and down facing (1/1 gradient)
 	const float n1 = 0.7071067811865475;
 	// Right and down facing (2/1 gradient)
