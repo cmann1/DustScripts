@@ -3,6 +3,7 @@
 #include '../math/Rect.cpp';
 #include 'Align.cpp';
 #include 'Side.cpp';
+#include 'TooltipData.cpp';
 
 class UI
 {
@@ -250,21 +251,3 @@ class UI
 	
 }
 
-class TooltipData
-{
-	
-	string text;
-	Rect rect;
-	
-	TooltipData()
-	{
-		
-	}
-	
-	TooltipData(string text, const Rect &in rect)
-	{
-		this.text = text;
-		this.rect = rect;
-	}
-	
-}
