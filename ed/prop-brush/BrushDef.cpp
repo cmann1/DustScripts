@@ -29,6 +29,7 @@ class BrushDef
 	[text] float scale_min = 1;
 	[text] float scale_max = 1;
 	
+	[text] bool cycle_props;
 	[text] array<PropSelection> props;
 	[hidden] uint props_size;
 	
@@ -47,6 +48,7 @@ class BrushDef
 	private float next_t_boundary;
 	private float place_angle;
 	PropSelection@ selected_prop = null;
+	int prop_index;
 	
 	void init()
 	{
@@ -215,7 +217,9 @@ class BrushDef
 					angle += draw_angle;
 				}
 				
-				PropSelection@ prop_selection = valid_props[rand_range(0, prop_count - 1)];
+				
+				prop_index = cycle_props ? prop_index + 1 : rand_range(0, prop_count - 1);
+				PropSelection@ prop_selection = valid_props[prop_index % prop_count];
 				
 				float ox, oy;
 				float scale_x = 1;
