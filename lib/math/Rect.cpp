@@ -1,3 +1,5 @@
+#include 'Vec2.cpp';
+
 class Rect
 {
 	
