@@ -32,10 +32,16 @@ The main script has a utility for selecting and outputting code that can be used
 ### Tiles (t.cpp)
 - **RemoveTileEdges** - Removes edges from selected tiles
 
-### Emitters (em.cpp)
-- **SetEmitterId** - allows setting emitter ids
-- **SetEmitterSubLayer** - allows setting emitter sub layers
-- **SetEmitterRotation** - allows setting emitter rotation
+### Emitters
+- **em.cpp** - Script triggers:
+    - **SetEmitterId** - allows setting emitter ids
+    - **SetEmitterSubLayer** - allows setting emitter sub layers
+    - **SetEmitterRotation** - allows setting emitter rotation
+- **emitters.cpp** - Direct editing of emitters using the mouse:
+    - **Move**: Right mouse in empty space
+    - **Resize**: Right mouse corner handles
+    - **Adjust** sub layer: Mouse wheel while dragging
+    - **Rotate**: Middle mouse
 
 ### Prop Path (prop-path.cpp)
 A script trigger for placing props along a user defined path.  
