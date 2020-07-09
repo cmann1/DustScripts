@@ -33,6 +33,7 @@ The main script has a utility for selecting and outputting code that can be used
 - **RemoveTileEdges** - Removes edges from selected tiles
 
 ### Emitters (em.cpp)
+- **SetEmitterId** - allows setting emitter ids
 - **SetEmitterSubLayer** - allows setting emitter sub layers
 - **SetEmitterRotation** - allows setting emitter rotation
 
