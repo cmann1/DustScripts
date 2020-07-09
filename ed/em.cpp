@@ -109,6 +109,18 @@ class SetEmitterVarBaseTrigger : trigger_base
 	
 }
 
+class SetEmitterId : SetEmitterVarBaseTrigger
+{
+	
+	[text] int target_id = 1;
+	
+	void setProperties(varstruct@ vars)
+	{
+		vars.get_var('emitter_id').set_int32(target_id);
+	}
+	
+}
+
 class SetEmitterSubLayer : SetEmitterVarBaseTrigger
 {
 	
