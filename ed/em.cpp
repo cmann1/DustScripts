@@ -1,24 +1,4 @@
-class script
-{
-	
-	scene@ g;
-	bool in_game = false;
-	
-	controllable@ player = null;
-	camera@ cam;
-	
-	script()
-	{
-		@g = get_scene();
-		@cam = get_camera(0);
-	}
-	
-	void on_level_start()
-	{
-		in_game = true;
-	}
-	
-}
+class script {}
 
 class SetEmitterVarBaseTrigger : trigger_base
 {
