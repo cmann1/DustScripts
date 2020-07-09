@@ -38,9 +38,9 @@ The main script has a utility for selecting and outputting code that can be used
     - **SetEmitterSubLayer** - allows setting emitter sub layers
     - **SetEmitterRotation** - allows setting emitter rotation
 - **emitters.cpp** - Direct editing of emitters using the mouse:
-    - **Move**: Right mouse in empty space
+    - **Move**: Right mouse in empty space inside emitter
     - **Resize**: Right mouse corner handles
-    - **Adjust** sub layer: Mouse wheel while dragging
+    - **Adjust sub layer**: Mouse wheel while dragging
     - **Rotate**: Middle mouse
 
 ### Prop Path (prop-path.cpp)
