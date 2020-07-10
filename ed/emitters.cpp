@@ -3,6 +3,29 @@
 #include "../lib/enums/ColType.cpp";
 #include "../lib/print_vars.cpp";
 #include "../lib/drawing/common.cpp";
+#include "../lib/drawing/circle.cpp";
+
+const float handle_radius = 5;
+
+const Colours colours;
+class Colours
+{
+	
+	uint normal_fill = 0x33ffffff;
+	uint normal_outline = 0x44FFFFFF;
+	uint selected_fill = 0x4400FF00;
+	uint selected_outline = 0x6600ff00;
+	uint handle = 0xeeee4444;
+	uint handle_selected = 0xeeeeee44;
+	uint rotation_indicator = 0x882222ee;
+	uint rotation_indicator_secondary = 0x66ffffff;
+	
+	uint layer_fill = 0xaaffffff;
+	uint layer_shadow = 0x88000000;
+	uint active_layer_fill = 0xffffffff;
+	uint active_layer_shadow = 0xee000000;
+	
+}
 
 class script
 {
@@ -10,49 +33,53 @@ class script
 	[text] bool enabled = true;
 	
 	private scene@ g;
+	private textfield@ layer_text;
+	private textfield@ active_layer_text;
+	
+	private DragMode dragMode = None;
+	private float drag_angle_offset;
+	private float handle_offset_x;
+	private float handle_offset_y;
+	private float resize_min_x;
+	private float resize_min_y;
+	private float resize_max_x;
+	private float resize_max_y;
+	private EmitterData@ validate_emitter = null;
+	
+	private array<EmitterData@> highlighted_emitters;
+	private EmitterData@ hovered_emitter;
+	private EmitterData@ active_emitter;
+	
 	private bool prev_left_mouse_down;
 	private bool prev_right_mouse_down;
 	private bool prev_middle_mouse_down;
 	
-	private float handle_radius = 5;
-	private uint normal_fill = 0x33ffffff;
-	private uint normal_outline = 0x44FFFFFF;
-	private uint selected_fill = 0x4400FF00;
-	private uint selected_outline = 0x6600ff00;
-	private uint handle_colour = 0xeeee4444;
-	private uint handle_selected_colour = 0xeeeeee44;
+	private bool left_mouse_down;
+	private bool right_mouse_down;
+	private bool middle_mouse_down;
 	
-	private DragMode dragMode = None;
-	private entity@ active_emitter;
-	private float drag_angle_offset;
-	private float handle_offset_x;
-	private float handle_offset_y;
-	private float min_x;
-	private float min_y;
-	private float max_x;
-	private float max_y;
+	private bool left_mouse_press;
+	private bool right_mouse_press;
+	private bool middle_mouse_press;
 	
-	textfield@ layer_text;
-	
-	bool left_mouse_down;
-	bool right_mouse_down;
-	bool middle_mouse_down;
-	
-	bool left_mouse_press;
-	bool right_mouse_press;
-	bool middle_mouse_press;
-	
-	float mouse_x;
-	float mouse_y;
-	int mouse_state;
+	private float mouse_x;
+	private float mouse_y;
+	private int mouse_scroll;
+	private int mouse_state;
 	
 	script()
 	{
 		@g = get_scene();
 		
 		@layer_text = create_textfield();
-        layer_text.align_horizontal(0);
-        layer_text.align_vertical(-1);
+        layer_text.align_horizontal(-1);
+        layer_text.align_vertical(1);
+		layer_text.colour(colours.layer_fill);
+		
+		@active_layer_text = create_textfield();
+        active_layer_text.align_horizontal(0);
+        active_layer_text.align_vertical(-1);
+		active_layer_text.colour(colours.active_layer_fill);
 	}
 	
 	void editor_step()
@@ -60,18 +87,106 @@ class script
 		if(!enabled)
 			return;
 		
-		if(@revalidate_emitter != null)
+		if(@validate_emitter != null)
 		{
-			g.remove_entity(revalidate_emitter);
-			g.add_entity(revalidate_emitter);
-			@active_emitter = revalidate_emitter;
-			@revalidate_emitter = null;
+			g.remove_entity(validate_emitter.emitter);
+			g.add_entity(validate_emitter.emitter);
+			@validate_emitter = null;
 		}
 		
+		update_mouse();
+		find_emitters();
+		
+		if(@active_emitter == null && @hovered_emitter != null)
+		{
+			if(right_mouse_press)
+			{
+				ResizeMode mode = hovered_emitter.check_handles(handle_offset_x, handle_offset_y);
+				
+				if(mode != None)
+				{
+					dragMode = Resize;
+					hovered_emitter.selected_handle = mode;
+					resize_min_x = hovered_emitter.min_x;
+					resize_min_y = hovered_emitter.min_y;
+					resize_max_x = hovered_emitter.max_x;
+					resize_max_y = hovered_emitter.max_y;
+				}
+				else
+				{
+					handle_offset_x = hovered_emitter.mouse_x - hovered_emitter.x;
+					handle_offset_y = hovered_emitter.mouse_y - hovered_emitter.y;
+					dragMode = Move;
+				}
+			}
+			else if(middle_mouse_press)
+			{
+				float dx = hovered_emitter.mouse_x - hovered_emitter.x;
+				float dy = hovered_emitter.mouse_y - hovered_emitter.y;
+				drag_angle_offset = shortest_angle(hovered_emitter.rotation * DEG2RAD, atan2(dy, dx));
+				dragMode = Rotation;
+			}
+			else
+			{
+				hovered_emitter.hovered_handle = hovered_emitter.check_handles(handle_offset_x, handle_offset_y);
+			}
+			
+			if(dragMode != None)
+			{
+				@active_emitter = @hovered_emitter;
+			}
+		}
+		
+		if(@active_emitter != null)
+		{
+			@hovered_emitter = null;
+			
+			bool requires_update = false;
+			bool mouse_button;
+			
+			switch(dragMode)
+			{
+				case Rotation:
+					update_rotation();
+					mouse_button = middle_mouse_down;
+					break;
+				case Move:
+					update_position();
+					mouse_button = right_mouse_down;
+					break;
+				case Resize:
+					update_size();
+					mouse_button = right_mouse_down;
+					break;
+			}
+			
+			if(!mouse_button)
+			{
+				dragMode = None;
+				active_emitter.selected_handle = None;
+				
+				if(active_emitter.is_mouse_over)
+				{
+					@hovered_emitter = @active_emitter;
+				}
+				
+				@active_emitter = null;
+			}
+		}
+		
+		// Remove the emitter and add it again the next frame to force the modified vars to reflect in the editor
+		if(@validate_emitter != null)
+		{
+			g.remove_entity(validate_emitter.emitter);
+		}
+	}
+	
+	void update_mouse()
+	{
 		mouse_x = g.mouse_x_world(0, 19);
 		mouse_y = g.mouse_y_world(0, 19);
 		mouse_state = g.mouse_state(0);
-		int mouse_scroll = (mouse_state & 1 != 0) ? -1 : ((mouse_state & 2 != 0) ? 1 : 0);
+		mouse_scroll = (mouse_state & 1 != 0) ? -1 : ((mouse_state & 2 != 0) ? 1 : 0);
 		
 		left_mouse_down = (mouse_state & 4) != 0;
 		right_mouse_down = (mouse_state & 8) != 0;
@@ -84,98 +199,12 @@ class script
 		prev_left_mouse_down = left_mouse_down;
 		prev_right_mouse_down = right_mouse_down;
 		prev_middle_mouse_down = middle_mouse_down;
-		
-		uint emitter_under_mouse = 0;
-		const float radius = 0.5;
-		
-		if(@active_emitter == null)
-		{
-			for(int layer = 0; layer <= 22; layer++)
-			{
-				float layer_mouse_x = g.mouse_x_world(0, layer);
-				float layer_mouse_y = g.mouse_y_world(0, layer);
-				
-				int count = g.get_entity_collision(
-					layer_mouse_y - radius, layer_mouse_y + radius,
-					layer_mouse_x - radius, layer_mouse_x + radius,
-					ColType::Emitter);
-				
-				for(int i = 0; i < count; i++)
-				{
-					entity@ emitter = g.get_entity_collision_index(i);
-					
-					if(emitter is null)
-						continue;
-					
-					if(emitter.layer() != layer)
-						continue;
-					
-					bool requires_update = false;
-					
-					varstruct@ vars = emitter.vars();
-					varvalue@ width_var = vars.get_var('width');
-					varvalue@ height_var = vars.get_var('height');
-					varvalue@ has_rotation_var = vars.get_var('r_rotation');
-					varvalue@ rotation_var = vars.get_var('e_rotation');
-					varvalue@ sub_layer_var = vars.get_var('draw_depth_sub');
-					float x = emitter.x();
-					float y = emitter.y();
-					float width = width_var.get_int32();
-					float height = height_var.get_int32();
-					float rotation = has_rotation_var.get_bool() ? rotation_var.get_int32() : 0;
-					int sub_layer = sub_layer_var.get_int32();
-					
-					min_x = x - width * 0.5;
-					min_y = y - height* 0.5;
-					max_x = x + width * 0.5;
-					max_y = y + height* 0.5;
-					
-					// Render rect
-					// -----------------------
-					
-					render_emitter(emitter, selected_fill, selected_outline);
-					render_emitter_handles(emitter, right_mouse_press);
-					
-					if(dragMode == None)
-					{
-						if(right_mouse_press)
-						{
-							handle_offset_x = layer_mouse_x - x;
-							handle_offset_y = layer_mouse_y - y;
-							dragMode = Move;
-						}
-						else if(middle_mouse_press)
-						{
-							float dx = layer_mouse_x - x;
-							float dy = layer_mouse_y - y;
-							drag_angle_offset = shortest_angle(rotation * DEG2RAD, atan2(dy, dx));
-							dragMode = Rotation;
-						}
-					}
-					
-					if(dragMode != None)
-					{
-						@active_emitter = emitter;
-					}
-					
-					emitter_under_mouse = emitter.id();
-					
-					// Add and remove again or changes are only reflected in game after entering and exiting playmode.
-					// -----------------------
-					
-					if(requires_update)
-					{
-						@revalidate_emitter = @emitter;
-					}
-					
-					layer = 23;
-					break;
-				}
-			}
-		}
-		
-		// Outline emitters close to mouse
-		// -----------------------------------------------------------
+	}
+	
+	void find_emitters()
+	{
+		@hovered_emitter = null;
+		highlighted_emitters.resize(0);
 		
 		const float closest_radius = 400;
 		
@@ -196,290 +225,455 @@ class script
 				if(emitter is null)
 					continue;
 				
-				if(emitter.layer() != layer || emitter.id() == emitter_under_mouse || emitter.is_same(active_emitter))
+				if(emitter.layer() != layer)
 					continue;
 				
-				render_emitter(emitter, normal_fill, normal_outline);
+				if(@active_emitter != null && emitter.is_same(@active_emitter.emitter))
+				{
+					active_emitter.update_mouse(layer_mouse_x, layer_mouse_y);
+					continue;
+				}
+				
+				EmitterData@ data = EmitterData();
+				data.update_emitter(emitter);
+				data.update_mouse(layer_mouse_x, layer_mouse_y);
+				highlighted_emitters.insertLast(@data);
+				
+				if(data.is_mouse_over)
+				{
+					@hovered_emitter = data;
+				}
 			}
 		}
+	}
+	
+	void update_rotation()
+	{
+		if(@active_emitter == null)
+			return;
 		
-		// Interact with active emitter
-		// -----------------------------------------------------------
+		float dx = active_emitter.mouse_x - active_emitter.x;
+		float dy = active_emitter.mouse_y - active_emitter.y;
 		
-		if(@active_emitter != null)
+		int new_rotation = round_int((atan2(dy, dx) - drag_angle_offset) * RAD2DEG) % 360;
+		
+		if(new_rotation < 0)
+			new_rotation = 360 + new_rotation;
+		
+		if((!active_emitter.has_rotation && new_rotation != 0) || (active_emitter.has_rotation && new_rotation == 0) || new_rotation != active_emitter.rotation)
 		{
-			if(emitter_under_mouse != active_emitter.id())
-			{
-				render_emitter(active_emitter, selected_fill, selected_outline);
-				render_emitter_handles(active_emitter, false);
-			}
+			active_emitter.update_rotation(new_rotation);
+			@validate_emitter = @active_emitter;
+		}
+	}
+	
+	void update_position()
+	{
+		if(@active_emitter == null)
+			return;
+		
+		active_emitter.update_position(active_emitter.mouse_x - handle_offset_x, active_emitter.mouse_y - handle_offset_y);
+		
+		if(mouse_scroll != 0)
+		{
+			active_emitter.update_sub_layer(active_emitter.sub_layer - mouse_scroll);
+			@validate_emitter = @active_emitter;
+		}
+	}
+	
+	void update_size()
+	{
+		if(@active_emitter == null)
+			return;
+		
+		float min_x = resize_min_x;
+		float min_y = resize_min_y;
+		float max_x = resize_max_x;
+		float max_y = resize_max_y;
+		float mouse_x = active_emitter.mouse_x;
+		float mouse_y = active_emitter.mouse_y;
+		
+		switch(active_emitter.selected_handle)
+		{
+			case TopLeft:
+				min_x = mouse_x - handle_offset_x - handle_radius;
+				min_y = mouse_y - handle_offset_y - handle_radius;
+				break;
+			case Top:
+				min_y = mouse_y - handle_offset_y - handle_radius;
+				break;
+			case TopRight:
+				max_x = mouse_x - handle_offset_x + handle_radius;
+				min_y = mouse_y - handle_offset_y - handle_radius;
+				break;
+			case BottomLeft:
+				min_x = mouse_x - handle_offset_x - handle_radius;
+				max_y = mouse_y - handle_offset_y + handle_radius;
+				break;
+			case Bottom:
+				max_y = mouse_y - handle_offset_y + handle_radius;
+				break;
+			case BottomRight:
+				max_x = mouse_x - handle_offset_x + handle_radius;
+				max_y = mouse_y - handle_offset_y + handle_radius;
+				break;
+			case Left:
+				min_x = mouse_x - handle_offset_x - handle_radius;
+				break;
+			case Right:
+				max_x = mouse_x - handle_offset_x + handle_radius;
+				break;
+		}
+		
+		if(min_x > max_x)
+		{
+			float temp = min_x;
+			min_x = max_x;
+			max_x = temp;
+		}
+		
+		if(min_y > max_y)
+		{
+			float temp = min_y;
+			min_y = max_y;
+			max_y = temp;
+		}
+		
+		if(active_emitter.update_size(min_x, min_y, max_x, max_y))
+		{
+			@validate_emitter = @active_emitter;
+		}
+	}
+	
+	void editor_draw(float sub_frame)
+	{
+		if(!enabled)
+			return;
+		
+		for(int i = int(highlighted_emitters.length()) - 1; i >= 0; i--)
+		{
+			EmitterData@ data = @highlighted_emitters[i];
 			
-			bool requires_update = false;
-			bool update_size = false;
+			if(@data == @hovered_emitter || @data == @active_emitter)
+				continue;
 			
-			varstruct@ vars = active_emitter.vars();
-			varvalue@ sub_layer_var = vars.get_var('draw_depth_sub');
-			
-			int layer = active_emitter.layer();
-			int sub_layer = sub_layer_var.get_int32();
-			
-			float x = active_emitter.x();
-			float y = active_emitter.y();
-			float layer_mouse_x = g.mouse_x_world(0, layer);
-			float layer_mouse_y = g.mouse_y_world(0, layer);
-			
-			float min_x = this.min_x;
-			float min_y = this.min_y;
-			float max_x = this.max_x;
-			float max_y = this.max_y;
+			data.render_highlight(g, colours.normal_fill, colours.normal_outline);
+		}
+		
+		EmitterData@ active_data = @active_emitter != null ? @active_emitter : @hovered_emitter;
+		
+		if(@active_data != null)
+		{
+			active_data.render_highlight(g, colours.selected_fill, colours.selected_outline);
+			active_data.render_rotation(g);
+			active_data.render_handles(g);
 			
 			if(dragMode == Move)
 			{
-				layer_text.text(layer + '.' + sub_layer);
-				shadowed_text_world(layer_text,
-					22, 24, mouse_x, mouse_y + 30,
-					1, 1, 0,
-					0xbb000000, 2, 2);
+				active_data.render_active_layer_text(active_layer_text, mouse_x, mouse_y);
 			}
-			
-			switch(dragMode)
+			else
 			{
-				case Rotation:
-				{
-					float dx = layer_mouse_x - x;
-					float dy = layer_mouse_y - y;
-					
-					varvalue@ has_rotation_var = vars.get_var('r_rotation');
-					varvalue@ rotation_var = vars.get_var('e_rotation');
-					
-					int new_rotation = round_int((atan2(dy, dx) - drag_angle_offset) * RAD2DEG) % 360;
-					
-					if(new_rotation < 0)
-						new_rotation = 360 + new_rotation;
-					
-					bool has_rotation = has_rotation_var.get_bool();
-					float rotation = rotation_var.get_int32();
-					
-					if((!has_rotation && new_rotation != 0) || (has_rotation && new_rotation == 0) || new_rotation != rotation)
-					{
-						has_rotation_var.set_bool(new_rotation != 0);
-						rotation_var.set_int32(new_rotation);
-						requires_update = true;
-					}
-				}
-					break;
-				case Move:
-				{
-					active_emitter.set_xy(layer_mouse_x - handle_offset_x, layer_mouse_y - handle_offset_y);
-					
-					// Adjust sub layer
-					// -----------------------
-					
-					if(mouse_scroll != 0)
-					{
-						sub_layer = clamp(sub_layer - mouse_scroll, 0, 24);
-						sub_layer_var.set_int32(sub_layer);
-						requires_update = true;
-					}
-				}
-					break;
-				case TopLeft:
-					min_x = layer_mouse_x - handle_offset_x - handle_radius;
-					min_y = layer_mouse_y - handle_offset_y - handle_radius;
-					update_size = true;
-					break;
-				case Top:
-					min_y = layer_mouse_y - handle_offset_y - handle_radius;
-					update_size = true;
-					break;
-				case TopRight:
-					max_x = layer_mouse_x - handle_offset_x + handle_radius;
-					min_y = layer_mouse_y - handle_offset_y - handle_radius;
-					update_size = true;
-					break;
-				case BottomLeft:
-					min_x = layer_mouse_x - handle_offset_x - handle_radius;
-					max_y = layer_mouse_y - handle_offset_y + handle_radius;
-					update_size = true;
-					break;
-				case Bottom:
-					max_y = layer_mouse_y - handle_offset_y + handle_radius;
-					update_size = true;
-					break;
-				case BottomRight:
-					max_x = layer_mouse_x - handle_offset_x + handle_radius;
-					max_y = layer_mouse_y - handle_offset_y + handle_radius;
-					update_size = true;
-					break;
-				case Left:
-					min_x = layer_mouse_x - handle_offset_x - handle_radius;
-					update_size = true;
-					break;
-				case Right:
-					max_x = layer_mouse_x - handle_offset_x + handle_radius;
-					update_size = true;
-					break;
+				active_data.render_layer_text(layer_text);
 			}
-			
-			if(update_size)
-			{
-				if(min_x > max_x)
-				{
-					float temp = min_x;
-					min_x = max_x;
-					max_x = temp;
-				}
-				
-				if(min_y > max_y)
-				{
-					float temp = min_y;
-					min_y = max_y;
-					max_y = temp;
-				}
-				
-				active_emitter.set_xy(ceil_int((min_x + max_x) * 0.5), round_int((min_y + max_y) * 0.5));
-				varvalue@ width_var = vars.get_var('width');
-				varvalue@ height_var = vars.get_var('height');
-				width_var.set_int32(ceil_int(max_x - min_x));
-				height_var.set_int32(ceil_int(max_y - min_y));
-				
-				requires_update = true;
-			}
-			
-			if(requires_update)
-			{
-				@revalidate_emitter = @active_emitter;
-			}
-			
-			switch(dragMode)
-			{
-				case Rotation:
-					if(!middle_mouse_down)
-					{
-						dragMode = None;
-					}
-					break;
-				case TopLeft:
-				case Top:
-				case TopRight:
-				case BottomLeft:
-				case Bottom:
-				case BottomRight:
-				case Left:
-				case Right:
-				case Move:
-					if(!right_mouse_down)
-					{
-						dragMode = None;
-					}
-					break;
-			}
-			
-			if(dragMode == None)
-			{
-				@active_emitter = null;
-			}
-		}
-		
-		// Remove the emitter and add it again the next frame to force the modified vars to reflect in the editor
-		if(@revalidate_emitter != null)
-		{
-			g.remove_entity(revalidate_emitter);
 		}
 	}
 	
-	private entity@ revalidate_emitter;
-	
-	private void render_emitter(entity@ emitter, uint fill_colour, uint outline_colour)
-	{
-		varstruct@ vars = emitter.vars();
-		varvalue@ has_rotation_var = vars.get_var('r_rotation');
-		float x = emitter.x();
-		float y = emitter.y();
-		float width = vars.get_var('width').get_int32();
-		float height = vars.get_var('height').get_int32();
-		float rotation = has_rotation_var.get_bool() ? vars.get_var('e_rotation').get_int32() : 0;
-		
-		g.draw_rectangle_world(
-				emitter.layer(), 23,
-				x - width * 0.5, y - height* 0.5,
-				x + width * 0.5, y + height* 0.5,
-				rotation,
-				fill_colour);
-		
-		if(rotation != 0 && emitter.layer() < 12)
-		{
-			outline_rect(g,
-				x - width * 0.5, y - height* 0.5,
-				x + width * 0.5, y + height* 0.5,
-				emitter.layer(), 23, 1, outline_colour);
-		}
-		
-		outline_rect(g,
-			x - width * 0.5, y - height* 0.5,
-			x + width * 0.5, y + height* 0.5,
-			22, 23, 1, outline_colour);
-	}
-	
-	private void render_emitter_handles(entity@ emitter, bool mouse_press)
-	{
-		varstruct@ vars = emitter.vars();
-		
-		float layer_mouse_x = g.mouse_x_world(0, emitter.layer());
-		float layer_mouse_y = g.mouse_y_world(0, emitter.layer());
-		
-		float x = emitter.x();
-		float y = emitter.y();
-		float width = vars.get_var('width').get_int32();
-		float height = vars.get_var('height').get_int32();
-		
-		float min_x = x - width * 0.5;
-		float min_y = y - height* 0.5;
-		float max_x = x + width * 0.5;
-		float max_y = y + height* 0.5;
-		
-		// Top left
-		render_size_handle(emitter, min_x + handle_radius, min_y + handle_radius, layer_mouse_x, layer_mouse_y, TopLeft, mouse_press);
-		// Top
-		render_size_handle(emitter, (min_x + max_x) * 0.5, min_y + handle_radius, layer_mouse_x, layer_mouse_y, Top, mouse_press);
-		// Top right
-		render_size_handle(emitter, max_x - handle_radius, min_y + handle_radius, layer_mouse_x, layer_mouse_y, TopRight, mouse_press);
-		
-		// Bottom left
-		render_size_handle(emitter, min_x + handle_radius, max_y - handle_radius, layer_mouse_x, layer_mouse_y, BottomLeft, mouse_press);
-		// Bottom
-		render_size_handle(emitter, (min_x + max_x) * 0.5, max_y - handle_radius, layer_mouse_x, layer_mouse_y, Bottom, mouse_press);
-		// Bottom right
-		render_size_handle(emitter, max_x - handle_radius, max_y - handle_radius, layer_mouse_x, layer_mouse_y, BottomRight, mouse_press);
-		
-		// Left
-		render_size_handle(emitter, min_x + handle_radius, (min_y + max_y) * 0.5, layer_mouse_x, layer_mouse_y, Left, mouse_press);
-		// Right
-		render_size_handle(emitter, max_x - handle_radius, (min_y + max_y) * 0.5, layer_mouse_x, layer_mouse_y, Right, mouse_press);
-	}
+}
 
-	private void render_size_handle(entity@ emitter, float x, float y, float mouse_x, float mouse_y, DragMode mode, bool is_mouse_down)
+class EmitterData
+{
+	
+	entity@ emitter;
+	varstruct@ vars;
+	varvalue@ width_var;
+	varvalue@ height_var;
+	varvalue@ has_rotation_var;
+	varvalue@ rotation_var;
+	varvalue@ sub_layer_var;
+	
+	int layer;
+	int sub_layer;
+	float x;
+	float y;
+	float width;
+	float height;
+	bool has_rotation;
+	float rotation;
+	float min_x;
+	float min_y;
+	float max_x;
+	float max_y;
+	bool is_mouse_over;
+	bool is_active;
+	
+	float mouse_x;
+	float mouse_y;
+	ResizeMode selected_handle = None;
+	ResizeMode hovered_handle = None;
+	
+	EmitterData()
 	{
-		bool mouse_over = false;
+		
+	}
+	
+	EmitterData(entity@ emitter)
+	{
+		update_emitter(@emitter);
+	}
+	
+	void update_emitter(entity@ emitter)
+	{
+		@this.emitter = @emitter;
+		@vars = emitter.vars();
+		@width_var = vars.get_var('width');
+		@height_var = vars.get_var('height');
+		@has_rotation_var = vars.get_var('r_rotation');
+		@rotation_var = vars.get_var('e_rotation');
+		@sub_layer_var = vars.get_var('draw_depth_sub');
+		
+		layer = emitter.layer();
+		sub_layer = sub_layer_var.get_int32();
+		x = emitter.x();
+		y = emitter.y();
+		width = width_var.get_int32();
+		height = height_var.get_int32();
+		rotation = rotation_var.get_int32();
+		has_rotation = has_rotation_var.get_bool();
+		
+		update_bounds();
+		
+		is_mouse_over = false;
+		is_active = false;
+	}
+	
+	private void update_bounds()
+	{
+		min_x = x - width * 0.5;
+		min_y = y - height* 0.5;
+		max_x = x + width * 0.5;
+		max_y = y + height* 0.5;
+	}
+	
+	void update_mouse(float x, float y)
+	{
+		mouse_x = x;
+		mouse_y = y;
+		is_mouse_over = x >= min_x && x <= max_x && y >= min_y && y <= max_y;
+	}
+	
+	void update_rotation(float new_rotation)
+	{
+		has_rotation = new_rotation != 0;
+		rotation = new_rotation;
+		has_rotation_var.set_bool(has_rotation);
+		rotation_var.set_int32(int(new_rotation));
+	}
+	
+	void update_position(float x, float y)
+	{
+		this.x = x;
+		this.y = y;
+		emitter.set_xy(x, y);
+		update_bounds();
+	}
+	
+	void update_sub_layer(int sub_layer)
+	{
+		this.sub_layer = clamp(sub_layer, 0, 24);
+		sub_layer_var.set_int32(this.sub_layer);
+	}
+	
+	bool update_size(float min_x, float min_y, float max_x, float max_y)
+	{
+		if(min_x == this.min_x && min_y == this.min_y && max_x == this.max_x && max_y == this.max_y)
+			return false;
+		
+		x = (min_x + max_x) * 0.5;
+		y = (min_y + max_y) * 0.5;
+		emitter.set_xy(x, y);
+		this.min_x = min_x;
+		this.min_y = min_y;
+		this.max_x = max_x;
+		this.max_y = max_y;
+		width = ceil(max_x - min_x);
+		height = ceil(max_y - min_y);
+		width_var.set_int32(int(width));
+		height_var.set_int32(int(height));
+		
+		return true;
+	}
+	
+	ResizeMode check_handles(float &out offset_x, float &out offset_y)
+	{
+		ResizeMode mode = None;
+		
+		float mid_x = (min_x + max_x) * 0.5;
+		float mid_y = (min_y + max_y) * 0.5;
+		
+		if(check_handle(TopLeft, min_x, min_y, offset_x, offset_y, mode))
+			return mode;
+		if(check_handle(Top, mid_x, min_y, offset_x, offset_y, mode))
+			return mode;
+		if(check_handle(TopRight, max_x, min_y, offset_x, offset_y, mode))
+			return mode;
+		if(check_handle(Right, max_x, mid_y, offset_x, offset_y, mode))
+			return mode;
+		if(check_handle(BottomRight, max_x, max_y, offset_x, offset_y, mode))
+			return mode;
+		if(check_handle(Bottom, mid_x, max_y, offset_x, offset_y, mode))
+			return mode;
+		if(check_handle(BottomLeft, min_x, max_y, offset_x, offset_y, mode))
+			return mode;
+		if(check_handle(Left, min_x, mid_y, offset_x, offset_y, mode))
+			return mode;
+		
+		return mode;
+	}
+	
+	private bool check_handle(ResizeMode mode, float x, float y, float &out offset_x, float &out offset_y, ResizeMode &out result)
+	{
+		calculate_handle_centre(mode, x, y, x, y);
 		
 		if(mouse_x >= x - handle_radius && mouse_x <= x + handle_radius && mouse_y >= y - handle_radius && mouse_y <= y + handle_radius)
 		{
-			if(is_mouse_down)
-			{
-				dragMode = mode;
-				handle_offset_x = mouse_x - x;
-				handle_offset_y = mouse_y - y;
-			}
-			
-			mouse_over = true;
+			offset_x = mouse_x - x;
+			offset_y = mouse_y - y;
+			result = mode;
+			return true;
 		}
 		
+		result = None;
+		return false;
+	}
+	
+	private void calculate_handle_centre(ResizeMode mode, float x, float y, float &out out_x, float &out out_y)
+	{
+		switch(mode)
+		{
+			case TopLeft:
+			case Left:
+			case BottomLeft:
+				x += handle_radius;
+				break;
+			case TopRight:
+			case Right:
+			case BottomRight:
+				x -= handle_radius;
+				break;
+		}
+		
+		switch(mode)
+		{
+			case TopLeft:
+			case Top:
+			case TopRight:
+				y += handle_radius;
+				break;
+			case BottomLeft:
+			case Bottom:
+			case BottomRight:
+				y -= handle_radius;
+				break;
+		}
+		
+		out_x = x;
+		out_y = y;
+	}
+	
+	void render_highlight(scene@ g, uint fill_colour, uint outline_colour)
+	{
+		// Fill
 		g.draw_rectangle_world(
-				emitter.layer(), 24,
-				x - handle_radius, y - handle_radius,
-				x + handle_radius, y + handle_radius,
-				0,
-				mouse_over || dragMode == mode ? handle_selected_colour : handle_colour);
+			layer, 23,
+			min_x, min_y, max_x, max_y,
+			rotation,
+			fill_colour);
+		
+		// Unrotated outline
+		if(rotation != 0 && layer < 12)
+		{
+			outline_rect(g,
+				min_x, min_y, max_x, max_y,
+				layer, 23, 1, outline_colour);
+		}
+		
+		// Layer 19 outline
+		outline_rect(g,
+			min_x, min_y, max_x, max_y,
+			22, 23, 1, outline_colour);
+	}
+	
+	void render_layer_text(textfield@ layer_text)
+	{
+		layer_text.text(layer + '.' + sub_layer);
+		shadowed_text_world(layer_text,
+			22, 24, min_x, min_y - 8,
+			1, 1, 0,
+			colours.layer_shadow, 2, 2);
+	}
+	
+	void render_active_layer_text(textfield@ layer_text, float x, float y)
+	{
+		layer_text.text(layer + '.' + sub_layer);
+		shadowed_text_world(layer_text,
+			22, 24, x, y + 30,
+			1, 1, 0,
+			colours.active_layer_shadow, 2, 2);
+	}
+	
+	void render_rotation(scene@ g)
+	{
+		if(!has_rotation || rotation == 0)
+			return;
+		
+		const float thickness = 2;
+		float radius = min(24, width * 0.5);
+		float outer_radius = radius * 1.5;
+		float angle = rotation * DEG2RAD;
+		
+		draw_arc(g,
+			x, y, radius, radius,
+			0, rotation, 64,
+			layer, 23,
+			thickness, colours.rotation_indicator_secondary);
+		g.draw_line(
+			layer, 23, 
+			x, y,
+			x + outer_radius, y,
+			thickness, colours.rotation_indicator_secondary);
+		g.draw_line(
+			layer, 23, 
+			x, y,
+			x + cos(angle) * outer_radius, y + sin(angle) * outer_radius,
+			thickness, colours.rotation_indicator);
+	}
+	
+	void render_handles(scene@ g)
+	{
+		float mid_x = (min_x + max_x) * 0.5;
+		float mid_y = (min_y + max_y) * 0.5;
+		
+		render_handle(g, TopLeft, min_x, min_y);
+		render_handle(g, Top, mid_x, min_y);
+		render_handle(g, TopRight, max_x, min_y);
+		render_handle(g, Right, max_x, mid_y);
+		render_handle(g, BottomRight, max_x, max_y);
+		render_handle(g, Bottom, mid_x, max_y);
+		render_handle(g, BottomLeft, min_x, max_y);
+		render_handle(g, Left, min_x, mid_y);
+	}
+	
+	private void render_handle(scene@ g, ResizeMode handle, float x, float y)
+	{
+		calculate_handle_centre(handle, x, y, x, y);
+		
+		g.draw_rectangle_world(
+			layer, 24,
+			x - handle_radius, y - handle_radius,
+			x + handle_radius, y + handle_radius,
+			0,
+			handle == selected_handle || handle == hovered_handle ? colours.handle_selected : colours.handle);
 	}
 	
 }
@@ -490,6 +684,14 @@ enum DragMode
 	None,
 	Rotation,
 	Move,
+	Resize,
+	
+}
+
+enum ResizeMode
+{
+	
+	None,
 	TopLeft,
 	Top,
 	TopRight,
@@ -500,3 +702,17 @@ enum DragMode
 	Left,
 	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
