@@ -144,6 +144,12 @@ float map(float value, float from_min, float from_max, float to_min, float to_ma
 	return to_min + value * (to_max - to_min);
 }
 
+float map_clamped(float value, float from_min, float from_max, float to_min, float to_max)
+{
+	value = clamp01((value - from_min) / (from_max - from_min));
+	return to_min + value * (to_max - to_min);
+}
+
 // Returns the z-component of the cross product of a and b
 float cross_product_z(float a_x, float a_y, float b_x, float b_y) {
     return a_x * b_y - a_y * b_x;
