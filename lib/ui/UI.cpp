@@ -33,22 +33,6 @@ class UI
 	
 	Mouse@ mouse = Mouse(true);
 	
-//	private bool prev_left_mouse_down;
-//	private bool prev_right_mouse_down;
-//	private bool prev_middle_mouse_down;
-//	
-//	bool left_mouse_down;
-//	bool right_mouse_down;
-//	bool middle_mouse_down;
-//	
-//	bool left_mouse_press;
-//	bool right_mouse_press;
-//	bool middle_mouse_press;
-//	
-//	float mouse_x;
-//	float mouse_y;
-//	int mouse_state;
-	
 	private scene@ g;
 	private textfield@ text_field;
 	

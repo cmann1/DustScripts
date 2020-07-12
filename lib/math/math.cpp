@@ -116,9 +116,13 @@ void rotate(float x, float y, float angle, float &out out_x, float &out out_y)
 	out_y = sin(angle) * x + cos(angle) * y;
 }
 
-float sgn(float x)
+float sign(float x)
 {
 	return x < -1e-9 ? -1 : (x > 1e-9 ? 1 : 0);
+}
+int sign(int x)
+{
+	return x < 0 ? -1 : (x > 0 ? 1 : 0);
 }
 
 void vec2_limit(float x, float y, float limit, float &out out_x, float &out out_y)
