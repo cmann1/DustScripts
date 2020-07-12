@@ -1,5 +1,6 @@
 #include '../std.cpp';
 #include 'TileShape.cpp';
+#include 'TileEdge.cpp';
 
 bool point_in_tile(float x, float y, int tile_ix, int tile_iy, int type, float &out normal_x, float &out normal_y, int layer=19)
 {
@@ -162,67 +163,49 @@ void set_tile_edge(tileinfo@ tile, int side, uint8 edge_bits)
 
 bool is_valid_edge(int shape, int side)
 {
-	if(shape == TileShape::Full)
-		return true;
-	
-	switch(side)
+	switch(shape)
 	{
-		case 0: // Top
-			return	shape == TileShape::Big1 or
-					shape == TileShape::Big2 or
-					shape == TileShape::Big3 or
-					shape == TileShape::Big5 or
-					shape == TileShape::Big6 or
-					shape == TileShape::Big7 or
-					shape == TileShape::Small1 or
-					shape == TileShape::Small3 or
-					shape == TileShape::Small5 or
-					shape == TileShape::Small7 or
-					shape == TileShape::HalfA or
-					shape == TileShape::HalfB or
-					shape == TileShape::HalfC or
-					shape == TileShape::HalfD;
-		case 1: // Bottom
-			return	shape == TileShape::Big1 or
-					shape == TileShape::Big3 or
-					shape == TileShape::Big4 or
-					shape == TileShape::Big5 or
-					shape == TileShape::Big7 or
-					shape == TileShape::Big8 or
-					shape == TileShape::Small1 or
-					shape == TileShape::Small3 or
-					shape == TileShape::Small5 or
-					shape == TileShape::Small7 or
-					shape == TileShape::HalfA or
-					shape == TileShape::HalfB or
-					shape == TileShape::HalfC or
-					shape == TileShape::HalfD;
-		case 2: // Left
-			return	shape == TileShape::Big1 or
-					shape == TileShape::Big2 or
-					shape == TileShape::Big4 or
-					shape == TileShape::Big6 or
-					shape == TileShape::Big7 or
-					shape == TileShape::Big8 or
-					shape == TileShape::Small2 or
-					shape == TileShape::Small4 or
-					shape == TileShape::Small6 or
-					shape == TileShape::Small8 or
-					shape == TileShape::HalfA or
-					shape == TileShape::HalfB;
-		case 3: // Right
-			return	shape == TileShape::Big2 or
-					shape == TileShape::Big3 or
-					shape == TileShape::Big4 or
-					shape == TileShape::Big5 or
-					shape == TileShape::Big6 or
-					shape == TileShape::Big8 or
-					shape == TileShape::Small2 or
-					shape == TileShape::Small4 or
-					shape == TileShape::Small6 or
-					shape == TileShape::Small8 or
-					shape == TileShape::HalfC or
-					shape == TileShape::HalfD;
+		// All edges
+		case TileShape::Full:
+			return true;
+		
+		// All but the right edge
+		case TileShape::Big1:
+		case TileShape::Big7:
+		case TileShape::HalfA:
+		case TileShape::HalfB:
+			return side != TileEdge::Right;
+		
+		// The top and bottom edges
+		case TileShape::Small1:
+		case TileShape::Small3:
+		case TileShape::Small5:
+		case TileShape::Small7:
+			return side == TileEdge::Top || side == TileEdge::Bottom;
+		
+		// All but the bottom edge
+		case TileShape::Big2:
+		case TileShape::Big6:
+			return side != TileEdge::Bottom;
+		
+		// The left and right edges
+		case TileShape::Small2:
+		case TileShape::Small4:
+		case TileShape::Small6:
+		case TileShape::Small8:
+			return side == TileEdge::Left || side == TileEdge::Right;
+		
+		// All but the left edge
+		case TileShape::Big3:
+		case TileShape::Big5:
+		case TileShape::HalfC:
+		case TileShape::HalfD:
+			return side != TileEdge::Left;
+		
+		// All but the top edge
+		case TileShape::Big4:
+		case TileShape::Big8:
+			return side != TileEdge::Top;
 	}
 	
 	return false;
