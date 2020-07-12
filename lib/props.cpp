@@ -18,6 +18,24 @@ void sprite_from_prop(uint prop_set, uint prop_group, uint prop_index, string &o
 	sprite_name = PROP_GROUP_NAMES[prop_group] + '_' + prop_index;
 }
 
+prop@ copy_prop(prop@ p)
+{
+	prop@ new_p = create_prop();
+	new_p.x(p.x());
+	new_p.y(p.y());
+	new_p.rotation(p.rotation());
+	new_p.scale_x(p.scale_x());
+	new_p.scale_y(p.scale_y());
+	new_p.prop_set(p.prop_set());
+	new_p.prop_group(p.prop_group());
+	new_p.prop_index(p.prop_index());
+	new_p.palette(p.palette());
+	new_p.layer(p.layer());
+	new_p.sub_layer(p.sub_layer());
+	
+	return new_p;
+}
+
 class Prop
 {
 	
