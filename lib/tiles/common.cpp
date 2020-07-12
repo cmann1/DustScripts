@@ -210,3 +210,55 @@ bool is_valid_edge(int shape, int side)
 	
 	return false;
 }
+
+bool is_full_edge(int shape, int side)
+{
+	switch(side)
+	{
+		case TileEdge::Top:
+			return	shape == TileShape::Full ||
+					shape == TileShape::Big2 ||
+					shape == TileShape::Big3 ||
+					shape == TileShape::Big6 ||
+					shape == TileShape::Big7 ||
+					shape == TileShape::Small3 ||
+					shape == TileShape::Small7 ||
+					shape == TileShape::HalfB ||
+					shape == TileShape::HalfC;
+			
+		case TileEdge::Bottom:
+			return	shape == TileShape::Full ||
+					shape == TileShape::Big1 ||
+					shape == TileShape::Big4 ||
+					shape == TileShape::Big5 ||
+					shape == TileShape::Big8 ||
+					shape == TileShape::Small1 ||
+					shape == TileShape::Small5 ||
+					shape == TileShape::HalfA ||
+					shape == TileShape::HalfD;
+			
+		case TileEdge::Left:
+			return	shape == TileShape::Full ||
+					shape == TileShape::Big1 ||
+					shape == TileShape::Big2 ||
+					shape == TileShape::Big7 ||
+					shape == TileShape::Big8 ||
+					shape == TileShape::Small2 ||
+					shape == TileShape::Small8 ||
+					shape == TileShape::HalfA ||
+					shape == TileShape::HalfB;
+			
+		case TileEdge::Right:
+			return	shape == TileShape::Full ||
+					shape == TileShape::Big3 ||
+					shape == TileShape::Big4 ||
+					shape == TileShape::Big5 ||
+					shape == TileShape::Big6 ||
+					shape == TileShape::Small4 ||
+					shape == TileShape::Small6 ||
+					shape == TileShape::HalfC ||
+					shape == TileShape::HalfD;
+	}
+	
+	return false;
+}
