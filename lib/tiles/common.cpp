@@ -281,3 +281,33 @@ string get_edge_name(int side)
 	
 	return 'Unknown';
 }
+
+bool is_external_edge(scene@ g, int layer, int tile_x, int tile_y, int type, int edge)
+{
+	if(!is_full_edge(type, edge))
+		return true;
+	
+	switch(edge)
+	{
+		case TileEdge::Top:
+			tile_y--;
+			edge = TileEdge::Bottom;
+			break;
+		case TileEdge::Bottom:
+			tile_y++;
+			edge = TileEdge::Top;
+			break;
+		case TileEdge::Left:
+			tile_x--;
+			edge = TileEdge::Right;
+			break;
+		case TileEdge::Right:
+			tile_x++;
+			edge = TileEdge::Left;
+			break;
+	}
+	
+	tileinfo@ tile = g.get_tile(tile_x, tile_y, layer);
+	
+	return !is_full_edge(tile.type(), edge) || !tile.solid();
+}
