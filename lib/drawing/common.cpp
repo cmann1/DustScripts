@@ -1,3 +1,25 @@
+/**
+ * g.draw_line thickness is truncated to a whole number
+ */
+void draw_line(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness, uint colour, bool world=true)
+{
+	float dx = x2 - x1;
+	float dy = y2 - y1;
+	float length = sqrt(dx * dx + dy * dy);
+	
+	float mx = (x1 + x2) * 0.5;
+	float my = (y1 + y2) * 0.5;
+	
+	if(world)
+		g.draw_rectangle_world(layer, sub_layer,
+			mx - thickness, my - length * 0.5,
+			mx + thickness, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
+	else
+		g.draw_rectangle_hud(layer, sub_layer,
+			mx - thickness, my - length * 0.5,
+			mx + thickness, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
+}
+
 void draw_arrow(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float width=2, float head_size=20, float head_position=1, uint colour=0xFFFFFFFF, bool world=true)
 {
 	float dx = x2 - x1;
