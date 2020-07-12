@@ -613,6 +613,7 @@ class _PropTrigger : trigger_base
 class PropMover : _PropTrigger
 {
 	
+	[text] bool copy;
 	[text] int layer1 = -1;
 	[text] int sub_layer1 = -1;
 	[text] int layer2 = -1;
@@ -635,17 +636,37 @@ class PropMover : _PropTrigger
 			if(layer1 != -1 and int(p.layer()) != layer1 or sub_layer1 != -1 and int(p.sub_layer()) != sub_layer1)
 				continue;
 			
-			if(shift_layer !=0 or shift_sub_layer != 0)
+			int old_layer = p.layer();
+			int old_sub_layer = p.sub_layer();
+			int layer = old_layer;
+			int sub_layer = old_sub_layer;
+			
+			if(shift_layer != 0 or shift_sub_layer != 0)
 			{
-				p.layer(p.layer() + shift_layer);
-				p.sub_layer(p.sub_layer() + shift_sub_layer);
+				layer += shift_layer;
+				sub_layer += shift_sub_layer;
 			}
 			else
 			{
 				if(layer2 != -1)
-					p.layer(layer2);
+					layer = layer2;
 				if(sub_layer2 != -1)
-					p.sub_layer(sub_layer2);
+					sub_layer = sub_layer2;
+			}
+			
+			layer = clamp(layer, 0, 20);
+			sub_layer = clamp(sub_layer, 0, 24);
+			
+			if(layer != old_layer || sub_layer != old_sub_layer)
+			{
+				if(copy)
+				{
+					@p = copy_prop(p);
+					g.add_prop(p);
+				}
+				
+				p.layer(layer);
+				p.sub_layer(sub_layer);
 			}
 		}
 	}
