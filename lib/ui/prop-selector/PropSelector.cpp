@@ -18,6 +18,7 @@ class PropSelector : ButtonClickHandler
 	scene@ g;
 	
 	UI@ ui;
+	Mouse@ mouse;
 	ScrollView@ groupContainer;
 	ScrollView@ propsContainer;
 	ScrollView@ palettesContainer;
@@ -43,6 +44,7 @@ class PropSelector : ButtonClickHandler
 		@g = get_scene();
 		
 		@this.ui = ui;
+		@this.mouse = ui.mouse;
 		
 		@groupContainer = ScrollView(ui);
 		@propsContainer = ScrollView(ui);
@@ -333,7 +335,7 @@ class PropSelector : ButtonClickHandler
 		
 		ui.post_draw();
 		
-		if(!ui.right_mouse_down)
+		if(!mouse.right_down)
 		{
 			@focused_prop = null;
 		}

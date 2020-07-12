@@ -32,7 +32,7 @@ class PropIcon : Element
 		
 		if(is_mouse_over)
 		{
-			if(ui.right_mouse_down)
+			if(ui.mouse.right_down)
 			{
 				@propSelector.focused_prop = this;
 			}
@@ -61,7 +61,7 @@ class PropIcon : Element
 			ui.highlight_light(rect);
 		}
 		
-		if(is_mouse_over && ui.left_mouse_press)
+		if(is_mouse_over && ui.mouse.left_press)
 		{
 //			puts('CLICK ME ' + prop_index.name + ' > ' + rect.to_string() + '' + str(ui.mouse_x, ui.mouse_y));
 			propSelector.select_prop(this);

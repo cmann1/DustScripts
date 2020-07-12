@@ -35,7 +35,7 @@ class ScrollView : Container
 		{
 			 int dir;
 			 
-			 if(ui.mouse_scroll(dir))
+			 if(ui.mouse.scrolled(dir))
 			 {
 				 scroll = clamp(scroll + dir * scroll_amount, 0, scroll_max);
 			 }

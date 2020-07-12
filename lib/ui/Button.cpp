@@ -40,7 +40,7 @@ class Button : Element
 		
 		const bool is_mouse_over = ui.mouse_intersects(r);
 		
-		if(pressed && !ui.left_mouse_down)
+		if(pressed && !ui.mouse.left_down)
 		{
 			// Clicked!
 			if(is_mouse_over && @click_listener != null)
@@ -56,12 +56,12 @@ class Button : Element
 		
 		if(is_mouse_over)
 		{
-			if(ui.left_mouse_press)
+			if(ui.mouse.left_press)
 			{
 				pressed = true;
 			}
 			
-			if(ui.left_mouse_down)
+			if(ui.mouse.left_down)
 			{
 				r.offset(1, 1);
 			}

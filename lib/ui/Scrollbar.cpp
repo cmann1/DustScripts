@@ -31,14 +31,14 @@ class Scrollbar
 		{
 			track_start = rect.y1;
 			track_end = rect.y2;
-			mouse = ui.mouse_y;
+			mouse = ui.mouse.y;
 			track_left = rect.x2 + ui.padding;
 		}
 		else
 		{
 			track_start = rect.x1;
 			track_end = rect.x2;
-			mouse = ui.mouse_x;
+			mouse = ui.mouse.x;
 			track_left = rect.y2 + ui.padding;
 		}
 		
@@ -83,7 +83,7 @@ class Scrollbar
 			g.draw_rectangle_hud(22, 22, thumb_rect.x1, thumb_rect.y1, thumb_rect.x2, thumb_rect.y2, 0, thumb_colour);
 		}
 		
-		if(ui.left_mouse_press)
+		if(ui.mouse.left_press)
 		{
 			if(mouse_over_thumb)
 			{
@@ -91,7 +91,7 @@ class Scrollbar
 				drag_offset = mouse - (thumb_start + thumb_end) * 0.5;
 			}
 		}
-		else if(!ui.left_mouse_down)
+		else if(!ui.mouse.left_down)
 		{
 			dragging_thumb = false;
 		}

@@ -1,4 +1,5 @@
 #include '../std.cpp';
+#include '../Mouse.cpp';
 #include '../math/Vec2.cpp';
 #include '../math/Rect.cpp';
 #include 'Align.cpp';
@@ -30,21 +31,23 @@ class UI
 	uint tooltip_shadow_colour = 0x22000000;
 	uint tooltip_border_colour = 0xDD1f1f1f;
 	
-	private bool prev_left_mouse_down;
-	private bool prev_right_mouse_down;
-	private bool prev_middle_mouse_down;
+	Mouse@ mouse = Mouse(true);
 	
-	bool left_mouse_down;
-	bool right_mouse_down;
-	bool middle_mouse_down;
-	
-	bool left_mouse_press;
-	bool right_mouse_press;
-	bool middle_mouse_press;
-	
-	float mouse_x;
-	float mouse_y;
-	int mouse_state;
+//	private bool prev_left_mouse_down;
+//	private bool prev_right_mouse_down;
+//	private bool prev_middle_mouse_down;
+//	
+//	bool left_mouse_down;
+//	bool right_mouse_down;
+//	bool middle_mouse_down;
+//	
+//	bool left_mouse_press;
+//	bool right_mouse_press;
+//	bool middle_mouse_press;
+//	
+//	float mouse_x;
+//	float mouse_y;
+//	int mouse_state;
 	
 	private scene@ g;
 	private textfield@ text_field;
@@ -63,20 +66,7 @@ class UI
 	
 	void step()
 	{
-		mouse_scale = calibrated_mouse_hud(g, mouse_x, mouse_y, mouse_scale);
-		mouse_state = g.mouse_state(0);
-		
-		left_mouse_down = (mouse_state & 4) != 0;
-		right_mouse_down = (mouse_state & 8) != 0;
-		middle_mouse_down = (mouse_state & 16) != 0;
-		
-		left_mouse_press = left_mouse_down && !prev_left_mouse_down;
-		right_mouse_press = right_mouse_down && !prev_right_mouse_down;
-		middle_mouse_press = middle_mouse_down && !prev_middle_mouse_down;
-		
-		prev_left_mouse_down = left_mouse_down;
-		prev_right_mouse_down = right_mouse_down;
-		prev_middle_mouse_down = middle_mouse_down;
+		mouse.step();
 	}
 	
 	void post_draw()
@@ -107,19 +97,7 @@ class UI
 	
 	bool mouse_intersects(const Rect &in rect)
 	{
-		return mouse_x >= rect.x1 && mouse_x <= rect.x2 && mouse_y >= rect.y1 && mouse_y <= rect.y2;
-	}
-	
-	bool mouse_scroll(int &out dir)
-	{
-		 dir = (mouse_state & 1 != 0) ? -1 : ((mouse_state & 2 != 0) ? 1 : 0);
-		 
-		 return dir != 0;
-	}
-	
-	int mouse_scroll()
-	{
-		 return (mouse_state & 1 != 0) ? -1 : ((mouse_state & 2 != 0) ? 1 : 0);
+		return mouse.x >= rect.x1 && mouse.x <= rect.x2 && mouse.y >= rect.y1 && mouse.y <= rect.y2;
 	}
 	
 	// Drawing

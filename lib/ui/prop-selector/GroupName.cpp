@@ -32,7 +32,7 @@ class GroupName : Element
 			ui.highlight(rect);
 		}
 		
-		if(is_mouse_over && ui.left_mouse_press)
+		if(is_mouse_over && ui.mouse.left_press)
 		{
 			propSelector.select_group(this);
 		}

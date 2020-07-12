@@ -43,6 +43,7 @@ class script
 	
 	private scene@ g;
 	private UI@ ui = UI();
+	private Mouse@ mouse = ui.mouse;
 	private PropSelector prop_selector(ui);
 	private int selected_brush_def_index = -1;
 	
@@ -89,10 +90,10 @@ class script
 		 * */
 		
 		float spread_adjustment;
-		bool adjust_spread = ui.left_mouse_down && ui.mouse_scroll(spread_adjustment);
+		bool adjust_spread = mouse.left_down && mouse.scrolled(spread_adjustment);
 		spread_adjustment = -spread_adjustment;
 		
-//		if(!ui.left_mouse_down)
+//		if(!mouse.left_down)
 //		{
 			spread_adjustment *= 2;
 //		}
@@ -173,9 +174,9 @@ class script
 		
 		move_tail(mouse_x, mouse_y);
 		
-		if(ui.right_mouse_down)
+		if(mouse.right_down)
 		{
-			if(ui.right_mouse_press)
+			if(mouse.right_press)
 			{
 				for(uint i = 0; i < brushes.size(); i++)
 				{
@@ -200,7 +201,7 @@ class script
 			draw_angle = lerp_angle(lerp_angle(mouse_angle, prev_angle, 0.5), prev_angle2, 0.5);
 		}
 		
-		if(ui.right_mouse_down)
+		if(mouse.right_down)
 		{
 			for(uint i = 0; i < brushes.size(); i++)
 			{
@@ -221,7 +222,7 @@ class script
 				b.draw(g, mx, my, mouse_distance, dx, dy, draw_angle, place_on_tiles, spread_mul, angle_mul);
 			}
 		}
-		else if(ui.middle_mouse_down)
+		else if(mouse.middle_down)
 		{
 			for(uint i = 0; i < brushes.size(); i++)
 			{
@@ -359,7 +360,7 @@ class script
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint on_alpha = 0xaa000000;
 			const uint off_alpha = 0x44000000;
-			const uint alpha = ui.right_mouse_down ? off_alpha : on_alpha;
+			const uint alpha = mouse.right_down ? off_alpha : on_alpha;
 			const float brush_radius = @brush != null ? max(brush.spread * spread_mul, 0) : 0;
 			const float real_radius = !place_on_tiles ? brush_radius : place_on_tiles_distance;
 			const float radius = max(real_radius, 15);
@@ -393,7 +394,7 @@ class script
 				}
 			}
 			
-			if(preview && !ui.right_mouse_down && !ui.middle_mouse_down && @brush != null)
+			if(preview && !mouse.right_down && !mouse.middle_down && @brush != null)
 			{
 				brush.preview(@sprite, sprite_x, sprite_y, overlay_angle, angle_mul, alpha | 0xffffff);
 			}
