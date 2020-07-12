@@ -262,3 +262,22 @@ bool is_full_edge(int shape, int side)
 	
 	return false;
 }
+
+string get_edge_name(int side)
+{
+	
+	switch(side)
+	{
+		case TileEdge::Top:
+			return'Top';
+		case TileEdge::Bottom:
+			return 'Bottom';
+		case TileEdge::Left:
+			return 'Left';
+			
+		case TileEdge::Right:
+			return 'Right';
+	}
+	
+	return 'Unknown';
+}
