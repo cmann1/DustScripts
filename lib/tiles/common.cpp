@@ -129,13 +129,13 @@ uint8 get_tile_edge(tileinfo@ tile, int side)
 {
 	switch(side)
 	{
-		case 0: // Top
+		case TileEdge::Top:
 			return tile.edge_top();
-		case 1: // Bottom
+		case TileEdge::Bottom:
 			return tile.edge_bottom();
-		case 2: // Left
+		case TileEdge::Left:
 			return tile.edge_left();
-		case 3: // Right
+		case TileEdge::Right:
 			return tile.edge_right();
 	}
 	
@@ -146,16 +146,16 @@ void set_tile_edge(tileinfo@ tile, int side, uint8 edge_bits)
 {
 	switch(side)
 	{
-		case 0: // Top
+		case TileEdge::Top:
 			tile.edge_top(edge_bits);
 			break;
-		case 1: // Bottom
+		case TileEdge::Bottom:
 			tile.edge_bottom(edge_bits);
 			break;
-		case 2: // Left
+		case TileEdge::Left:
 			tile.edge_left(edge_bits);
 			break;
-		case 3: // Right
+		case TileEdge::Right:
 			tile.edge_right(edge_bits);
 			break;
 	}
