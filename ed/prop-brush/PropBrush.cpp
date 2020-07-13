@@ -7,20 +7,21 @@
 #include '../../lib/drawing/Sprite.cpp';
 #include '../../lib/ui/prop-selector/PropSelector.cpp';
 #include 'BrushDef.cpp';
+#include 'DragSizeState.cpp';
 
-/* TODO:
- *    - Custom toolbar:
- *        - Check/Radio buttons to set which property to adjust with the scroll wheel. None can be checked to disable entirely
- *            - Option to control increments
- *        - Toggle erasing only matching props, or any props
- *            - Toggle erasing onlky matching layer, or any layer
- *        - Toggle draw on and off
- *        - Toggle preview
- *        - Smoothing slider
- *        - Place on tiles
- *        - etc. place as many options her as possible.
- * 
- */
+// TODO:
+//    - Custom toolbar:
+//        - Check/Radio buttons to set which property to adjust with the scroll wheel. None can be checked to disable entirely
+//            - Option to control increments
+//        - Toggle erasing only matching props, or any props
+//            - Toggle erasing onlky matching layer, or any layer
+//        - Toggle draw on and off
+//        - Toggle preview
+//        - Smoothing slider
+//        - Place on tiles
+//        - etc. place as many options her as possible.
+// 
+// 
 
 class script
 {
@@ -59,6 +60,10 @@ class script
 	private float prev_angle2;
 	private float draw_angle;
 	
+	DragSizeState drag_size = DragSizeState::Off;
+	float drag_size_start;
+	float drag_size_x;
+	float drag_size_y;
 	
 	script()
 	{
@@ -93,10 +98,12 @@ class script
 		bool adjust_spread = mouse.left_down && mouse.scrolled(spread_adjustment);
 		spread_adjustment = -spread_adjustment;
 		
-//		if(!mouse.left_down)
-//		{
-			spread_adjustment *= 2;
-//		}
+		float drag_size;
+		if(update_drag_size(drag_size))
+		{
+			spread_adjustment = drag_size;
+			adjust_spread = true;
+		}
 		
 		if(place_on_tiles)
 		{
@@ -167,14 +174,50 @@ class script
 		}
 	}
 	
+	bool update_drag_size(float &out spread_adjustment)
+	{
+		if(drag_size == DragSizeState::On)
+		{
+			if(!mouse.left_down || !mouse.right_down)
+			{
+				drag_size = DragSizeState::Locked;
+			}
+			else
+			{
+				float x = g.mouse_x_world(0, 19);
+				float size = (x - drag_size_x);
+				spread_adjustment = size - drag_size_start;
+				drag_size_start = size;
+				return spread_adjustment != 0;
+			}
+		}
+		else if(drag_size == DragSizeState::Locked)
+		{
+			if(!mouse.left_down && !mouse.right_down)
+			{
+				drag_size = DragSizeState::Off;
+			}
+		}
+		else if(mouse.left_down && mouse.right_press)
+		{
+			drag_size = DragSizeState::On;
+			drag_size_start = 0;
+			drag_size_x = g.mouse_x_world(0, 19);
+			drag_size_y = g.mouse_y_world(0, 19);
+		}
+		
+		return false;
+	}
+	
 	private void run()
 	{
 		const float mouse_x = g.mouse_x_world(0, 19);
 		const float mouse_y = g.mouse_y_world(0, 19);
+		bool do_draw = drag_size == DragSizeState::Off;
 		
 		move_tail(mouse_x, mouse_y);
 		
-		if(mouse.right_down)
+		if(do_draw && mouse.right_down)
 		{
 			if(mouse.right_press)
 			{
@@ -201,7 +244,7 @@ class script
 			draw_angle = lerp_angle(lerp_angle(mouse_angle, prev_angle, 0.5), prev_angle2, 0.5);
 		}
 		
-		if(mouse.right_down)
+		if(do_draw && mouse.right_down)
 		{
 			for(uint i = 0; i < brushes.size(); i++)
 			{
@@ -222,7 +265,7 @@ class script
 				b.draw(g, mx, my, mouse_distance, dx, dy, draw_angle, place_on_tiles, spread_mul, angle_mul);
 			}
 		}
-		else if(mouse.middle_down)
+		else if(do_draw && mouse.middle_down)
 		{
 			for(uint i = 0; i < brushes.size(); i++)
 			{
@@ -231,10 +274,6 @@ class script
 				const float my = b.layer < 12 ? g.mouse_y_world(0, b.layer) : mouse_y;
 				b.erase(g, mx, my, spread_mul);
 			}
-		}
-		else
-		{
-			
 		}
 		
 		prev_x = mouse_x;
@@ -356,11 +395,13 @@ class script
 				brush.calculate_angle(angle_mul, angle_min, angle_max);
 			}
 			
+			bool do_draw = mouse.right_down && drag_size == DragSizeState::Off;
+			
 			const float mouse_x = g.mouse_x_world(0, mouse_layer);
 			const float mouse_y = g.mouse_y_world(0, mouse_layer);
 			const uint on_alpha = 0xaa000000;
 			const uint off_alpha = 0x44000000;
-			const uint alpha = mouse.right_down ? off_alpha : on_alpha;
+			const uint alpha = do_draw ? off_alpha : on_alpha;
 			const float brush_radius = @brush != null ? max(brush.spread * spread_mul, 0) : 0;
 			const float real_radius = !place_on_tiles ? brush_radius : place_on_tiles_distance;
 			const float radius = max(real_radius, 15);
@@ -394,7 +435,7 @@ class script
 				}
 			}
 			
-			if(preview && !mouse.right_down && !mouse.middle_down && @brush != null)
+			if(preview && !mouse.right_down && !mouse.middle_down && drag_size == DragSizeState::Off && @brush != null)
 			{
 				brush.preview(@sprite, sprite_x, sprite_y, overlay_angle, angle_mul, alpha | 0xffffff);
 			}
@@ -406,22 +447,25 @@ class script
 //				tail_x, tail_y,
 //				1, alpha | 0x0000ff);
 			
-			draw_circle(g, mouse_x, mouse_y, real_radius, 32, mouse_layer, 24, thickness, colour);
+			float cursor_x = drag_size == DragSizeState::Off ? mouse_x : drag_size_x;
+			float cursor_y = drag_size == DragSizeState::Off ? mouse_y : drag_size_y;
+			
+			draw_circle(g, cursor_x, cursor_y, real_radius, 32, mouse_layer, 24, thickness, colour);
 			
 			g.draw_line(
 				mouse_layer, 24,
-				mouse_x, mouse_y,
-				mouse_x + cos(overlay_angle) * radius,
-				mouse_y + sin(overlay_angle) * radius,
+				cursor_x, cursor_y,
+				cursor_x + cos(overlay_angle) * radius,
+				cursor_y + sin(overlay_angle) * radius,
 				thickness, colour);
 			
 			if(abs(angle_min) > 0.001)
 			{
 				g.draw_line(
 					mouse_layer, 24,
-					mouse_x, mouse_y,
-					mouse_x + cos(overlay_angle + angle_min) * radius,
-					mouse_y + sin(overlay_angle + angle_min) * radius,
+					cursor_x, cursor_y,
+					cursor_x + cos(overlay_angle + angle_min) * radius,
+					cursor_y + sin(overlay_angle + angle_min) * radius,
 					thickness, range_colour);
 			}
 			
@@ -429,9 +473,9 @@ class script
 			{
 				g.draw_line(
 					mouse_layer, 24,
-					mouse_x, mouse_y,
-					mouse_x + cos(overlay_angle + angle_max) * radius,
-					mouse_y + sin(overlay_angle + angle_max) * radius,
+					cursor_x, cursor_y,
+					cursor_x + cos(overlay_angle + angle_max) * radius,
+					cursor_y + sin(overlay_angle + angle_max) * radius,
 					thickness, range_colour);
 			}
 		}
