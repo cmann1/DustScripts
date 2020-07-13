@@ -282,32 +282,41 @@ string get_edge_name(int side)
 	return 'Unknown';
 }
 
-bool is_external_edge(scene@ g, int layer, int tile_x, int tile_y, int type, int edge)
+int opposite_tile_edge(int edge)
+{
+	return edge - (edge % 2) * 2 + 1;
+}
+
+/**
+ * Returns the tile coordinates of the tile adjacent to **edge**.
+ */
+void edge_adjacent_tile(int edge, int tile_x, int tile_y, int &out out_tile_x, int &out out_tile_y)
+{
+	out_tile_x = tile_x + (edge >  TileEdge::Bottom ? (edge % 2) * 2 - 1 : 0);
+	out_tile_y = tile_y + (edge <= TileEdge::Bottom ? (edge % 2) * 2 - 1 : 0);
+}
+
+/**
+ * If **check_sprite** is true, edge shared between tiles with different sprite sets will be considered external
+ */
+bool is_external_edge(scene@ g, int layer, int tile_x, int tile_y, tileinfo@ tile, int type, int edge, bool check_sprite = false)
 {
 	if(!is_full_edge(type, edge))
 		return true;
 	
-	switch(edge)
+	int opposite_edge = opposite_tile_edge(edge);
+	edge_adjacent_tile(edge, tile_x, tile_y, tile_x, tile_y);
+	tileinfo@ other_tile = g.get_tile(tile_x, tile_y, layer);
+	
+	if(is_full_edge(other_tile.type(), opposite_edge) && other_tile.solid())
 	{
-		case TileEdge::Top:
-			tile_y--;
-			edge = TileEdge::Bottom;
-			break;
-		case TileEdge::Bottom:
-			tile_y++;
-			edge = TileEdge::Top;
-			break;
-		case TileEdge::Left:
-			tile_x--;
-			edge = TileEdge::Right;
-			break;
-		case TileEdge::Right:
-			tile_x++;
-			edge = TileEdge::Left;
-			break;
+		if(check_sprite)
+			return	other_tile.sprite_set() != tile.sprite_set() ||
+					other_tile.sprite_tile() != tile.sprite_tile() ||
+					other_tile.sprite_palette() != tile.sprite_palette();
+		else
+			return false;
 	}
 	
-	tileinfo@ tile = g.get_tile(tile_x, tile_y, layer);
-	
-	return !is_full_edge(tile.type(), edge) || !tile.solid();
+	return true;
 }
