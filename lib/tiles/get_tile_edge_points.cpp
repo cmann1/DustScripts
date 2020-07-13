@@ -255,3 +255,22 @@ bool get_tile_right_edge_points(int shape, float &out x1, float &out y1, float &
 	
 	return true;
 }
+
+void get_edge_points(int shape, int edge, float &out x1, float &out y1, float &out x2, float &out y2, float x = 0, float y = 0)
+{
+	switch(edge)
+	{
+		case TileEdge::Top:
+			get_tile_top_edge_points(shape, x1, y1, x2, y2, x, y);
+			break;
+		case TileEdge::Bottom:
+			get_tile_bottom_edge_points(shape, x1, y1, x2, y2, x, y);
+			break;
+		case TileEdge::Left:
+			get_tile_left_edge_points(shape, x1, y1, x2, y2, x, y);
+			break;
+		case TileEdge::Right:
+			get_tile_right_edge_points(shape, x1, y1, x2, y2, x, y);
+			break;
+	}
+}
