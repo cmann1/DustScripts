@@ -98,7 +98,8 @@ class script
 	TileCachChunkQueue tiles_cache_queue(20);
 	
 	textfield@ display_text;
-	int display_mode_timer = 0;
+	string display_text_content = '';
+	int display_text_timer = 0;
 	
 	script()
 	{
@@ -118,6 +119,16 @@ class script
 		if(!enabled)
 			return;
 		
+		int scroll;
+		
+		if(!precision_mode && mouse.left_down && mouse.scrolled(scroll))
+		{
+			layer = clamp(layer - scroll, 6, 20);
+			force_mouse_update = true;
+			display_text_timer = DISPLAY_MODE_TIME;
+			display_text_content = 'Layer: ' + layer;
+		}
+		
 		prev_mouse_x = mouse.x;
 		prev_mouse_y = mouse.y;
 		mouse.layer = layer = clamp(layer, 6, 20);
@@ -129,19 +140,12 @@ class script
 		if(mouse.left_down && mouse.middle_press)
 		{
 			precision_mode = !precision_mode;
-			display_mode_timer = DISPLAY_MODE_TIME;
+			display_text_timer = DISPLAY_MODE_TIME;
+			display_text_content = precision_mode ? 'Precision' : 'Brush';
 			force_mouse_update = true;
 		}
 		
 		update_drag_size();
-		
-		int scroll;
-		
-		if(!precision_mode && mouse.left_down && mouse.scrolled(scroll))
-		{
-			size = clamp(size - scroll * SCROLL_AMOUNT, 0.0, 9999.0);
-			force_mouse_update = true;
-		}
 		
 		if(mouse.middle_press && !mouse.left_down)
 		{
@@ -212,12 +216,14 @@ class script
 				{
 					float x = g.mouse_x_world(0, 19);
 					size = max(1, drag_size_start + (x - drag_size_x));
+					
+					display_text_timer = 1;
+					display_text_content = int(size) + '';
 				}
 			}
 			else if(mouse.left_down && mouse.right_press)
 			{
 				drag_size = DragSizeState::On;
-				display_mode_timer = 0;
 				drag_size_start = size;
 				drag_size_x = g.mouse_x_world(0, 19);
 				drag_size_y = g.mouse_y_world(0, 19);
@@ -705,20 +711,14 @@ class script
 			float layer_size, _lsy;
 			transform_layer_position(view_x, view_y, mouse.x, mouse.y, layer, 22, layer_size, _lsy);
 			draw_circle(g, cursor_x, cursor_y, size, 64, 22, 24, 3, 0xaaffffff);
-			
-			if(drag_size == DragSizeState::On)
-			{
-				display_text.text(int(size) + '');
-				display_text.draw_world(22, 24, cursor_x, cursor_y - DISPLAY_TEXT_OFFSET, 1, 1, 0);
-			}
 		}
 		
-		if(display_mode_timer > 0)
+		if(display_text_timer > 0)
 		{
-			display_text.text(precision_mode ? 'Precision' : 'Brush');
+			display_text.text(display_text_content);
 			display_text.draw_world(22, 24, cursor_x, cursor_y - DISPLAY_TEXT_OFFSET, 1, 1, 0);
 			
-			display_mode_timer--;
+			display_text_timer--;
 		}
 		
 		/*

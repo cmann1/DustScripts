@@ -50,7 +50,7 @@ The main script has a utility for selecting and outputting code that can be used
 ##### Basic usage:
 - **Right mouse:** Draw.
 - **Middle mouse:** Toggle **update_collision**.
-- **Left mouse + Mouse wheel:** Change brush size.
+- **Left mouse + Mouse wheel:** Change layer.
 - **Left mouse + Right mouse:** Drag horizontally to change the brush size.
 - **Left mouse + Middle mouse:** Toggle precision mode.
 ##### Properties:
