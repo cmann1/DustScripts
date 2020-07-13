@@ -15,6 +15,10 @@ class Mouse
 	bool right_press;
 	bool middle_press;
 	
+	bool left_release;
+	bool right_release;
+	bool middle_release;
+	
 	float x;
 	float y;
 	int scroll;
@@ -71,6 +75,10 @@ class Mouse
 		left_press = left_down && !prev_left_down;
 		right_press = right_down && !prev_right_down;
 		middle_press = middle_down && !prev_middle_down;
+		
+		left_release = !left_down && prev_left_down;
+		right_release = !right_down && prev_right_down;
+		middle_release = !middle_down && prev_middle_down;
 		
 		prev_left_down = left_down;
 		prev_right_down = right_down;
