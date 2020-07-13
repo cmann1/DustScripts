@@ -167,7 +167,8 @@ class script
 			force_mouse_update = true;
 		}
 		
-		if(tile_cache_layer != layer || mouse.right_release)
+		// Also clear the cach when the left mouse is release so that for example making changes made with the tile tool will reflect immediately
+		if(tile_cache_layer != layer || mouse.right_release || mouse.left_release)
 		{
 			if(tiles_cache_size > 0)
 			{
