@@ -31,6 +31,10 @@ The main script has a utility for selecting and outputting code that can be used
 
 ### Tiles (t.cpp)
 - **RemoveTileEdges** - Removes edges from selected tiles
+- **CopyTileEdges** - Copies only tiles with one or more solid edges to the target layer.
+- **MoveTiles** - Move or copy tiles to the target layer.
+- **SetTileSprites** - Sets all tiles to the target sprite set and palette
+- **MakeTilesInvisible** - Makes tiles invisible - not sure this is useful because invisible tiles are removed when exiting play mode or a checkpoint is loaded
 
 ### Emitters
 - **em.cpp** - Script triggers:
