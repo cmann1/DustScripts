@@ -121,7 +121,7 @@ class script
 		
 		int scroll;
 		
-		if(!precision_mode && mouse.left_down && mouse.scrolled(scroll))
+		if(mouse.left_down && mouse.scrolled(scroll))
 		{
 			layer = clamp(layer - scroll, 6, 20);
 			
