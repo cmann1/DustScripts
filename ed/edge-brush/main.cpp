@@ -121,6 +121,8 @@ class script
 		
 		int scroll;
 		
+		display_text_timer--;
+		
 		if(mouse.left_down && mouse.scrolled(scroll))
 		{
 			layer = clamp(layer - scroll, 6, 20);
@@ -724,8 +726,6 @@ class script
 		{
 			display_text.text(display_text_content);
 			display_text.draw_world(22, 24, cursor_x, cursor_y - DISPLAY_TEXT_OFFSET, 1, 1, 0);
-			
-			display_text_timer--;
 		}
 		
 		/*
