@@ -13,6 +13,8 @@
 #include 'OnOffProperty.cpp';
 #include 'EdgeType.cpp';
 #include 'DragSizeState.cpp';
+#include 'TileCachChunkQueue.cpp';
+#include 'TileCachChunk.cpp';
 
 const uint ON_OFF_COLOUR = 0xaaffffff;
 const uint ON_OFF_ALPHA = ON_OFF_COLOUR & 0xff000000;
@@ -27,8 +29,10 @@ const uint PRECISE_EDGE_ARROW_COLOUR = 0x55ffffff;
 const float EDGE_OFF_FACTOR = 0.4;
 const float EDGE_RENDER_WIDTH = 2;
 const float PRECISE_EDGE_RENDER_WIDTH = 1;
-const float PRECISE_EDGE_MARKER_WIDTH = 3;
+const float PRECISE_EDGE_MARKER_WIDTH = 4;
 const float SCROLL_AMOUNT = 10;
+
+const int TILES_CACHE_CHUNK_SIZE = 30;
 
 class script
 {
@@ -84,6 +88,11 @@ class script
 	float precision_edge_marker_x2;
 	float precision_edge_marker_y2;
 	
+	dictionary tiles_cache;
+	int tiles_cache_size;
+	int tile_cache_layer;
+	TileCachChunkQueue tiles_cache_queue(20);
+	
 	script()
 	{
 		@g = get_scene();
@@ -105,37 +114,15 @@ class script
 		view_x = cam.x();
 		view_y = cam.y();
 		
-		int scroll;
-		
-		if(!precision_mode)
-		{
-			if(drag_size == DragSizeState::On)
-			{
-				if(!mouse.left_down && !mouse.right_down)
-				{
-					drag_size = DragSizeState::Off;
-				}
-				else
-				{
-					float x = g.mouse_x_world(0, 19);
-					size = max(1, drag_size_start + (x - drag_size_x));
-					force_mouse_update = true;
-				}
-			}
-			else if(mouse.left_down && mouse.right_press)
-			{
-				drag_size = DragSizeState::On;
-				drag_size_start = size;
-				drag_size_x = g.mouse_x_world(0, 19);
-				drag_size_y = g.mouse_y_world(0, 19);
-			}
-		}
+		update_drag_size();
 		
 		if(mouse.left_down && mouse.middle_press)
 		{
 			precision_mode = !precision_mode;
 			force_mouse_update = true;
 		}
+		
+		int scroll;
 		
 		if(!precision_mode && mouse.left_down && mouse.scrolled(scroll))
 		{
@@ -162,6 +149,18 @@ class script
 			force_mouse_update = true;
 		}
 		
+		if(tile_cache_layer != layer || mouse.right_release)
+		{
+			if(tiles_cache_size > 0)
+			{
+				tiles_cache.deleteAll();
+				tiles_cache_queue.clear();
+				tiles_cache_size = 0;
+			}
+			
+			tile_cache_layer = layer;
+		}
+		
 		if(!force_mouse_update && mouse.x == prev_mouse_x && mouse.y == prev_mouse_y)
 		{
 			force_mouse_update = false;
@@ -180,9 +179,35 @@ class script
 		{
 			precise_mode();
 		}
-		else if((render_edges && always_render_edges) || mouse.right_down)
+		else if((render_edges && always_render_edges) || (mouse.right_down && drag_size == DragSizeState::Off))
 		{
 			brush_mode();
+		}
+	}
+	
+	void update_drag_size()
+	{
+		if(!precision_mode)
+		{
+			if(drag_size == DragSizeState::On)
+			{
+				if(!mouse.left_down && !mouse.right_down)
+				{
+					drag_size = DragSizeState::Off;
+				}
+				else
+				{
+					float x = g.mouse_x_world(0, 19);
+					size = max(1, drag_size_start + (x - drag_size_x));
+				}
+			}
+			else if(mouse.left_down && mouse.right_press)
+			{
+				drag_size = DragSizeState::On;
+				drag_size_start = size;
+				drag_size_x = g.mouse_x_world(0, 19);
+				drag_size_y = g.mouse_y_world(0, 19);
+			}
 		}
 	}
 	
@@ -209,73 +234,106 @@ class script
 		const float size_sqr = size * size;
 		
 		const float layer_size = size * get_layer_scale(19, layer);
-		const int start_x = floor_int((mouse_x - layer_size) * PIXEL2TILE);
-		const int start_y = floor_int((mouse_y - layer_size) * PIXEL2TILE);
-		const int end_x = floor_int((mouse_x + layer_size) * PIXEL2TILE);
-		const int end_y = floor_int((mouse_y + layer_size) * PIXEL2TILE);
+		int start_x = floor_int((mouse_x - layer_size) * PIXEL2TILE);
+		int start_y = floor_int((mouse_y - layer_size) * PIXEL2TILE);
+		int end_x = floor_int((mouse_x + layer_size) * PIXEL2TILE);
+		int end_y = floor_int((mouse_y + layer_size) * PIXEL2TILE);
 		
-		for(int tile_x = start_x; tile_x <= end_x; tile_x++)
+		const int chunk_start_x = floor_int(float(start_x) / TILES_CACHE_CHUNK_SIZE);
+		const int chunk_start_y = floor_int(float(start_y) / TILES_CACHE_CHUNK_SIZE);
+		const int chunk_end_x = floor_int(float(end_x) / TILES_CACHE_CHUNK_SIZE);
+		const int chunk_end_y = floor_int(float(end_y) / TILES_CACHE_CHUNK_SIZE);
+		
+		for(int chunk_y = chunk_start_y; chunk_y <= chunk_end_y; chunk_y++)
 		{
-			for(int tile_y = start_y; tile_y <= end_y; tile_y++)
+			for(int chunk_x = chunk_start_x; chunk_x <= chunk_end_x; chunk_x++)
 			{
-				tileinfo@ tile = g.get_tile(tile_x, tile_y, layer);
+				TileCachChunk@ chunk = get_tiles_cache_chunk(chunk_x, chunk_y);
 				
-				if(!tile.solid())
-					continue;
+				int c_start_x = int(max(chunk.start_tile_x, start_x));
+				int c_start_y = int(max(chunk.start_tile_y, start_y));
+				int c_end_x = int(min(chunk.start_tile_x + TILES_CACHE_CHUNK_SIZE - 1, end_x));
+				int c_end_y = int(min(chunk.start_tile_y + TILES_CACHE_CHUNK_SIZE - 1, end_y));
 				
-				int type = tile.type();
-				float x = tile_x * TILE2PIXEL;
-				float y = tile_y * TILE2PIXEL;
-				bool requires_update = false;
+//				outline_rect(g,
+//					(c_start_x) * TILE2PIXEL + 5,
+//					(c_start_y) * TILE2PIXEL + 5,
+//					(c_end_x + 1) * TILE2PIXEL - 5,
+//					(c_end_y + 1) * TILE2PIXEL - 5,
+//					22, 24, 2, 0xff00ff00);
+//				
+//				outline_rect(g,
+//					chunk_x * TILES_CACHE_CHUNK_SIZE * TILE2PIXEL,
+//					chunk_y * TILES_CACHE_CHUNK_SIZE * TILE2PIXEL,
+//					(chunk_x * TILES_CACHE_CHUNK_SIZE + TILES_CACHE_CHUNK_SIZE) * TILE2PIXEL,
+//					(chunk_y * TILES_CACHE_CHUNK_SIZE + TILES_CACHE_CHUNK_SIZE) * TILE2PIXEL,
+//					22, 23, 2, 0xffff0000);
 				
-				for(int edge = TileEdge::Top; edge <= TileEdge::Right; edge++)
+				for(int tile_y = c_start_y; tile_y <= c_end_y; tile_y++)
 				{
-					if(!check_edge(tile_x, tile_y, tile, type, edge))
-						continue;
-					
-					/*
-					 * Get the end points of this edge, and calculate if it is within the brush radius
-					 */
-					
-					get_edge_points(type, edge, line.x1, line.y1, line.x2, line.y2, x, y);
-					
-					float px, py;
-					line.closest_point(mouse_x, mouse_y, px, py);
-					
-					if(dist_sqr(mouse_x, mouse_y, px, py) > size_sqr)
-						continue;
-					
-					/*
-					 * Update the edge flags if necessary
-					 */
-					
-					uint8 edge_bits = get_tile_edge(tile, edge);
-					
-					if(do_update)
+					for(int tile_x = c_start_x; tile_x <= c_end_x; tile_x++)
 					{
-						if(update_edge_bits(tile, edge, edge_bits, edge_bits))
+						tileinfo@ tile = chunk.get_tile(g, layer, tile_x, tile_y);
+						
+						if(!tile.solid())
+							continue;
+						
+						int type = tile.type();
+						float x = tile_x * TILE2PIXEL;
+						float y = tile_y * TILE2PIXEL;
+						bool requires_update = false;
+						
+						for(int edge = TileEdge::Top; edge <= TileEdge::Right; edge++)
 						{
-							requires_update = true;
+							if(!check_edge(tile_x, tile_y, tile, type, edge))
+								continue;
+							
+							/*
+							 * Get the end points of this edge, and calculate if it is within the brush radius
+							 */
+							
+							get_edge_points(type, edge, line.x1, line.y1, line.x2, line.y2, x, y);
+							
+							float px, py;
+							line.closest_point(mouse_x, mouse_y, px, py);
+							
+							if(dist_sqr(mouse_x, mouse_y, px, py) > size_sqr)
+								continue;
+							
+							/*
+							 * Update the edge flags if necessary
+							 */
+							
+							uint8 edge_bits = get_tile_edge(tile, edge);
+							
+							if(do_update)
+							{
+								if(update_edge_bits(tile, edge, edge_bits, edge_bits))
+								{
+									requires_update = true;
+								}
+							}
+							
+							/*
+							 * Store for rendering
+							 */
+							
+							if(render_edges)
+							{
+								add_draw_edge(line.x1, line.y1, line.x2, line.y2, (edge_bits & EdgeFlags::Collision) != 0);
+							}
+						} // edge
+						
+						if(requires_update)
+						{
+							g.set_tile(tile_x, tile_y, layer, tile, false);
 						}
-					}
-					
-					/*
-					 * Store for rendering
-					 */
-					
-					if(render_edges)
-					{
-						add_draw_edge(line.x1, line.y1, line.x2, line.y2, (edge_bits & EdgeFlags::Collision) != 0);
-					}
-				} // edges
+						
+					} // tile x
+				} // tile y
 				
-				if(requires_update)
-				{
-					g.set_tile(tile_x, tile_y, layer, tile, false);
-				}
-				
-			} // y
-		} // x
+			} // chunk x
+		} // chunk y
 	}
 	
 	void precise_mode()
@@ -475,7 +533,7 @@ class script
 				);
 	}
 	
-	bool update_edge_bits(tileinfo@ tile, int edge, uint8 &out edge_bits, uint8 &out result)
+	bool update_edge_bits(tileinfo@ tile, int edge, uint8 edge_bits, uint8 &out result)
 	{
 		uint8 old_edge_bits = edge_bits;
 		
@@ -506,6 +564,32 @@ class script
 		}
 		
 		return false;
+	}
+	
+	TileCachChunk@ get_tiles_cache_chunk(int chunk_x, int chunk_y)
+	{
+		string key = chunk_x + ',' + chunk_y;
+		
+		if(tiles_cache.exists(key))
+		{
+			return cast<TileCachChunk@>(@tiles_cache[key]);
+		}
+		
+		if(tiles_cache_queue.is_full())
+		{
+			string remove_key;
+			tiles_cache_queue.dequeue(remove_key);
+			
+			tiles_cache.delete(remove_key);
+			tiles_cache_size--;
+		}
+		
+		TileCachChunk@ chunk = TileCachChunk(TILES_CACHE_CHUNK_SIZE, chunk_x, chunk_y);
+		tiles_cache_queue.enqueue(key);
+		@tiles_cache[key] = @chunk;
+		tiles_cache_size++;
+		
+		return @chunk;
 	}
 	
 	void editor_draw(float sub_frame)
