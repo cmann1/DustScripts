@@ -145,7 +145,7 @@ class BrushDef
 	
 	private void calculate_next_t(float unit)
 	{
-		next_t_gap = unit / density;
+		next_t_gap = density <= 0 ? unit / density : 0;
 		next_t_boundary += next_t_gap;
 		next_t = uniform ? next_t_boundary : next_t_boundary - rand_range(0.0, next_t_gap);
 	}
@@ -180,7 +180,7 @@ class BrushDef
 	
 	void draw(scene@ g, float mouse_x, float mouse_y, float dist, float dx, float dy, float draw_angle, bool force_angle, float spread_mul, float angle_mul)
 	{
-		if(!active || prop_count == 0)
+		if(!active || prop_count == 0 || density <= 0)
 			return;
 		
 		const float start_t = spray ? t : this.dist;
