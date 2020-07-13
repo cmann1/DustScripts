@@ -31,6 +31,10 @@ const float EDGE_RENDER_WIDTH = 2;
 const float PRECISE_EDGE_RENDER_WIDTH = 1;
 const float PRECISE_EDGE_MARKER_WIDTH = 4;
 const float SCROLL_AMOUNT = 10;
+const uint DISPLAY_TEXT_FILL_COLOUR = 0xffffffff;
+const uint DISPLAY_TEXT_SHADOW_COLOUR = 0xee000000;
+const int DISPLAY_MODE_TIME = 1 * 60;
+const float DISPLAY_TEXT_OFFSET = 15;
 
 const int TILES_CACHE_CHUNK_SIZE = 30;
 
@@ -93,12 +97,20 @@ class script
 	int tile_cache_layer;
 	TileCachChunkQueue tiles_cache_queue(20);
 	
+	textfield@ display_text;
+	int display_mode_timer = 0;
+	
 	script()
 	{
 		@g = get_scene();
 		@cam = get_active_camera();
 		
 		edges_flags.resize(4);
+		
+		@display_text = create_textfield();
+        display_text.align_horizontal(0);
+        display_text.align_vertical(1);
+		display_text.colour(DISPLAY_TEXT_FILL_COLOUR);
 	}
 	
 	void editor_step()
@@ -114,13 +126,14 @@ class script
 		view_x = cam.x();
 		view_y = cam.y();
 		
-		update_drag_size();
-		
 		if(mouse.left_down && mouse.middle_press)
 		{
 			precision_mode = !precision_mode;
+			display_mode_timer = DISPLAY_MODE_TIME;
 			force_mouse_update = true;
 		}
+		
+		update_drag_size();
 		
 		int scroll;
 		
@@ -204,6 +217,7 @@ class script
 			else if(mouse.left_down && mouse.right_press)
 			{
 				drag_size = DragSizeState::On;
+				display_mode_timer = 0;
 				drag_size_start = size;
 				drag_size_x = g.mouse_x_world(0, 19);
 				drag_size_y = g.mouse_y_world(0, 19);
@@ -648,6 +662,9 @@ class script
 		 * Render cursor
 		 */
 		
+		const float cursor_x = drag_size == DragSizeState::On ? drag_size_x : x;
+		const float cursor_y = drag_size == DragSizeState::On ? drag_size_y : y;
+		
 		if(precision_mode)
 		{
 			if(precision_edge)
@@ -687,10 +704,21 @@ class script
 		{
 			float layer_size, _lsy;
 			transform_layer_position(view_x, view_y, mouse.x, mouse.y, layer, 22, layer_size, _lsy);
-			draw_circle(g,
-				drag_size == DragSizeState::On ? drag_size_x : x,
-				drag_size == DragSizeState::On ? drag_size_y : y,
-				size, 64, 22, 24, 3, 0xaaffffff);
+			draw_circle(g, cursor_x, cursor_y, size, 64, 22, 24, 3, 0xaaffffff);
+			
+			if(drag_size == DragSizeState::On)
+			{
+				display_text.text(int(size) + '');
+				display_text.draw_world(22, 24, cursor_x, cursor_y - DISPLAY_TEXT_OFFSET, 1, 1, 0);
+			}
+		}
+		
+		if(display_mode_timer > 0)
+		{
+			display_text.text(precision_mode ? 'Precision' : 'Brush');
+			display_text.draw_world(22, 24, cursor_x, cursor_y - DISPLAY_TEXT_OFFSET, 1, 1, 0);
+			
+			display_mode_timer--;
 		}
 		
 		/*
