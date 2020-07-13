@@ -124,6 +124,12 @@ class script
 		if(!precision_mode && mouse.left_down && mouse.scrolled(scroll))
 		{
 			layer = clamp(layer - scroll, 6, 20);
+			
+			if(layer == 18)
+			{
+				layer = scroll < 0 ? 19 : 17;
+			}
+			
 			force_mouse_update = true;
 			display_text_timer = DISPLAY_MODE_TIME;
 			display_text_content = 'Layer: ' + layer;
