@@ -30,7 +30,6 @@ The main script has a utility for selecting and outputting code that can be used
 - **PropMover** - A trigger that can be used to move props between layers and sub layers
 
 ### Tiles (t.cpp)
-- **RemoveTileEdges** - Removes edges from selected tiles
 - **CopyTileEdges** - Copies only tiles with one or more solid edges to the target layer.
 - **MoveTiles** - Move or copy tiles to the target layer.
 - **SetTileSprites** - Sets all tiles to the target sprite set and palette
@@ -46,6 +45,40 @@ The main script has a utility for selecting and outputting code that can be used
     - **Resize**: Right mouse corner handles
     - **Adjust sub layer**: Mouse wheel while dragging
     - **Rotate**: Middle mouse
+
+### Edge Brush (edge-brush/main.cpp)
+##### Basic usage:
+- **Right mouse:** Draw.
+- **Middle mouse:** Toggle **update_collision**.
+- **Left mouse + Mouse wheel:** Change brush size.
+- **Left mouse + Right mouse:** Drag horizontally to change the brush size.
+- **Left mouse + Middle mouse:** Toggle precision mode.
+##### Properties:
+- **enabled:** Turn the script on and off.
+- **layer:** Which layer to edit.
+- **size:** The size of the brush.
+- **update_collision:**
+    - **Keep:** Keep existing edge collision.
+    - **Off:** Turn edge collision off.
+    - **Off:** Turn edge collision on.
+- **update_edge:** 
+    - **Keep:** Keep existing edge sprite.
+    - **Off:** Turn edge sprite off. An edge with collision will always render an edge sprite regardless of this setting.
+    - **Off:** Turn edge sprite on.
+- **update_top:** Should top edges be modified.
+- **update_bottom:**  Should bottom edges be modified.
+- **update_left:**  Should left edges be modified.
+- **update_right:**  Should right edges be modified.
+- **edge:** 
+    - **External:** Only edges adjacent empty space will be modified.
+    - **Internal:** Only edges shared by two tiles will be modified.
+    - **Both:** All edges will be modified.
+- **external_different_sprites:** When checked, internal edges where shared by two tiles with different sprite sets will be considered external.
+- **precision_mode:** In precision mode, only the closest edge on the closest tile can will be modified.
+- **precision_inside_only:** If checked only the tile the mouse is positioned inside of will be modified.
+- **precision_update_neighbour:** When turning the edge rendering on for a tile, should the edge on adjacent tile be turned off?
+- **render_edges:** Will indicate which edges will be modified. Tiles with collision are marked with cyan, and tiles without are marked with a broken magenta line.
+- **always_render_edges:** If unchecked the edge markers will only be rendered while the brush is active (the right mouse is held down).
 
 ### Prop Path (prop-path.cpp)
 A script trigger for placing props along a user defined path.  

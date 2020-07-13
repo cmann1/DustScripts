@@ -95,43 +95,6 @@ class TileBaseTrigger : trigger_base
 	
 }
 
-class RemoveTileEdges: TileBaseTrigger
-{
-	
-	[text] bool solid = false;
-	[text] bool top = true;
-	[text] bool bottom = true;
-	[text] bool left = true;
-	[text] bool right = true;
-	
-	protected uint8 updateDrawEdge(uint8 edgeBits, bool solid)
-	{
-		edgeBits &= ~8;
-		if(solid)
-			edgeBits |= 8;
-		else
-			edgeBits = 0;
-		
-		return edgeBits;
-	}
-	
-	void updateTile(int x, int y, tileinfo@ tile)
-	{
-		if(!tile.solid()) return;
-		
-		if(top)
-			tile.edge_top(updateDrawEdge(tile.edge_top(), solid));
-		if(bottom)
-			tile.edge_bottom(updateDrawEdge(tile.edge_bottom(), solid));
-		if(left)
-			tile.edge_left(updateDrawEdge(tile.edge_left(), solid));
-		if(right)
-			tile.edge_right(updateDrawEdge(tile.edge_right(), solid));
-		g.set_tile(x, y, layer, tile, false);
-	}
-	
-}
-
 class CopyTileEdges: TileBaseTrigger
 {
 	
@@ -229,7 +192,7 @@ class SetTileSprites: TileBaseTrigger
 	
 }
 
-class MakeTilesInivisible: TileBaseTrigger
+class MakeTilesInvisible: TileBaseTrigger
 {
 	
 	void updateTile(int x, int y, tileinfo@ tile)

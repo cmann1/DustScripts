@@ -180,7 +180,7 @@ class script
 		{
 			precise_mode();
 		}
-		else if(always_render_edges || mouse.right_down)
+		else if((render_edges && always_render_edges) || mouse.right_down)
 		{
 			brush_mode();
 		}
