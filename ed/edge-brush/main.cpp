@@ -252,9 +252,8 @@ class script
 		Line line;
 		array<bool>@ edges_flags = @this.edges_flags;
 		
-		const float size_sqr = size * size;
-		
 		const float layer_size = size * get_layer_scale(19, layer);
+		const float size_sqr = layer_size * layer_size;
 		int start_x = floor_int((mouse_x - layer_size) * PIXEL2TILE);
 		int start_y = floor_int((mouse_y - layer_size) * PIXEL2TILE);
 		int end_x = floor_int((mouse_x + layer_size) * PIXEL2TILE);
