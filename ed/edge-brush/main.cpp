@@ -33,7 +33,7 @@ const float PRECISE_EDGE_MARKER_WIDTH = 4;
 const float SCROLL_AMOUNT = 10;
 const uint DISPLAY_TEXT_FILL_COLOUR = 0xffffffff;
 const uint DISPLAY_TEXT_SHADOW_COLOUR = 0xee000000;
-const int DISPLAY_MODE_TIME = 1 * 60;
+const int DISPLAY_MODE_TIME = int(0.6 * 60);
 const float DISPLAY_TEXT_OFFSET = 15;
 
 const int TILES_CACHE_CHUNK_SIZE = 30;
@@ -142,6 +142,7 @@ class script
 			precision_mode = !precision_mode;
 			display_text_timer = DISPLAY_MODE_TIME;
 			display_text_content = precision_mode ? 'Precision' : 'Brush';
+			drag_size = DragSizeState::Off;
 			force_mouse_update = true;
 		}
 		
