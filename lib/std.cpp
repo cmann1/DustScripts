@@ -39,6 +39,16 @@ string bin(uint64 x, uint max_bits=32)
 	return result;
 }
 
+string hex(int x, uint width = 0)
+{
+	return formatInt(x, 'H', width);
+}
+
+string hex(uint x, uint width = 0)
+{
+	return formatUInt(x, 'H', width);
+}
+
 void puts(bool x) { puts(x + ''); }
 void puts(int8 x) { puts(x + ''); }
 void puts(int x) { puts(x + ''); }
