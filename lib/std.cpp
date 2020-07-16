@@ -60,6 +60,8 @@ void puts(float x) { puts(x + ''); }
 void puts(double x) { puts(x + ''); }
 void puts(int x, int y) { puts(x + ', ' + y); }
 void puts(float x, float y) { puts(str(x) + ', ' + str(y)); }
+void puts(float x, int y) { puts(str(x) + ', ' + y); }
+void puts(int x, float y) { puts(x + ', ' + str(y)); }
 void puts(rectangle@ r)
 {
 	if(@r != null)
