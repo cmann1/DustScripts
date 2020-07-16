@@ -47,6 +47,8 @@ class script
 	private float resize_max_x;
 	private float resize_max_y;
 	private EmitterData@ validate_emitter = null;
+	[hidden]
+	private bool scroll_layer = false;
 	
 	private array<EmitterData@> highlighted_emitters;
 	private EmitterData@ hovered_emitter;
@@ -283,14 +285,26 @@ class script
 		if(@active_emitter == null)
 			return;
 		
-		active_emitter.update_position(active_emitter.mouse_x - handle_offset_x, active_emitter.mouse_y - handle_offset_y);
+		if(middle_mouse_press)
+		{
+			scroll_layer = !scroll_layer;
+		}
 		
-		// TODO: Some way to adjust layer
 		if(mouse_scroll != 0)
 		{
-			active_emitter.update_sub_layer(active_emitter.sub_layer - mouse_scroll);
+			if(scroll_layer)
+			{
+				active_emitter.update_layer(active_emitter.layer - mouse_scroll);
+			}
+			else
+			{
+				active_emitter.update_sub_layer(active_emitter.sub_layer - mouse_scroll);
+			}
+			
 			@validate_emitter = @active_emitter;
 		}
+		
+		active_emitter.update_position(active_emitter.mouse_x - handle_offset_x, active_emitter.mouse_y - handle_offset_y);
 	}
 	
 	void update_size()
@@ -389,7 +403,7 @@ class script
 			
 			if(dragMode == Move)
 			{
-				active_data.render_active_layer_text(active_layer_text, mouse_x, mouse_y);
+				active_data.render_active_layer_text(active_layer_text, mouse_x, mouse_y, scroll_layer);
 			}
 			else
 			{
@@ -507,6 +521,12 @@ class EmitterData
 		this.y = y;
 		emitter.set_xy(x, y);
 		update_bounds();
+	}
+	
+	void update_layer(int layer)
+	{
+		this.layer = clamp(layer, 0, 20);
+		emitter.layer(this.layer);
 	}
 	
 	void update_sub_layer(int sub_layer)
@@ -660,11 +680,37 @@ class EmitterData
 			colours.layer_shadow, 2, 2);
 	}
 	
-	void render_active_layer_text(textfield@ layer_text, float x, float y)
+	void render_active_layer_text(textfield@ layer_text, float x, float y, bool layer_active)
 	{
-		layer_text.text(layer + '.' + sub_layer);
+		const string layer_str = layer + '.';
+		const string text = layer + '.' + sub_layer;
+		
+		layer_text.text(text);
+		const float width = layer_text.text_width();
+		layer_text.text(layer + '');
+		const float layer_x = -width * 0.5 + layer_text.text_width() * 0.5;
+		layer_text.text(sub_layer + '');
+		const float sub_layer_x =  width * 0.5 - layer_text.text_width() * 0.5;
+		
+		layer_text.text(text);
+		const float offset = 30;
+		const float height = layer_text.text_height();
 		shadowed_text_world(layer_text,
-			22, 24, x, y + 30,
+			22, 24, x, y + offset,
+			1, 1, 0,
+			colours.active_layer_shadow, 2, 2);
+		
+		layer_text.text('_');
+		shadowed_text_world(layer_text,
+			22, 24,
+			layer_active ? x + layer_x : x + sub_layer_x,
+			y + offset + 5,
+			1, 1, 0,
+			colours.active_layer_shadow, 2, 2);
+		shadowed_text_world(layer_text,
+			22, 24,
+			layer_active ? x + layer_x : x + sub_layer_x,
+			y + offset - height - 7,
 			1, 1, 0,
 			colours.active_layer_shadow, 2, 2);
 	}

@@ -44,6 +44,7 @@ The main script has a utility for selecting and outputting code that can be used
     - **Move**: Right mouse in empty space inside emitter
     - **Resize**: Right mouse corner handles
     - **Adjust sub layer**: Mouse wheel while dragging
+    - **Adjust layer**: Middle mouse while dragging to toggle between changing sub layers and layers.
     - **Rotate**: Middle mouse
 
 ### Edge Brush (edge-brush/main.cpp)
