@@ -116,6 +116,14 @@ void rotate(float x, float y, float angle, float &out out_x, float &out out_y)
 	out_y = sin(angle) * x + cos(angle) * y;
 }
 
+void rotate(float x, float y, float centre_x, float centre_y, float angle, float &out out_x, float &out out_y)
+{
+	x -= centre_x;
+	y -= centre_y;
+	out_x = centre_x + cos(angle) * x - sin(angle) * y;
+	out_y = centre_y + sin(angle) * x + cos(angle) * y;
+}
+
 float sign(float x)
 {
 	return x < -1e-9 ? -1 : (x > 1e-9 ? 1 : 0);
