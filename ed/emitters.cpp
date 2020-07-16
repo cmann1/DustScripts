@@ -289,7 +289,14 @@ class script
 		if(@active_emitter == null)
 			return;
 		
-		// TODO: Delete with left_mouse
+		if(left_mouse_press)
+		{
+			g.remove_entity(active_emitter.emitter);
+			@active_emitter = null;
+			@hovered_emitter = null;
+			dragMode = None;
+			return;
+		}
 		
 		if(middle_mouse_press)
 		{
