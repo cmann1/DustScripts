@@ -46,6 +46,10 @@ The main script has a utility for selecting and outputting code that can be used
     - **Adjust sub layer**: Mouse wheel while dragging
     - **Adjust layer**: Middle mouse while dragging to toggle between changing sub layers and layers.
     - **Rotate**: Middle mouse
+    - **Properties:**
+        - **enabled:** Turn the script on and off.
+        - **parallax_hitbox:** Renders the position of emitters on parallax layers - useful for finding emitters if you need to select it with the normal emitter tool. Can be turned on always or only when the mouse is over an emitter.
+        - **parallax_lines:** Renders lines from the real emitter position to the parallax position. Might be helpful for locating for emitters in the lower backdrop layers.
 
 ### Edge Brush (edge-brush/main.cpp)
 ##### Basic usage:

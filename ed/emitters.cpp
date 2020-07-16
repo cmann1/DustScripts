@@ -26,12 +26,16 @@ class Colours
 	uint active_layer_fill = 0xffffffff;
 	uint active_layer_shadow = 0xee000000;
 	
+	uint parallax_outline = 0x33aaaaaa;
+	
 }
 
 class script
 {
 	
 	[text] bool enabled = true;
+	[option,0:Never,1:Hover,2:Always] RenderParallaxHitbox parallax_hitbox = RenderParallaxHitbox::Never;
+	[text] bool parallax_lines = false;
 	
 	private scene@ g;
 	private textfield@ layer_text;
@@ -285,6 +289,8 @@ class script
 		if(@active_emitter == null)
 			return;
 		
+		// TODO: Delete with left_mouse
+		
 		if(middle_mouse_press)
 		{
 			scroll_layer = !scroll_layer;
@@ -390,14 +396,14 @@ class script
 			if(@data == @hovered_emitter || @data == @active_emitter)
 				continue;
 			
-			data.render_highlight(g, colours.normal_fill, colours.normal_outline);
+			data.render_highlight(g, colours.normal_fill, colours.normal_outline, parallax_hitbox, parallax_lines);
 		}
 		
 		EmitterData@ active_data = @active_emitter != null ? @active_emitter : @hovered_emitter;
 		
 		if(@active_data != null)
 		{
-			active_data.render_highlight(g, colours.selected_fill, colours.selected_outline);
+			active_data.render_highlight(g, colours.selected_fill, colours.selected_outline, parallax_hitbox, parallax_lines);
 			active_data.render_rotation(g);
 			active_data.render_handles(g);
 			
@@ -639,7 +645,7 @@ class EmitterData
 		transform_layer_position(view_x, view_y, max_x, max_y, layer, 22, hud_max_x, hud_max_y);
 	}
 	
-	void render_highlight(scene@ g, uint fill_colour, uint outline_colour)
+	void render_highlight(scene@ g, uint fill_colour, uint outline_colour, RenderParallaxHitbox parallax_hitbox, bool parallax_lines)
 	{
 		/*
 		 * Fill
@@ -655,7 +661,6 @@ class EmitterData
 		 * Unrotated outline
 		 */
 		 
-		if(rotation != 0 && layer < 12)
 		{
 			outline_rect(g,
 				hud_min_x, hud_min_y, hud_max_x, hud_max_y,
@@ -663,12 +668,20 @@ class EmitterData
 		}
 		
 		// Layer 19 outline
-		// TODO: Option to render always or only when hovered/active
-		outline_rect(g,
-			min_x, min_y, max_x, max_y,
-			22, 23, 1, outline_colour);
-		
-		// TODO: Option to draw lines connecting non-parallax outline
+		if(layer < 12 && (parallax_hitbox == Always || parallax_hitbox == Hover && is_mouse_over))
+		{
+			outline_rect(g,
+				min_x, min_y, max_x, max_y,
+				22, 23, 1, colours.parallax_outline);
+			
+			if(parallax_lines)
+			{
+				draw_line(g, 22, 23, min_x, min_y, hud_min_x, hud_min_y, 1, colours.parallax_outline);
+				draw_line(g, 22, 23, min_x, max_y, hud_min_x, hud_max_y, 1, colours.parallax_outline);
+				draw_line(g, 22, 23, max_x, min_y, hud_max_x, hud_min_y, 1, colours.parallax_outline);
+				draw_line(g, 22, 23, max_x, max_y, hud_max_x, hud_max_y, 1, colours.parallax_outline);
+			}
+		}
 	}
 	
 	void render_layer_text(textfield@ layer_text)
@@ -797,16 +810,11 @@ enum ResizeMode
 	
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+enum RenderParallaxHitbox
+{
+	
+	Never,
+	Hover,
+	Always,
+	
+}
