@@ -36,6 +36,21 @@ prop@ copy_prop(prop@ p)
 	return new_p;
 }
 
+prop@ create_prop(uint set, uint group, uint index, float x=0, float y=0, int layer=19, int sub_layer=19, float rotation=0)
+{
+	prop@ p = create_prop();
+	p.prop_set(set);
+	p.prop_group(group);
+	p.prop_index(index);
+	p.layer(layer);
+	p.sub_layer(sub_layer);
+	p.x(x);
+	p.y(y);
+	p.rotation(rotation);
+	
+	return p;
+}
+
 class Prop
 {
 	
