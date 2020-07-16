@@ -4,6 +4,7 @@
 #include "../lib/print_vars.cpp";
 #include "../lib/drawing/common.cpp";
 #include "../lib/drawing/circle.cpp";
+#include "../lib/layer.cpp";
 
 const float handle_radius = 5;
 
@@ -35,6 +36,7 @@ class script
 	private scene@ g;
 	private textfield@ layer_text;
 	private textfield@ active_layer_text;
+	private camera@ cam;
 	
 	private DragMode dragMode = None;
 	private float drag_angle_offset;
@@ -70,6 +72,7 @@ class script
 	script()
 	{
 		@g = get_scene();
+		@cam = get_active_camera();
 		
 		@layer_text = create_textfield();
         layer_text.align_horizontal(-1);
@@ -94,8 +97,11 @@ class script
 			@validate_emitter = null;
 		}
 		
+		float view_x = cam.x();
+		float view_y = cam.y();
+		
 		update_mouse();
-		find_emitters();
+		find_emitters(view_x, view_y);
 		
 		if(@active_emitter == null && @hovered_emitter != null)
 		{
@@ -140,6 +146,7 @@ class script
 		if(@active_emitter != null)
 		{
 			@hovered_emitter = null;
+			active_emitter.set_view(view_x, view_y);
 			
 			bool requires_update = false;
 			bool mouse_button;
@@ -201,7 +208,7 @@ class script
 		prev_middle_mouse_down = middle_mouse_down;
 	}
 	
-	void find_emitters()
+	void find_emitters(float view_x, float view_y)
 	{
 		@hovered_emitter = null;
 		highlighted_emitters.resize(0);
@@ -213,9 +220,11 @@ class script
 			float layer_mouse_x = g.mouse_x_world(0, layer);
 			float layer_mouse_y = g.mouse_y_world(0, layer);
 			
+			float layer_closest_radius = closest_radius * get_layer_scale(22, layer);
+			
 			int count = g.get_entity_collision(
-				layer_mouse_y - closest_radius, layer_mouse_y + closest_radius,
-				layer_mouse_x - closest_radius, layer_mouse_x + closest_radius,
+				layer_mouse_y - layer_closest_radius, layer_mouse_y + layer_closest_radius,
+				layer_mouse_x - layer_closest_radius, layer_mouse_x + layer_closest_radius,
 				ColType::Emitter);
 			
 			for(int i = 0; i < count; i++)
@@ -230,13 +239,15 @@ class script
 				
 				if(@active_emitter != null && emitter.is_same(@active_emitter.emitter))
 				{
-					active_emitter.update_mouse(layer_mouse_x, layer_mouse_y);
+					active_emitter.set_view(view_x, view_y);
+					active_emitter.update_mouse(layer_mouse_x, layer_mouse_y, mouse_x, mouse_y);
 					continue;
 				}
 				
 				EmitterData@ data = EmitterData();
 				data.update_emitter(emitter);
-				data.update_mouse(layer_mouse_x, layer_mouse_y);
+				data.set_view(view_x, view_y);
+				data.update_mouse(layer_mouse_x, layer_mouse_y, mouse_x, mouse_y);
 				highlighted_emitters.insertLast(@data);
 				
 				if(data.is_mouse_over)
@@ -274,6 +285,7 @@ class script
 		
 		active_emitter.update_position(active_emitter.mouse_x - handle_offset_x, active_emitter.mouse_y - handle_offset_y);
 		
+		// TODO: Some way to adjust layer
 		if(mouse_scroll != 0)
 		{
 			active_emitter.update_sub_layer(active_emitter.sub_layer - mouse_scroll);
@@ -290,38 +302,44 @@ class script
 		float min_y = resize_min_y;
 		float max_x = resize_max_x;
 		float max_y = resize_max_y;
-		float mouse_x = active_emitter.mouse_x;
-		float mouse_y = active_emitter.mouse_y;
+		const float mouse_x = active_emitter.mouse_x;
+		const float mouse_y = active_emitter.mouse_y;
+		
+		const float scale = get_layer_scale(22, active_emitter.layer);
+		
+		const float offset_x = handle_offset_x * scale;
+		const float offset_y = handle_offset_y * scale;
+		const float handle_layer_radius = handle_radius * scale;
 		
 		switch(active_emitter.selected_handle)
 		{
 			case TopLeft:
-				min_x = mouse_x - handle_offset_x - handle_radius;
-				min_y = mouse_y - handle_offset_y - handle_radius;
+				min_x = mouse_x - offset_x - handle_layer_radius;
+				min_y = mouse_y - offset_y - handle_layer_radius;
 				break;
 			case Top:
-				min_y = mouse_y - handle_offset_y - handle_radius;
+				min_y = mouse_y - offset_y - handle_layer_radius;
 				break;
 			case TopRight:
-				max_x = mouse_x - handle_offset_x + handle_radius;
-				min_y = mouse_y - handle_offset_y - handle_radius;
+				max_x = mouse_x - offset_x + handle_layer_radius;
+				min_y = mouse_y - offset_y - handle_layer_radius;
 				break;
 			case BottomLeft:
-				min_x = mouse_x - handle_offset_x - handle_radius;
-				max_y = mouse_y - handle_offset_y + handle_radius;
+				min_x = mouse_x - offset_x - handle_layer_radius;
+				max_y = mouse_y - offset_y + handle_layer_radius;
 				break;
 			case Bottom:
-				max_y = mouse_y - handle_offset_y + handle_radius;
+				max_y = mouse_y - offset_y + handle_layer_radius;
 				break;
 			case BottomRight:
-				max_x = mouse_x - handle_offset_x + handle_radius;
-				max_y = mouse_y - handle_offset_y + handle_radius;
+				max_x = mouse_x - offset_x + handle_layer_radius;
+				max_y = mouse_y - offset_y + handle_layer_radius;
 				break;
 			case Left:
-				min_x = mouse_x - handle_offset_x - handle_radius;
+				min_x = mouse_x - offset_x - handle_layer_radius;
 				break;
 			case Right:
-				max_x = mouse_x - handle_offset_x + handle_radius;
+				max_x = mouse_x - offset_x + handle_layer_radius;
 				break;
 		}
 		
@@ -353,6 +371,7 @@ class script
 		for(int i = int(highlighted_emitters.length()) - 1; i >= 0; i--)
 		{
 			EmitterData@ data = @highlighted_emitters[i];
+			
 			
 			if(@data == @hovered_emitter || @data == @active_emitter)
 				continue;
@@ -407,8 +426,17 @@ class EmitterData
 	bool is_mouse_over;
 	bool is_active;
 	
+	private float hud_x;
+	private float hud_y;
+	private float hud_min_x;
+	private float hud_min_y;
+	private float hud_max_x;
+	private float hud_max_y;
+	
 	float mouse_x;
 	float mouse_y;
+	float hud_mouse_x;
+	float hud_mouse_y;
 	ResizeMode selected_handle = None;
 	ResizeMode hovered_handle = None;
 	
@@ -455,11 +483,14 @@ class EmitterData
 		max_y = y + height* 0.5;
 	}
 	
-	void update_mouse(float x, float y)
+	void update_mouse(float x, float y, float hud_x, float hud_y)
 	{
+		// TODO: Take rotation into account for hit test
 		mouse_x = x;
 		mouse_y = y;
-		is_mouse_over = x >= min_x && x <= max_x && y >= min_y && y <= max_y;
+		hud_mouse_x = hud_x;
+		hud_mouse_y = hud_y;
+		is_mouse_over = hud_x >= hud_min_x && hud_x <= hud_max_x && hud_y >= hud_min_y && hud_y <= hud_max_y;
 	}
 	
 	void update_rotation(float new_rotation)
@@ -508,24 +539,24 @@ class EmitterData
 	{
 		ResizeMode mode = None;
 		
-		float mid_x = (min_x + max_x) * 0.5;
-		float mid_y = (min_y + max_y) * 0.5;
+		float mid_x = (hud_min_x + hud_max_x) * 0.5;
+		float mid_y = (hud_min_y + hud_max_y) * 0.5;
 		
-		if(check_handle(TopLeft, min_x, min_y, offset_x, offset_y, mode))
+		if(check_handle(TopLeft, hud_min_x, hud_min_y, offset_x, offset_y, mode))
 			return mode;
-		if(check_handle(Top, mid_x, min_y, offset_x, offset_y, mode))
+		if(check_handle(Top, mid_x, hud_min_y, offset_x, offset_y, mode))
 			return mode;
-		if(check_handle(TopRight, max_x, min_y, offset_x, offset_y, mode))
+		if(check_handle(TopRight, hud_max_x, hud_min_y, offset_x, offset_y, mode))
 			return mode;
-		if(check_handle(Right, max_x, mid_y, offset_x, offset_y, mode))
+		if(check_handle(Right, hud_max_x, mid_y, offset_x, offset_y, mode))
 			return mode;
-		if(check_handle(BottomRight, max_x, max_y, offset_x, offset_y, mode))
+		if(check_handle(BottomRight, hud_max_x, hud_max_y, offset_x, offset_y, mode))
 			return mode;
-		if(check_handle(Bottom, mid_x, max_y, offset_x, offset_y, mode))
+		if(check_handle(Bottom, mid_x, hud_max_y, offset_x, offset_y, mode))
 			return mode;
-		if(check_handle(BottomLeft, min_x, max_y, offset_x, offset_y, mode))
+		if(check_handle(BottomLeft, hud_min_x, hud_max_y, offset_x, offset_y, mode))
 			return mode;
-		if(check_handle(Left, min_x, mid_y, offset_x, offset_y, mode))
+		if(check_handle(Left, hud_min_x, mid_y, offset_x, offset_y, mode))
 			return mode;
 		
 		return mode;
@@ -535,10 +566,10 @@ class EmitterData
 	{
 		calculate_handle_centre(mode, x, y, x, y);
 		
-		if(mouse_x >= x - handle_radius && mouse_x <= x + handle_radius && mouse_y >= y - handle_radius && mouse_y <= y + handle_radius)
+		if(hud_mouse_x >= x - handle_radius && hud_mouse_x <= x + handle_radius && hud_mouse_y >= y - handle_radius && hud_mouse_y <= y + handle_radius)
 		{
-			offset_x = mouse_x - x;
-			offset_y = mouse_y - y;
+			offset_x = (hud_mouse_x - x);
+			offset_y = (hud_mouse_y - y);
 			result = mode;
 			return true;
 		}
@@ -581,34 +612,50 @@ class EmitterData
 		out_y = y;
 	}
 	
+	void set_view(float view_x, float view_y)
+	{
+		transform_layer_position(view_x, view_y, x, y, layer, 22, hud_x, hud_y);
+		transform_layer_position(view_x, view_y, min_x, min_y, layer, 22, hud_min_x, hud_min_y);
+		transform_layer_position(view_x, view_y, max_x, max_y, layer, 22, hud_max_x, hud_max_y);
+	}
+	
 	void render_highlight(scene@ g, uint fill_colour, uint outline_colour)
 	{
-		// Fill
+		/*
+		 * Fill
+		 */
+		
 		g.draw_rectangle_world(
-			layer, 23,
-			min_x, min_y, max_x, max_y,
+			22, 20,
+			hud_min_x, hud_min_y, hud_max_x, hud_max_y,
 			rotation,
 			fill_colour);
 		
-		// Unrotated outline
+		/*
+		 * Unrotated outline
+		 */
+		 
 		if(rotation != 0 && layer < 12)
 		{
 			outline_rect(g,
-				min_x, min_y, max_x, max_y,
-				layer, 23, 1, outline_colour);
+				hud_min_x, hud_min_y, hud_max_x, hud_max_y,
+				22, 23, 1, outline_colour);
 		}
 		
 		// Layer 19 outline
+		// TODO: Option to render always or only when hovered/active
 		outline_rect(g,
 			min_x, min_y, max_x, max_y,
 			22, 23, 1, outline_colour);
+		
+		// TODO: Option to draw lines connecting non-parallax outline
 	}
 	
 	void render_layer_text(textfield@ layer_text)
 	{
 		layer_text.text(layer + '.' + sub_layer);
 		shadowed_text_world(layer_text,
-			22, 24, min_x, min_y - 8,
+			22, 24, hud_min_x, hud_min_y - 8,
 			1, 1, 0,
 			colours.layer_shadow, 2, 2);
 	}
@@ -633,35 +680,36 @@ class EmitterData
 		float angle = rotation * DEG2RAD;
 		
 		draw_arc(g,
-			x, y, radius, radius,
+			hud_x, hud_y, radius, radius,
 			0, rotation, 64,
-			layer, 23,
+			22, 23,
 			thickness, colours.rotation_indicator_secondary);
 		g.draw_line(
-			layer, 23, 
-			x, y,
-			x + outer_radius, y,
+			22, 23, 
+			hud_x, hud_y,
+			hud_x + outer_radius, hud_y,
 			thickness, colours.rotation_indicator_secondary);
 		g.draw_line(
-			layer, 23, 
-			x, y,
-			x + cos(angle) * outer_radius, y + sin(angle) * outer_radius,
+			22, 23, 
+			hud_x, hud_y,
+			hud_x + cos(angle) * outer_radius, hud_y + sin(angle) * outer_radius,
 			thickness, colours.rotation_indicator);
 	}
 	
 	void render_handles(scene@ g)
 	{
-		float mid_x = (min_x + max_x) * 0.5;
-		float mid_y = (min_y + max_y) * 0.5;
+		// TODO: Rotated handles
+		float mid_x = (hud_min_x + hud_max_x) * 0.5;
+		float mid_y = (hud_min_y + hud_max_y) * 0.5;
 		
-		render_handle(g, TopLeft, min_x, min_y);
-		render_handle(g, Top, mid_x, min_y);
-		render_handle(g, TopRight, max_x, min_y);
-		render_handle(g, Right, max_x, mid_y);
-		render_handle(g, BottomRight, max_x, max_y);
-		render_handle(g, Bottom, mid_x, max_y);
-		render_handle(g, BottomLeft, min_x, max_y);
-		render_handle(g, Left, min_x, mid_y);
+		render_handle(g, TopLeft, hud_min_x, hud_min_y);
+		render_handle(g, Top, mid_x, hud_min_y);
+		render_handle(g, TopRight, hud_max_x, hud_min_y);
+		render_handle(g, Right, hud_max_x, mid_y);
+		render_handle(g, BottomRight, hud_max_x, hud_max_y);
+		render_handle(g, Bottom, mid_x, hud_max_y);
+		render_handle(g, BottomLeft, hud_min_x, hud_max_y);
+		render_handle(g, Left, hud_min_x, mid_y);
 	}
 	
 	private void render_handle(scene@ g, ResizeMode handle, float x, float y)
@@ -669,7 +717,7 @@ class EmitterData
 		calculate_handle_centre(handle, x, y, x, y);
 		
 		g.draw_rectangle_world(
-			layer, 24,
+			22, 24,
 			x - handle_radius, y - handle_radius,
 			x + handle_radius, y + handle_radius,
 			0,
