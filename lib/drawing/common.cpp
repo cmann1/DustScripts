@@ -1,4 +1,5 @@
 #include '../math/math.cpp';
+#include '../math/geom.cpp';
 
 /**
  * g.draw_line thickness is truncated to a whole number
@@ -62,7 +63,7 @@ void draw_dot_hud(scene@ g, int layer, int sub_layer, float x, float y, float si
 	g.draw_rectangle_hud(layer, sub_layer, x-size, y-size, x+size, y+size, rotation, colour);
 }
 
-void outline_rect(scene@ g, float x1, float y1, float x2, float y2, uint layer, uint sub_layer, float thickness=2, uint colour=0xFFFFFFFF)
+void outline_rect(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness=2, uint colour=0xFFFFFFFF)
 {
 	// Top
 	g.draw_rectangle_world(layer, sub_layer,
@@ -85,7 +86,7 @@ void outline_rect(scene@ g, float x1, float y1, float x2, float y2, uint layer, 
 		x2 + thickness, y2 + thickness,
 		0, colour);
 }
-void outline_rect_hud(scene@ g, float x1, float y1, float x2, float y2, uint layer, uint sub_layer, float thickness=2, uint colour=0xFFFFFFFF)
+void outline_rect_hud(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness=2, uint colour=0xFFFFFFFF)
 {
 	// Top
 	g.draw_rectangle_hud(layer, sub_layer,
@@ -107,6 +108,87 @@ void outline_rect_hud(scene@ g, float x1, float y1, float x2, float y2, uint lay
 		x2 - thickness, y1 - thickness,
 		x2 + thickness, y2 + thickness,
 		0, colour);
+}
+
+void outline_rotated_rect(scene@ g, uint layer, uint sub_layer, float x, float y, float size_x, float size_y, float rotation, float thickness=2, uint colour=0xFFFFFFFF)
+{
+	float p1_x, p1_y, p2_x, p2_y;
+	float p3_x, p3_y, p4_x, p4_y;
+	
+	calculate_rotated_rectangle(
+		x, y, size_x, size_y, rotation,
+		p1_x, p1_y, p2_x, p2_y,
+		p3_x, p3_y, p4_x, p4_y);
+	
+	const float tx = (p1_x + p2_x) * 0.5;
+	const float ty = (p1_y + p2_y) * 0.5;
+	const float bx = (p3_x + p4_x) * 0.5;
+	const float by = (p3_y + p4_y) * 0.5;
+	const float lx = (p1_x + p4_x) * 0.5;
+	const float ly = (p1_y + p4_y) * 0.5;
+	const float rx = (p2_x + p3_x) * 0.5;
+	const float ry = (p2_y + p3_y) * 0.5;
+	
+	// Top
+	g.draw_rectangle_world(layer, sub_layer,
+		tx - size_x, ty - thickness,
+		tx + size_x, ty + thickness,
+		rotation, colour);
+	// Bottom
+	g.draw_rectangle_world(layer, sub_layer,
+		bx - size_x, by - thickness,
+		bx + size_x, by + thickness,
+		rotation, colour);
+	// Left
+	g.draw_rectangle_world(layer, sub_layer,
+		lx - thickness, ly - size_y,
+		lx + thickness, ly + size_y,
+		rotation, colour);
+	// Right
+	g.draw_rectangle_world(layer, sub_layer,
+		rx - thickness, ry - size_y,
+		rx + thickness, ry + size_y,
+		rotation, colour);
+}
+void outline_rotated_rect_hud(scene@ g, uint layer, uint sub_layer, float x, float y, float size_x, float size_y, float rotation, float thickness=2, uint colour=0xFFFFFFFF)
+{
+	float p1_x, p1_y, p2_x, p2_y;
+	float p3_x, p3_y, p4_x, p4_y;
+	
+	calculate_rotated_rectangle(
+		x, y, size_x, size_y, rotation,
+		p1_x, p1_y, p2_x, p2_y,
+		p3_x, p3_y, p4_x, p4_y);
+	
+	const float tx = (p1_x + p2_x) * 0.5;
+	const float ty = (p1_y + p2_y) * 0.5;
+	const float bx = (p3_x + p4_x) * 0.5;
+	const float by = (p3_y + p4_y) * 0.5;
+	const float lx = (p1_x + p4_x) * 0.5;
+	const float ly = (p1_y + p4_y) * 0.5;
+	const float rx = (p2_x + p3_x) * 0.5;
+	const float ry = (p2_y + p3_y) * 0.5;
+	
+	// Top
+	g.draw_rectangle_hud(layer, sub_layer,
+		tx - size_x, ty - thickness,
+		tx + size_x, ty + thickness,
+		rotation, colour);
+	// Bottom
+	g.draw_rectangle_hud(layer, sub_layer,
+		bx - size_x, by - thickness,
+		bx + size_x, by + thickness,
+		rotation, colour);
+	// Left
+	g.draw_rectangle_hud(layer, sub_layer,
+		lx - thickness, ly - size_y,
+		lx + thickness, ly + size_y,
+		rotation, colour);
+	// Right
+	g.draw_rectangle_hud(layer, sub_layer,
+		rx - thickness, ry - size_y,
+		rx + thickness, ry + size_y,
+		rotation, colour);
 }
 
 void shadowed_text_world(textfield@ tf, int layer, int sub_layer, float x, float y, float scale_x=1, float scale_y=1, float rotation=0, uint shadow_colour=0x77000000, float ox=5, float oy=5)
