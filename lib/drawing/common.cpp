@@ -54,6 +54,194 @@ void draw_arrow(scene@ g, uint layer, uint sub_layer, float x1, float y1, float 
 	}
 }
 
+void draw_glowing_line(
+	scene@ g, uint layer, uint sub_layer,
+	float x1, float y1, float x2, float y2,
+	float thickness, float glow_width,
+	uint colour, uint glow_inner_colour, uint glow_outer_colour,
+	bool start_cap=true, bool end_cap=true,
+	bool world=true)
+{
+	float dx = x2 - x1;
+	float dy = y2 - y1;
+	const float length = sqrt(dx * dx + dy * dy);
+	
+	const float mx = (x1 + x2) * 0.5;
+	const float my = (y1 + y2) * 0.5;
+	
+	const float angle = atan2(-dx, dy);
+	
+	normalize(-dy, dx, dx, dy);
+	const float outer_dx = dx * (glow_width + thickness);
+	const float outer_dy = dy * (glow_width + thickness);
+	const float inner_dx = dx * thickness;
+	const float inner_dy = dy * thickness;
+	const float cap_factor = 0.7;
+	const float cap_dx = dx * glow_width;
+	const float cap_dy = dy * glow_width;
+	
+	if(world)
+	{
+		// Bottom
+		g.draw_quad_world(layer, sub_layer, false,
+			x1 + inner_dx - dx,
+			y1 + inner_dy - dy,
+			x2 + inner_dx - dx,
+			y2 + inner_dy - dy,
+			x2 + outer_dx, y2 + outer_dy, x1 + outer_dx, y1 + outer_dy,
+			glow_inner_colour, glow_inner_colour, glow_outer_colour, glow_outer_colour);
+		// Top
+		g.draw_quad_world(layer, sub_layer, false,
+			x1 - inner_dx + dx,
+			y1 - inner_dy + dy,
+			x2 - inner_dx + dx,
+			y2 - inner_dy + dy,
+			x2 - outer_dx, y2 - outer_dy, x1 - outer_dx, y1 - outer_dy,
+			glow_inner_colour, glow_inner_colour, glow_outer_colour, glow_outer_colour);
+		
+		if(start_cap)
+		{
+			// Bottom
+			g.draw_quad_world(layer, sub_layer, false,
+				x1 + inner_dx, y1 + inner_dy,
+				x1 + outer_dx, y1 + outer_dy,
+				x1 + outer_dx * cap_factor - cap_dy * cap_factor,
+				y1 + outer_dy * cap_factor + cap_dx * cap_factor,
+				x1 + inner_dx - cap_dy,
+				y1 + inner_dy + cap_dx,
+				glow_inner_colour, glow_outer_colour, glow_outer_colour, glow_outer_colour);
+			// Top
+			g.draw_quad_world(layer, sub_layer, false,
+				x1 - inner_dx, y1 - inner_dy,
+				x1 - outer_dx, y1 - outer_dy,
+				x1 - outer_dx * cap_factor - cap_dy * cap_factor,
+				y1 - outer_dy * cap_factor + cap_dx * cap_factor,
+				x1 - inner_dx - cap_dy,
+				y1 - inner_dy + cap_dx,
+				glow_inner_colour, glow_outer_colour, glow_outer_colour, glow_outer_colour);
+			// Middle
+			g.draw_quad_world(layer, sub_layer, false,
+				x1 - inner_dx + dy, y1 - inner_dy - dx,
+				x1 + inner_dx + dy, y1 + inner_dy - dx,
+				x1 + inner_dx - cap_dy, y1 + inner_dy + cap_dx,
+				x1 - inner_dx - cap_dy, y1 - inner_dy + cap_dx,
+				glow_inner_colour, glow_inner_colour, glow_outer_colour, glow_outer_colour);
+		}
+		
+		if(end_cap)
+		{
+			// Bottom
+			g.draw_quad_world(layer, sub_layer, false,
+				x2 + inner_dx, y2 + inner_dy,
+				x2 + outer_dx, y2 + outer_dy,
+				x2 + outer_dx * cap_factor + cap_dy * cap_factor,
+				y2 + outer_dy * cap_factor - cap_dx * cap_factor,
+				x2 + inner_dx + cap_dy,
+				y2 + inner_dy - cap_dx,
+				glow_inner_colour, glow_outer_colour, glow_outer_colour, glow_outer_colour);
+			// Top
+			g.draw_quad_world(layer, sub_layer, false,
+				x2 - inner_dx, y2 - inner_dy,
+				x2 - outer_dx, y2 - outer_dy,
+				x2 - outer_dx * cap_factor + cap_dy * cap_factor,
+				y2 - outer_dy * cap_factor - cap_dx * cap_factor,
+				x2 - inner_dx + cap_dy, y2 - inner_dy - cap_dx,
+				glow_inner_colour, glow_outer_colour, glow_outer_colour, glow_outer_colour);
+			// Middle
+			g.draw_quad_world(layer, sub_layer, false,
+				x2 - inner_dx - dy, y2 - inner_dy + dx,
+				x2 + inner_dx - dy, y2 + inner_dy + dx,
+				x2 + inner_dx + cap_dy, y2 + inner_dy - cap_dx,
+				x2 - inner_dx + cap_dy, y2 - inner_dy - cap_dx,
+				glow_inner_colour, glow_inner_colour, glow_outer_colour, glow_outer_colour);
+		}
+		
+		g.draw_rectangle_world(layer, sub_layer,
+			mx - thickness, my - length * 0.5,
+			mx + thickness, my + length * 0.5, angle * RAD2DEG, colour);
+	}
+	else
+	{
+		// Bottom
+		g.draw_quad_hud(layer, sub_layer, false,
+			x1 + inner_dx - dx,
+			y1 + inner_dy - dy,
+			x2 + inner_dx - dx,
+			y2 + inner_dy - dy,
+			x2 + outer_dx, y2 + outer_dy, x1 + outer_dx, y1 + outer_dy,
+			glow_inner_colour, glow_inner_colour, glow_outer_colour, glow_outer_colour);
+		// Top
+		g.draw_quad_hud(layer, sub_layer, false,
+			x1 - inner_dx + dx,
+			y1 - inner_dy + dy,
+			x2 - inner_dx + dx,
+			y2 - inner_dy + dy,
+			x2 - outer_dx, y2 - outer_dy, x1 - outer_dx, y1 - outer_dy,
+			glow_inner_colour, glow_inner_colour, glow_outer_colour, glow_outer_colour);
+		
+		if(start_cap)
+		{
+			// Bottom
+			g.draw_quad_hud(layer, sub_layer, false,
+				x1 + inner_dx, y1 + inner_dy,
+				x1 + outer_dx, y1 + outer_dy,
+				x1 + outer_dx * cap_factor - cap_dy * cap_factor,
+				y1 + outer_dy * cap_factor + cap_dx * cap_factor,
+				x1 + inner_dx - cap_dy,
+				y1 + inner_dy + cap_dx,
+				glow_inner_colour, glow_outer_colour, glow_outer_colour, glow_outer_colour);
+			// Top
+			g.draw_quad_hud(layer, sub_layer, false,
+				x1 - inner_dx, y1 - inner_dy,
+				x1 - outer_dx, y1 - outer_dy,
+				x1 - outer_dx * cap_factor - cap_dy * cap_factor,
+				y1 - outer_dy * cap_factor + cap_dx * cap_factor,
+				x1 - inner_dx - cap_dy,
+				y1 - inner_dy + cap_dx,
+				glow_inner_colour, glow_outer_colour, glow_outer_colour, glow_outer_colour);
+			// Middle
+			g.draw_quad_hud(layer, sub_layer, false,
+				x1 - inner_dx + dy, y1 - inner_dy - dx,
+				x1 + inner_dx + dy, y1 + inner_dy - dx,
+				x1 + inner_dx - cap_dy, y1 + inner_dy + cap_dx,
+				x1 - inner_dx - cap_dy, y1 - inner_dy + cap_dx,
+				glow_inner_colour, glow_inner_colour, glow_outer_colour, glow_outer_colour);
+		}
+		
+		if(end_cap)
+		{
+			// Bottom
+			g.draw_quad_hud(layer, sub_layer, false,
+				x2 + inner_dx, y2 + inner_dy,
+				x2 + outer_dx, y2 + outer_dy,
+				x2 + outer_dx * cap_factor + cap_dy * cap_factor,
+				y2 + outer_dy * cap_factor - cap_dx * cap_factor,
+				x2 + inner_dx + cap_dy,
+				y2 + inner_dy - cap_dx,
+				glow_inner_colour, glow_outer_colour, glow_outer_colour, glow_outer_colour);
+			// Top
+			g.draw_quad_hud(layer, sub_layer, false,
+				x2 - inner_dx, y2 - inner_dy,
+				x2 - outer_dx, y2 - outer_dy,
+				x2 - outer_dx * cap_factor + cap_dy * cap_factor,
+				y2 - outer_dy * cap_factor - cap_dx * cap_factor,
+				x2 - inner_dx + cap_dy, y2 - inner_dy - cap_dx,
+				glow_inner_colour, glow_outer_colour, glow_outer_colour, glow_outer_colour);
+			// Middle
+			g.draw_quad_hud(layer, sub_layer, false,
+				x2 - inner_dx - dy, y2 - inner_dy + dx,
+				x2 + inner_dx - dy, y2 + inner_dy + dx,
+				x2 + inner_dx + cap_dy, y2 + inner_dy - cap_dx,
+				x2 - inner_dx + cap_dy, y2 - inner_dy - cap_dx,
+				glow_inner_colour, glow_inner_colour, glow_outer_colour, glow_outer_colour);
+		}
+		
+		g.draw_rectangle_hud(layer, sub_layer,
+			mx - thickness, my - length * 0.5,
+			mx + thickness, my + length * 0.5, angle * RAD2DEG, colour);
+	}
+}
+
 void draw_dot(scene@ g, int layer, int sub_layer, float x, float y, float size=1, uint colour=0xFFFFFFFF, float rotation=0)
 {
 	g.draw_rectangle_world(layer, sub_layer, x-size, y-size, x+size, y+size, rotation, colour);
