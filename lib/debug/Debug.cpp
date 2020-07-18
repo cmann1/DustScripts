@@ -49,7 +49,6 @@ class Debug
 		
 		@text_lines.text_field = text_field;
 		text_lines.spacing = _text_line_spacing;
-		text_lines.scale = _text_scale;
 	}
 	
 	void step()
@@ -235,19 +234,19 @@ class Debug
 				{
 					if(text_outline)
 					{
-						outlined_text_hud(text_field, layer, sub_layer, text_x, text_y, _text_scale, _text_scale, 0, text_shadow_colour, text_shadow_ox);
+						outlined_text_hud(text_field, layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox);
 					}
 					else
 					{
-						shadowed_text_hud(text_field, layer, sub_layer, text_x, text_y, _text_scale, _text_scale, 0, text_shadow_colour, text_shadow_ox, text_shadow_oy);
+						shadowed_text_hud(text_field, layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox, text_shadow_oy);
 					}
 				}
 				else
 				{
-					text_field.draw_hud(layer, sub_layer, text_x, text_y, _text_scale, _text_scale, 0);
+					text_field.draw_hud(layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0);
 				}
 				
-				const float width = text_field.text_width();
+				const float width = text_field.text_width() * text_lines.scale;
 				
 				if(width > text_width)
 				{
@@ -386,8 +385,8 @@ class Debug
 	
 	float text_scale
 	{
-		get const { return _text_scale; }
-		set { _text_scale = text_lines.scale = value; recalculate_text_height = true; }
+		get const { return text_lines.scale; }
+		set { text_lines.scale = value; recalculate_text_height = true; }
 	}
 	
 	void set_align(int text_align_x, int text_align_y)

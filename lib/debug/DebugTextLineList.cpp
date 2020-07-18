@@ -6,8 +6,8 @@ class DebugTextLineList
 	int max_lines = 100;
 	textfield@ text_field;
 	float spacing;
-	float scale;
-	float text_height;
+	float scale = 0.75;
+	float text_height = 0;
 	
 	dictionary ids;
 	DebugTextLine@ first = null;
@@ -75,8 +75,8 @@ class DebugTextLineList
 		}
 		
 		text_field.text(line.text);
-		line.height = text_field.text_height();
-		text_height += line.height * scale;
+		line.height = text_field.text_height() * scale;
+		text_height += line.height;
 		
 		if(count > 1)
 		{
@@ -127,7 +127,7 @@ class DebugTextLineList
 //			puts('  pool size: ' + pool_size);
 		}
 		
-		text_height -= line.height * scale;
+		text_height -= line.height;
 		
 		if(count > 1)
 		{
@@ -150,13 +150,13 @@ class DebugTextLineList
 		while(@line != null)
 		{
 			text_field.text(line.text);
-			line.height = text_field.text_height();
-			text_height += line.height * scale;
+			line.height = text_field.text_height() * scale;
+			text_height += line.height;
 			
 			@line = line.next;
 		}
 		
-		text_height += spacing * (count - 1);
+		text_height += spacing * max(0, (count - 1));
 	}
 	
 	void debug_lines()
