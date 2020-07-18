@@ -1,6 +1,8 @@
 #include '../std.cpp';
 #include '../drawing/common.cpp';
+#include 'DebugItemList.cpp';
 #include 'DebugTextLine.cpp';
+#include 'DebugLine.cpp';
 
 class Debug
 {
@@ -39,6 +41,9 @@ class Debug
 	private uint debug_text_line_pool_size =  0;
 	private array<DebugTextLine@> debug_text_line_pool(text_max_lines);
 	
+	private DebugItemList items;
+	private DebugLinePool line_pool;
+	
 	Debug()
 	{
 		@g = get_scene();
@@ -50,6 +55,32 @@ class Debug
 	
 	void step()
 	{
+		/*
+		 * Items
+		 */
+		
+		DebugItem@ item = items.first;
+		
+		while(@item != null)
+		{
+			DebugItem@ next = item.next;
+			
+			if(item.frames == 0)
+			{
+				items.remove(item);
+			}
+			else
+			{
+				item.frames--;
+			}
+			
+			@item = next;
+		}
+		
+		/*
+		 * Text
+		 */
+		
 		DebugTextLine@ line = first_line;
 		
 		while(@line != null)
@@ -89,7 +120,19 @@ class Debug
 			recalculate_text_height = false;
 		}
 		
+		draw_items();
 		draw_text();
+	}
+	
+	void draw_items()
+	{
+		DebugItem@ item = items.first;
+		
+		while(@item != null)
+		{
+			item.draw(g);
+			@item = item.next;
+		}
 	}
 	
 	void draw_text()
@@ -468,6 +511,16 @@ class Debug
 			insert_line(line);
 		}
 	}
+	
+	DebugLine@ line(float x1, float y1, float x2, float y2, uint layer, uint sub_layer, float thickness=2, uint colour=0xFFFFFFFF, int frames=1, bool world=true)
+	{
+		DebugLine@ line = line_pool.get();
+		line.set(x1, y1, x2, y2, layer, sub_layer, thickness, colour, frames, world);
+		items.insert(line);
+		return line;
+	}
+	
+	// TODO: Add more drawing types
 	
 	/*
 	 * Text option methods
