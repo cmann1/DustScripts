@@ -351,7 +351,7 @@ class Debug
 	DebugText@ text(uint layer, uint sub_layer,
 		string text, float x, float y, float scale=1, float rotation=0,
 		string font_name=font::PROXIMANOVA_REG, uint size=36, int align_x=-1, int align_y=1,
-		uint colour=0xFFFFFFFF, uint shadow_colour=0xaa000000, float width=0, bool outline=false,
+		uint colour=0xFFFFFFFF, uint shadow_colour=0xaa000000, float width=2, bool outline=false,
 		bool world=true, int frames=1)
 	{
 		DebugText@ text_item = text_pool.get();
