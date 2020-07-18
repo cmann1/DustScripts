@@ -1,10 +1,13 @@
 #include '../std.cpp';
+#include '../fonts.cpp';
 #include '../drawing/common.cpp';
 #include 'DebugItemList.cpp';
 #include 'DebugTextLineList.cpp';
 #include 'DebugTextLine.cpp';
 #include 'DebugLine.cpp';
 #include 'DebugRect.cpp';
+#include 'DebugText.cpp';
+#include 'DebugTextState.cpp';
 
 class Debug
 {
@@ -21,14 +24,14 @@ class Debug
 	float text_shadow_oy = 2;
 	bool text_outline = false;
 
-	private string _text_font = 'ProximaNovaReg';
+	private string _text_font = font::PROXIMANOVA_REG;
 	private uint _text_size = 36;
 	private int _text_align_x = -1;
 	private int _text_align_y = -1;
 	private float _text_line_spacing = 8;
 	private float _text_scale = 1;
 	
-	private textfield@ text_field;
+	private textfield@ print_text_field;
 	private scene@ g;
 	
 	private DebugTextLineList text_lines;
@@ -38,17 +41,21 @@ class Debug
 	private DebugItemList items;
 	private DebugLinePool line_pool;
 	private DebugRectPool rect_pool;
+	private DebugTextPool text_pool;
+	private DebugTextState@ text_state = DebugTextState();
 	
 	Debug()
 	{
 		@g = get_scene();
-		@text_field = create_textfield();
-		text_field.set_font(_text_font, _text_size);
-		text_field.align_horizontal(_text_align_x);
-		text_field.align_vertical(_text_align_y);
+		@print_text_field = create_textfield();
+		print_text_field.set_font(_text_font, _text_size);
+		print_text_field.align_horizontal(_text_align_x);
+		print_text_field.align_vertical(_text_align_y);
 		
-		@text_lines.text_field = text_field;
+		@text_lines.text_field = print_text_field;
 		text_lines.spacing = _text_line_spacing;
+		
+		@text_pool.text_state = text_state;
 	}
 	
 	void step()
@@ -225,28 +232,28 @@ class Debug
 				if(line.colour != current_colour)
 				{
 					current_colour = line.colour;
-					text_field.colour(current_colour);
+					print_text_field.colour(current_colour);
 				}
 				
-				text_field.text(line.text);
+				print_text_field.text(line.text);
 				
 				if(text_shadow_colour != 0)
 				{
 					if(text_outline)
 					{
-						outlined_text_hud(text_field, layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox);
+						outlined_text_hud(print_text_field, layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox);
 					}
 					else
 					{
-						shadowed_text_hud(text_field, layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox, text_shadow_oy);
+						shadowed_text_hud(print_text_field, layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox, text_shadow_oy);
 					}
 				}
 				else
 				{
-					text_field.draw_hud(layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0);
+					print_text_field.draw_hud(layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0);
 				}
 				
-				const float width = text_field.text_width() * text_lines.scale;
+				const float width = print_text_field.text_width() * text_lines.scale;
 				
 				if(width > text_width)
 				{
@@ -341,6 +348,22 @@ class Debug
 		return rect;
 	}
 	
+	DebugText@ text(uint layer, uint sub_layer,
+		string text, float x, float y, float scale=1, float rotation=0,
+		string font_name=font::PROXIMANOVA_REG, uint size=36, int align_x=-1, int align_y=1,
+		uint colour=0xFFFFFFFF, uint shadow_colour=0xaa000000, float width=0, bool outline=false,
+		bool world=true, int frames=1)
+	{
+		DebugText@ text_item = text_pool.get();
+		text_item.set(layer, sub_layer,
+			text, x, y, scale, rotation,
+			font_name, size, align_x, align_y,
+			colour, shadow_colour, width, outline,
+			world, frames);
+		items.insert(text_item);
+		return text_item;
+	}
+	
 	// TODO: Add more drawing types
 	
 	/*
@@ -356,25 +379,25 @@ class Debug
 	string text_font
 	{
 		get const { return _text_font; }
-		set { text_field.set_font(_text_font = value, _text_size); recalculate_text_height = true; }
+		set { print_text_field.set_font(_text_font = value, _text_size); recalculate_text_height = true; }
 	}
 	 
 	uint text_size
 	{
 		get const { return _text_size; }
-		set { text_field.set_font(_text_font, _text_size = value); recalculate_text_height = true; }
+		set { print_text_field.set_font(_text_font, _text_size = value); recalculate_text_height = true; }
 	}
 	
 	int text_align_x
 	{
 		get const { return _text_align_x; }
-		set { text_field.align_horizontal(_text_align_x = value); }
+		set { print_text_field.align_horizontal(_text_align_x = value); }
 	}
 	
 	int text_align_y
 	{
 		get const { return _text_align_y; }
-		set { text_field.align_vertical(_text_align_y = value); }
+		set { print_text_field.align_vertical(_text_align_y = value); }
 	}
 	
 	float text_line_spacing
