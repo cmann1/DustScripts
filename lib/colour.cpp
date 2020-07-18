@@ -94,6 +94,13 @@ uint set_alpha(uint colour, float a)
 	return colour | (uint(round(a * 255)) << 24);
 }
 
+uint multiply_alpha(uint colour, float a)
+{
+	a *= ((colour >> 24) & 0xFF) / 255.0;
+	colour &= 0x00FFFFFF;
+	return colour | (uint(round(a * 255)) << 24);
+}
+
 uint random_colour_nice(float alpha_min = 1, float alpha_max = 1)
 {
 	return hsl_to_rgb(
