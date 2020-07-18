@@ -4,6 +4,7 @@
 #include 'DebugTextLineList.cpp';
 #include 'DebugTextLine.cpp';
 #include 'DebugLine.cpp';
+#include 'DebugRect.cpp';
 
 class Debug
 {
@@ -36,6 +37,7 @@ class Debug
 	
 	private DebugItemList items;
 	private DebugLinePool line_pool;
+	private DebugRectPool rect_pool;
 	
 	Debug()
 	{
@@ -324,12 +326,20 @@ class Debug
 		}
 	}
 	
-	DebugLine@ line(float x1, float y1, float x2, float y2, uint layer, uint sub_layer, float thickness=2, uint colour=0xFFFFFFFF, int frames=1, bool world=true)
+	DebugLine@ line(uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness=2, uint colour=0xFFFFFFFF, bool world=true, int frames=1)
 	{
 		DebugLine@ line = line_pool.get();
-		line.set(x1, y1, x2, y2, layer, sub_layer, thickness, colour, frames, world);
+		line.set(layer, sub_layer, x1, y1, x2, y2, thickness, colour, world, frames);
 		items.insert(line);
 		return line;
+	}
+	
+	DebugRect@ rect(uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float rotation=0, float thickness=-1, uint colour=0xFFFFFFFF, bool world=true, int frames=1)
+	{
+		DebugRect@ rect = rect_pool.get();
+		rect.set(layer, sub_layer, x1, y1, x2, y2, rotation, thickness, colour, world, frames);
+		items.insert(rect);
+		return rect;
 	}
 	
 	// TODO: Add more drawing types

@@ -10,7 +10,7 @@ class DebugLine : DebugItem
 	float thickness;
 	uint colour;
 	
-	void set(float x1, float y1, float x2, float y2, uint layer, uint sub_layer, float thickness=2, uint colour=0xFFFFFFFF, int frames=1, bool world=true)
+	void set(uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness=2, uint colour=0xFFFFFFFF, bool world=true, int frames=1)
 	{
 		DebugItem::set(layer, sub_layer, frames, world);
 		
