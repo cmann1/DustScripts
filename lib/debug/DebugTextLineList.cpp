@@ -122,13 +122,7 @@ class DebugTextLineList
 				ids.delete(line.key);
 			}
 			
-			if(pool_index == pool_size)
-			{
-				pool_size += 8;
-				pool.resize(pool_size);
-			}
-			
-			@pool[pool_index++] = line;
+			release_line(line);
 			
 //			puts('  pool size: ' + pool_size);
 		}
@@ -213,7 +207,7 @@ class DebugTextLineList
 		return line;
 	}
 	
-	void release(DebugTextLine@ obj)
+	void release_line(DebugTextLine@ line)
 	{
 		if(pool_index == pool_size)
 		{
@@ -221,7 +215,7 @@ class DebugTextLineList
 			pool.resize(pool_size);
 		}
 		
-		@pool[pool_index++] = obj;
+		@pool[pool_index++] = line;
 	}
 	
 }
