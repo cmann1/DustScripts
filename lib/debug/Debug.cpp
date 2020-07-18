@@ -1,6 +1,7 @@
 #include '../std.cpp';
 #include '../drawing/common.cpp';
 #include 'DebugItemList.cpp';
+#include 'DebugTextLineList.cpp';
 #include 'DebugTextLine.cpp';
 #include 'DebugLine.cpp';
 
@@ -11,7 +12,6 @@ class Debug
 	 * Text options
 	 */
 	 
-	int  text_max_lines = 100;
 	bool text_display_newset_first = true;
 	uint text_bg_colour = 0x55000000;
 	bool text_bg_glass = false;
@@ -30,16 +30,9 @@ class Debug
 	private textfield@ text_field;
 	private scene@ g;
 	
-	private DebugTextLine@ first_line = null;
-	private DebugTextLine@ last_line = null;
-	private int num_lines;
-	private int num_lines_id;
+	private DebugTextLineList text_lines;
 	private float text_height;
 	private bool recalculate_text_height;
-	
-	private dictionary text_line_ids;
-	private uint debug_text_line_pool_size =  0;
-	private array<DebugTextLine@> debug_text_line_pool(text_max_lines);
 	
 	private DebugItemList items;
 	private DebugLinePool line_pool;
@@ -51,6 +44,10 @@ class Debug
 		text_field.set_font(_text_font, _text_size);
 		text_field.align_horizontal(_text_align_x);
 		text_field.align_vertical(_text_align_y);
+		
+		@text_lines.text_field = text_field;
+		text_lines.spacing = _text_line_spacing;
+		text_lines.scale = _text_scale;
 	}
 	
 	void step()
@@ -81,7 +78,7 @@ class Debug
 		 * Text
 		 */
 		
-		DebugTextLine@ line = first_line;
+		DebugTextLine@ line = text_lines.first;
 		
 		while(@line != null)
 		{
@@ -89,7 +86,7 @@ class Debug
 			
 			if(line.frames == 0)
 			{
-				remove_line(line);
+				text_lines.remove(line);
 			}
 			else
 			{
@@ -104,19 +101,7 @@ class Debug
 	{
 		if(recalculate_text_height)
 		{
-			DebugTextLine@ line = first_line;
-			text_height = 0;
-			
-			while(@line != null)
-			{
-				text_field.text(line.text);
-				line.height = text_field.text_height();
-				text_height += line.height * _text_scale;
-				
-				@line = line.next;
-			}
-			
-			text_height += _text_line_spacing * (num_lines - 1);
+			text_lines.calculate_height();
 			recalculate_text_height = false;
 		}
 		
@@ -138,6 +123,7 @@ class Debug
 	void draw_text()
 	{
 		const float padding = 10;
+		const float text_height = text_lines.text_height;
 		const float direction = text_display_newset_first ? -_text_align_y : _text_align_y;
 		const float text_x = _text_align_x == -1 ? SCREEN_LEFT + padding : (_text_align_x == 1 ? SCREEN_RIGHT  - padding : 0);
 		float y1, y2;
@@ -175,7 +161,7 @@ class Debug
 			}
 		}
 		
-		DebugTextLine@ line = last_line;
+		DebugTextLine@ line = text_lines.last;
 		float y = 0;
 		uint current_colour = 0;
 		float text_width = 0;
@@ -308,166 +294,6 @@ class Debug
 		}
 	}
 	
-	private void insert_line(DebugTextLine@ line, bool update_id_dict = true)
-	{
-//		puts('inserting: ' + line.text);
-		
-		if(@last_line == null)
-		{
-			@first_line = @last_line = line;
-			
-			if(line.key != '')
-				num_lines_id = 1;
-			
-			num_lines = 1;
-//			puts('  first');
-		}
-		else
-		{
-//			puts('  old last: ' + last_line.text);
-//			puts('  new last: ' + line.text);
-			@last_line.next = line;
-			@line.prev = last_line;
-			@last_line = line;
-			
-			num_lines++;
-			
-			if(line.key != '')
-				num_lines_id++;
-				
-			if(num_lines - num_lines_id > text_max_lines)
-			{
-				DebugTextLine@ first_transient_line = first_line;
-				
-				while(@first_transient_line != null)
-				{
-					if(first_transient_line.key == '')
-						break;
-					
-					@first_transient_line = first_transient_line.next;
-				}
-				
-				if(@first_transient_line != null)
-				{
-//					puts('  removing first: ' + first_transient_line.text);
-					remove_line(first_transient_line);
-				}
-			}
-		}
-		
-		if(update_id_dict && line.key != '')
-		{
-			@text_line_ids[line.key] = @line;
-		}
-		
-		text_field.text(line.text);
-		line.height = text_field.text_height();
-		text_height += line.height * _text_scale;
-		
-		if(num_lines > 1)
-		{
-			text_height += _text_line_spacing;
-		}
-		
-//		debug_lines();
-	}
-	
-	private void remove_line(DebugTextLine@ line, bool release = true)
-	{
-//		puts('removing: ' + line.text);
-		
-		if(@line.prev != null)
-		{
-//			puts('  remove from prev: ' + line.prev.text);
-			@line.prev.next = line.next;
-		}
-		else
-		{
-//			puts('  new first: ' + (@line.next != null ? line.next.text : 'null'));
-			@first_line = line.next;
-		}
-		
-		if(@line.next != null)
-		{
-//			puts('  remove from next: ' + line.next.text);
-			@line.next.prev = line.prev;
-		}
-		else
-		{
-//			puts('  new last: ' + (@line.prev != null ? line.prev.text : 'null'));
-			@last_line = line.prev;
-		}
-		
-		@line.prev = null;
-		@line.next = null;
-		
-		if(release)
-		{
-			if(line.key != '')
-			{
-				text_line_ids.delete(line.key);
-			}
-			
-			if(debug_text_line_pool_size == debug_text_line_pool.size())
-			{
-				debug_text_line_pool.insertLast(@line);
-				debug_text_line_pool_size++;
-			}
-			else
-			{
-				@debug_text_line_pool[debug_text_line_pool_size++] = line;
-			}
-			
-//			puts('  pool size: ' + debug_text_line_pool_size);
-		}
-		
-		text_height -= line.height * _text_scale;
-		
-		if(num_lines > 1)
-		{
-			text_height -= _text_line_spacing;
-		}
-		num_lines--;
-		
-		if(line.key != '')
-			num_lines_id--;
-		
-//		debug_lines();
-	}
-	
-	private void debug_lines()
-	{
-		DebugTextLine@ line = first_line;
-		
-		int a = 0;
-		
-		while(@line != null)
-		{
-			if(++a > num_lines)
-			{
-				puts('Possible error in lines linked list');
-				break;
-			}
-			
-			string str = '         '+a+' - ';
-			
-			if(@line.prev != null)
-				str += '(prev:' + line.prev.text + ') ';
-			
-			if(line.key != '')
-				str += '[' + line.key + '] ';
-			
-			str += line.text;
-			
-			if(@line.next != null)
-				str += ' (next:' + line.next.text + ')';
-			
-			puts(str);
-			
-			@line = line.next;
-		}
-	}
-	
 	/*
 	 * Debug methods
 	 */
@@ -482,33 +308,19 @@ class Debug
 		DebugTextLine@ line = null;
 		bool is_new;
 		
-		if(key != '' && text_line_ids.exists(key))
+		if(key != '' && text_lines.ids.exists(key))
 		{
-			@line = cast<DebugTextLine@>(@text_line_ids[key]);
+			@line = cast<DebugTextLine@>(@text_lines.ids[key]);
 			line.text = text;
 			line.colour = colour;
 			line.frames = frames;
 			
-			remove_line(line, false);
-			insert_line(line, false);
+			text_lines.remove(line, false);
+			text_lines.insert(line, false);
 		}
 		else
 		{
-			if(debug_text_line_pool_size > 0)
-			{
-				@line = debug_text_line_pool[--debug_text_line_pool_size];
-				@line.next = @line.prev = null;
-				line.text = text;
-				line.colour = colour;
-				line.key = key;
-				line.frames = frames;
-			}
-			else
-			{
-				@line = DebugTextLine(text, colour, key, frames);
-			}
-			
-			insert_line(line);
+			text_lines.insert(text_lines.get(text, colour, key, frames));
 		}
 	}
 	
@@ -525,7 +337,13 @@ class Debug
 	/*
 	 * Text option methods
 	 */
-	 
+	
+	uint text_max_lines
+	{
+		get const { return text_lines.max_lines; }
+		set { text_lines.max_lines = value; }
+	}
+	
 	string text_font
 	{
 		get const { return _text_font; }
@@ -553,13 +371,13 @@ class Debug
 	float text_line_spacing
 	{
 		get const { return _text_line_spacing; }
-		set { _text_line_spacing = value; recalculate_text_height = true; }
+		set { _text_line_spacing = text_lines.spacing = value; recalculate_text_height = true; }
 	}
 	
 	float text_scale
 	{
 		get const { return _text_scale; }
-		set { _text_scale = value; recalculate_text_height = true; }
+		set { _text_scale = text_lines.scale = value; recalculate_text_height = true; }
 	}
 	
 	void set_align(int text_align_x, int text_align_y)
