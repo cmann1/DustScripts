@@ -1,3 +1,5 @@
+#include 'std.cpp';
+
 // See https://gist.github.com/mjackson/5311256 for functions if needed
 
 void rgb_to_hsl(uint r_in, uint g_in, uint b_in, float &out h, float &out s, float &out l)
@@ -90,4 +92,13 @@ uint set_alpha(uint colour, float a)
 {
 	colour &= 0x00FFFFFF;
 	return colour | (uint(round(a * 255)) << 24);
+}
+
+uint random_colour_nice(float alpha_min = 1, float alpha_max = 1)
+{
+	return hsl_to_rgb(
+		rand_range(0.0, 1.0),
+		rand_range(0.8, 0.9),
+		rand_range(0.65, 0.75)
+	) | (int(round(rand_range(alpha_min, alpha_max) * 255)) << 24);
 }
