@@ -117,7 +117,6 @@ void shadowed_text_world(textfield@ tf, int layer, int sub_layer, float x, float
 	tf.colour(colour);
 	tf.draw_world(layer, sub_layer, x, y, scale_x, scale_y, rotation);
 }
-
 void shadowed_text_hud(textfield@ tf, int layer, int sub_layer, float x, float y, float scale_x=1, float scale_y=1, float rotation=0, uint shadow_colour=0x77000000, float ox=5, float oy=5)
 {
 	const uint colour = tf.colour();
@@ -138,7 +137,6 @@ void outlined_text_world(textfield@ tf, int layer, int sub_layer, float x, float
 	tf.colour(colour);
 	tf.draw_world(layer, sub_layer, x, y, scale_x, scale_y, rotation);
 }
-
 void outlined_text_hud(textfield@ tf, int layer, int sub_layer, float x, float y, float scale_x=1, float scale_y=1, float rotation=0, uint shadow_colour=0x77000000, float thickness=2)
 {
 	const uint colour = tf.colour();
