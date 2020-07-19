@@ -22,6 +22,7 @@ Once added to a map and compiled, left click the script name to save it as a pre
 
 ### General Installation
 1. Copy **lib**  and **ed** to your **script_src** directory.
+2. All scripts are contained in the **ed** directory, or a subdirectory with that.
 2. Open the script tab in the editor.
 3. Click the text box, type **ed/prop-path.cpp** and hit enter
 
@@ -40,7 +41,7 @@ The main script has a utility for selecting and outputting code that can be used
     - **SetEmitterId** - allows setting emitter ids.
     - **SetEmitterSubLayer** - allows setting emitter sub layers.
     - **SetEmitterRotation** - allows setting emitter rotation.
-- **emitters.cpp** - Direct editing of emitters using the mouse:
+- **emitters/main.cpp** - Direct editing of emitters using the mouse:
     - **Move**: Right mouse in empty space inside emitter.
     - **Resize**: Right mouse corner handles.
     - **Adjust sub layer**: Mouse wheel while dragging.
@@ -138,43 +139,43 @@ An editor script for quickly placing props.
 - **place_on_tiles_distance** - How far to check for tiles when **place_on_tiles** is on.
 - **place_on_tiles_layer** - Which layer to snap to when **place_on_tiles** is on. -1 will use the brush's layer.
 - **brush**
-    - **brush.active** - Can be used to disable individual brushes.
-    - **brush.angle_min** - Placed props will have a random rotation between these values (relative to the mouse direction if **brush.rotate_to_dir** is checked)
-    - **brush.angle_max** - Same as **angle_min**
-    - **brush.angle_step** - If not equal to zero, the angle will be increased by this much after each prop is placed, otherwise a random angle is chosen. (All angles are always between **angle_min** and **angle_max**)
-    - **brush.rotate_to_dir** - If checked prop angle will be relative to the direction of the mouse.
-    - **brush.spread** - Props will be placed in a random position in a circle with this radius.
-    - **brush.density** - The number of props by distance moved, or by seconds if the **spray** option is checked.
-    - **brush.uniform** - Place props with a more uniform distribution.
-    - **brush.spray** - Props are placed based on distance moved, or continuously over time if **spray** is checked.
-    - **brush.layer** - The layer to place the prop on.
-    - **brush.sub_layer** - The sub-layer to place the prop on.
-    - **brush.flip_x** - Props will be reandimly flipped horizontally.
-    - **brush.flip_y** - Props will be reandimly flipped vertically.
-    - **brush.scale_min** - Scale range. Only works on Dustmod maps.
-    - **brush.scale_max** - Scale range. Only works on Dustmod maps.
-    - **brush.cycle_props** - If checked, instead of a random prop for the list, all props in the list will be cycled through sequentially.
-    - **brush.prop** - A single brush can have multiple props. One of these is selected randomly everytime a prop is placed. 
-        - **brush.prop.prop_set** - The prop set. These valeus can be set manually, but using the prop selector below is recommended.
-        - **brush.prop.prop_group** - The prop group.
-        - **brush.prop.prop_index** - The prop index.
-        - **brush.prop.prop_palette** - The prop palette.
-        - **brush.prop.select_prop** - Press to open the prop selector window. See **Prop Selection Window** section below.
-        - **brush.prop.pivot** - Defines where the prop rotates around.
+    - **active** - Can be used to disable individual brushes.
+    - **angle_min** - Placed props will have a random rotation between these values (relative to the mouse direction if **brush.rotate_to_dir** is checked)
+    - **angle_max** - Same as **angle_min**
+    - **angle_step** - If not equal to zero, the angle will be increased by this much after each prop is placed, otherwise a random angle is chosen. (All angles are always between **angle_min** and **angle_max**)
+    - **rotate_to_dir** - If checked prop angle will be relative to the direction of the mouse.
+    - **spread** - Props will be placed in a random position in a circle with this radius.
+    - **density** - The number of props by distance moved, or by seconds if the **spray** option is checked.
+    - **uniform** - Place props with a more uniform distribution.
+    - **spray** - Props are placed based on distance moved, or continuously over time if **spray** is checked.
+    - **layer** - The layer to place the prop on.
+    - **sub_layer** - The sub-layer to place the prop on.
+    - **flip_x** - Props will be randomly flipped horizontally.
+    - **flip_y** - Props will be randomly flipped vertically.
+    - **scale_min** - Scale range. Only works on Dustmod maps.
+    - **scale_max** - Scale range. Only works on Dustmod maps.
+    - **cycle_props** - If checked, instead of a random prop for the list, all props in the list will be cycled through sequentially.
+    - **prop** - A single brush can have multiple props. One of these is selected randomly every time a prop is placed. 
+        - **prop_set** - The prop set. These values can be set manually, but using the prop selector below is recommended.
+        - **prop_group** - The prop group.
+        - **prop_index** - The prop index.
+        - **prop_palette** - The prop palette.
+        - **select_prop** - Press to open the prop selector window. See **Prop Selection Window** section below.
+        - **pivot** - Defines where the prop rotates around.
             - **Top, Left, etc.** - The prop rotates around the corresponding corner.
             - **Origin** - A per-prop, predefined pivot meant to be a more logical point for the prop to rotate around.
             - **Custom** - Use the custom values defined below.
-        - **brush.prop.pivot_x** - A value in the range **0** - **1**. Only used when **pivot** is set to **Custom**.
-        - **brush.prop.pivot_y** - Same as **pivot_x**.
-        - **brush.prop.clone** - Click to clone this prop and add it to the end of the list.
-    - **brush.cluster_chance** - Each attempt to place a prop will have a chance to be placed in a larger cluster. Set to zero to never cluster.
-    - **brush.cluster_min** - The minimum number of props in a cluster. Set this and **cluster_max** to **1** to never cluster.
-    - **brush.cluster_max** - The maximum number of props in a cluster.
-    - **brush.clone** - Click to clone this brush and add it to the end of the list.
+        - **pivot_x** - A value in the range **0** - **1**. Only used when **pivot** is set to **Custom**.
+        - **pivot_y** - Same as **pivot_x**.
+        - **clone** - Click to clone this prop and add it to the end of the list.
+    - **cluster_chance** - Each attempt to place a prop will have a chance to be placed in a larger cluster. Set to zero to never cluster.
+    - **cluster_min** - The minimum number of props in a cluster. Set this and **cluster_max** to **1** to never cluster.
+    - **cluster_max** - The maximum number of props in a cluster.
+    - **clone** - Click to clone this brush and add it to the end of the list.
 
 ##### Prop Selection Window:
 - Click a prop to select it.
-- If there are alternate palettes, they are shown below, otherwise the prop is selected and the window closed.
+- If there are alternate palettes, they are shown below, otherwise the prop is selected, and the window closed.
 - Click the selected prop again to quickly select the first palette, or click one of the palettes to select that.
 - **IMPORTANT:** Mouse hud values are not reported properly by Dustmod, if the mouse is not aligning with the hud correctly, move it to the edge of the Dustmod window to "calibrate" it.
 - **IMPORTANT:** There's an issue with Dustforce that causes rendering glitches when there are too many textures on screen. Some prop icons might display incorrectly because of this - when that happens hold the right mouse button to show only that icon. 
