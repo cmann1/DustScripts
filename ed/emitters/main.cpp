@@ -36,14 +36,6 @@ class script
 	private float resize_min_y;
 	private float resize_max_x;
 	private float resize_max_y;
-//	private float resize_x1;
-//	private float resize_y1;
-//	private float resize_x2;
-//	private float resize_y2;
-//	private float resize_x3;
-//	private float resize_y3;
-//	private float resize_x4;
-//	private float resize_y4;
 	private EmitterData@ validate_emitter = null;
 	[hidden]
 	private bool scroll_layer = false;
@@ -224,7 +216,7 @@ class script
 			float layer_mouse_x = g.mouse_x_world(0, layer);
 			float layer_mouse_y = g.mouse_y_world(0, layer);
 			
-			float layer_closest_radius = closest_radius * get_layer_scale(22, layer);
+			float layer_closest_radius = closest_radius * get_layer_scale(g, 22, layer);
 			
 			int count = g.get_entity_collision(
 				layer_mouse_y - layer_closest_radius, layer_mouse_y + layer_closest_radius,
@@ -248,7 +240,7 @@ class script
 					continue;
 				}
 				
-				EmitterData@ data = EmitterData();
+				EmitterData@ data = EmitterData(g);
 				data.update_emitter(emitter);
 				data.update_view(view_x, view_y);
 				data.update_mouse(layer_mouse_x, layer_mouse_y, mouse_x, mouse_y);
@@ -356,7 +348,7 @@ class script
 		float x, y;
 		float dx, dy;
 		
-		const float scale = get_layer_scale(22, active_emitter.layer);
+		const float scale = get_layer_scale(g, 22, active_emitter.layer);
 		const float offset_x = handle_offset_x * scale;
 		const float offset_y = handle_offset_y * scale;
 		

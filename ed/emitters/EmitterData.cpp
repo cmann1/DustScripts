@@ -3,6 +3,7 @@
 class EmitterData
 {
 	
+	scene@ g;
 	entity@ emitter;
 	varstruct@ vars;
 	varvalue@ width_var;
@@ -45,9 +46,9 @@ class EmitterData
 	ResizeMode selected_handle = None;
 	ResizeMode hovered_handle = None;
 	
-	EmitterData()
+	EmitterData(scene@ g)
 	{
-		
+		@this.g = g;
 	}
 	
 	EmitterData(entity@ emitter)
@@ -204,9 +205,9 @@ class EmitterData
 	
 	void update_view(float view_x, float view_y)
 	{
-		transform_layer_position(view_x, view_y, x, y, layer, 22, hud_x, hud_y);
-		transform_layer_position(view_x, view_y, min_x, min_y, layer, 22, hud_min_x, hud_min_y);
-		transform_layer_position(view_x, view_y, max_x, max_y, layer, 22, hud_max_x, hud_max_y);
+		transform_layer_position(g, view_x, view_y, x, y, layer, 22, hud_x, hud_y);
+		transform_layer_position(g, view_x, view_y, min_x, min_y, layer, 22, hud_min_x, hud_min_y);
+		transform_layer_position(g, view_x, view_y, max_x, max_y, layer, 22, hud_max_x, hud_max_y);
 		
 		float size_x = (hud_max_x - hud_min_x) * 0.5;
 		float size_y = (hud_max_y - hud_min_y) * 0.5;
@@ -248,8 +249,8 @@ class EmitterData
 		if(layer < 12 && (parallax_hitbox == Always || parallax_hitbox == Hover && is_mouse_over))
 		{
 			outline_rect(g,
-				min_x, min_y, max_x, max_y,
-				22, 23, 1, colours.parallax_outline);
+				22, 23, min_x, min_y, max_x, max_y,
+				1, colours.parallax_outline);
 			
 			if(parallax_lines)
 			{
