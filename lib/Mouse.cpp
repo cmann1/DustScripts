@@ -7,6 +7,8 @@ class Mouse
 	int layer = 19;
 	int player = 0;
 	
+	bool moved;
+	
 	bool left_down;
 	bool right_down;
 	bool middle_down;
@@ -27,6 +29,9 @@ class Mouse
 	private scene@ g;
 	private float scale = 1;
 	
+	private float prev_x;
+	private float prev_y;
+	
 	private bool prev_left_down;
 	private bool prev_right_down;
 	private bool prev_middle_down;
@@ -36,15 +41,11 @@ class Mouse
 		initialise();
 	}
 	
-	Mouse(int layer)
-	{
-		this.layer = layer;
-		initialise();
-	}
-	
-	Mouse(bool hud)
+	Mouse(bool hud=true, int layer=19, int player=0)
 	{
 		this.hud = hud;
+		this.layer = layer;
+		this.player = player;
 		initialise();
 	}
 	
@@ -83,6 +84,11 @@ class Mouse
 		prev_left_down = left_down;
 		prev_right_down = right_down;
 		prev_middle_down = middle_down;
+		
+		moved = prev_x != x || prev_y != y;
+		
+		prev_x = x;
+		prev_y = y;
 	}
 	
 	bool scrolled(int &out dir)
