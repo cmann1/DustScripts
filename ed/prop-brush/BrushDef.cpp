@@ -145,9 +145,9 @@ class BrushDef
 	
 	private void calculate_next_t(float unit)
 	{
-		next_t_gap = density <= 0 ? unit / density : 0;
+		next_t_gap = density > 0 ? (unit / density) : unit;
 		next_t_boundary += next_t_gap;
-		next_t = uniform ? next_t_boundary : next_t_boundary - rand_range(0.0, next_t_gap);
+		next_t = uniform ? next_t_boundary : (next_t_boundary - rand_range(0.0, next_t_gap));
 	}
 	
 	void erase(scene@ g, float x, float y, float spread_mul)

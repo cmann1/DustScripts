@@ -9,22 +9,25 @@
 #include 'BrushDef.cpp';
 #include 'DragSizeState.cpp';
 
-// TODO:
-//    - Custom toolbar:
-//        - Check/Radio buttons to set which property to adjust with the scroll wheel. None can be checked to disable entirely
-//            - Option to control increments
-//        - Toggle erasing only matching props, or any props
-//            - Toggle erasing onlky matching layer, or any layer
-//        - Toggle draw on and off
-//        - Toggle preview
-//        - Smoothing slider
-//        - Place on tiles
-//        - etc. place as many options her as possible.
-// 
-// 
-
 class script
 {
+	
+	/* TODO:
+	 *    - Move layer and sub_layer from Brush to Prop
+	 *    - Rename PropSelection to PropDef
+	 *    - layer/sub_layer min and max values
+	 *    - Custom toolbar:
+	 *        - Check/Radio buttons to set which property to adjust with the scroll wheel. None can be checked to disable entirely
+	 *            - Option to control increments
+	 *        - Toggle erasing only matching props, or any props
+	 *            - Toggle erasing onlky matching layer, or any layer
+	 *        - Toggle draw on and off
+	 *        - Toggle preview
+	 *        - Smoothing slider
+	 *        - Place on tiles
+	 *        - etc. place as many options her as possible.
+	 * 
+	 */
 	
 	[text] bool draw = false;
 	[text] bool preview = true;
