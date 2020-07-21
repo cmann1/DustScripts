@@ -302,38 +302,38 @@ void outline_rect_inside(scene@ g, uint layer, uint sub_layer, float x1, float y
 {
 	// Left
 	g.draw_rectangle_world(layer, sub_layer,
-		x1,     y1 + 1,
-		x1 + 1, y2 - 1, 0, colour);
+		x1,             y1 + thickness,
+		x1 + thickness, y2 - thickness, 0, colour);
 	// Right
 	g.draw_rectangle_world(layer, sub_layer,
-		x2 - 1, y1 + 1,
-		x2,     y2 - 1, 0, colour);
+		x2 - thickness, y1 + thickness,
+		x2,             y2 - thickness, 0, colour);
 	// Top
 	g.draw_rectangle_world(layer, sub_layer,
 		x1, y1,
-		x2, y1 + 1, 0, colour);
+		x2, y1 + thickness, 0, colour);
 	// Bottom
 	g.draw_rectangle_world(layer, sub_layer,
-		x1, y2 - 1,
+		x1, y2 - thickness,
 		x2, y2, 0, colour);
 }
 void outline_rect_inside_hud(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness, uint colour)
 {
 	// Left
 	g.draw_rectangle_hud(layer, sub_layer,
-		x1,     y1 + 1,
-		x1 + 1, y2 - 1, 0, colour);
+		x1,             y1 + thickness,
+		x1 + thickness, y2 - thickness, 0, colour);
 	// Right
 	g.draw_rectangle_hud(layer, sub_layer,
-		x2 - 1, y1 + 1,
-		x2,     y1 - 1, 0, colour);
+		x2 - thickness, y1 + thickness,
+		x2,             y2 - thickness, 0, colour);
 	// Top
 	g.draw_rectangle_hud(layer, sub_layer,
 		x1, y1,
-		x2, y1 + 1, 0, colour);
+		x2, y1 + thickness, 0, colour);
 	// Bottom
 	g.draw_rectangle_hud(layer, sub_layer,
-		x1, y2 - 1,
+		x1, y2 - thickness,
 		x2, y2, 0, colour);
 }
 
@@ -341,20 +341,20 @@ void outline_rect_outside(scene@ g, uint layer, uint sub_layer, float x1, float 
 {
 	// Left
 	g.draw_rectangle_world(layer, sub_layer,
-		x1 - 1, y1,
-		x1,     y2, 0, colour);
+		x1 - thickness, y1,
+		x1,             y2, 0, colour);
 	// Right
 	g.draw_rectangle_world(layer, sub_layer,
-		x2,     y1,
-		x2 + 1, y2, 0, colour);
+		x2,             y1,
+		x2 + thickness, y2, 0, colour);
 	// Top
 	g.draw_rectangle_world(layer, sub_layer,
-		x1 - 1, y1 - 1,
-		x2 + 1, y1, 0, colour);
+		x1 - thickness, y1 - thickness,
+		x2 + thickness, y1, 0, colour);
 	// Bottom
 	g.draw_rectangle_world(layer, sub_layer,
-		x1 - 1, y2,
-		x2 + 1, y2 + 1, 0, colour);
+		x1 - thickness, y2,
+		x2 + thickness, y2 + thickness, 0, colour);
 }
 void outline_rect_outside_hud(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness, uint colour)
 {
