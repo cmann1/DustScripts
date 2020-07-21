@@ -36,11 +36,6 @@ class Mouse
 	private bool prev_right_down;
 	private bool prev_middle_down;
 	
-	Mouse()
-	{
-		initialise();
-	}
-	
 	Mouse(bool hud=true, int layer=19, int player=0)
 	{
 		this.hud = hud;
