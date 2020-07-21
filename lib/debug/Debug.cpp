@@ -306,12 +306,12 @@ class Debug
 	 * Debug methods
 	 */
 	 
-	void print(string text, uint colour, int key = -1, int frames = 120)
+	void print(string text, uint colour, int key, int frames = 120)
 	{
 		print(text, colour, key + '', frames);
 	}
 	 
-	void print(string text, uint colour, string key = '', int frames = 120)
+	void print(string text, uint colour=0xffffffff, string key = '', int frames = 120)
 	{
 		DebugTextLine@ line = null;
 		bool is_new;
