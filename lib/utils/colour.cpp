@@ -42,8 +42,8 @@ uint hsl_to_rgb(float h, float s, float l)
 	}
 	else
 	{
-		float q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-		float p = 2 * l - q;
+		const float q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+		const float p = 2 * l - q;
 		r = hue_to_rgb(p, q, h + 1.0/3.0);
 		g = hue_to_rgb(p, q, h);
 		b = hue_to_rgb(p, q, h - 1.0/3.0);
@@ -86,6 +86,32 @@ void int_to_rgba(uint colour, float &out r, float &out g, float &out b, float &o
 	r = ((colour >> 16) & 0xFF) / 255;
 	g = ((colour >> 8) & 0xFF) / 255;
 	b = ((colour) & 0xFF) / 255;
+}
+
+uint adjust_lightness(const uint &in colour, const float &in amount)
+{
+	float h, s, l;
+	
+	rgb_to_hsl(
+		(colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour) & 0xFF,
+		h, s, l);
+	
+	l = clamp(l + amount, 0.0, 1.0);
+	
+	return hsl_to_rgb(h, s, l) | (colour & 0xff000000);
+}
+
+uint scale_lightness(const uint &in colour, const float &in amount)
+{
+	float h, s, l;
+	
+	rgb_to_hsl(
+		(colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour) & 0xFF,
+		h, s, l);
+	
+	l = clamp(l * (1 + amount), 0.0, 1.0);
+	
+	return hsl_to_rgb(h, s, l) | (colour & 0xff000000);
 }
 
 uint set_alpha(uint colour, float a)
