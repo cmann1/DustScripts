@@ -45,7 +45,7 @@ abstract class Element
 		_id = type_identifier + (++ui.NEXT_ID);
 	}
 	
-	void do_layout(const float &in parent_x, const float &in parent_y)
+	void do_layout(const float parent_x, const float parent_y)
 	{
 		x1 = parent_x + x;
 		y1 = parent_y + y;
@@ -53,11 +53,12 @@ abstract class Element
 		y2 = y1 + height;
 	}
 	
-	void draw(const Graphics@ &in graphics, const float &in sub_frame)
+	void draw(const Graphics@ graphics, const float sub_frame)
 	{
+		graphics.draw_rectangle(x1, y1, x2, y2, 0, 0x55000000);
 	}
 	
-	bool overlaps_point(const float &in px, const float &in py)
+	bool overlaps_point(const float px, const float py)
 	{
 		return px < x2 && px >= x1 && py < y2 && py >= y1;
 	}

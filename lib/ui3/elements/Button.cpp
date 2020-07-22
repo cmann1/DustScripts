@@ -79,7 +79,7 @@ class Button : Container
 		height = content.height + padding_y * 2;
 	}
 	
-	void do_layout(const float &in parent_x, const float &in parent_y) override
+	void do_layout(const float parent_x, const float parent_y) override
 	{
 		Element::do_layout(parent_x, parent_y);
 		
@@ -113,14 +113,9 @@ class Button : Container
 		}
 	}
 	
-	void draw(const Graphics@ &in graphics, const float &in sub_frame) override
+	void draw(const Graphics@ graphics, const float sub_frame) override
 	{
 		ui.style.draw_interactive_element(this, hovered, selectable && selected, disabled);
-		
-		if(@content != null)
-		{
-			content.draw(graphics, sub_frame);
-		}
 	}
 	
 }

@@ -23,6 +23,7 @@ class UI
 	/*
 	 * TODO:
 	 *  Set ui layout
+	 * UI scale
 	 */
 	
 	int NEXT_ID;
@@ -65,12 +66,15 @@ class UI
 	private dictionary elements_right_pressed();
 	private dictionary elements_middle_pressed();
 	
+	private int draw_list_size = 64;
+	private array<Element@> draw_list(draw_list_size);
+	private int draw_list_index;
+	
 	private textfield@ debug_text_field;
 	
 	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
 	{
 		@contents = Container(this);
-		@contents.parent = Container(this);
 		
 		_hud = hud;
 		_layer = layer;
@@ -101,6 +105,7 @@ class UI
 		@debug_text_field = create_textfield();
 		debug_text_field.set_font(font::PROXIMANOVA_REG, 26);
 	}
+	
 	
 	bool add_child(Element@ child)
 	{
@@ -154,11 +159,18 @@ class UI
 	{
 		graphics.layer = _layer;
 		graphics.sub_layer = _sub_layer;
-		contents.draw(graphics, sub_frame);
+		
+		for(int i = 0; i < draw_list_index; i++)
+		{
+			draw_list[i].draw(graphics, sub_frame);
+		}
 	}
 	
+	// TODO: Render elements outside view with dotted line
 	void debug_draw()
 	{
+		Graphics::outline(graphics, contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
+		
 		element_stack.clear();
 		contents._queue_children_for_layout(@element_stack);
 		Element@ element = element_stack.pop();
@@ -203,19 +215,30 @@ class UI
 				id_scale, id_scale, 0);
 			
 			// Debug print mouse stack
-			
-			const int num_elements_mouse_over = int(elements_mouse_over.size());
-			
-			for(int i = num_elements_mouse_over - 1; i >= 0; i--)
+			if(@debug != null)
 			{
-				string indent = '';
+				const int num_elements_mouse_over = int(elements_mouse_over.size());
 				
-				for(int j = 0; j < i; j++) indent += '- ';
-				
-				@element = @elements_mouse_over[i];
-				debug.print(indent + element._id, set_alpha(get_element_id_colour(element), 1), element._id, 1);
+				for(int i = num_elements_mouse_over - 1; i >= 0; i--)
+				{
+					string indent = '';
+					
+					for(int j = 0; j < i; j++) indent += '- ';
+					
+					@element = @elements_mouse_over[i];
+					debug.print(indent + element._id, set_alpha(get_element_id_colour(element), 1), element._id, 1);
+				}
 			}
 		}
+	}
+	
+	// TODO: Do not registor the mouse, or draw elements outside of this region
+	void set_region(const float x1, const float y1, const float x2, const float y2)
+	{
+		contents.x = x1;
+		contents.y = y1;
+		contents.width  = x2 - x1;
+		contents.height = y2 - y1;
 	}
 	
 	// The top most element the mouse is over
@@ -231,6 +254,9 @@ class UI
 	 */
 	float mouse_y { get { return mouse.y - contents.y1; } }
 	
+	// Private
+	// ---------------------------------------------------------
+	
 	private uint get_element_id_colour(Element@ element)
 	{
 		const float hash = float(string::hash(element._id));
@@ -244,7 +270,18 @@ class UI
 	private void update_layout()
 	{
 		element_stack.clear();
-		Element@ element = @contents;
+		contents.do_layout(0, 0);
+		contents._queue_children_for_layout(@element_stack);
+		
+		draw_list_index = 0;
+		
+		const float view_x1 = contents.x1;
+		const float view_y1 = contents.y1;
+		const float view_x2 = contents.x2;
+		const float view_y2 = contents.y2;
+		const bool mouse_in_ui = mouse.x >= view_x1 && mouse.x <= view_x2 && mouse.y >= view_y1 && mouse.y <= view_y2;
+		
+		Element@ element = element_stack.pop();
 		
 		while(@element != null)
 		{
@@ -254,9 +291,22 @@ class UI
 			element.do_layout(element.parent.x1, element.parent.y1);
 			element._queue_children_for_layout(@element_stack);
 			
-			if(!element.disabled && element.mouse_enabled && element.parent.children_mouse_enabled && element.overlaps_point(mouse.x, mouse.y))
+			if(mouse_in_ui &&!element.disabled && element.mouse_enabled && element.parent.children_mouse_enabled)
 			{
-				@_mouse_over_element = element;
+				if(element.overlaps_point(mouse.x, mouse.y))
+				{
+					@_mouse_over_element = element;
+				}
+			}
+			
+			if(element.x1 <= view_x2 && element.x2 >= view_x1 && element.y1 <= view_y2 && element.y2 >= view_y1)
+			{
+				if(draw_list_index >= draw_list_size)
+				{
+					draw_list_size = draw_list_index + 64;
+				}
+				
+				@draw_list[draw_list_index++] = element;
 			}
 			
 			@element = element_stack.pop();

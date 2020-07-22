@@ -65,7 +65,7 @@ class Container : Element
 		children.resize(0);
 	}
 	
-	void do_layout(const float &in parent_x, const float &in parent_y)
+	void do_layout(const float parent_x, const float parent_y)
 	{
 		Element::do_layout(parent_x, parent_y);
 		
@@ -75,21 +75,6 @@ class Container : Element
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
 		stack.push_reversed(children);
-	}
-	
-	void draw(const Graphics@ &in graphics, const float &in sub_frame) override
-	{
-		Element::draw(graphics, sub_frame);
-		
-		for(uint i = 0, count = children.size(); i < count; i++)
-		{
-			Element@ element = children[i];
-			
-			if(element.visible)
-			{
-				element.draw(graphics, sub_frame);
-			}
-		}
 	}
 	
 }

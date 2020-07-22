@@ -55,7 +55,7 @@ class Label : Element
 		height += padding * 2;
 	}
 	
-	void draw(const Graphics@ &in graphics, const float &in sub_frame) override
+	void draw(const Graphics@ graphics, const float sub_frame) override
 	{
 		float x, y;
 		
