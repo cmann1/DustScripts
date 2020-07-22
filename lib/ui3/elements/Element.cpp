@@ -55,7 +55,8 @@ abstract class Element
 	
 	void draw(const Graphics@ graphics, const float sub_frame)
 	{
-		graphics.draw_rectangle(x1, y1, x2, y2, 0, 0x55000000);
+		// Debug
+		//graphics.draw_rectangle(x1, y1, x2, y2, 0, 0x55000000);
 	}
 	
 	bool overlaps_point(const float px, const float py)

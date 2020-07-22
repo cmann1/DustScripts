@@ -51,6 +51,9 @@ class Image : Element
 			sprite_offset_x = offset_x;
 			sprite_offset_y = offset_y;
 		}
+		
+		this.width = sprite_width * scale_x;
+		this.height = sprite_height * scale_y;
 	}
 	
 	void do_layout(const float parent_x, const float parent_y) override
