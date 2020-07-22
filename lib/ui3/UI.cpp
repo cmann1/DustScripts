@@ -180,6 +180,11 @@ class UI
 		const float id_scale = 0.5;
 		const uint alpha = 0x55000000;
 		
+		const float view_x1 = contents.x1;
+		const float view_y1 = contents.y1;
+		const float view_x2 = contents.x2;
+		const float view_y2 = contents.y2;
+		
 		while(@element != null)
 		{
 			if(element.visible && @element != @mouse_over_element)
@@ -187,10 +192,20 @@ class UI
 				const uint clr = get_element_id_colour(element);
 				
 				debug_text_field.text(element._id);
-				debug_text_field.colour(scale_lightness(clr, 0.1) | 0xff000000);
 				
-				graphics.draw_rectangle(element.x1, element.y1, element.x2, element.y2,
-					0, (element.hovered ? 0xff0000 : clr) | alpha);
+				if(element.x1 <= view_x2 && element.x2 >= view_x1 && element.y1 <= view_y2 && element.y2 >= view_y1)
+				{
+					graphics.draw_rectangle(element.x1, element.y1, element.x2, element.y2,
+						0, (element.hovered ? 0xff0000 : clr) | alpha);
+					
+					debug_text_field.colour(scale_lightness(clr, 0.1) | 0xff000000);
+				}
+				else
+				{
+					Graphics::outline(graphics, element.x1, element.y1, element.x2, element.y2, 1, clr | alpha);
+					debug_text_field.colour(scale_lightness(clr, 0.1) | alpha);
+				}
+				
 				graphics.draw_text(debug_text_field,
 					element.x1 + style.spacing, element.y1 + style.spacing,
 					id_scale, id_scale, 0);
@@ -232,7 +247,6 @@ class UI
 		}
 	}
 	
-	// TODO: Do not registor the mouse, or draw elements outside of this region
 	void set_region(const float x1, const float y1, const float x2, const float y2)
 	{
 		contents.x = x1;
@@ -256,16 +270,6 @@ class UI
 	
 	// Private
 	// ---------------------------------------------------------
-	
-	private uint get_element_id_colour(Element@ element)
-	{
-		const float hash = float(string::hash(element._id));
-		return hsl_to_rgb(
-			sin(hash) * 0.5 + 0.5,
-			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
-			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
-		);
-	}
 	
 	private void update_layout()
 	{
@@ -529,6 +533,16 @@ class UI
 			elements_right_pressed.deleteAll();
 		if(mouse.middle_release)
 			elements_middle_pressed.deleteAll();
+	}
+	
+	private uint get_element_id_colour(Element@ element)
+	{
+		const float hash = float(string::hash(element._id));
+		return hsl_to_rgb(
+			sin(hash) * 0.5 + 0.5,
+			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
+			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
+		);
 	}
 	
 }
