@@ -1,9 +1,9 @@
-/**
- * @class Graphics
- * @brief Needed because hud drawing is currently broken in the built in canvas class
- */
 class Graphics
 {
+	/**
+	 * @class Graphics
+	 * @brief Needed because hud drawing is currently broken in the built in canvas class
+	 */
 	
 	scene@ g;
 	

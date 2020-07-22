@@ -17,7 +17,7 @@ class Debug
 	 */
 	 
 	bool text_display_newset_first = true;
-	uint text_bg_colour = 0x55000000;
+	uint text_bg_colour = 0xaa000000;
 	bool text_bg_glass = false;
 	uint text_shadow_colour = 0x00000000;
 	float text_shadow_ox = 2;
