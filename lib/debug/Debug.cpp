@@ -311,6 +311,16 @@ class Debug
 		print(text, colour, key + '', frames);
 	}
 	 
+	void print(string text, int key)
+	{
+		print(text, 0xffffffff, key + '');
+	}
+	 
+	void print(string text, string key)
+	{
+		print(text, 0xffffffff, key);
+	}
+	 
 	void print(string text, uint colour=0xffffffff, string key = '', int frames = 120)
 	{
 		DebugTextLine@ line = null;
