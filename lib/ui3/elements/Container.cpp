@@ -1,11 +1,11 @@
 #include 'Element.cpp';
 
-/**
- * @class Container
- * @brief Any element that can contain other elements
- */
 class Container : Element
 {
+	/**
+	 * @class Container
+	 * @brief Any element that can contain other elements
+	 */
 	
 	protected array<Element@> children;
 	protected int num_children;
@@ -58,7 +58,68 @@ class Container : Element
 		return true;
 	}
 	
-	// TODO: Methods to change child order
+	void set_child_index(Element@ child, int index)
+	{
+		if(@child == null || @child.parent != @this)
+			return;
+		
+		int old_index = children.findByRef(@child);
+		
+		if(old_index == -1 || old_index == index)
+			return;
+		
+		if(old_index < index)
+			index--;
+		
+		children.removeAt(old_index);
+		
+		if(index >= num_children)
+		{
+			children.insertLast(child);
+		}
+		else
+		{
+			children.insertAt(index < 0 ? 0 : index, child);
+		}
+	}
+	
+	void move_to_front(Element@ child)
+	{
+		set_child_index(child, num_children + 1);
+	}
+	
+	void move_to_back(Element@ child)
+	{
+		set_child_index(child, 0);
+	}
+	
+	void move_up(Element@ child)
+	{
+		if(@child == null || @child.parent != @this)
+			return;
+		
+		int index = children.findByRef(@child);
+		
+		if(index == -1 || index == num_children - 1)
+			return;
+		
+		@children[index] = @children[index + 1];
+		@children[index + 1] = child;
+	}
+	
+	void move_down(Element@ child)
+	{
+		if(@child == null || @child.parent != @this)
+			return;
+		
+		int index = children.findByRef(@child);
+		
+		if(index == -1 || index == 0)
+			return;
+		
+		@children[index] = @children[index - 1];
+		@children[index - 1] = child;
+	}
 	
 	void clear()
 	{

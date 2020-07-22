@@ -23,7 +23,6 @@ class UI
 	/*
 	 * TODO:
 	 *  Set ui layout
-	 * UI scale
 	 */
 	
 	int NEXT_ID;
@@ -166,7 +165,6 @@ class UI
 		}
 	}
 	
-	// TODO: Render elements outside view with dotted line
 	void debug_draw()
 	{
 		Graphics::outline(graphics, contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
