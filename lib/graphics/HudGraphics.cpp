@@ -65,4 +65,13 @@ class HudGraphics : Graphics
 		sprite.draw_hud(layer, sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
 	}
 	
+	void draw_text(
+		textfield@ text_field,
+		const float &in x, const float &in y,
+		const float &in scale_x, const float &in scale_y,
+		const float &in rotation) const override
+	{
+		text_field.draw_hud(layer, sub_layer, x, y, scale_x, scale_y, rotation);
+	}
+	
 }

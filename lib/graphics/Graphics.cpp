@@ -45,5 +45,11 @@ class Graphics
 		const float &in x, const float &in y, const float &in rotation,
 		const float &in scale_x, const float &in scale_y,
 		const uint &in colour) const {}
+
+	void draw_text(
+		textfield@ text_field,
+		const float &in x, const float &in y,
+		const float &in scale_x, const float &in scale_y,
+		const float &in rotation) const {}
 	
 }
