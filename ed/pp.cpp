@@ -497,7 +497,7 @@ class script
 			}
 			
 			g.draw_rectangle_hud(21, 21, x1, y1, x2, y2, 0, 0x11FFFFFF);
-			outline_rect_hud(g, x1, y1, x2, y2, 21, 21, 0.5, 0x66FFFFFF);
+			outline_rect_hud(g, 21, 21, x1, y1, x2, y2, 0.5, 0x66FFFFFF);
 			
 			if(state == PickOrigin)
 			{

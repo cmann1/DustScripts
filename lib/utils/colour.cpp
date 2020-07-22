@@ -1,4 +1,4 @@
-#include 'std.cpp';
+#include '../std.cpp';
 
 // See https://gist.github.com/mjackson/5311256 for functions if needed
 

@@ -1,4 +1,4 @@
-#include "enums/VarType.cpp";
+#include "../enums/VarType.cpp";
 
 void print_vars(entity@ e)
 {

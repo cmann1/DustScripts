@@ -1,4 +1,4 @@
-#include "enums/VarType.cpp";
+#include "../enums/VarType.cpp";
 
 void copy_vars(entity@ src, entity@ dst)
 {
