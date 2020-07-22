@@ -10,29 +10,29 @@ class HudGraphics : Graphics
 	}
 	
 	void draw_rectangle(
-		const float &in x1, const float &in y1, const float &in x2, const float &in y2,
-		const float &in rotation, const uint &in colour) const override
+		const float x1, const float y1, const float x2, const float y2,
+		const float rotation, const uint colour) const override
 	{
 		g.draw_rectangle_hud(layer, sub_layer, x1, y1, x2, y2, rotation, colour);
 	}
 	
 	void draw_glass(
-		const float &in x1, const float &in y1, const float &in x2, const float &in y2,
-		const float &in rotation, const uint &in colour) const override
+		const float x1, const float y1, const float x2, const float y2,
+		const float rotation, const uint colour) const override
 	{
 		g.draw_glass_hud(layer, sub_layer, x1, y1, x2, y2, rotation, colour);
 	}
 
 	void draw_gradient(
-		const float &in x1, const float &in y1, const float &in x2, const float &in y2,
-		const uint &in c00, const uint &in c10, const uint &in c11, const uint &in c01) const override
+		const float x1, const float y1, const float x2, const float y2,
+		const uint c00, const uint c10, const uint c11, const uint c01) const override
 	{
 		g.draw_gradient_hud(layer, sub_layer, x1, y1, x2, y2, c00, c10, c11, c01);
 	}
 
 	void draw_line(
-		const float &in x1, const float &in y1, const float &in x2, const float &in y2,
-		const float &in width, uint colour) const override
+		const float x1, const float y1, const float x2, const float y2,
+		const float width, uint colour) const override
 	{
 		const float dx = x2 - x1;
 		const float dy = y2 - y1;
@@ -47,29 +47,29 @@ class HudGraphics : Graphics
 	}
 
 	void draw_quad(
-		const bool &in is_glass,
-		const float &in x1, const float &in y1, const float &in x2, const float &in y2,
-		const float &in x3, const float &in y3, const float &in x4, const float &in y4,
-		const uint &in c1, const uint &in c2, const uint &in c3, const uint &in c4) const override
+		const bool is_glass,
+		const float x1, const float y1, const float x2, const float y2,
+		const float x3, const float y3, const float x4, const float y4,
+		const uint c1, const uint c2, const uint c3, const uint c4) const override
 	{
 		g.draw_quad_hud(layer, sub_layer, is_glass, x1, y1, x2, y2, x3, y3, x4, y4, c1, c2, c3, c4);
 	}
 	
 	void draw_sprite(
 		sprites@ sprite,
-		const string &in sprite_name, const uint &in frame, const uint &in palette,
-		const float &in x, const float &in y, const float &in rotation,
-		const float &in scale_x, const float &in scale_y,
-		const uint &in colour) const override
+		const string sprite_name, const uint frame, const uint palette,
+		const float x, const float y, const float rotation,
+		const float scale_x, const float scale_y,
+		const uint colour) const override
 	{
 		sprite.draw_hud(layer, sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
 	}
 	
 	void draw_text(
 		textfield@ text_field,
-		const float &in x, const float &in y,
-		const float &in scale_x, const float &in scale_y,
-		const float &in rotation) const override
+		const float x, const float y,
+		const float scale_x, const float scale_y,
+		const float rotation) const override
 	{
 		text_field.draw_hud(layer, sub_layer, x, y, scale_x, scale_y, rotation);
 	}

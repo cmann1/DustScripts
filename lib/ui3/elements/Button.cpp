@@ -56,16 +56,27 @@ class Button : Container
 		return false;
 	}
 	
-	void fit_to_contents()
+	void fit_to_contents(float padding_x=-1, float padding_y=-1)
 	{
+		if(padding_x < 0)
+		{
+			padding_x = ui.style.spacing;
+		}
+		
+		if(padding_y < 0)
+		{
+			padding_y = ui.style.spacing;
+		}
+		
 		if(@content == null)
 		{
-			width = height = ui.style.spacing * 2;
+			width  = padding_x * 2;
+			height = padding_y * 2;
 			return;
 		}
 		
-		width  = content.width + ui.style.spacing * 2;
-		height = content.height + ui.style.spacing * 2;
+		width  = content.width + padding_x * 2;
+		height = content.height + padding_y * 2;
 	}
 	
 	void do_layout(const float &in parent_x, const float &in parent_y) override
@@ -83,8 +94,8 @@ class Button : Container
 		
 		if(@content != null)
 		{
-			content.x = (width  - content.width)  * 0.5 + 0.5;
-			content.y = (height - content.height) * 0.5 + 0.5;
+			content.x = (width  - content.width)  * 0.5;
+			content.y = (height - content.height) * 0.5;
 			
 			if(pressed)
 			{

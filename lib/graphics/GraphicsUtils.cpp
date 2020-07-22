@@ -9,8 +9,8 @@ namespace Graphics
 	 */
 	void outline(
 		Graphics@ graphics,
-		const float &in x1, const float &in y1, const float &in x2, const float &in y2,
-		const float &in thickness, const uint &in colour)
+		const float x1, const float y1, const float x2, const float y2,
+		const float thickness, const uint colour)
 	{
 		//Left
 		graphics.draw_rectangle(

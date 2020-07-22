@@ -24,10 +24,21 @@ class Style
 	float spacing = 4;
 	float button_pressed_icon_offset = 1;
 	
-	private string current_font = font::PROXIMANOVA_REG;
-	private uint current_text_size = 26;
-	private string new_font = font::PROXIMANOVA_REG;
-	private uint new_text_size = 26;
+	// The default font used when creating labels, etc.
+	string default_font = font::PROXIMANOVA_REG;
+	// The default text size used when creating labels, etc.
+	uint default_text_size = 26;
+	// The default scaling for text - should be set before creating any UI. Changing it after may not reflect correctly everywhere.
+	float default_text_scale = 0.75;
+	
+	// Text measurements don't seem to line up exactly always. Use these global values to offset
+	float text_offset_x = -1;
+	float text_offset_y = -1;
+	
+	private string current_font = default_font;
+	private uint current_text_size = default_text_size;
+	private TextAlign current_align_v = TextAlign::Left;
+	private TextAlign current_align_h = TextAlign::Top;
 	
 	private textfield@ text_field;
 	private dictionary sprite_sets;
@@ -35,9 +46,39 @@ class Style
 	Style()
 	{
 		@text_field = create_textfield();
-		
 		text_field.set_font(current_font, current_text_size);
+		text_field.align_horizontal(current_align_h);
+		text_field.align_vertical(current_align_v);
 	}
+	
+	void measure_text(const string text, const string font, const uint size, const float scale, float &out width, float &out height)
+	{
+		if(current_font != font || current_text_size != size)
+			text_field.set_font(current_font = font, current_text_size = size);
+		
+		text_field.text(text);
+		width  = text_field.text_width() * scale;
+		height = text_field.text_height() * scale;
+	}
+	
+	sprites@ get_sprite_for_set(const string &in sprite_set)
+	{
+		if(sprite_sets.exists(sprite_set))
+		{
+			return cast<sprites@>(sprite_sets[sprite_set]);
+		}
+		
+		sprites@ sprite = create_sprites();
+		sprite.add_sprite_set(sprite_set);
+		@sprite_sets[sprite_set] = sprite;
+		
+		return sprite;
+	}
+	
+	/*
+	 * Drawing methods
+	 */
+	//{
 	
 	void draw_interactive_element(const Element@ &in element, const bool &in highlighted, const bool &in selected, const bool &in disabled)
 	{
@@ -60,18 +101,39 @@ class Style
 		Graphics::outline(graphics, element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
 	}
 	
-	sprites@ get_sprite_for_set(const string &in sprite_set)
+	void draw_text(const string text, const float x, const float y, const TextAlign align_h, const TextAlign align_v, float scale=-1, string font='', uint size=0)
 	{
-		if(sprite_sets.exists(sprite_set))
+		if(scale <= 0)
 		{
-			return cast<sprites@>(sprite_sets[sprite_set]);
+			scale = default_text_scale;
 		}
 		
-		sprites@ sprite = create_sprites();
-		sprite.add_sprite_set(sprite_set);
-		@sprite_sets[sprite_set] = sprite;
+		if(font == '')
+		{
+			font = default_font;
+		}
 		
-		return sprite;
+		if(size == 0)
+		{
+			size = default_text_size;
+		}
+		
+		if(current_font != font || current_text_size != size)
+			text_field.set_font(current_font = font, current_text_size = size);
+		
+		if(current_align_h != align_h)
+			text_field.align_horizontal(current_align_h = align_h);
+		
+		if(current_align_v != align_v)
+			text_field.align_vertical(current_align_v = align_v);
+		
+		text_field.text(text);
+		
+		graphics.draw_text(text_field,
+			x + text_offset_x * scale, y + text_offset_y * scale,
+			scale, scale, 0);
 	}
+	
+	//}
 	
 }

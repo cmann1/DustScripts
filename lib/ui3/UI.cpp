@@ -15,6 +15,7 @@
 #include 'elements/Button.cpp';
 #include 'elements/Container.cpp';
 #include 'elements/Image.cpp';
+#include 'elements/Label.cpp';
 
 class UI
 {
@@ -147,6 +148,97 @@ class UI
 		
 		update_layout();
 		process_mouse_events();
+	}
+	
+	void draw(float sub_frame)
+	{
+		graphics.layer = _layer;
+		graphics.sub_layer = _sub_layer;
+		contents.draw(graphics, sub_frame);
+	}
+	
+	void debug_draw()
+	{
+		element_stack.clear();
+		contents._queue_children_for_layout(@element_stack);
+		Element@ element = element_stack.pop();
+		
+		debug_text_field.align_horizontal(-1);
+		debug_text_field.align_vertical(-1);
+		const float id_scale = 0.5;
+		const uint alpha = 0x55000000;
+		
+		while(@element != null)
+		{
+			if(element.visible && @element != @mouse_over_element)
+			{
+				const uint clr = get_element_id_colour(element);
+				
+				debug_text_field.text(element._id);
+				debug_text_field.colour(scale_lightness(clr, 0.1) | 0xff000000);
+				
+				graphics.draw_rectangle(element.x1, element.y1, element.x2, element.y2,
+					0, (element.hovered ? 0xff0000 : clr) | alpha);
+				graphics.draw_text(debug_text_field,
+					element.x1 + style.spacing, element.y1 + style.spacing,
+					id_scale, id_scale, 0);
+			}
+			
+			element._queue_children_for_layout(@element_stack);
+			@element = element_stack.pop();
+		}
+		
+		if(@mouse_over_element != null)
+		{
+			const uint clr = get_element_id_colour(mouse_over_element);
+			
+			graphics.draw_rectangle(mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2,
+				0, 0x00ff00 | alpha);
+			Graphics::outline(graphics, mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2, -1, 0xffffff | alpha);
+			
+			debug_text_field.text(mouse_over_element._id);
+			debug_text_field.colour(scale_lightness(clr, 0.1) | 0xff000000);
+			graphics.draw_text(debug_text_field,
+				mouse_over_element.x1 + style.spacing, mouse_over_element.y1 + style.spacing,
+				id_scale, id_scale, 0);
+			
+			// Debug print mouse stack
+			
+			const int num_elements_mouse_over = int(elements_mouse_over.size());
+			
+			for(int i = num_elements_mouse_over - 1; i >= 0; i--)
+			{
+				string indent = '';
+				
+				for(int j = 0; j < i; j++) indent += '- ';
+				
+				@element = @elements_mouse_over[i];
+				debug.print(indent + element._id, set_alpha(get_element_id_colour(element), 1), element._id, 1);
+			}
+		}
+	}
+	
+	// The top most element the mouse is over
+	Element@ mouse_over_element { get { return @_mouse_over_element; } }
+	
+	/**
+	 * @brief Returns mouse x relative to this element
+	 */
+	float mouse_x { get { return mouse.x - contents.x1; } }
+	
+	/**
+	 * @brief Returns mouse y relative to this element
+	 */
+	float mouse_y { get { return mouse.y - contents.y1; } }
+	
+	private uint get_element_id_colour(Element@ element)
+	{
+		const float hash = float(string::hash(element._id));
+		return hsl_to_rgb(
+			sin(hash) * 0.5 + 0.5,
+			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
+			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
+		);
 	}
 	
 	private void update_layout()
@@ -388,96 +480,5 @@ class UI
 		if(mouse.middle_release)
 			elements_middle_pressed.deleteAll();
 	}
-	
-	void draw(float sub_frame)
-	{
-		graphics.layer = _layer;
-		graphics.sub_layer = _sub_layer;
-		contents.draw(graphics, sub_frame);
-	}
-	
-	void debug_draw()
-	{
-		element_stack.clear();
-		contents._queue_children_for_layout(@element_stack);
-		Element@ element = element_stack.pop();
-		
-		debug_text_field.align_horizontal(-1);
-		debug_text_field.align_vertical(-1);
-		const float id_scale = 0.5;
-		const uint alpha = 0x55000000;
-		
-		while(@element != null)
-		{
-			if(element.visible && @element != @mouse_over_element)
-			{
-				const uint clr = get_element_id_colour(element);
-				
-				debug_text_field.text(element._id);
-				debug_text_field.colour(scale_lightness(clr, 0.1) | 0xff000000);
-				
-				graphics.draw_rectangle(element.x1, element.y1, element.x2, element.y2,
-					0, (element.hovered ? 0xff0000 : clr) | alpha);
-				graphics.draw_text(debug_text_field,
-					element.x1 + style.spacing, element.y1 + style.spacing,
-					id_scale, id_scale, 0);
-			}
-			
-			element._queue_children_for_layout(@element_stack);
-			@element = element_stack.pop();
-		}
-		
-		if(@mouse_over_element != null)
-		{
-			const uint clr = get_element_id_colour(mouse_over_element);
-			
-			graphics.draw_rectangle(mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2,
-				0, 0x00ff00 | alpha);
-			Graphics::outline(graphics, mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2, -1, 0xffffff | alpha);
-			
-			debug_text_field.text(mouse_over_element._id);
-			debug_text_field.colour(scale_lightness(clr, 0.1) | 0xff000000);
-			graphics.draw_text(debug_text_field,
-				mouse_over_element.x1 + style.spacing, mouse_over_element.y1 + style.spacing,
-				id_scale, id_scale, 0);
-			
-			// Debug print mouse stack
-			
-			const int num_elements_mouse_over = int(elements_mouse_over.size());
-			
-			for(int i = num_elements_mouse_over - 1; i >= 0; i--)
-			{
-				string indent = '';
-				
-				for(int j = 0; j < i; j++) indent += '- ';
-				
-				@element = @elements_mouse_over[i];
-				debug.print(indent + element._id, set_alpha(get_element_id_colour(element), 1), element._id, 1);
-			}
-		}
-	}
-	
-	private uint get_element_id_colour(Element@ element)
-	{
-		const float hash = float(string::hash(element._id));
-		return hsl_to_rgb(
-			sin(hash) * 0.5 + 0.5,
-			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
-			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
-		);
-	}
-	
-	// The top most element the mouse is over
-	Element@ mouse_over_element { get { return @_mouse_over_element; } }
-	
-	/**
-	 * @brief Returns mouse x relative to this element
-	 */
-	float mouse_x { get { return mouse.x - contents.x1; } }
-	
-	/**
-	 * @brief Returns mouse y relative to this element
-	 */
-	float mouse_y { get { return mouse.y - contents.y1; } }
 	
 }

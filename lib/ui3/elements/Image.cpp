@@ -19,7 +19,11 @@ class Image : Element
 	float scale_y = 1;
 	uint colour = 0xffffffff;
 	
-	Image(UI@ ui, const string &in sprite_set, const string &in sprite_name)
+	/**
+	 * @brief Normally the sprite's width, height, and offset will be calcualted automatically, but for embedded/script sprites (and possibly some other ones too)
+	 * these do not seem to be accurate
+	 */
+	Image(UI@ ui, const string &in sprite_set, const string &in sprite_name, const int width=-1, const int height=-1, const int offset_x=0, const int offset_y=0)
 	{
 		super(ui, 'img');
 		
@@ -27,15 +31,25 @@ class Image : Element
 		this.sprite_name = sprite_name;
 		@sprite = ui.style.get_sprite_for_set(sprite_set);
 		
-		rectangle@ rect = sprite.get_sprite_rect(sprite_name, 0);
-		sprite_offset_x = -rect.left();
-		sprite_offset_y = -rect.top();
-		sprite_width = rect.get_width();
-		sprite_height = rect.get_height();
-		
-		if(sprite_offset_x == 0 && sprite_offset_y == 0 && sprite_width == 1 && sprite_height == 1)
+		if(width <= 0 || height <= 0)
 		{
-			sprite_offset_x = sprite_offset_y = sprite_width = sprite_height = 0;
+			rectangle@ rect = sprite.get_sprite_rect(sprite_name, 0);
+			sprite_offset_x = -rect.left();
+			sprite_offset_y = -rect.top();
+			sprite_width = rect.get_width();
+			sprite_height = rect.get_height();
+			
+			if(sprite_offset_x == 0 && sprite_offset_y == 0 && sprite_width == 1 && sprite_height == 1)
+			{
+				sprite_offset_x = sprite_offset_y = sprite_width = sprite_height = 0;
+			}
+		}
+		else
+		{
+			sprite_width = width;
+			sprite_height = height;
+			sprite_offset_x = offset_x;
+			sprite_offset_y = offset_y;
 		}
 	}
 	
