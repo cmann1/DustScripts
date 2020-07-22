@@ -13,4 +13,19 @@ namespace string
 		return hash;
 	}
 	
+	string repeat(const string str, int times)
+	{
+		if(times < 1)
+			return '';
+		
+		string output = '';
+		
+		for(int i = 0; i < times; i ++)
+		{
+			output += str;
+		}
+		
+		return output;
+	}
+	
 }
