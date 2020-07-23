@@ -3,10 +3,6 @@
 #include '../fonts.cpp';
 #include '../math/math.cpp';
 #include '../utils/colour.cpp';
-#include '../graphics/Graphics.cpp';
-#include '../graphics/GraphicsUtils.cpp';
-#include '../graphics/WorldGraphics.cpp';
-#include '../graphics/HudGraphics.cpp';
 #include 'UIMouse.cpp';
 #include 'Style.cpp';
 #include 'utils/ElementStack.cpp';
@@ -19,11 +15,6 @@
 
 class UI
 {
-	
-	/*
-	 * TODO:
-	 *  Set ui layout
-	 */
 	
 	int NEXT_ID;
 	
@@ -39,7 +30,6 @@ class UI
 	Debug@ debug;
 	
 	private scene@ g;
-	private Graphics@ graphics;
 	
 	private bool _hud;
 	private int _layer;
@@ -74,6 +64,7 @@ class UI
 	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
 	{
 		@contents = Container(this);
+		contents._id = '_ROOT_';
 		
 		_hud = hud;
 		_layer = layer;
@@ -93,18 +84,11 @@ class UI
 		
 		@event_info.mouse = mouse;
 		
-		if(hud)
-			@graphics = HudGraphics(g, layer, sub_layer);
-		else
-			@graphics = WorldGraphics(g, layer, sub_layer);
-		
-		@style = Style();
-		@style.graphics = graphics;
+		@style = Style(hud);
 		
 		@debug_text_field = create_textfield();
 		debug_text_field.set_font(font::PROXIMANOVA_REG, 26);
 	}
-	
 	
 	bool add_child(Element@ child)
 	{
@@ -156,18 +140,15 @@ class UI
 	
 	void draw(float sub_frame)
 	{
-		graphics.layer = _layer;
-		graphics.sub_layer = _sub_layer;
+		style._layer = _layer;
+		style._sub_layer = _sub_layer;
 		
-		for(int i = 0; i < draw_list_index; i++)
-		{
-			draw_list[i].draw(graphics, sub_frame);
-		}
+		contents.draw(@style, sub_frame);
 	}
 	
 	void debug_draw()
 	{
-		Graphics::outline(graphics, contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
+		style.outline(contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
 		
 		element_stack.clear();
 		contents._queue_children_for_layout(@element_stack);
@@ -177,6 +158,7 @@ class UI
 		debug_text_field.align_vertical(-1);
 		const float id_scale = 0.5;
 		const uint alpha = 0x55000000;
+		uint clr;
 		
 		const float view_x1 = contents.x1;
 		const float view_y1 = contents.y1;
@@ -187,26 +169,25 @@ class UI
 		{
 			if(element.visible && @element != @mouse_over_element)
 			{
-				const uint clr = get_element_id_colour(element);
-				
-				debug_text_field.text(element._id);
+				clr = get_element_id_colour(element);
 				
 				if(element.x1 <= view_x2 && element.x2 >= view_x1 && element.y1 <= view_y2 && element.y2 >= view_y1)
 				{
-					graphics.draw_rectangle(element.x1, element.y1, element.x2, element.y2,
+					style.draw_rectangle(element.x1, element.y1, element.x2, element.y2,
 						0, (element.hovered ? 0xff0000 : clr) | alpha);
 					
-					debug_text_field.colour(scale_lightness(clr, 0.1) | 0xff000000);
+					clr = scale_lightness(clr, 0.1) | 0xff000000;
 				}
 				else
 				{
-					Graphics::outline(graphics, element.x1, element.y1, element.x2, element.y2, 1, clr | alpha);
-					debug_text_field.colour(scale_lightness(clr, 0.1) | alpha);
+					style.outline(element.x1, element.y1, element.x2, element.y2, 1, clr | alpha);
+					clr = scale_lightness(clr, 0.1) | alpha;
 				}
 				
-				graphics.draw_text(debug_text_field,
+				style.draw_text(
+					element._id,
 					element.x1 + style.spacing, element.y1 + style.spacing,
-					id_scale, id_scale, 0);
+					id_scale, id_scale, 0, clr);
 			}
 			
 			element._queue_children_for_layout(@element_stack);
@@ -215,17 +196,16 @@ class UI
 		
 		if(@mouse_over_element != null)
 		{
-			const uint clr = get_element_id_colour(mouse_over_element);
+			clr = get_element_id_colour(mouse_over_element);
 			
-			graphics.draw_rectangle(mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2,
+			style.draw_rectangle(mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2,
 				0, 0x00ff00 | alpha);
-			Graphics::outline(graphics, mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2, -1, 0xffffff | alpha);
+			style.outline(mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2, -1, 0xffffff | alpha);
 			
-			debug_text_field.text(mouse_over_element._id);
-			debug_text_field.colour(scale_lightness(clr, 0.1) | 0xff000000);
-			graphics.draw_text(debug_text_field,
+			style.draw_text(
+				mouse_over_element._id,
 				mouse_over_element.x1 + style.spacing, mouse_over_element.y1 + style.spacing,
-				id_scale, id_scale, 0);
+				id_scale, id_scale, 0, scale_lightness(clr, 0.1) | 0xff000000);
 			
 			// Debug print mouse stack
 			if(@debug != null)
@@ -234,12 +214,8 @@ class UI
 				
 				for(int i = num_elements_mouse_over - 1; i >= 0; i--)
 				{
-					string indent = '';
-					
-					for(int j = 0; j < i; j++) indent += '- ';
-					
 					@element = @elements_mouse_over[i];
-					debug.print(indent + element._id, set_alpha(get_element_id_colour(element), 1), element._id, 1);
+					debug.print(string::repeat('- ', i) + element._id, set_alpha(get_element_id_colour(element), 1), element._id, 1);
 				}
 			}
 		}
@@ -266,6 +242,24 @@ class UI
 	 */
 	float mouse_y { get { return mouse.y - contents.y1; } }
 	
+	bool hud
+	{
+		get { return _hud; }
+		set { style._hud = _hud = value; }
+	}
+	
+	uint layer
+	{
+		get { return _layer; }
+		set { style._layer = _layer = value; }
+	}
+	
+	uint sub_layer
+	{
+		get { return _sub_layer; }
+		set { style._sub_layer = _sub_layer = value; }
+	}
+	
 	// Private
 	// ---------------------------------------------------------
 	
@@ -274,8 +268,6 @@ class UI
 		element_stack.clear();
 		contents.do_layout(0, 0);
 		contents._queue_children_for_layout(@element_stack);
-		
-		draw_list_index = 0;
 		
 		const float view_x1 = contents.x1;
 		const float view_y1 = contents.y1;
@@ -287,28 +279,18 @@ class UI
 		
 		while(@element != null)
 		{
-			if(!element.visible)
-				continue;
-			
-			element.do_layout(element.parent.x1, element.parent.y1);
-			element._queue_children_for_layout(@element_stack);
-			
-			if(mouse_in_ui &&!element.disabled && element.mouse_enabled && element.parent.children_mouse_enabled)
+			if(element.visible)
 			{
-				if(element.overlaps_point(mouse.x, mouse.y))
-				{
-					@_mouse_over_element = element;
-				}
-			}
-			
-			if(element.x1 <= view_x2 && element.x2 >= view_x1 && element.y1 <= view_y2 && element.y2 >= view_y1)
-			{
-				if(draw_list_index >= draw_list_size)
-				{
-					draw_list_size = draw_list_index + 64;
-				}
+				element.do_layout(element.parent.x1, element.parent.y1);
+				element._queue_children_for_layout(@element_stack);
 				
-				@draw_list[draw_list_index++] = element;
+				if(mouse_in_ui &&!element.disabled && element.mouse_enabled && element.parent.children_mouse_enabled)
+				{
+					if(element.overlaps_point(mouse.x, mouse.y))
+					{
+						@_mouse_over_element = element;
+					}
+				}
 			}
 			
 			@element = element_stack.pop();

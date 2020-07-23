@@ -1,12 +1,12 @@
 #include 'Container.cpp';
 #include '../events/Event.cpp';
 
-/**
- * @class Element
- * @brief The base class for all display objects in a UI
- */
 abstract class Element
 {
+	/**
+	 * @class Element
+	 * @brief The base class for all display objects in a UI
+	 */
 	
 	UI@ ui;
 	Container@ parent;
@@ -23,6 +23,8 @@ abstract class Element
 	bool hovered;
 	// Disabled this element. Only relevant for interactive elements
 	bool disabled;
+	
+	float alpha = 1;
 	
 	float x, y;
 	float width = 100, height = 100;
@@ -53,10 +55,10 @@ abstract class Element
 		y2 = y1 + height;
 	}
 	
-	void draw(const Graphics@ graphics, const float sub_frame)
+	void draw(Style@ style, const float sub_frame)
 	{
 		// Debug
-		//graphics.draw_rectangle(x1, y1, x2, y2, 0, 0x55000000);
+		//style.draw_rectangle(x1, y1, x2, y2, 0, 0x55000000);
 	}
 	
 	bool overlaps_point(const float px, const float py)

@@ -23,7 +23,7 @@ class Image : Element
 	 * @brief Normally the sprite's width, height, and offset will be calcualted automatically, but for embedded/script sprites (and possibly some other ones too)
 	 * these do not seem to be accurate
 	 */
-	Image(UI@ ui, const string sprite_set, const string sprite_name, const int width=-1, const int height=-1, const int offset_x=0, const int offset_y=0)
+	Image(UI@ ui, const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
 	{
 		super(ui, 'img');
 		
@@ -64,13 +64,13 @@ class Image : Element
 		Element::do_layout(parent_x, parent_y);
 	}
 	
-	void draw(const Graphics@ graphics, const float sub_frame) override
+	void draw(Style@ style, const float sub_frame) override
 	{
 		if(rotation == 0)
 		{
-			graphics.draw_sprite(sprite,
+			style.draw_sprite(sprite,
 				sprite_name, 0, 0,
-				x1, y1, rotation,
+				x1 + sprite_offset_x, y1 + sprite_offset_y, rotation,
 				scale_x, scale_y,
 				colour);
 			
@@ -82,7 +82,7 @@ class Image : Element
 		
 		rotate(dx, dy, rotation * DEG2RAD, dx, dy);
 		
-		graphics.draw_sprite(sprite,
+		style.draw_sprite(sprite,
 			sprite_name, 0, 0,
 			x1 + dx, y1 + dy, rotation,
 			scale_x, scale_y,

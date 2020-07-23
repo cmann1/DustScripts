@@ -11,9 +11,10 @@ class Button : Container
 	Button(UI@ ui, Element@ content)
 	{
 		super(ui, 'btn');
-		@this.content = content;
 		
 		children_mouse_enabled = false;
+		
+		@this.content = content;
 	}
 	
 	Element@ content
@@ -113,9 +114,26 @@ class Button : Container
 		}
 	}
 	
-	void draw(const Graphics@ graphics, const float sub_frame) override
+	void draw(Style@ style, const float sub_frame) override
 	{
-		ui.style.draw_interactive_element(this, hovered, selectable && selected, disabled);
+		if(alpha != 1)
+			style.multiply_alpha(alpha);
+		
+		style.draw_interactive_element(this, hovered, selectable && selected, disabled);
+		
+		if(@content != null)
+		{
+			if(disabled)
+				style.disable_alpha();
+			
+			content.draw(style, sub_frame);
+			
+			if(disabled)
+				style.restore_alpha();
+		}
+		
+		if(alpha != 1)
+			style.restore_alpha();
 	}
 	
 }

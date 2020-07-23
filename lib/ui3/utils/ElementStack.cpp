@@ -2,28 +2,28 @@ class ElementStack
 {
 	
 	private array<Element@> stack;
-	private int size;
+	private int _size;
 	private int index;
 	
 	void push(Element@ element)
 	{
-		if(index == size)
+		if(index == _size)
 		{
-			size += 16;
-			stack.resize(size);
+			_size += 16;
+			stack.resize(_size);
 		}
 		
 		@stack[index++] = element;
 	}
 	
-	void push(array<Element@> elements)
+	void push(const array<Element@>@ &in elements)
 	{
 		const int count = int(elements.size());
 		
-		if(index + count > size)
+		if(index + count > _size)
 		{
-			size = index + count + 16;
-			stack.resize(size);
+			_size = index + count + 16;
+			stack.resize(_size);
 		}
 		
 		for(int i = 0; i < count; i++)
@@ -32,14 +32,14 @@ class ElementStack
 		}
 	}
 	
-	void push_reversed(array<Element@> elements)
+	void push_reversed(const array<Element@>@ &in elements)
 	{
 		const int count = int(elements.size());
 		
-		if(index + count > size)
+		if(index + count > _size)
 		{
-			size = index + count + 16;
-			stack.resize(size);
+			_size = index + count + 16;
+			stack.resize(_size);
 		}
 		
 		for(int i = count - 1; i >= 0; i--)
@@ -56,9 +56,19 @@ class ElementStack
 		return stack[--index];
 	}
 	
+	Element@ peek()
+	{
+		if(index == 0)
+			return null;
+		
+		return stack[index];
+	}
+	
 	void clear()
 	{
 		index = 0;
 	}
+	
+	int size { get { return index; } }
 	
 }

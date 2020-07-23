@@ -135,7 +135,21 @@ class Container : Element
 	
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
-		stack.push_reversed(children);
+		stack.push_reversed(@children);
+	}
+	
+	void draw(Style@ style, const float sub_frame) override
+	{
+		if(disabled || alpha != 1)
+			style.disable_alpha();
+		
+		for(int i = 0; i < num_children; i++)
+		{
+			children[i].draw(style, sub_frame);
+		}
+		
+		if(disabled || alpha != 1)
+			style.restore_alpha();
 	}
 	
 }

@@ -5,10 +5,12 @@ class Label : Element
 	
 	bool auto_size = true;
 	
+	// TODO: Label colour
 	private string _text;
 	private string _font;
 	private uint _size;
 	private float _scale;
+	uint colour;
 	TextAlign align_h = TextAlign::Left;
 	TextAlign align_v = TextAlign::Top;
 	
@@ -19,6 +21,7 @@ class Label : Element
 		_font = font == '' ? ui.style.default_font : font;
 		_size = size == 0 ? ui.style.default_text_size : size;
 		_scale = ui.style.default_text_scale;
+		colour = ui.style.text_clr;
 		
 		this.text = text;
 	}
@@ -55,7 +58,7 @@ class Label : Element
 		height += padding * 2;
 	}
 	
-	void draw(const Graphics@ graphics, const float sub_frame) override
+	void draw(Style@ style, const float sub_frame) override
 	{
 		float x, y;
 		
@@ -73,7 +76,7 @@ class Label : Element
 			case TextAlign::Bottom:	y = y2; break;
 		}
 		
-		ui.style.draw_text(_text, x, y, align_h, align_v, _scale, _font, _size);
+		style.draw_text(_text, x, y, align_h, align_v, colour, _scale, _font, _size);
 	}
 	
 	private void update_size()
