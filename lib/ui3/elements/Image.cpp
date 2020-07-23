@@ -11,8 +11,8 @@ class Image : Element
 	protected float sprite_width;
 	protected float sprite_height;
 	
-	float origin_x = 0;
-	float origin_y = 0;
+	float origin_x = 0.5;
+	float origin_y = 0.5;
 	
 	float rotation;
 	float scale_x = 1;
@@ -66,12 +66,16 @@ class Image : Element
 	
 	void draw(Style@ style, const float sub_frame) override
 	{
+		const float x = x1 + (x2 - x1) * origin_x;
+		const float y = y1 + (y2 - y1) * origin_y;
+		
 		if(rotation == 0)
 		{
 			style.draw_sprite(sprite,
 				sprite_name, 0, 0,
-				x1 + sprite_offset_x, y1 + sprite_offset_y, rotation,
-				scale_x, scale_y,
+				x + sprite_offset_x - sprite_width * 0.5,
+				y + sprite_offset_y - sprite_height * 0.5,
+				rotation, scale_x, scale_y,
 				colour);
 			
 			return;
@@ -84,7 +88,7 @@ class Image : Element
 		
 		style.draw_sprite(sprite,
 			sprite_name, 0, 0,
-			x1 + dx, y1 + dy, rotation,
+			x + dx, y + dy, rotation,
 			scale_x, scale_y,
 			colour);
 	}
