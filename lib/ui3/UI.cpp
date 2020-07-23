@@ -40,7 +40,7 @@ class UI
 	// e.g. a drop down box that is open. There can only by one active element in a UI.
 	private Element@ active_element;
 	
-	private EventInfo@ event_info = EventInfo();
+	/*private*/ EventInfo@ _event_info = EventInfo();
 	
 	// Used for processing element layouts
 	private ElementStack element_stack;
@@ -82,7 +82,7 @@ class UI
 		@g = get_scene();
 		@mouse = UIMouse(hud, layer, player);
 		
-		@event_info.mouse = mouse;
+		@_event_info.mouse = mouse;
 		
 		@style = Style(hud);
 		
@@ -328,7 +328,7 @@ class UI
 		 * Mouse exit
 		 */
 		
-		event_info.reset(EventType::MOUSE_EXIT, MouseButton::None, mouse.x, mouse.y);
+		_event_info.reset(EventType::MOUSE_EXIT, MouseButton::None, mouse.x, mouse.y);
 		
 		const int num_elements_mouse_over = int(elements_mouse_over.size());
 		const int num_elements_mouse_enter = int(elements_mouse_enter.size());
@@ -351,8 +351,8 @@ class UI
 				Element@ element = @elements_mouse_over[k];
 				element.hovered = false;
 				
-				@event_info.target = element;
-				element.mouse_exit.dispatch(event_info);
+				@_event_info.target = element;
+				element.mouse_exit.dispatch(_event_info);
 			}
 			
 			break;
@@ -364,7 +364,7 @@ class UI
 		
 		if(is_mouse_over)
 		{
-			event_info.reset(EventType::MOUSE_ENTER, MouseButton::None, mouse.x, mouse.y);
+			_event_info.reset(EventType::MOUSE_ENTER, MouseButton::None, mouse.x, mouse.y);
 			
 			for(int i = int(elements_mouse_enter.size()) - 1; i >= 0; i--)
 			{
@@ -376,8 +376,8 @@ class UI
 				element.hovered = true;
 				elements_mouse_over.insertLast(element);
 				
-				@event_info.target = element;
-				element.mouse_enter.dispatch(event_info);
+				@_event_info.target = element;
+				element.mouse_enter.dispatch(_event_info);
 			}
 		}
 		
@@ -387,31 +387,31 @@ class UI
 		
 		if(is_mouse_over && mouse.left_press || mouse.middle_press || mouse.right_press)
 		{
-			event_info.reset(EventType::MOUSE_PRESS, MouseButton::None, mouse.x, mouse.y);
+			_event_info.reset(EventType::MOUSE_PRESS, MouseButton::None, mouse.x, mouse.y);
 			
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
-				Element@ element = @event_info.target = @elements_mouse_enter[i];
+				Element@ element = @_event_info.target = @elements_mouse_enter[i];
 				
 				if(mouse.left_press)
 				{
 					elements_left_pressed[element._id] = true;
-					event_info.button = MouseButton::Left;
-					element.mouse_press.dispatch(event_info);
+					_event_info.button = MouseButton::Left;
+					element.mouse_press.dispatch(_event_info);
 				}
 				
 				if(mouse.right_press)
 				{
 					elements_right_pressed[element._id] = true;
-					event_info.button = MouseButton::Right;
-					element.mouse_press.dispatch(event_info);
+					_event_info.button = MouseButton::Right;
+					element.mouse_press.dispatch(_event_info);
 				}
 				
 				if(mouse.middle_press)
 				{
 					elements_middle_pressed[element._id] = true;
-					event_info.button = MouseButton::Middle;
-					element.mouse_press.dispatch(event_info);
+					_event_info.button = MouseButton::Middle;
+					element.mouse_press.dispatch(_event_info);
 				}
 			}
 		}
@@ -422,12 +422,12 @@ class UI
 		
 		if(is_mouse_over && mouse.moved)
 		{
-			event_info.reset(EventType::MOUSE_MOVE, MouseButton::None, mouse.x, mouse.y);
+			_event_info.reset(EventType::MOUSE_MOVE, MouseButton::None, mouse.x, mouse.y);
 			
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
-				Element@ element = @event_info.target = @elements_mouse_enter[i];
-				element.mouse_move.dispatch(event_info);
+				Element@ element = @_event_info.target = @elements_mouse_enter[i];
+				element.mouse_move.dispatch(_event_info);
 			}
 		}
 		
@@ -439,55 +439,55 @@ class UI
 		{
 			// Release
 			
-			event_info.reset(EventType::MOUSE_RELEASE, MouseButton::None, mouse.x, mouse.y);
+			_event_info.reset(EventType::MOUSE_RELEASE, MouseButton::None, mouse.x, mouse.y);
 			
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
-				Element@ element = @event_info.target = @elements_mouse_enter[i];
+				Element@ element = @_event_info.target = @elements_mouse_enter[i];
 				
 				if(mouse.left_release)
 				{
-					event_info.button = MouseButton::Left;
-					element.mouse_release.dispatch(event_info);
+					_event_info.button = MouseButton::Left;
+					element.mouse_release.dispatch(_event_info);
 				}
 				
 				if(mouse.right_release)
 				{
-					event_info.button = MouseButton::Right;
-					element.mouse_release.dispatch(event_info);
+					_event_info.button = MouseButton::Right;
+					element.mouse_release.dispatch(_event_info);
 				}
 				
 				if(mouse.middle_release)
 				{
-					event_info.button = MouseButton::Middle;
-					element.mouse_release.dispatch(event_info);
+					_event_info.button = MouseButton::Middle;
+					element.mouse_release.dispatch(_event_info);
 				}
 			}
 			
 			// Click
 			
-			event_info.reset(EventType::MOUSE_CLICK, MouseButton::None, mouse.x, mouse.y);
+			_event_info.reset(EventType::MOUSE_CLICK, MouseButton::None, mouse.x, mouse.y);
 			
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
-				Element@ element = @event_info.target = @elements_mouse_enter[i];
+				Element@ element = @_event_info.target = @elements_mouse_enter[i];
 				
 				if(mouse.left_release && elements_left_pressed.exists(element._id))
 				{
-					event_info.button = MouseButton::Left;
-					element.mouse_click.dispatch(event_info);
+					_event_info.button = MouseButton::Left;
+					element.mouse_click.dispatch(_event_info);
 				}
 				
 				if(mouse.right_release && elements_right_pressed.exists(element._id))
 				{
-					event_info.button = MouseButton::Right;
-					element.mouse_click.dispatch(event_info);
+					_event_info.button = MouseButton::Right;
+					element.mouse_click.dispatch(_event_info);
 				}
 				
 				if(mouse.middle_release && elements_middle_pressed.exists(element._id))
 				{
-					event_info.button = MouseButton::Middle;
-					element.mouse_click.dispatch(event_info);
+					_event_info.button = MouseButton::Middle;
+					element.mouse_click.dispatch(_event_info);
 				}
 			}
 		}

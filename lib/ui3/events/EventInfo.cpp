@@ -18,4 +18,13 @@ class EventInfo
 		this.y = y;
 	}
 	
+	void reset(string type, Element@ target)
+	{
+		this.type = type;
+		this.button = MouseButton::None;
+		this.x = 0;
+		this.y = 0;
+		@this.target = target;
+	}
+	
 }

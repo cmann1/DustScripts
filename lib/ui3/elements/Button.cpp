@@ -6,6 +6,8 @@ class Button : Container
 	
 	Element@ _content;
 	
+	Event on_selected;
+	
 	protected bool pressed;
 	
 	Button(UI@ ui, Element@ content)
@@ -93,6 +95,8 @@ class Button : Container
 			if(selectable && ui.mouse.primary_release)
 			{
 				selected = !selected;
+				ui._event_info.reset(EventType::SELECTED, this);
+				on_selected.dispatch(ui._event_info);
 			}
 			
 			if(!ui.mouse.primary_down)

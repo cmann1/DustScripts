@@ -9,4 +9,6 @@ namespace EventType
 	const string MOUSE_RELEASE 	= 'mouse_release';
 	const string MOUSE_CLICK 	= 'mouse_click';
 	
+	const string SELECTED 		= 'selected';
+	
 }
