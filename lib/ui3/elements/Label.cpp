@@ -5,7 +5,6 @@ class Label : Element
 	
 	bool auto_size = true;
 	
-	// TODO: Label colour
 	private string _text;
 	private string _font;
 	private uint _size;

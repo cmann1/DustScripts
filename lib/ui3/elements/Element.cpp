@@ -13,7 +13,8 @@ abstract class Element
 	
 	string _id;
 	
-	string tooltip = '';
+	Element@ tooltip = null;
+	
 	bool visible = true;
 	// Can this element interact with the mouse
 	bool mouse_enabled = true;

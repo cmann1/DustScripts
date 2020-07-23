@@ -12,6 +12,9 @@
 #include 'elements/Container.cpp';
 #include 'elements/Image.cpp';
 #include 'elements/Label.cpp';
+#include 'elements/SingleContainer.cpp';
+#include 'elements/LockedContainer.cpp';
+#include 'elements/Tooltip.cpp';
 
 class UI
 {
@@ -37,6 +40,7 @@ class UI
 	private int _player;
 	
 	private Container@ contents;
+	private Container@ overlays;
 	// e.g. a drop down box that is open. There can only by one active element in a UI.
 	private Element@ active_element;
 	
@@ -64,7 +68,9 @@ class UI
 	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
 	{
 		@contents = Container(this);
+		@overlays = Container(this);
 		contents._id = '_ROOT_';
+		overlays._id = '_OVERLAYS_';
 		
 		_hud = hud;
 		_layer = layer;
@@ -144,6 +150,7 @@ class UI
 		style._sub_layer = _sub_layer;
 		
 		contents.draw(@style, sub_frame);
+		overlays.draw(@style, sub_frame);
 	}
 	
 	void debug_draw()
@@ -299,6 +306,11 @@ class UI
 		if(@_mouse_over_element == @contents)
 		{
 			@_mouse_over_element = null;
+		}
+		
+		if(@_mouse_over_element != null && @_mouse_over_element.tooltip != null)
+		{
+			
 		}
 	}
 	

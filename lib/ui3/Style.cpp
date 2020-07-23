@@ -14,6 +14,7 @@ class Style
 	uint selected_highlight_border_clr	= 0xffb16860;
 	uint disabled_bg_clr				= 0xa6000000;
 	uint disabled_border_clr			= 0x26ffffff;
+	uint shadow_clr						= 0x40000000;
 	
 	float disabled_alpha				= 0.35;
 	
@@ -27,6 +28,10 @@ class Style
 	uint default_text_size = 26;
 	// The default scaling for text - should be set before creating any UI. Changing it after may not reflect correctly everywhere.
 	float default_text_scale = 0.75;
+	
+	int tooltip_fade_frames = 25;
+	float tooltip_fade_offset_x = 0;
+	float tooltip_fade_offset_y = 5;
 	
 	// Text measurements don't seem to line up exactly always. Use these global values to offset
 	float text_offset_x = -1;
@@ -295,7 +300,6 @@ class Style
 			outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
 		}
 		
-		// TODO: Text colour
 		void draw_text(const string text, const float x, const float y, const TextAlign align_h, const TextAlign align_v, const uint colour, float scale=-1, string font='', uint size=0)
 		{
 			if(scale <= 0)
