@@ -1,6 +1,8 @@
 #include '../std.cpp';
 #include '../fonts.cpp';
+#include '../Mouse.cpp';
 #include '../drawing/common.cpp';
+#include '../math/math.cpp';
 #include 'DebugItemList.cpp';
 #include 'DebugTextLineList.cpp';
 #include 'DebugTextLine.cpp';
@@ -30,19 +32,25 @@ class Debug
 	private int _text_align_y = -1;
 	private float _text_line_spacing = 8;
 	private float _text_scale = 1;
+	private float text_lines_padding = 10;
 	
 	private textfield@ print_text_field;
 	private scene@ g;
 	
 	private DebugTextLineList text_lines;
-	private float text_height;
+	private float text_lines_x1, text_lines_y1;
+	private float text_lines_x2, text_lines_y2;
 	private bool recalculate_text_height;
+	private float text_lines_scroll;
+	private float single_line_height;
 	
 	private DebugItemList items;
 	private DebugLinePool line_pool;
 	private DebugRectPool rect_pool;
 	private DebugTextPool text_pool;
 	private DebugTextState@ text_state = DebugTextState();
+	
+	private Mouse mouse(true);
 	
 	Debug()
 	{
@@ -55,11 +63,16 @@ class Debug
 		@text_lines.text_field = print_text_field;
 		text_lines.spacing = _text_line_spacing;
 		
+		print_text_field.text(' ');
+		single_line_height = print_text_field.text_height();
+		
 		@text_pool.text_state = text_state;
 	}
 	
 	void step()
 	{
+		mouse.step();
+		
 		/*
 		 * Items
 		 */
@@ -103,6 +116,18 @@ class Debug
 			
 			@line = next;
 		}
+		
+		if(text_lines.count > 0)
+		{
+			int scroll;
+			
+			if(mouse.scrolled(scroll) && mouse.x >= text_lines_x1 && mouse.x <= text_lines_x2 && mouse.y >= text_lines_y1 && mouse.y <= text_lines_y2)
+			{
+				text_lines_scroll -= scroll * single_line_height;
+			}
+			
+			text_lines_scroll = clamp(text_lines_scroll, 0, max(0, text_lines.text_height + text_lines_padding * 2 - (SCREEN_BOTTOM - SCREEN_TOP)));
+		}
 	}
 	
 	void draw(float sub_frame)
@@ -130,20 +155,19 @@ class Debug
 	
 	void draw_text()
 	{
-		const float padding = 10;
 		const float text_height = text_lines.text_height;
 		const float direction = text_display_newset_first ? -_text_align_y : _text_align_y;
-		const float text_x = _text_align_x == -1 ? SCREEN_LEFT + padding : (_text_align_x == 1 ? SCREEN_RIGHT  - padding : 0);
+		const float text_x = _text_align_x == -1 ? SCREEN_LEFT + text_lines_padding : (_text_align_x == 1 ? SCREEN_RIGHT  - text_lines_padding : 0);
 		float y1, y2;
 		
 		if(_text_align_y == -1)
 		{
-			y1 = SCREEN_TOP + padding;
+			y1 = SCREEN_TOP + text_lines_padding;
 			y2 = y1 + text_height;
 		}
 		else if(_text_align_y == 1)
 		{
-			y2 = SCREEN_BOTTOM - padding;
+			y2 = SCREEN_BOTTOM - text_lines_padding;
 			y1 = y2 - text_height;
 		}
 		else // 0
@@ -154,17 +178,17 @@ class Debug
 		
 		if(!text_display_newset_first && _text_align_y == -1 || !text_display_newset_first && _text_align_y == 0)
 		{
-			if(y2 >= SCREEN_BOTTOM - padding)
+			if(y2 >= SCREEN_BOTTOM - text_lines_padding)
 			{
-				y2 = SCREEN_BOTTOM - padding;
+				y2 = SCREEN_BOTTOM - text_lines_padding;
 				y1 = y2 - text_height;
 			}
 		}
 		else if(!text_display_newset_first && _text_align_y == 1 || text_display_newset_first && _text_align_y == 0)
 		{
-			if(y1 < SCREEN_TOP + padding)
+			if(y1 < SCREEN_TOP + text_lines_padding)
 			{
-				y1 = SCREEN_TOP + padding;
+				y1 = SCREEN_TOP + text_lines_padding;
 				y2 = y1 + text_height;
 			}
 		}
@@ -211,6 +235,10 @@ class Debug
 			}
 			
 			bool draw = true;
+			
+			text_y += text_lines_scroll;
+			min_y += text_lines_scroll;
+			max_y += text_lines_scroll;
 			
 			if(min_y > SCREEN_BOTTOM)
 			{
@@ -266,8 +294,11 @@ class Debug
 			@line = line.prev;
 		}
 		
-		if(text_bg_colour != 0 && text_width > 0 && (y2 - y1 > 0))
-		{
+		/*
+		 * Draw background
+		 */
+		
+		//{
 			float x1, x2;
 			
 			if(_text_align_x == -1)
@@ -286,20 +317,28 @@ class Debug
 				x2 = text_x + text_width * 0.5;
 			}
 			
-			x1 -= padding;
-			x2 += padding;
-			y1 -= padding;
-			y2 += padding;
+			x1 -= text_lines_padding;
+			x2 += text_lines_padding;
+			y1 -= text_lines_padding;
+			y2 += text_lines_padding;
 			
-			g.draw_rectangle_hud(layer, sub_layer - 1,
-				x1, y1, x2, y2,
-				0, text_bg_colour);
-				
-			if(text_bg_glass)
+			text_lines_x1 = x1;
+			text_lines_y1 = y1;
+			text_lines_x2 = x2;
+			text_lines_y2 = y2;
+			
+			if(text_bg_colour != 0 && text_width > 0 && (y2 - y1 > 0))
 			{
-				g.draw_glass_hud(layer, sub_layer - 1, x1, y1, x2, y2, 0, 0x00ffffff);
+				g.draw_rectangle_hud(layer, sub_layer - 1,
+					x1, y1, x2, y2,
+					0, text_bg_colour);
+					
+				if(text_bg_glass)
+				{
+					g.draw_glass_hud(layer, sub_layer - 1, x1, y1, x2, y2, 0, 0x00ffffff);
+				}
 			}
-		}
+		//}
 	}
 	
 	/*
