@@ -64,7 +64,7 @@ class Debug
 		text_lines.spacing = _text_line_spacing;
 		
 		print_text_field.text(' ');
-		single_line_height = print_text_field.text_height();
+		single_line_height = print_text_field.text_height() + _text_line_spacing;
 		
 		@text_pool.text_state = text_state;
 	}
