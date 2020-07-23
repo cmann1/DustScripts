@@ -88,9 +88,17 @@ class Button : Container
 		{
 			pressed = true;
 		}
-		else if(pressed && !ui.mouse.primary_down)
+		else if(pressed)
 		{
-			pressed = false;
+			if(selectable && ui.mouse.primary_release)
+			{
+				selected = !selected;
+			}
+			
+			if(!ui.mouse.primary_down)
+			{
+				pressed = false;
+			}
 		}
 		
 		if(@content != null)
