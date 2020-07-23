@@ -92,7 +92,7 @@ class Button : Container
 		}
 		else if(pressed)
 		{
-			if(selectable && ui.mouse.primary_release)
+			if(selectable && hovered && ui.mouse.primary_release)
 			{
 				selected = !selected;
 				ui._event_info.reset(EventType::SELECTED, this);
