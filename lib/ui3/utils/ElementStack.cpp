@@ -48,6 +48,20 @@ class ElementStack
 		}
 	}
 	
+	void push(const ElementStack@ &in other_stack)
+	{
+		if(index + other_stack.index > _size)
+		{
+			_size = index + other_stack.index + 16;
+			stack.resize(_size);
+		}
+		
+		for(int i = 0; i < other_stack.index; i++)
+		{
+			@stack[index++] = other_stack.stack[i];
+		}
+	}
+	
 	Element@ pop()
 	{
 		if(index == 0)
@@ -61,7 +75,7 @@ class ElementStack
 		if(index == 0)
 			return null;
 		
-		return stack[index];
+		return stack[index - 1];
 	}
 	
 	void clear()

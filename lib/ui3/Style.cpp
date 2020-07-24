@@ -134,237 +134,347 @@ class Style
 		global_alpha = global_alpha_stack[--global_alpha_index];
 	}
 	
-	/*
-	 * Basic drawing methods
+	// -----------------------------------------------------------------
+	// Basic drawing methods
+	// -----------------------------------------------------------------
+		
+	void draw_rectangle(
+		const float x1, const float y1, const float x2, const float y2,
+		const float rotation, uint colour) const
+	{
+		if(global_alpha != 1)
+			colour = set_alpha(colour);
+		
+		if(_hud)
+			g.draw_rectangle_hud(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
+		else
+			g.draw_rectangle_world(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
+	}
+	
+	void draw_glass(
+		const float x1, const float y1, const float x2, const float y2,
+		const float rotation, uint colour) const
+	{
+		if(global_alpha != 1)
+			colour = set_alpha(colour);
+		
+		if(_hud)
+			g.draw_glass_world(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
+	}
+
+	void draw_gradient(
+		const float x1, const float y1, const float x2, const float y2,
+		uint c00, uint c10, uint c11, uint c01) const
+	{
+		if(global_alpha != 1)
+		{
+			c00 = set_alpha(c00);
+			c10 = set_alpha(c10);
+			c11 = set_alpha(c11);
+			c01 = set_alpha(c01);
+		}
+		
+		if(_hud)
+			g.draw_gradient_hud(_layer, _sub_layer, x1, y1, x2, y2, c00, c10, c11, c01);
+		else
+			g.draw_gradient_world(_layer, _sub_layer, x1, y1, x2, y2, c00, c10, c11, c01);
+	}
+
+	void draw_line(
+		const float x1, const float y1, const float x2, const float y2,
+		const float width, uint colour) const
+	{
+		if(global_alpha != 1)
+			colour = set_alpha(colour);
+		
+		const float dx = x2 - x1;
+		const float dy = y2 - y1;
+		const float length = sqrt(dx * dx + dy * dy);
+		
+		const float mx = (x1 + x2) * 0.5;
+		const float my = (y1 + y2) * 0.5;
+		
+		if(_hud)
+			g.draw_rectangle_hud(_layer, _sub_layer,
+				mx - width, my - length * 0.5,
+				mx + width, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
+		else
+			g.draw_rectangle_world(_layer, _sub_layer,
+				mx - width, my - length * 0.5,
+				mx + width, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
+	}
+
+	void draw_quad(
+		const bool is_glass,
+		const float x1, const float y1, const float x2, const float y2,
+		const float x3, const float y3, const float x4, const float y4,
+		uint c1, uint c2, uint c3, uint c4) const
+	{
+		if(global_alpha != 1)
+		{
+			c1 = set_alpha(c1);
+			c2 = set_alpha(c2);
+			c3 = set_alpha(c3);
+			c4 = set_alpha(c4);
+		}
+		
+		if(_hud)
+			g.draw_quad_hud(_layer, _sub_layer, is_glass, x1, y1, x2, y2, x3, y3, x4, y4, c1, c2, c3, c4);
+		else
+			g.draw_quad_world(_layer, _sub_layer, is_glass, x1, y1, x2, y2, x3, y3, x4, y4, c1, c2, c3, c4);
+	}
+	
+	void draw_sprite(
+		sprites@ sprite,
+		const string sprite_name, const uint frame, const uint palette,
+		const float x, const float y, const float rotation,
+		const float scale_x, const float scale_y,
+		uint colour) const
+	{
+		if(global_alpha != 1)
+			colour = set_alpha(colour);
+		
+		if(_hud)
+			sprite.draw_world(_layer, _sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
+		else
+			sprite.draw_world(_layer, _sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
+	}
+	
+	void draw_text(
+		const string text,
+		const float x, const float y,
+		const float scale_x, const float scale_y,
+		const float rotation, uint colour)
+	{
+		if(global_alpha != 1)
+			colour = set_alpha(colour);
+		
+		if(current_text_colour != colour)
+		{
+			current_text_colour = colour;
+			text_field.colour(colour);
+		}
+		
+		text_field.text(text);
+		
+		if(_hud)
+			text_field.draw_hud(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
+		else
+			text_field.draw_world(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
+	}
+	
+	void shadowed_text(
+		const string text,
+		const float x, const float y,
+		const float scale_x, const float scale_y,
+		const float rotation, uint colour, uint shadow_colour, float ox=3, float oy=3)
+	{
+		if(global_alpha != 1)
+			colour = set_alpha(colour);
+		
+		text_field.colour(shadow_colour);
+		
+		text_field.text(text);
+		
+		if(_hud) text_field.draw_hud  (_layer, _sub_layer, x + ox, y + oy, scale_x, scale_y, rotation);
+		else	 text_field.draw_world(_layer, _sub_layer, x + ox, y + oy, scale_x, scale_y, rotation);
+		
+		current_text_colour = colour;
+		text_field.colour(colour);
+		
+		if(_hud) text_field.draw_hud  (_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
+		else	 text_field.draw_world(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
+	}
+	
+	void outline_text(
+		const string text,
+		const float x, const float y,
+		const float scale_x, const float scale_y,
+		const float rotation, uint colour, uint outline_colour, float width=3)
+	{
+		if(global_alpha != 1)
+			colour = set_alpha(colour);
+		
+		text_field.colour(outline_colour);
+		text_field.text(text);
+		
+		if(_hud)
+		{
+			text_field.draw_hud(_layer, _sub_layer, x + width, y        , scale_x, scale_y, rotation);
+			text_field.draw_hud(_layer, _sub_layer, x - width, y        , scale_x, scale_y, rotation);
+			text_field.draw_hud(_layer, _sub_layer, x        , y + width, scale_x, scale_y, rotation);
+			text_field.draw_hud(_layer, _sub_layer, x        , y - width, scale_x, scale_y, rotation);
+			
+			current_text_colour = colour;
+			text_field.colour(colour);
+			
+			text_field.draw_hud(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
+		}
+		else
+		{
+			text_field.draw_world(_layer, _sub_layer, x + width, y        , scale_x, scale_y, rotation);
+			text_field.draw_world(_layer, _sub_layer, x - width, y        , scale_x, scale_y, rotation);
+			text_field.draw_world(_layer, _sub_layer, x        , y + width, scale_x, scale_y, rotation);
+			text_field.draw_world(_layer, _sub_layer, x        , y - width, scale_x, scale_y, rotation);
+			
+			current_text_colour = colour;
+			text_field.colour(colour);
+			
+			text_field.draw_world(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
+		}
+	}
+	
+	uint set_alpha(uint colour)
+	{
+		if(global_alpha == 0)
+			return colour & 0x00ffffff;
+		
+		return (colour & 0x00ffffff) | (uint(global_alpha * ((colour >> 24) & 0xff)) << 24);
+	}
+	
+	// -----------------------------------------------------------------
+	// Advanced drawing methods
+	// -----------------------------------------------------------------
+		
+	void draw_interactive_element(const Element@ &in element, const bool &in highlighted, const bool &in selected, const bool &in disabled)
+	{
+		// Fill/bg
+		
+		const uint bg_clr = disabled ? disabled_bg_clr
+			: (highlighted && selected ? selected_highlight_bg_clr
+				: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
+		
+		draw_rectangle(
+			element.x1, element.y1, element.x2, element.y2,
+			0, bg_clr);
+		
+		// Border
+		
+		const uint border_clr = disabled ? disabled_border_clr
+			: (highlighted && selected ? selected_highlight_border_clr
+				: selected ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
+		
+		outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
+	}
+	
+	void draw_text(const string text, const float x, const float y, const TextAlign align_h, const TextAlign align_v, const uint colour, float scale=-1, string font='', uint size=0)
+	{
+		if(scale <= 0)
+		{
+			scale = default_text_scale;
+		}
+		
+		if(font == '')
+		{
+			font = default_font;
+		}
+		
+		if(size == 0)
+		{
+			size = default_text_size;
+		}
+		
+		if(current_font != font || current_text_size != size)
+			text_field.set_font(current_font = font, current_text_size = size);
+		
+		if(current_align_h != align_h)
+			text_field.align_horizontal(current_align_h = align_h);
+		
+		if(current_align_v != align_v)
+			text_field.align_vertical(current_align_v = align_v);
+		
+		draw_text(
+			text,
+			x + text_offset_x * scale, y + text_offset_y * scale,
+			scale, scale, 0, colour);
+	}
+	
+	/**
+	 * @brief Outlines the given rect. The outline is on the inside if thickness is positive, and on the outside if negative.
 	 */
-	//{
-		
-		void draw_rectangle(
-			const float x1, const float y1, const float x2, const float y2,
-			const float rotation, uint colour) const
-		{
-			if(global_alpha != 1)
-				colour = set_alpha(colour);
-			
-			if(_hud)
-				g.draw_rectangle_hud(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
-			else
-				g.draw_rectangle_world(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
-		}
-		
-		void draw_glass(
-			const float x1, const float y1, const float x2, const float y2,
-			const float rotation, uint colour) const
-		{
-			if(global_alpha != 1)
-				colour = set_alpha(colour);
-			
-			if(_hud)
-				g.draw_glass_world(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
-		}
-
-		void draw_gradient(
-			const float x1, const float y1, const float x2, const float y2,
-			uint c00, uint c10, uint c11, uint c01) const
-		{
-			if(global_alpha != 1)
-			{
-				c00 = set_alpha(c00);
-				c10 = set_alpha(c10);
-				c11 = set_alpha(c11);
-				c01 = set_alpha(c01);
-			}
-			
-			if(_hud)
-				g.draw_gradient_hud(_layer, _sub_layer, x1, y1, x2, y2, c00, c10, c11, c01);
-			else
-				g.draw_gradient_world(_layer, _sub_layer, x1, y1, x2, y2, c00, c10, c11, c01);
-		}
-
-		void draw_line(
-			const float x1, const float y1, const float x2, const float y2,
-			const float width, uint colour) const
-		{
-			if(global_alpha != 1)
-				colour = set_alpha(colour);
-			
-			const float dx = x2 - x1;
-			const float dy = y2 - y1;
-			const float length = sqrt(dx * dx + dy * dy);
-			
-			const float mx = (x1 + x2) * 0.5;
-			const float my = (y1 + y2) * 0.5;
-			
-			if(_hud)
-				g.draw_rectangle_hud(_layer, _sub_layer,
-					mx - width, my - length * 0.5,
-					mx + width, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
-			else
-				g.draw_rectangle_world(_layer, _sub_layer,
-					mx - width, my - length * 0.5,
-					mx + width, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
-		}
-
-		void draw_quad(
-			const bool is_glass,
-			const float x1, const float y1, const float x2, const float y2,
-			const float x3, const float y3, const float x4, const float y4,
-			uint c1, uint c2, uint c3, uint c4) const
-		{
-			if(global_alpha != 1)
-			{
-				c1 = set_alpha(c1);
-				c2 = set_alpha(c2);
-				c3 = set_alpha(c3);
-				c4 = set_alpha(c4);
-			}
-			
-			if(_hud)
-				g.draw_quad_hud(_layer, _sub_layer, is_glass, x1, y1, x2, y2, x3, y3, x4, y4, c1, c2, c3, c4);
-			else
-				g.draw_quad_world(_layer, _sub_layer, is_glass, x1, y1, x2, y2, x3, y3, x4, y4, c1, c2, c3, c4);
-		}
-		
-		void draw_sprite(
-			sprites@ sprite,
-			const string sprite_name, const uint frame, const uint palette,
-			const float x, const float y, const float rotation,
-			const float scale_x, const float scale_y,
-			uint colour) const
-		{
-			if(global_alpha != 1)
-				colour = set_alpha(colour);
-			
-			if(_hud)
-				sprite.draw_world(_layer, _sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
-			else
-				sprite.draw_world(_layer, _sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
-		}
-		
-		void draw_text(
-			const string text,
-			const float x, const float y,
-			const float scale_x, const float scale_y,
-			const float rotation, uint colour)
-		{
-			if(global_alpha != 1)
-				colour = set_alpha(colour);
-			
-			if(current_text_colour != colour)
-			{
-				current_text_colour = colour;
-				text_field.colour(colour);
-			}
-			
-			text_field.text(text);
-			
-			if(_hud)
-				text_field.draw_hud(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
-			else
-				text_field.draw_world(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
-		}
-		
-		uint set_alpha(uint colour)
-		{
-			if(global_alpha == 0)
-				return colour & 0x00ffffff;
-			
-			return (colour & 0x00ffffff) | (uint(global_alpha * ((colour >> 24) & 0xff)) << 24);
-		}
-		
-	//}
+	void outline(
+		const float x1, const float y1, const float x2, const float y2,
+		const float thickness, const uint colour) const
+	{
+		//Left
+		draw_rectangle(
+			x1,
+			y1 + thickness,
+			x1 + thickness,
+			y2 - thickness, 0, colour);
+		// Right
+		draw_rectangle(
+			x2 - thickness,
+			y1 + thickness,
+			x2,
+			y2 - thickness, 0, colour);
+		// Top
+		draw_rectangle(
+			x1,
+			y1,
+			x2,
+			y1 + thickness, 0, colour);
+		// Bottom
+		draw_rectangle(
+			x1,
+			y2 - thickness,
+			x2,
+			y2, 0, colour);
+	}
 	
-	/*
-	 * Drawing methods
+	/**
+	 * @brief Outlines the given rect. The outline is on the inside if thickness is positive, and on the outside if negative.
 	 */
-	//{
-		
-		void draw_interactive_element(const Element@ &in element, const bool &in highlighted, const bool &in selected, const bool &in disabled)
+	void outline_dotted(
+		const float x1, const float y1, const float x2, const float y2,
+		const float thickness, const uint colour, const float dash_size=4, const float space_size=4) const
+	{
+		//Left
+		//
+		float x = y1 + thickness;
+		float end_x = y2 - thickness;
+		while(x < end_x)
 		{
-			// Fill/bg
-			
-			const uint bg_clr = disabled ? disabled_bg_clr
-				: (highlighted && selected ? selected_highlight_bg_clr
-					: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
-			
 			draw_rectangle(
-				element.x1, element.y1, element.x2, element.y2,
-				0, bg_clr);
-			
-			// Border
-			
-			const uint border_clr = disabled ? disabled_border_clr
-				: (highlighted && selected ? selected_highlight_border_clr
-					: selected ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
-			
-			outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
+				x1, x,
+				x1 + thickness, min(x + dash_size, end_x), 0, colour);
+			x += dash_size + space_size;
 		}
 		
-		void draw_text(const string text, const float x, const float y, const TextAlign align_h, const TextAlign align_v, const uint colour, float scale=-1, string font='', uint size=0)
+		// Right
+		//
+		x = y1 + thickness;
+		end_x = y2 - thickness;
+		while(x < end_x)
 		{
-			if(scale <= 0)
-			{
-				scale = default_text_scale;
-			}
-			
-			if(font == '')
-			{
-				font = default_font;
-			}
-			
-			if(size == 0)
-			{
-				size = default_text_size;
-			}
-			
-			if(current_font != font || current_text_size != size)
-				text_field.set_font(current_font = font, current_text_size = size);
-			
-			if(current_align_h != align_h)
-				text_field.align_horizontal(current_align_h = align_h);
-			
-			if(current_align_v != align_v)
-				text_field.align_vertical(current_align_v = align_v);
-			
-			draw_text(
-				text,
-				x + text_offset_x * scale, y + text_offset_y * scale,
-				scale, scale, 0, colour);
+			draw_rectangle(
+				x2 - thickness, x,
+				x2, min(x + dash_size, end_x), 0, colour);
+			x += dash_size + space_size;
 		}
 		
-		/**
-		 * @brief Outlines the given rect. The outline is on the inside if thickness is positive, and on the outside if negative.
-		 */
-		void outline(
-			const float x1, const float y1, const float x2, const float y2,
-			const float thickness, const uint colour) const
+		// Top
+		//
+		x = x1;
+		end_x = x2;
+		while(x < end_x)
 		{
-			//Left
 			draw_rectangle(
-				x1,
-				y1 + thickness,
-				x1 + thickness,
-				y2 - thickness, 0, colour);
-			// Right
-			draw_rectangle(
-				x2 - thickness,
-				y1 + thickness,
-				x2,
-				y2 - thickness, 0, colour);
-			// Top
-			draw_rectangle(
-				x1,
-				y1,
-				x2,
-				y1 + thickness, 0, colour);
-			// Bottom
-			draw_rectangle(
-				x1,
-				y2 - thickness,
-				x2,
-				y2, 0, colour);
+				x, y1,
+				min(x + dash_size, end_x), y1 + thickness, 0, colour);
+			x += dash_size + space_size;
 		}
-	
-	//}
-	
+		// Bottom
+		//
+		x = x1;
+		end_x = x2;
+		while(x < end_x)
+		{
+			draw_rectangle(
+				x, y2 - thickness,
+				min(x + dash_size, end_x), y2, 0, colour);
+			x += dash_size + space_size;
+		}
+	}
+
 }

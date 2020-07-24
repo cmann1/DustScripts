@@ -150,12 +150,18 @@ class UI
 		style._sub_layer = _sub_layer;
 		
 		contents.draw(@style, sub_frame);
+		style._reset_state();
+		
 		overlays.draw(@style, sub_frame);
+		style._reset_state();
 	}
 	
-	void debug_draw()
+	void debug_draw(bool just_outline=false, const float id_scale=0.4)
 	{
 		style.outline(contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
+		
+		if(just_outline)
+			return;
 		
 		element_stack.clear();
 		contents._queue_children_for_layout(@element_stack);
@@ -163,7 +169,6 @@ class UI
 		
 		debug_text_field.align_horizontal(-1);
 		debug_text_field.align_vertical(-1);
-		const float id_scale = 0.5;
 		const uint alpha = 0x55000000;
 		uint clr;
 		
@@ -176,25 +181,26 @@ class UI
 		{
 			if(element.visible && @element != @mouse_over_element)
 			{
-				clr = get_element_id_colour(element);
+				clr = get_element_id_colour(element, 0x00);
 				
 				if(element.x1 <= view_x2 && element.x2 >= view_x1 && element.y1 <= view_y2 && element.y2 >= view_y1)
 				{
-					style.draw_rectangle(element.x1, element.y1, element.x2, element.y2,
-						0, (element.hovered ? 0xff0000 : clr) | alpha);
+					style.outline(
+						element.x1, element.y1, element.x2, element.y2,
+						1, (element.hovered ? 0xff0000 : clr) | alpha);
 					
-					clr = scale_lightness(clr, 0.1) | 0xff000000;
+					clr = scale_lightness(clr | alpha, 0.1);
 				}
 				else
 				{
-					style.outline(element.x1, element.y1, element.x2, element.y2, 1, clr | alpha);
+					style.outline_dotted(element.x1, element.y1, element.x2, element.y2, 1, clr | alpha);
 					clr = scale_lightness(clr, 0.1) | alpha;
 				}
 				
 				style.draw_text(
 					element._id,
-					element.x1 + style.spacing, element.y1 + style.spacing,
-					id_scale, id_scale, 0, clr);
+					element.x1, element.y1,
+					id_scale, id_scale, 0, clr | 0xff000000);
 			}
 			
 			element._queue_children_for_layout(@element_stack);
@@ -205,14 +211,12 @@ class UI
 		{
 			clr = get_element_id_colour(mouse_over_element);
 			
-			style.draw_rectangle(mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2,
-				0, 0x00ff00 | alpha);
-			style.outline(mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2, -1, 0xffffff | alpha);
+			style.outline(mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2, -2, 0xffffffff);
 			
-			style.draw_text(
+			style.outline_text(
 				mouse_over_element._id,
-				mouse_over_element.x1 + style.spacing, mouse_over_element.y1 + style.spacing,
-				id_scale, id_scale, 0, scale_lightness(clr, 0.1) | 0xff000000);
+				mouse_over_element.x1, mouse_over_element.y1,
+				id_scale, id_scale, 0, 0xffffffff, 0xff000000, 2 * id_scale);
 			
 			// Debug print mouse stack
 			if(@debug != null)
@@ -527,14 +531,14 @@ class UI
 			elements_middle_pressed.deleteAll();
 	}
 	
-	private uint get_element_id_colour(Element@ element)
+	private uint get_element_id_colour(Element@ element, const uint alpha=0xff)
 	{
 		const float hash = float(string::hash(element._id));
 		return hsl_to_rgb(
 			sin(hash) * 0.5 + 0.5,
 			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
 			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
-		);
+		) | (alpha << 24);
 	}
 	
 }
