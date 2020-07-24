@@ -1,8 +1,9 @@
 enum TooltipTriggerType
 {
 	
-	Hover,
-	Click,
+	MouseOver,
+	MouseDown,
+	MouseClick,
 	Manual,
 	
 }

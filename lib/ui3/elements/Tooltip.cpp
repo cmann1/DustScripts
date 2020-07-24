@@ -126,7 +126,7 @@ class Tooltip : SingleContainer
 		// Fade the tooltip in or out
 		//
 		
-		bool mouse_over = target.hovered || hovered;
+		bool mouse_over = @target == @ui.mouse_over_element || hovered;
 		
 		// Don't start fading if the mouse is in the space between the target and the tooltip.
 		if(options.interactable && !mouse_over && options.spacing > 0 && (
@@ -160,7 +160,7 @@ class Tooltip : SingleContainer
 			
 			if(!mouse_over)
 			{
-				mouse_over = overlaps_point(ui.mouse.x, ui.mouse.y) || target.overlaps_point(ui.mouse.x, ui.mouse.y);
+				mouse_over = overlaps_point(ui.mouse.x, ui.mouse.y) || @target == @ui.mouse_over_element;
 			}
 		}
 		

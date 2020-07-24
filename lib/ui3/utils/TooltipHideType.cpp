@@ -1,7 +1,7 @@
 enum TooltipHideType
 {
 	
-	Leave,
-	Press,
+	MouseLeave,
+	MouseDownOutside,
 	
 }

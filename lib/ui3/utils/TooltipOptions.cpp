@@ -13,8 +13,8 @@ class TooltipOptions
 	
 	TooltipOptions(
 		Element@ content, bool interactable=false, TooltipPosition position=TooltipPosition::Above,
-		TooltipTriggerType trigger_type=TooltipTriggerType::Hover,
-		TooltipHideType hide_type=TooltipHideType::Leave)
+		TooltipTriggerType trigger_type=TooltipTriggerType::MouseOver,
+		TooltipHideType hide_type=TooltipHideType::MouseLeave)
 	{
 		@this.content		= content;
 		this.position		= position;

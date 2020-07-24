@@ -157,10 +157,16 @@ class UI
 		const bool mouse_in_ui = mouse.x >= contents.x1 && mouse.x <= contents.x2 && mouse.y >= contents.y1 && mouse.y <= contents.y2;
 		
 		Element@ mouse_over_main		= update_layout(contents, mouse_in_ui);
+		@_mouse_over_element = mouse_over_main;
+		
 		Element@ mouse_over_overlays	= update_layout(overlays, mouse_in_ui);
-		@_mouse_over_element = @mouse_over_overlays != null ? @mouse_over_overlays : @mouse_over_main;
+		
+		if(@mouse_over_overlays != null)
+		{
+			@_mouse_over_element = @mouse_over_overlays;
+		}
+		
 		process_mouse_events(@_mouse_over_element == @mouse_over_main ? contents : overlays);
-		update_tooltips();
 	}
 	
 	void draw(float sub_frame)
@@ -560,19 +566,28 @@ class UI
 			elements_right_pressed.deleteAll();
 		if(mouse.middle_release)
 			elements_middle_pressed.deleteAll();
+		
+		if(@_mouse_over_element != null && @_mouse_over_element.tooltip != null && _mouse_over_element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
+		{
+			show_tooltip(_mouse_over_element);
+		}
 	}
 	
-	private void update_tooltips()
+	private void show_tooltip(Element@ element)
 	{
-		if(@_mouse_over_element != null && @_mouse_over_element.tooltip != null)
+		if(@element.tooltip == null)
+			return;
+		
+		if(!tooltips.exists(element._id))
 		{
-			if(!tooltips.exists(_mouse_over_element._id))
-			{
-				Tooltip@ tooltip = Tooltip(this, _mouse_over_element);
-				tooltip.hide.on(on_tooltip_hide_delegate);
-				overlays.add_child(tooltip);
-				@tooltips[_mouse_over_element._id] = tooltip;
-			}
+			Tooltip@ tooltip = Tooltip(this, element);
+			tooltip.hide.on(on_tooltip_hide_delegate);
+			overlays.add_child(tooltip);
+			@tooltips[element._id] = tooltip;
+		}
+		else
+		{
+			overlays.move_to_front(cast<Tooltip@>(tooltips[element._id]));
 		}
 	}
 	
