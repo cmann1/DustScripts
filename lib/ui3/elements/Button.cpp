@@ -4,7 +4,7 @@ class Button : SingleContainer
 	bool selectable;
 	bool selected;
 	
-	Event on_selected;
+	Event select;
 	
 	protected bool pressed;
 	
@@ -28,8 +28,8 @@ class Button : SingleContainer
 			if(selectable && hovered && ui.mouse.primary_release)
 			{
 				selected = !selected;
-				ui._event_info.reset(EventType::SELECTED, this);
-				on_selected.dispatch(ui._event_info);
+				ui._event_info.reset(EventType::SELECT, this);
+				select.dispatch(ui._event_info);
 			}
 			
 			if(!ui.mouse.primary_down)
