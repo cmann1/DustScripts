@@ -43,7 +43,10 @@ abstract class Element
 	Event mouse_press;
 	Event mouse_move;
 	Event mouse_release;
+	// Triggered when the primary ui button is clicked
 	Event mouse_click;
+	// Called when any mouse button is clicked
+	Event mouse_button_click;
 	
 	Element(UI@ ui, const string &in type_identifier)
 	{

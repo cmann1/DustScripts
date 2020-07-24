@@ -581,22 +581,40 @@ class UI
 				if(mouse.left_release && elements_left_pressed.exists(element._id))
 				{
 					_event_info.button = MouseButton::Left;
-					element.mouse_click.dispatch(_event_info);
-					primary_clicked = primary_clicked || primary_button == MouseButton::Left;
+					primary_clicked = primary_clicked || primary_button == _event_info.button;
+					
+					if(primary_clicked)
+					{
+						element.mouse_click.dispatch(_event_info);
+					}
+					
+					element.mouse_button_click.dispatch(_event_info);
 				}
 				
 				if(mouse.right_release && elements_right_pressed.exists(element._id))
 				{
 					_event_info.button = MouseButton::Right;
-					element.mouse_click.dispatch(_event_info);
-					primary_clicked = primary_clicked || primary_button == MouseButton::Right;
+					primary_clicked = primary_clicked || primary_button == _event_info.button;
+					
+					if(primary_clicked)
+					{
+						element.mouse_click.dispatch(_event_info);
+					}
+					
+					element.mouse_button_click.dispatch(_event_info);
 				}
 				
 				if(mouse.middle_release && elements_middle_pressed.exists(element._id))
 				{
 					_event_info.button = MouseButton::Middle;
-					element.mouse_click.dispatch(_event_info);
-					primary_clicked = primary_clicked || primary_button == MouseButton::Middle;
+					primary_clicked = primary_clicked || primary_button == _event_info.button;
+					
+					if(primary_clicked)
+					{
+						element.mouse_click.dispatch(_event_info);
+					}
+					
+					element.mouse_button_click.dispatch(_event_info);
 				}
 				
 				// Tooltip
