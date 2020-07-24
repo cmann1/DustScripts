@@ -2071,6 +2071,13 @@ class fog_setting : linked_script_object {
   void stars_bot(float s_bot);
 }
 
+float min(float a, float b);
+float max(float a, float b);
+int min(int a, int b);
+int max(int a, int b);
+uint min(uint a, uint b);
+uint max(uint a, uint b);
+
 /* For reference, here is the state_types enum used in DF
 enum state_types{
   st_idle=0,

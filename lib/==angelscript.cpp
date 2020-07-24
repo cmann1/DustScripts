@@ -146,9 +146,9 @@ class string
 	 * 		e = exponent character with small e (only valid for formatFloat)
 	 * 		E = exponent character with capital E (only valid for formatFloat)
 	 */
-	string formatInt(int64 val, const string options = '', uint width = 0);
-	string formatUInt(uint64 val, const string options = '', uint width = 0);
-	string formatFloat(double val, const string options = '', uint width = 0, uint precision = 0);
+	string formatInt(int64 val, const string options, uint width = 0);
+	string formatUInt(uint64 val, const string options, uint width = 0);
+	string formatFloat(double val, const string options, uint width = 0, uint precision = 0){}
 
 //}
 
