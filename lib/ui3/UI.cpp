@@ -28,7 +28,7 @@ class UI
 	
 	// Which mouse button is primarily used to interact with UI elements.
 	// Left might be more problematic since it will also interact with the editor ui.
-	MouseButton pimary_button = MouseButton::Right;
+	MouseButton primary_button = MouseButton::Right;
 	
 	Style@ style;
 	UIMouse@ mouse;
@@ -129,7 +129,7 @@ class UI
 	{
 		mouse.step();
 		
-		switch(pimary_button)
+		switch(primary_button)
 		{
 			case MouseButton::Left:
 				mouse.primary_down = mouse.left_down;
@@ -466,6 +466,15 @@ class UI
 					_event_info.button = MouseButton::Middle;
 					element.mouse_press.dispatch(_event_info);
 				}
+				
+				// Tooltip
+				if(mouse.primary_press)
+				{
+					if(@element.tooltip != null && element.tooltip.trigger_type == TooltipTriggerType::MouseDown)
+					{
+						show_tooltip(_mouse_over_element);
+					}
+				}
 			}
 		}
 		
@@ -524,23 +533,36 @@ class UI
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
 				Element@ element = @_event_info.target = @elements_mouse_enter[i];
+				bool primary_clicked = false;
 				
 				if(mouse.left_release && elements_left_pressed.exists(element._id))
 				{
 					_event_info.button = MouseButton::Left;
 					element.mouse_click.dispatch(_event_info);
+					primary_clicked = primary_clicked || primary_button == MouseButton::Left;
 				}
 				
 				if(mouse.right_release && elements_right_pressed.exists(element._id))
 				{
 					_event_info.button = MouseButton::Right;
 					element.mouse_click.dispatch(_event_info);
+					primary_clicked = primary_clicked || primary_button == MouseButton::Right;
 				}
 				
 				if(mouse.middle_release && elements_middle_pressed.exists(element._id))
 				{
 					_event_info.button = MouseButton::Middle;
 					element.mouse_click.dispatch(_event_info);
+					primary_clicked = primary_clicked || primary_button == MouseButton::Middle;
+				}
+				
+				// Tooltip
+				if(primary_clicked)
+				{
+					if(@element.tooltip != null && element.tooltip.trigger_type == TooltipTriggerType::MouseClick)
+					{
+						show_tooltip(_mouse_over_element);
+					}
 				}
 			}
 		}
@@ -566,6 +588,8 @@ class UI
 			elements_right_pressed.deleteAll();
 		if(mouse.middle_release)
 			elements_middle_pressed.deleteAll();
+		
+		// Hover tooltip
 		
 		if(@_mouse_over_element != null && @_mouse_over_element.tooltip != null && _mouse_over_element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
 		{
