@@ -10,13 +10,22 @@ class Tooltip : SingleContainer
 	private float fade;
 	private float offset;
 	
-	Tooltip(UI@ ui, Element@ target)
+	private bool waiting_for_mouse;
+	private bool _force_hide = false;
+	
+	private float target_x1;
+	private float target_y1;
+	private float target_x2;
+	private float target_y2;
+	
+	Tooltip(UI@ ui, Element@ target, bool wait_for_mouse)
 	{
 		@options = target.tooltip;
 		
 		super(ui, options.content, 'ttip');
 		
 		@this.target = target;
+		waiting_for_mouse = wait_for_mouse && @target != null;
 		
 		fit_to_contents();
 		
@@ -29,13 +38,6 @@ class Tooltip : SingleContainer
 	
 	void do_layout(const float parent_x, const float parent_y) override
 	{
-		if(@target == null)
-		{
-			ui._event_info.reset(EventType::HIDE, this);
-			hide.dispatch(ui._event_info);
-			return;
-		}
-		
 		TooltipPosition calculatedPosition = options.position;
 		
 		//
@@ -52,6 +54,35 @@ class Tooltip : SingleContainer
 		view_y1 += ui.style.spacing;
 		view_y2 -= ui.style.spacing;
 		
+		if(@target != null)
+		{
+			if(waiting_for_mouse)
+			{
+				if(hovered || @target == @ui.mouse_over_element)
+				{
+					waiting_for_mouse = false;
+				}
+			}
+			
+			target_x1 = target.x1;
+			target_y1 = target.y1;
+			target_x2 = target.x2;
+			target_y2 = target.y2;
+			
+			// TODO: Set to mouse if tooltip is set to track mouse
+			// But also check position to not overlap target
+		}
+		else
+		{
+			waiting_for_mouse = false;
+			
+			// TODO: Set to mouse if tooltip is set to track mouse
+//			target_x1 = 0;
+//			target_y1 = 0;
+//			target_x2 = 0;
+//			target_y2 = 0;
+		}
+		
 		// Initial positioning
 		
 		position_x(calculatedPosition);
@@ -62,28 +93,28 @@ class Tooltip : SingleContainer
 		switch(calculatedPosition)
 		{
 			case TooltipPosition::Above:
-				if(y1 < view_y1 && view_y2 - target.y2 > target.y1 - view_y1)
+				if(y1 < view_y1 && view_y2 - target_y2 > target_y1 - view_y1)
 				{
 					calculatedPosition = TooltipPosition::Below;
 					reposition_y = true;
 				}
 				break;
 			case TooltipPosition::Below:
-				if(y2 > view_y2 && target.y1 - view_y1 > view_y2 - target.y2)
+				if(y2 > view_y2 && target_y1 - view_y1 > view_y2 - target_y2)
 				{
 					calculatedPosition = TooltipPosition::Below;
 					reposition_y = true;
 				}
 				break;
 			case TooltipPosition::Left:
-				if(x1 < view_x1 && view_x2 - target.x2 > target.x1 - view_x1)
+				if(x1 < view_x1 && view_x2 - target_x2 > target_x1 - view_x1)
 				{
 					calculatedPosition = TooltipPosition::Right;
 					reposition_x = true;
 				}
 				break;
 			case TooltipPosition::Right:
-				if(x2 > view_x2 && target.x1 - view_x1 > view_x2 - target.x2)
+				if(x2 > view_x2 && target_x1 - view_x1 > view_x2 - target_x2)
 				{
 					calculatedPosition = TooltipPosition::Left;
 					reposition_x = true;
@@ -126,10 +157,10 @@ class Tooltip : SingleContainer
 		// Fade the tooltip in or out
 		//
 		
-		bool mouse_over = @target == @ui.mouse_over_element || hovered;
+		bool mouse_over = !_force_hide && (@target == @ui.mouse_over_element || hovered || waiting_for_mouse);
 		
 		// Don't start fading if the mouse is in the space between the target and the tooltip.
-		if(options.interactable && !mouse_over && options.spacing > 0 && (
+		if(!_force_hide && options.interactable && !mouse_over && options.spacing > 0 && (
 			calculatedPosition == TooltipPosition::Left  || calculatedPosition == TooltipPosition::Right ||
 			calculatedPosition == TooltipPosition::Above || calculatedPosition == TooltipPosition::Below
 		))
@@ -137,24 +168,24 @@ class Tooltip : SingleContainer
 			switch(calculatedPosition)
 			{
 				case TooltipPosition::Above:
-					if(ui.mouse.x >= target.x1 && ui.mouse.x <= target.x2 && ui.mouse.y <= target.y1 && ui.mouse.y >= target.y1 - options.spacing)
+					if(ui.mouse.x >= target_x1 && ui.mouse.x <= target_x2 && ui.mouse.y <= target_y1 && ui.mouse.y >= target_y1 - options.spacing)
 						mouse_over = true;
 					break;
 				case TooltipPosition::Below:
-					if(ui.mouse.x >= target.x1 && ui.mouse.x <= target.x2 && ui.mouse.y >= target.y2 && ui.mouse.y <= target.y2 + options.spacing)
+					if(ui.mouse.x >= target_x1 && ui.mouse.x <= target_x2 && ui.mouse.y >= target_y2 && ui.mouse.y <= target_y2 + options.spacing)
 						mouse_over = true;
 					break;
 				case TooltipPosition::Left:
-					if(ui.mouse.y >= target.y1 && ui.mouse.y <= target.y2 && ui.mouse.y <= target.y1 && ui.mouse.y >= target.y1 - options.spacing)
+					if(ui.mouse.y >= target_y1 && ui.mouse.y <= target_y2 && ui.mouse.y <= target_y1 && ui.mouse.y >= target_y1 - options.spacing)
 						mouse_over = true;
 					break;
 				case TooltipPosition::Right:
-					if(ui.mouse.y >= target.y1 && ui.mouse.y <= target.y2 && ui.mouse.y >= target.y2 && ui.mouse.y <= target.y2 + options.spacing)
+					if(ui.mouse.y >= target_y1 && ui.mouse.y <= target_y2 && ui.mouse.y >= target_y2 && ui.mouse.y <= target_y2 + options.spacing)
 						mouse_over = true;
 					break;
 			}
 			
-			// Also check if the mouse overlaps the tooltip or target.
+			// Also check if the mouse overlaps the tooltip or target_
 			// do_layout is called before mouse events are processed, so at this point hovered for the tooltip or target
 			// may not be set yet even if the mouse is over them
 			
@@ -258,6 +289,12 @@ class Tooltip : SingleContainer
 			style.restore_alpha();
 	}
 	
+	void force_hide()
+	{
+		_force_hide = true;
+		waiting_for_mouse = false;
+	}
+	
 	private void update_fade()
 	{
 		alpha = options.fade_max <= 0 ? 1.0 : fade / options.fade_max;
@@ -282,27 +319,27 @@ class Tooltip : SingleContainer
 			case TooltipPosition::InsideTop:
 			case TooltipPosition::InsideBottom:
 			case TooltipPosition::InsideMiddle:
-				x1 = (target.x1 + target.x2) * 0.5 - width * 0.5;
+				x1 = (target_x1 + target_x2) * 0.5 - width * 0.5;
 				x2 = x1 + width;
 				break;
 			case TooltipPosition::InsideLeftTop:
 			case TooltipPosition::InsideLeft:
 			case TooltipPosition::InsideLeftBottom:
-				x1 = target.x1 + options.spacing;
+				x1 = target_x1 + options.spacing;
 				x2 = x1 + width;
 				break;
 			case TooltipPosition::InsideRightTop:
 			case TooltipPosition::InsideRight:
 			case TooltipPosition::InsideRightBottom:
-				x2 = target.x2 - options.spacing;
+				x2 = target_x2 - options.spacing;
 				x1 = x2 - width;
 				break;
 			case TooltipPosition::Left:
-				x2 = target.x1 - options.spacing;
+				x2 = target_x1 - options.spacing;
 				x1 = x2 - width;
 				break;
 			case TooltipPosition::Right:
-				x1 = target.x2 + options.spacing;
+				x1 = target_x2 + options.spacing;
 				x2 = x1 + width;
 				break;
 		}
@@ -317,27 +354,27 @@ class Tooltip : SingleContainer
 			case TooltipPosition::InsideLeft:
 			case TooltipPosition::InsideRight:
 			case TooltipPosition::InsideMiddle:
-				y1 = (target.y1 + target.y2) * 0.5 - height * 0.5;
+				y1 = (target_y1 + target_y2) * 0.5 - height * 0.5;
 				y2 = y1 + height;
 				break;
 			case TooltipPosition::InsideLeftTop:
 			case TooltipPosition::InsideTop:
 			case TooltipPosition::InsideRightTop:
-				y1 = target.y1 + options.spacing;
+				y1 = target_y1 + options.spacing;
 				y2 = y1 + height;
 				break;
 			case TooltipPosition::InsideLeftBottom:
 			case TooltipPosition::InsideBottom:
 			case TooltipPosition::InsideRightBottom:
-				y2 = target.y2 - options.spacing;
+				y2 = target_y2 - options.spacing;
 				y1 = y2 - height;
 				break;
 			case TooltipPosition::Above:
-				y2 = target.y1 - options.spacing;
+				y2 = target_y1 - options.spacing;
 				y1 = y2 - height;
 				break;
 			case TooltipPosition::Below:
-				y1 = target.y2 + options.spacing;
+				y1 = target_y2 + options.spacing;
 				y2 = y1 + height;
 				break;
 		}

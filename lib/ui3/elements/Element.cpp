@@ -68,11 +68,20 @@ abstract class Element
 	}
 	
 	/**
-	 * @brief Internal. Append all children of this element to the stack. Must be in reverse order
+	 * @brief Shows the tooltip for this element if it has one.
+	 * @param wait_for_mouse - If true and the tooltip hide type is MouseLeave, the tooltip will not close until the mouse enters it for the first time.
 	 */
-	void _queue_children_for_layout(ElementStack@ stack)
+	void show_tooltip(bool wait_for_mouse=true)
 	{
+		if(@tooltip == null)
+			return;
 		
+		ui.show_tooltip(this, wait_for_mouse);
+	}
+	
+	void hide_tooltip()
+	{
+		ui.hide_tooltip(this);
 	}
 	
 	/**
@@ -85,11 +94,9 @@ abstract class Element
 	 */
 	float mouse_y { get { return ui.mouse.y - y1; } }
 	
-	/*
-	 * ------------------------------------------------
-	 * Internal
-	 * ------------------------------------------------
-	 */
+	// ------------------------------------------------
+	// Internal
+	// ------------------------------------------------
 	
 	void _added()
 	{
@@ -99,6 +106,14 @@ abstract class Element
 	void _removed()
 	{
 		hovered = false;
+	}
+	
+	/**
+	 * @brief Internal. Append all children of this element to the stack. Must be in reverse order
+	 */
+	void _queue_children_for_layout(ElementStack@ stack)
+	{
+		
 	}
 	
 }

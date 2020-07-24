@@ -110,6 +110,37 @@ class UI
 		set_region(x1, y1, x2, y2);
 	}
 	
+	// The top most element the mouse is over
+	Element@ mouse_over_element { get { return @_mouse_over_element; } }
+	
+	/**
+	 * @brief Returns mouse x relative to this element
+	 */
+	float mouse_x { get { return mouse.x - contents.x1; } }
+	
+	/**
+	 * @brief Returns mouse y relative to this element
+	 */
+	float mouse_y { get { return mouse.y - contents.y1; } }
+	
+	bool hud
+	{
+		get { return _hud; }
+		set { style._hud = _hud = value; }
+	}
+	
+	uint layer
+	{
+		get { return _layer; }
+		set { style._layer = _layer = value; }
+	}
+	
+	uint sub_layer
+	{
+		get { return _sub_layer; }
+		set { style._sub_layer = _sub_layer = value; }
+	}
+	
 	bool add_child(Element@ child)
 	{
 		return contents.add_child(child);
@@ -280,35 +311,38 @@ class UI
 		y2 = this.y2;
 	}
 	
-	// The top most element the mouse is over
-	Element@ mouse_over_element { get { return @_mouse_over_element; } }
-	
 	/**
-	 * @brief Returns mouse x relative to this element
+	 * @brief Shows the tooltip for the given element if it has one.
+	 * @param wait_for_mouse - If true and the tooltip hide type is MouseLeave, the tooltip will not close until the mouse enters it for the first time.
 	 */
-	float mouse_x { get { return mouse.x - contents.x1; } }
-	
-	/**
-	 * @brief Returns mouse y relative to this element
-	 */
-	float mouse_y { get { return mouse.y - contents.y1; } }
-	
-	bool hud
+	void show_tooltip(Element@ element, bool wait_for_mouse=false)
 	{
-		get { return _hud; }
-		set { style._hud = _hud = value; }
+		if(@element == null || @element.tooltip == null)
+			return;
+		
+		if(!tooltips.exists(element._id))
+		{
+			Tooltip@ tooltip = Tooltip(this, element, wait_for_mouse);
+			tooltip.hide.on(on_tooltip_hide_delegate);
+			overlays.add_child(tooltip);
+			@tooltips[element._id] = tooltip;
+		}
+		else
+		{
+			overlays.move_to_front(cast<Tooltip@>(tooltips[element._id]));
+		}
 	}
 	
-	uint layer
+	void hide_tooltip(Element@ element)
 	{
-		get { return _layer; }
-		set { style._layer = _layer = value; }
-	}
-	
-	uint sub_layer
-	{
-		get { return _sub_layer; }
-		set { style._sub_layer = _sub_layer = value; }
+		if(@element == null || @element.tooltip == null)
+			return;
+		
+		if(!tooltips.exists(element._id))
+			return;
+		
+		Tooltip@ tooltip = cast<Tooltip@>(tooltips[element._id]);
+		tooltip.force_hide();
 	}
 	
 	// Private
@@ -594,24 +628,6 @@ class UI
 		if(@_mouse_over_element != null && @_mouse_over_element.tooltip != null && _mouse_over_element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
 		{
 			show_tooltip(_mouse_over_element);
-		}
-	}
-	
-	private void show_tooltip(Element@ element)
-	{
-		if(@element.tooltip == null)
-			return;
-		
-		if(!tooltips.exists(element._id))
-		{
-			Tooltip@ tooltip = Tooltip(this, element);
-			tooltip.hide.on(on_tooltip_hide_delegate);
-			overlays.add_child(tooltip);
-			@tooltips[element._id] = tooltip;
-		}
-		else
-		{
-			overlays.move_to_front(cast<Tooltip@>(tooltips[element._id]));
 		}
 	}
 	
