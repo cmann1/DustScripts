@@ -1,4 +1,6 @@
 #include '../../math/math.cpp';
+#include '../UI.cpp';
+#include '../Style.cpp';
 
 class Image : Element
 {

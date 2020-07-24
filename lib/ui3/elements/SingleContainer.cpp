@@ -1,3 +1,8 @@
+#include '../UI.cpp';
+#include '../utils/ElementStack.cpp';
+#include 'Element.cpp';
+#include 'LockedContainer.cpp';
+
 class SingleContainer : LockedContainer
 {
 	

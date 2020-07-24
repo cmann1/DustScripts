@@ -6,19 +6,9 @@
 #include 'UIMouse.cpp';
 #include 'Style.cpp';
 #include 'utils/ElementStack.cpp';
-#include 'utils/Position.cpp';
-#include 'utils/TooltipHideType.cpp';
-#include 'utils/TooltipOptions.cpp';
-#include 'utils/TooltipPosition.cpp';
-#include 'utils/TooltipTriggerType.cpp';
 #include 'events/Event.cpp';
 #include 'elements/Element.cpp';
-#include 'elements/Button.cpp';
 #include 'elements/Container.cpp';
-#include 'elements/Image.cpp';
-#include 'elements/Label.cpp';
-#include 'elements/SingleContainer.cpp';
-#include 'elements/LockedContainer.cpp';
 #include 'elements/Tooltip.cpp';
 
 class UI

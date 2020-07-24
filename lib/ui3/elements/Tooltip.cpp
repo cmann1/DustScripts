@@ -1,3 +1,8 @@
+#include '../UI.cpp';
+#include '../Style.cpp';
+#include '../utils/TooltipOptions.cpp';
+#include 'SingleContainer.cpp';
+
 class Tooltip : SingleContainer
 {
 	

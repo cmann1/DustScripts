@@ -1,5 +1,9 @@
-#include 'Container.cpp';
+#include '../UI.cpp';
+#include '../Style.cpp';
+#include '../utils/ElementStack.cpp';
+#include '../utils/TooltipOptions.cpp';
 #include '../events/Event.cpp';
+#include 'Container.cpp';
 
 abstract class Element
 {

@@ -1,4 +1,6 @@
 #include '../fonts.cpp';
+#include 'TextAlign.cpp';
+#include 'elements/Element.cpp';
 
 class Style
 {

@@ -1,3 +1,7 @@
+#include 'TooltipPosition.cpp';
+#include 'TooltipHideType.cpp';
+#include 'TooltipTriggerType.cpp';
+
 class TooltipOptions
 {
 	

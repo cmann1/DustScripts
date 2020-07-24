@@ -1,3 +1,5 @@
+#include '../UI.cpp';
+#include '../Style.cpp';
 #include '../TextAlign.cpp';
 
 class Label : Element

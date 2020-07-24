@@ -1,4 +1,5 @@
 #include '../MouseButton.cpp';
+#include '../elements/Element.cpp';
 #include 'EventType.cpp';
 
 class EventInfo

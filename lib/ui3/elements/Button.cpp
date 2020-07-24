@@ -1,3 +1,8 @@
+#include '../UI.cpp';
+#include '../Style.cpp';
+#include 'Element.cpp';
+#include 'SingleContainer.cpp';
+
 class Button : SingleContainer
 {
 	
