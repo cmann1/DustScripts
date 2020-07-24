@@ -25,6 +25,7 @@ class UI
 {
 	
 	int NEXT_ID;
+	int CUSTOM_TOOLTIP_ID;
 	
 	// Which mouse button is primarily used to interact with UI elements.
 	// Left might be more problematic since it will also interact with the editor ui.
@@ -320,17 +321,7 @@ class UI
 		if(@element == null || @element.tooltip == null)
 			return;
 		
-		if(!tooltips.exists(element._id))
-		{
-			Tooltip@ tooltip = Tooltip(this, element, wait_for_mouse);
-			tooltip.hide.on(on_tooltip_hide_delegate);
-			overlays.add_child(tooltip);
-			@tooltips[element._id] = tooltip;
-		}
-		else
-		{
-			overlays.move_to_front(cast<Tooltip@>(tooltips[element._id]));
-		}
+		show_tooltip(element._id, element.tooltip, element, wait_for_mouse);
 	}
 	
 	void hide_tooltip(Element@ element)
@@ -338,11 +329,29 @@ class UI
 		if(@element == null || @element.tooltip == null)
 			return;
 		
-		if(!tooltips.exists(element._id))
+		hide_tooltip(element._id);
+	}
+	
+	/**
+	 * @param wait_for_mouse - If true and the tooltip hide type is MouseLeave, the tooltip will not close until the mouse enters it for the first time.
+	 */
+	void show_tooltip(TooltipOptions@ options, bool wait_for_mouse=false)
+	{
+		if(@options == null)
 			return;
 		
-		Tooltip@ tooltip = cast<Tooltip@>(tooltips[element._id]);
-		tooltip.force_hide();
+		if(options._id == '')
+			options._id = '_tt_target' + (CUSTOM_TOOLTIP_ID++);
+		
+		show_tooltip(options._id, options, null, wait_for_mouse);
+	}
+	
+	void hide_tooltip(TooltipOptions@ options)
+	{
+		if(@options == null)
+			return;
+		
+		hide_tooltip(options._id);
 	}
 	
 	// Private
@@ -631,6 +640,30 @@ class UI
 		}
 	}
 	
+	private void show_tooltip(const string id, TooltipOptions@ options, Element@ element, bool wait_for_mouse)
+	{
+		if(!tooltips.exists(id))
+		{
+			Tooltip@ tooltip = Tooltip(this, options, element, wait_for_mouse);
+			tooltip.hide.on(on_tooltip_hide_delegate);
+			overlays.add_child(tooltip);
+			@tooltips[id] = tooltip;
+		}
+		else
+		{
+			overlays.move_to_front(cast<Tooltip@>(tooltips[id]));
+		}
+	}
+	
+	private void hide_tooltip(const string id)
+	{
+		if(!tooltips.exists(id))
+			return;
+		
+		Tooltip@ tooltip = cast<Tooltip@>(tooltips[id]);
+		tooltip.force_hide();
+	}
+	
 	private uint get_element_id_colour(Element@ element, const uint alpha=0xff)
 	{
 		const float hash = float(string::hash(element._id));
@@ -651,11 +684,13 @@ class UI
 		if(@tooltip == null)
 			return;
 		
-		if(!tooltips.exists(tooltip.target._id))
+		const string id = @tooltip.target != null ? tooltip.target._id : tooltip.options._id;
+		
+		if(!tooltips.exists(id))
 			return;
 		
 		tooltip.hide.off(on_tooltip_hide_delegate);
-		tooltips.delete(tooltip.target._id);
+		tooltips.delete(id);
 		overlays.remove_child(tooltip);
 	}
 	

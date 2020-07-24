@@ -12,15 +12,16 @@ class Tooltip : SingleContainer
 	
 	private bool waiting_for_mouse;
 	private bool _force_hide = false;
+	private bool fading_out = false;
 	
 	private float target_x1;
 	private float target_y1;
 	private float target_x2;
 	private float target_y2;
 	
-	Tooltip(UI@ ui, Element@ target, bool wait_for_mouse)
+	Tooltip(UI@ ui, TooltipOptions@ options, Element@ target, bool wait_for_mouse)
 	{
-		@options = target.tooltip;
+		@this.options = options;
 		
 		super(ui, options.content, 'ttip');
 		
@@ -64,23 +65,25 @@ class Tooltip : SingleContainer
 				}
 			}
 			
-			target_x1 = target.x1;
-			target_y1 = target.y1;
-			target_x2 = target.x2;
-			target_y2 = target.y2;
-			
-			// TODO: Set to mouse if tooltip is set to track mouse
-			// But also check position to not overlap target
+			if(!fading_out)
+			{
+				target_x1 = target.x1;
+				target_y1 = target.y1;
+				target_x2 = target.x2;
+				target_y2 = target.y2;
+			}
 		}
 		else
 		{
 			waiting_for_mouse = false;
-			
-			// TODO: Set to mouse if tooltip is set to track mouse
-//			target_x1 = 0;
-//			target_y1 = 0;
-//			target_x2 = 0;
-//			target_y2 = 0;
+		}
+		
+		if(options.follow_mouse)
+		{
+			target_x1 = ui.mouse.x;
+			target_y1 = ui.mouse.y;
+			target_x2 = ui.mouse.x;
+			target_y2 = ui.mouse.y;
 		}
 		
 		// Initial positioning
@@ -161,10 +164,10 @@ class Tooltip : SingleContainer
 		
 		if(options.hide_type == TooltipHideType::MouseLeave)
 		{
-			active = !_force_hide && (@target == @ui.mouse_over_element || hovered || waiting_for_mouse);
+			active = !_force_hide && (@target == null || @target == @ui.mouse_over_element || hovered || waiting_for_mouse);
 			
 			// Don't start fading if the mouse is in the space between the target and the tooltip.
-			if(!_force_hide && options.interactable && !active && options.spacing > 0 && (
+			if(!_force_hide && !options.follow_mouse && options.interactable && !active && options.spacing > 0 && (
 				calculatedPosition == TooltipPosition::Left  || calculatedPosition == TooltipPosition::Right ||
 				calculatedPosition == TooltipPosition::Above || calculatedPosition == TooltipPosition::Below
 			))
@@ -193,7 +196,7 @@ class Tooltip : SingleContainer
 				// do_layout is called before mouse events are processed, so at this point hovered for the tooltip or target
 				// may not be set yet even if the mouse is over them
 				
-				if(!active)
+				if(!active && !options.follow_mouse)
 				{
 					active = overlaps_point(ui.mouse.x, ui.mouse.y) || @target == @ui.mouse_over_element;
 				}
@@ -201,7 +204,7 @@ class Tooltip : SingleContainer
 		}
 		else if(options.hide_type == TooltipHideType::MouseDownOutside)
 		{
-			if(ui.mouse.primary_press && !overlaps_point(ui.mouse.x, ui.mouse.y))
+			if(ui.mouse.primary_press && !overlaps_point(ui.mouse.x, ui.mouse.y) && (@target == null || !target.overlaps_point(ui.mouse.x, ui.mouse.y)))
 			{
 				active = false;
 				_force_hide = true;
@@ -220,6 +223,7 @@ class Tooltip : SingleContainer
 		{
 			if(fade > 0)
 			{
+				fading_out = true;
 				fade--;
 				update_fade();
 			}
