@@ -251,10 +251,32 @@ class Style
 	
 	void draw_text(
 		const string text,
-		const float x, const float y,
-		const float scale_x, const float scale_y,
-		const float rotation, uint colour)
+		float x, float y,
+		uint colour,
+		float scale_x=-1, float scale_y=-1,
+		const float rotation=0,
+		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
+		string font='', uint size=0)
 	{
+		if(scale_x <= 0)
+			scale_x = default_text_scale;
+		if(scale_y <= 0)
+			scale_y = default_text_scale;
+		
+		if(font == '')
+			font = default_font;
+		if(size == 0)
+			size = default_text_size;
+		
+		if(current_font != font || current_text_size != size)
+			text_field.set_font(current_font = font, current_text_size = size);
+		
+		if(current_align_h != align_h)
+			text_field.align_horizontal(current_align_h = align_h);
+		
+		if(current_align_v != align_v)
+			text_field.align_vertical(current_align_v = align_v);
+		
 		if(global_alpha != 1)
 			colour = set_alpha(colour);
 		
@@ -266,6 +288,9 @@ class Style
 		
 		text_field.text(text);
 		
+		x += text_offset_x * scale_x;
+		y += text_offset_y * scale_y;
+		
 		if(_hud)
 			text_field.draw_hud(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
 		else
@@ -275,62 +300,30 @@ class Style
 	void shadowed_text(
 		const string text,
 		const float x, const float y,
-		const float scale_x, const float scale_y,
-		const float rotation, uint colour, uint shadow_colour, float ox=3, float oy=3)
+		uint colour, uint shadow_colour, float ox=3, float oy=3,
+		const float scale_x=-1, const float scale_y=-1, const float rotation=0,
+		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
+		string font='', uint size=0)
 	{
-		if(global_alpha != 1)
-			colour = set_alpha(colour);
+		draw_text(text, x + ox, y + oy, shadow_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
+		draw_text(text, x,      y,      colour,        scale_x, scale_y, rotation, align_h, align_v, font, size);
 		
-		text_field.colour(shadow_colour);
-		
-		text_field.text(text);
-		
-		if(_hud) text_field.draw_hud  (_layer, _sub_layer, x + ox, y + oy, scale_x, scale_y, rotation);
-		else	 text_field.draw_world(_layer, _sub_layer, x + ox, y + oy, scale_x, scale_y, rotation);
-		
-		current_text_colour = colour;
-		text_field.colour(colour);
-		
-		if(_hud) text_field.draw_hud  (_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
-		else	 text_field.draw_world(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
 	}
 	
 	void outline_text(
 		const string text,
 		const float x, const float y,
-		const float scale_x, const float scale_y,
-		const float rotation, uint colour, uint outline_colour, float width=3)
+		uint colour, uint outline_colour, float width=3,
+		const float scale_x=-1, const float scale_y=-1, const float rotation=0,
+		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
+		string font='', uint size=0)
 	{
-		if(global_alpha != 1)
-			colour = set_alpha(colour);
+		draw_text(text, x + width, y        , outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
+		draw_text(text, x - width, y        , outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
+		draw_text(text, x        , y + width, outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
+		draw_text(text, x        , y - width, outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
 		
-		text_field.colour(outline_colour);
-		text_field.text(text);
-		
-		if(_hud)
-		{
-			text_field.draw_hud(_layer, _sub_layer, x + width, y        , scale_x, scale_y, rotation);
-			text_field.draw_hud(_layer, _sub_layer, x - width, y        , scale_x, scale_y, rotation);
-			text_field.draw_hud(_layer, _sub_layer, x        , y + width, scale_x, scale_y, rotation);
-			text_field.draw_hud(_layer, _sub_layer, x        , y - width, scale_x, scale_y, rotation);
-			
-			current_text_colour = colour;
-			text_field.colour(colour);
-			
-			text_field.draw_hud(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
-		}
-		else
-		{
-			text_field.draw_world(_layer, _sub_layer, x + width, y        , scale_x, scale_y, rotation);
-			text_field.draw_world(_layer, _sub_layer, x - width, y        , scale_x, scale_y, rotation);
-			text_field.draw_world(_layer, _sub_layer, x        , y + width, scale_x, scale_y, rotation);
-			text_field.draw_world(_layer, _sub_layer, x        , y - width, scale_x, scale_y, rotation);
-			
-			current_text_colour = colour;
-			text_field.colour(colour);
-			
-			text_field.draw_world(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
-		}
+		draw_text(text, x, y, colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
 	}
 	
 	uint set_alpha(uint colour)
@@ -388,38 +381,6 @@ class Style
 		{
 			outline(element.x1, element.y1, element.x2, element.y2, border_size, popup_border_clr);
 		}
-	}
-	
-	void draw_text(const string text, const float x, const float y, const TextAlign align_h, const TextAlign align_v, const uint colour, float scale=-1, string font='', uint size=0)
-	{
-		if(scale <= 0)
-		{
-			scale = default_text_scale;
-		}
-		
-		if(font == '')
-		{
-			font = default_font;
-		}
-		
-		if(size == 0)
-		{
-			size = default_text_size;
-		}
-		
-		if(current_font != font || current_text_size != size)
-			text_field.set_font(current_font = font, current_text_size = size);
-		
-		if(current_align_h != align_h)
-			text_field.align_horizontal(current_align_h = align_h);
-		
-		if(current_align_v != align_v)
-			text_field.align_vertical(current_align_v = align_v);
-		
-		draw_text(
-			text,
-			x + text_offset_x * scale, y + text_offset_y * scale,
-			scale, scale, 0, colour);
 	}
 	
 	/**

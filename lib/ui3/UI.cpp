@@ -219,7 +219,8 @@ class UI
 				style.draw_text(
 					element._id,
 					element.x1, element.y1,
-					id_scale, id_scale, 0, clr | 0xff000000);
+					clr | 0xff000000,
+					id_scale, id_scale);
 			}
 			
 			element._queue_children_for_layout(@element_stack);
@@ -235,7 +236,8 @@ class UI
 			style.outline_text(
 				mouse_over_element._id,
 				mouse_over_element.x1, mouse_over_element.y1,
-				id_scale, id_scale, 0, 0xffffffff, 0xff000000, 2 * id_scale);
+				0xffffffff, 0xff000000, 2 * id_scale,
+				id_scale, id_scale);
 			
 			// Debug print mouse stack
 			if(@debug != null)
@@ -351,9 +353,9 @@ class UI
 	{
 		is_mouse_over = @_mouse_over_element != null;
 		
-		/*
-		 * Build the list/stack of the elements the mouse is over, from the innermost child to the outermost parent
-		 */
+		// /////////////////////////////////////////////////
+		// Build the list/stack of the elements the mouse is over, from the innermost child to the outermost parent
+		// 
 		
 		elements_mouse_enter.resize(0);
 		
@@ -369,9 +371,9 @@ class UI
 			while(@mouse_over_traversal != @mouse_over_root);
 		}
 		
-		/*
-		 * Mouse exit
-		 */
+		// /////////////////////////////////////////////////
+		// Mouse exit
+		// 
 		
 		_event_info.reset(EventType::MOUSE_EXIT, MouseButton::None, mouse.x, mouse.y);
 		
@@ -403,9 +405,9 @@ class UI
 			break;
 		}
 		
-		/*
-		 * Mouse enter
-		 */
+		// /////////////////////////////////////////////////
+		// Mouse enter
+		// 
 		
 		if(is_mouse_over)
 		{
@@ -426,9 +428,9 @@ class UI
 			}
 		}
 		
-		/*
-		 * Mouse press
-		 */
+		// /////////////////////////////////////////////////
+		// Mouse press
+		// 
 		
 		if(is_mouse_over && mouse.left_press || mouse.middle_press || mouse.right_press)
 		{
@@ -461,9 +463,9 @@ class UI
 			}
 		}
 		
-		/*
-		 * Mouse move
-		 */
+		// /////////////////////////////////////////////////
+		// Mouse move
+		// 
 		
 		if(is_mouse_over && mouse.moved)
 		{
@@ -476,9 +478,9 @@ class UI
 			}
 		}
 		
-		/*
-		 * Mouse release and click
-		 */
+		// /////////////////////////////////////////////////
+		// Mouse release and click
+		// 
 		
 		if(is_mouse_over && mouse.left_release || mouse.middle_release || mouse.right_release)
 		{
@@ -537,9 +539,9 @@ class UI
 			}
 		}
 		
-		/*
-		 * Finalise
-		 */
+		// /////////////////////////////////////////////////
+		// Finalise
+		// 
 		
 		// Set mouse_over erray
 		

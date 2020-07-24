@@ -75,7 +75,7 @@ class Label : Element
 			case TextAlign::Bottom:	y = y2; break;
 		}
 		
-		style.draw_text(_text, x, y, align_h, align_v, colour, _scale, _font, _size);
+		style.draw_text(_text, x, y, colour, _scale, _scale, 0, align_h, align_v, _font, _size);
 	}
 	
 	private void update_size()
