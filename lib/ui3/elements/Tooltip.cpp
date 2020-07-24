@@ -28,7 +28,7 @@ class Tooltip : SingleContainer
 	{
 		@this.options = options;
 		
-		super(ui, options.content, 'ttip');
+		super(ui, options.get_contenet_element(), 'ttip');
 		
 		@this.target = target;
 		waiting_for_mouse = wait_for_mouse && @target != null;
@@ -236,6 +236,7 @@ class Tooltip : SingleContainer
 			{
 				ui._event_info.reset(EventType::HIDE, this);
 				hide.dispatch(ui._event_info);
+				options._on_tooltip_hide();
 			}
 		}
 		

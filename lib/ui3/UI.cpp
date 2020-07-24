@@ -6,10 +6,12 @@
 #include 'UIMouse.cpp';
 #include 'Style.cpp';
 #include 'utils/ElementStack.cpp';
+#include 'utils/pools/LabelPool.cpp';
 #include 'events/Event.cpp';
 #include 'elements/Element.cpp';
 #include 'elements/Container.cpp';
 #include 'elements/Tooltip.cpp';
+#include 'layouts/FlowLayout.cpp';
 
 class UI
 {
@@ -40,8 +42,6 @@ class UI
 	// e.g. a drop down box that is open. There can only by one active element in a UI.
 	private Element@ active_element;
 	
-	/*private*/ EventInfo@ _event_info = EventInfo();
-	
 	// Used for processing element layouts
 	private ElementStack element_stack;
 	// The top most element the mouse is over
@@ -65,6 +65,11 @@ class UI
 	private float y2 = 100;
 	
 	private EventCallback@ on_tooltip_hide_delegate;
+	
+	/*private*/ LabelPool _label_pool;
+	
+	/*private*/ EventInfo@ _event_info = EventInfo();
+	/*private*/ FlowLayout@ _toolbar_flow_layout = FlowLayout(Orientation::Horizontal);
 	
 	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
 	{
@@ -140,6 +145,26 @@ class UI
 	bool remove_child(Element@ child)
 	{
 		return contents.remove_child(child);
+	}
+	
+	void move_to_front(Element@ child)
+	{
+		contents.move_to_front(child);
+	}
+	
+	void move_to_back(Element@ child)
+	{
+		contents.move_to_back(child);
+	}
+	
+	void move_up(Element@ child)
+	{
+		contents.move_up(child);
+	}
+	
+	void move_down(Element@ child)
+	{
+		contents.move_down(child);
 	}
 	
 	void clear()
@@ -301,6 +326,13 @@ class UI
 		x2 = this.x2;
 		y2 = this.y2;
 	}
+	
+	float region_x1 { get const{ return x1; } }
+	float region_y1 { get const{ return y1; } }
+	float region_x2 { get const{ return x2; } }
+	float region_y2 { get const{ return y2; } }
+	float region_width  { get const{ return x2 - x1; } }
+	float region_height { get const{ return y2 - y1; } }
 	
 	/**
 	 * @brief Shows the tooltip for the given element if it has one.

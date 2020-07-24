@@ -44,6 +44,11 @@ class SingleContainer : LockedContainer
 	
 	void fit_to_contents(float padding_x=-1, float padding_y=-1)
 	{
+		fit_to_contents(true, padding_x, padding_y);
+	}
+	
+	void fit_to_contents(bool include_border, float padding_x=-1, float padding_y=-1)
+	{
 		if(padding_x < 0)
 		{
 			padding_x = ui.style.spacing;
@@ -63,6 +68,12 @@ class SingleContainer : LockedContainer
 		
 		width  = content.width + padding_x * 2;
 		height = content.height + padding_y * 2;
+		
+		if(include_border)
+		{
+			width  += border_size * 2;
+			height += border_size * 2;
+		}
 	}
 	
 	void _queue_children_for_layout(ElementStack@ stack) override
@@ -88,5 +99,7 @@ class SingleContainer : LockedContainer
 		
 		return false;
 	}
+	
+	protected float border_size { get const { return 0; } }
 	
 }

@@ -40,6 +40,11 @@ class Style
 	// The default scaling for text - should be set before creating any UI. Changing it after may not reflect correctly everywhere.
 	float default_text_scale = 0.75;
 	
+	string tooltip_font = font::PROXIMANOVA_REG;
+	uint tooltip_text_size = 26;
+	float tooltip_text_scale = 0.75;
+	uint tooltip_text_colour = text_clr;
+	
 	int tooltip_fade_frames = 6;
 	float tooltip_fade_offset = 5;
 	float tooltip_default_spacing = spacing;
@@ -367,21 +372,34 @@ class Style
 	
 	void draw_popup_element(const Element@ &in element)
 	{
+		draw_element(element, popup_shadow_clr, popup_bg_clr, popup_border_clr);
+	}
+	
+	void draw_dialog_element(const Element@ element)
+	{
+		draw_element(element, dialog_shadow_clr, dialog_bg_clr, dialog_border_clr);
+	}
+	
+	void draw_element(const Element@ &in element, const uint shadow_clr, const uint bg_clr, const uint border_clr)
+	{
 		// Shadow
-		draw_rectangle(
-			element.x1 + shadow_offset_x, element.y1 + shadow_offset_y,
-			element.x2 + shadow_offset_x, element.y2 + shadow_offset_y,
-			0, popup_shadow_clr);
+		if(shadow_clr != 0)
+		{
+			draw_rectangle(
+				element.x1 + shadow_offset_x, element.y1 + shadow_offset_y,
+				element.x2 + shadow_offset_x, element.y2 + shadow_offset_y,
+				0, shadow_clr);
+		}
 		
-		const float inset = popup_border_clr != 0 ? max(0, border_size) : 0;
+		const float inset = border_clr != 0 ? max(0, border_size) : 0;
 		
 		// Fill/bg
-		draw_rectangle(element.x1 + inset, element.y1 + inset, element.x2 - inset, element.y2 - inset, 0, popup_bg_clr);
+		draw_rectangle(element.x1 + inset, element.y1 + inset, element.x2 - inset, element.y2 - inset, 0, bg_clr);
 		
 		// Border
-		if(popup_border_clr != 0)
+		if(border_clr != 0)
 		{
-			outline(element.x1, element.y1, element.x2, element.y2, border_size, popup_border_clr);
+			outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
 		}
 	}
 	

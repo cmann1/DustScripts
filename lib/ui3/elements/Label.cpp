@@ -15,7 +15,7 @@ class Label : Element
 	TextAlign align_h = TextAlign::Left;
 	TextAlign align_v = TextAlign::Top;
 	
-	Label(UI@ ui, const string &in text, const string font='', const uint size=0)
+	Label(UI@ ui, const string text, const string font='', const uint size=0)
 	{
 		super(ui, 'lbl');
 		

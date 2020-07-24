@@ -78,4 +78,6 @@ class Button : SingleContainer
 			style.restore_alpha();
 	}
 	
+		protected float border_size { get const override { return ui.style.border_size; } }
+	
 }

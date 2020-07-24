@@ -1,3 +1,4 @@
+#include '../layouts/Layout.cpp';
 #include 'Element.cpp';
 
 class Container : Element
@@ -10,9 +11,17 @@ class Container : Element
 	protected array<Element@> children;
 	protected int num_children;
 	
+	protected Layout@ _layout;
+	
 	Container(UI@ ui, const string &in type_identifier = 'cnt')
 	{
 		super(ui, type_identifier);
+	}
+	
+	Layout@ layout
+	{
+		get { return _layout; }
+		set { @_layout = value; }
 	}
 	
 	bool add_child(Element@ child)
@@ -85,17 +94,23 @@ class Container : Element
 	
 	void move_to_front(Element@ child)
 	{
+		if(num_children == 0 || @children[num_children - 1] == @child)
+			return;
+		
 		set_child_index(child, num_children + 1);
 	}
 	
 	void move_to_back(Element@ child)
 	{
+		if(num_children == 0 || @children[0] == @child)
+			return;
+		
 		set_child_index(child, 0);
 	}
 	
 	void move_up(Element@ child)
 	{
-		if(@child == null || @child.parent != @this)
+		if(@child == null || @child.parent != @this || @children[num_children - 1] == @child)
 			return;
 		
 		int index = children.findByRef(@child);
@@ -109,7 +124,7 @@ class Container : Element
 	
 	void move_down(Element@ child)
 	{
-		if(@child == null || @child.parent != @this)
+		if(@child == null || @child.parent != @this || @children[0] == @child)
 			return;
 		
 		int index = children.findByRef(@child);
@@ -140,6 +155,9 @@ class Container : Element
 	
 	void draw(Style@ style, const float sub_frame) override
 	{
+		if(num_children == 0)
+			return;
+		
 		if(disabled || alpha != 1)
 			style.disable_alpha();
 		
