@@ -1,0 +1,7 @@
+enum TooltipHideType
+{
+	
+	Leave,
+	Press,
+	
+}

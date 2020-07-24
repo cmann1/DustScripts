@@ -2,12 +2,7 @@ class Tooltip : SingleContainer
 {
 	
 	Element@ target;
-	
-	TooltipPosition position;
-	float fade_max;
-	float offset_max;
-	float spacing;
-	bool interactable = false;
+	TooltipOptions@ options;
 	
 	Event hide;
 	
@@ -15,16 +10,13 @@ class Tooltip : SingleContainer
 	private float fade;
 	private float offset;
 	
-	Tooltip(UI@ ui, Element@ target, Element@ contents, TooltipPosition position=TooltipPosition::Top)
+	Tooltip(UI@ ui, Element@ target)
 	{
-		super(ui, contents, 'ttip');
+		@options = target.tooltip;
+		
+		super(ui, options.content, 'ttip');
 		
 		@this.target = target;
-		this.position = position;
-		
-		fade_max 	= max(0, ui.style.tooltip_fade_frames);
-		offset_max 	= max(0, ui.style.tooltip_fade_offset);
-		spacing 	= ui.style.tooltip_default_spacing;
 		
 		fit_to_contents();
 		
@@ -44,7 +36,7 @@ class Tooltip : SingleContainer
 			return;
 		}
 		
-		TooltipPosition calculatedPosition = position;
+		TooltipPosition calculatedPosition = options.position;
 		
 		//
 		// Position tool tip
@@ -137,7 +129,7 @@ class Tooltip : SingleContainer
 		bool mouse_over = target.hovered || hovered;
 		
 		// Don't start fading if the mouse is in the space between the target and the tooltip.
-		if(interactable && !mouse_over && spacing > 0 && (
+		if(options.interactable && !mouse_over && options.spacing > 0 && (
 			calculatedPosition == TooltipPosition::Left  || calculatedPosition == TooltipPosition::Right ||
 			calculatedPosition == TooltipPosition::Above || calculatedPosition == TooltipPosition::Below
 		))
@@ -145,19 +137,19 @@ class Tooltip : SingleContainer
 			switch(calculatedPosition)
 			{
 				case TooltipPosition::Above:
-					if(ui.mouse.x >= target.x1 && ui.mouse.x <= target.x2 && ui.mouse.y <= target.y1 && ui.mouse.y >= target.y1 - spacing)
+					if(ui.mouse.x >= target.x1 && ui.mouse.x <= target.x2 && ui.mouse.y <= target.y1 && ui.mouse.y >= target.y1 - options.spacing)
 						mouse_over = true;
 					break;
 				case TooltipPosition::Below:
-					if(ui.mouse.x >= target.x1 && ui.mouse.x <= target.x2 && ui.mouse.y >= target.y2 && ui.mouse.y <= target.y2 + spacing)
+					if(ui.mouse.x >= target.x1 && ui.mouse.x <= target.x2 && ui.mouse.y >= target.y2 && ui.mouse.y <= target.y2 + options.spacing)
 						mouse_over = true;
 					break;
 				case TooltipPosition::Left:
-					if(ui.mouse.y >= target.y1 && ui.mouse.y <= target.y2 && ui.mouse.y <= target.y1 && ui.mouse.y >= target.y1 - spacing)
+					if(ui.mouse.y >= target.y1 && ui.mouse.y <= target.y2 && ui.mouse.y <= target.y1 && ui.mouse.y >= target.y1 - options.spacing)
 						mouse_over = true;
 					break;
 				case TooltipPosition::Right:
-					if(ui.mouse.y >= target.y1 && ui.mouse.y <= target.y2 && ui.mouse.y >= target.y2 && ui.mouse.y <= target.y2 + spacing)
+					if(ui.mouse.y >= target.y1 && ui.mouse.y <= target.y2 && ui.mouse.y >= target.y2 && ui.mouse.y <= target.y2 + options.spacing)
 						mouse_over = true;
 					break;
 			}
@@ -174,7 +166,7 @@ class Tooltip : SingleContainer
 		
 		if(mouse_over)
 		{
-			if(fade < fade_max)
+			if(fade < options.fade_max)
 			{
 				fade++;
 				update_fade();
@@ -268,8 +260,8 @@ class Tooltip : SingleContainer
 	
 	private void update_fade()
 	{
-		alpha = fade_max <= 0 ? 1.0 : fade / fade_max;
-		offset = offset_max * (1 - alpha);
+		alpha = options.fade_max <= 0 ? 1.0 : fade / options.fade_max;
+		offset = options.offset_max * (1 - alpha);
 		
 		if(alpha < 1)
 		{
@@ -277,7 +269,7 @@ class Tooltip : SingleContainer
 		}
 		else if(active)
 		{
-			mouse_enabled = children_mouse_enabled = interactable;
+			mouse_enabled = children_mouse_enabled = options.interactable;
 		}
 	}
 	
@@ -296,21 +288,21 @@ class Tooltip : SingleContainer
 			case TooltipPosition::InsideLeftTop:
 			case TooltipPosition::InsideLeft:
 			case TooltipPosition::InsideLeftBottom:
-				x1 = target.x1 + spacing;
+				x1 = target.x1 + options.spacing;
 				x2 = x1 + width;
 				break;
 			case TooltipPosition::InsideRightTop:
 			case TooltipPosition::InsideRight:
 			case TooltipPosition::InsideRightBottom:
-				x2 = target.x2 - spacing;
+				x2 = target.x2 - options.spacing;
 				x1 = x2 - width;
 				break;
 			case TooltipPosition::Left:
-				x2 = target.x1 - spacing;
+				x2 = target.x1 - options.spacing;
 				x1 = x2 - width;
 				break;
 			case TooltipPosition::Right:
-				x1 = target.x2 + spacing;
+				x1 = target.x2 + options.spacing;
 				x2 = x1 + width;
 				break;
 		}
@@ -331,21 +323,21 @@ class Tooltip : SingleContainer
 			case TooltipPosition::InsideLeftTop:
 			case TooltipPosition::InsideTop:
 			case TooltipPosition::InsideRightTop:
-				y1 = target.y1 + spacing;
+				y1 = target.y1 + options.spacing;
 				y2 = y1 + height;
 				break;
 			case TooltipPosition::InsideLeftBottom:
 			case TooltipPosition::InsideBottom:
 			case TooltipPosition::InsideRightBottom:
-				y2 = target.y2 - spacing;
+				y2 = target.y2 - options.spacing;
 				y1 = y2 - height;
 				break;
 			case TooltipPosition::Above:
-				y2 = target.y1 - spacing;
+				y2 = target.y1 - options.spacing;
 				y1 = y2 - height;
 				break;
 			case TooltipPosition::Below:
-				y1 = target.y2 + spacing;
+				y1 = target.y2 + options.spacing;
 				y2 = y1 + height;
 				break;
 		}

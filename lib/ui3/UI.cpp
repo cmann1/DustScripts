@@ -7,7 +7,10 @@
 #include 'Style.cpp';
 #include 'utils/ElementStack.cpp';
 #include 'utils/Position.cpp';
+#include 'utils/TooltipHideType.cpp';
+#include 'utils/TooltipOptions.cpp';
 #include 'utils/TooltipPosition.cpp';
+#include 'utils/TooltipTriggerType.cpp';
 #include 'events/Event.cpp';
 #include 'elements/Element.cpp';
 #include 'elements/Button.cpp';
@@ -563,8 +566,7 @@ class UI
 		{
 			if(!tooltips.exists(_mouse_over_element._id))
 			{
-				Tooltip@ tooltip = Tooltip(this, _mouse_over_element, _mouse_over_element.tooltip, _mouse_over_element.tooltip_position);
-				tooltip.interactable = _mouse_over_element.tooltip_interactable;
+				Tooltip@ tooltip = Tooltip(this, _mouse_over_element);
 				tooltip.hide.on(on_tooltip_hide_delegate);
 				overlays.add_child(tooltip);
 				@tooltips[_mouse_over_element._id] = tooltip;

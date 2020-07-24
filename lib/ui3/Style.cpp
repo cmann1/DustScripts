@@ -40,7 +40,7 @@ class Style
 	
 	int tooltip_fade_frames = 6;
 	float tooltip_fade_offset = 5;
-	float tooltip_default_spacing = 5;
+	float tooltip_default_spacing = spacing;
 	
 	// Text measurements don't seem to line up exactly always. Use these global values to offset
 	float text_offset_x = -1;
