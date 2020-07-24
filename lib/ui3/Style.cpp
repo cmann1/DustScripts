@@ -14,9 +14,18 @@ class Style
 	uint selected_highlight_border_clr	= 0xffb16860;
 	uint disabled_bg_clr				= 0xa6000000;
 	uint disabled_border_clr			= 0x26ffffff;
-	uint shadow_clr						= 0x40000000;
 	
-	float disabled_alpha				= 0.35;
+	uint popup_bg_clr					= normal_bg_clr;
+	uint popup_border_clr				= 0;
+	uint popup_shadow_clr				= 0x40000000;
+	
+	uint dialog_bg_clr					= normal_bg_clr;
+	uint dialog_border_clr				= 0;
+	uint dialog_shadow_clr				= 0x50000000;
+	
+	float shadow_offset_x	= 3;
+	float shadow_offset_y	= 3;
+	float disabled_alpha	= 0.35;
 	
 	float border_size = 1;
 	float spacing = 4;
@@ -29,9 +38,9 @@ class Style
 	// The default scaling for text - should be set before creating any UI. Changing it after may not reflect correctly everywhere.
 	float default_text_scale = 0.75;
 	
-	int tooltip_fade_frames = 25;
-	float tooltip_fade_offset_x = 0;
-	float tooltip_fade_offset_y = 5;
+	int tooltip_fade_frames = 6;
+	float tooltip_fade_offset = 5;
+	float tooltip_default_spacing = 5;
 	
 	// Text measurements don't seem to line up exactly always. Use these global values to offset
 	float text_offset_x = -1;
@@ -235,7 +244,7 @@ class Style
 			colour = set_alpha(colour);
 		
 		if(_hud)
-			sprite.draw_world(_layer, _sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
+			sprite.draw_hud  (_layer, _sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
 		else
 			sprite.draw_world(_layer, _sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
 	}
@@ -344,17 +353,41 @@ class Style
 			: (highlighted && selected ? selected_highlight_bg_clr
 				: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
 		
-		draw_rectangle(
-			element.x1, element.y1, element.x2, element.y2,
-			0, bg_clr);
-		
-		// Border
-		
 		const uint border_clr = disabled ? disabled_border_clr
 			: (highlighted && selected ? selected_highlight_border_clr
 				: selected ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
 		
-		outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
+		const float inset = border_clr != 0 ? max(0, border_size) : 0;
+		
+		draw_rectangle(
+			element.x1 + inset, element.y1 + inset, element.x2 - inset, element.y2 - inset,
+			0, bg_clr);
+		
+		// Border
+		if(border_clr != 0)
+		{
+			outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
+		}
+	}
+	
+	void draw_popup_element(const Element@ &in element)
+	{
+		// Shadow
+		draw_rectangle(
+			element.x1 + shadow_offset_x, element.y1 + shadow_offset_y,
+			element.x2 + shadow_offset_x, element.y2 + shadow_offset_y,
+			0, popup_shadow_clr);
+		
+		const float inset = popup_border_clr != 0 ? max(0, border_size) : 0;
+		
+		// Fill/bg
+		draw_rectangle(element.x1 + inset, element.y1 + inset, element.x2 - inset, element.y2 - inset, 0, popup_bg_clr);
+		
+		// Border
+		if(popup_border_clr != 0)
+		{
+			outline(element.x1, element.y1, element.x2, element.y2, border_size, popup_border_clr);
+		}
 	}
 	
 	void draw_text(const string text, const float x, const float y, const TextAlign align_h, const TextAlign align_v, const uint colour, float scale=-1, string font='', uint size=0)

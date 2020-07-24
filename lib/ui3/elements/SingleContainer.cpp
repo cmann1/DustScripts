@@ -68,4 +68,20 @@ class SingleContainer : LockedContainer
 		}
 	}
 	
+	bool add_child(Element@ child) override
+	{
+		return false;
+	}
+	
+	bool remove_child(Element@ child) override
+	{
+		if(Container::remove_child(child))
+		{
+			@_content = null;
+			return true;
+		}
+		
+		return false;
+	}
+	
 }

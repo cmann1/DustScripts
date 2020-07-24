@@ -14,6 +14,8 @@ abstract class Element
 	string _id;
 	
 	Element@ tooltip = null;
+	bool tooltip_interactable = false;
+	TooltipPosition tooltip_position = TooltipPosition::Above;
 	
 	bool visible = true;
 	// Can this element interact with the mouse

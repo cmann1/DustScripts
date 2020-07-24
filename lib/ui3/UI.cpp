@@ -6,6 +6,8 @@
 #include 'UIMouse.cpp';
 #include 'Style.cpp';
 #include 'utils/ElementStack.cpp';
+#include 'utils/Position.cpp';
+#include 'utils/TooltipPosition.cpp';
 #include 'events/Event.cpp';
 #include 'elements/Element.cpp';
 #include 'elements/Button.cpp';
@@ -59,14 +61,21 @@ class UI
 	private dictionary elements_right_pressed();
 	private dictionary elements_middle_pressed();
 	
-	private int draw_list_size = 64;
-	private array<Element@> draw_list(draw_list_size);
-	private int draw_list_index;
+	private dictionary tooltips;
 	
 	private textfield@ debug_text_field;
 	
+	private float x1 = 0;
+	private float y1 = 0;
+	private float x2 = 100;
+	private float y2 = 100;
+	
+	private EventCallback@ on_tooltip_hide_delegate;
+	
 	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
 	{
+		@on_tooltip_hide_delegate = EventCallback(this.on_tooltip_hide);
+		
 		@contents = Container(this);
 		@overlays = Container(this);
 		contents._id = '_ROOT_';
@@ -94,6 +103,8 @@ class UI
 		
 		@debug_text_field = create_textfield();
 		debug_text_field.set_font(font::PROXIMANOVA_REG, 26);
+		
+		set_region(x1, y1, x2, y2);
 	}
 	
 	bool add_child(Element@ child)
@@ -140,8 +151,13 @@ class UI
 		
 		@_mouse_over_element = null;
 		
-		update_layout();
-		process_mouse_events();
+		const bool mouse_in_ui = mouse.x >= contents.x1 && mouse.x <= contents.x2 && mouse.y >= contents.y1 && mouse.y <= contents.y2;
+		
+		Element@ mouse_over_main		= update_layout(contents, mouse_in_ui);
+		Element@ mouse_over_overlays	= update_layout(overlays, mouse_in_ui);
+		@_mouse_over_element = @mouse_over_overlays != null ? @mouse_over_overlays : @mouse_over_main;
+		process_mouse_events(@_mouse_over_element == @mouse_over_main ? contents : overlays);
+		update_tooltips();
 	}
 	
 	void draw(float sub_frame)
@@ -234,10 +250,23 @@ class UI
 	
 	void set_region(const float x1, const float y1, const float x2, const float y2)
 	{
-		contents.x = x1;
-		contents.y = y1;
-		contents.width  = x2 - x1;
-		contents.height = y2 - y1;
+		this.x1 = x1;
+		this.y1 = y1;
+		this.x2 = x2;
+		this.y2 = y2;
+		
+		overlays.x = contents.x = x1;
+		overlays.y = contents.y = y1;
+		overlays.width = contents.width  = x2 - x1;
+		overlays.height = contents.height = y2 - y1;
+	}
+	
+	void get_region(float &out x1, float &out y1, float &out x2, float &out y2)
+	{
+		x1 = this.x1;
+		y1 = this.y1;
+		x2 = this.x2;
+		y2 = this.y2;
 	}
 	
 	// The top most element the mouse is over
@@ -274,17 +303,13 @@ class UI
 	// Private
 	// ---------------------------------------------------------
 	
-	private void update_layout()
+	private Element@ update_layout(Element@ base, bool check_mouse_over)
 	{
-		element_stack.clear();
-		contents.do_layout(0, 0);
-		contents._queue_children_for_layout(@element_stack);
+		Element@ mouse_over = null;
 		
-		const float view_x1 = contents.x1;
-		const float view_y1 = contents.y1;
-		const float view_x2 = contents.x2;
-		const float view_y2 = contents.y2;
-		const bool mouse_in_ui = mouse.x >= view_x1 && mouse.x <= view_x2 && mouse.y >= view_y1 && mouse.y <= view_y2;
+		element_stack.clear();
+		base.do_layout(0, 0);
+		base._queue_children_for_layout(@element_stack);
 		
 		Element@ element = element_stack.pop();
 		
@@ -293,13 +318,17 @@ class UI
 			if(element.visible)
 			{
 				element.do_layout(element.parent.x1, element.parent.y1);
-				element._queue_children_for_layout(@element_stack);
 				
-				if(mouse_in_ui &&!element.disabled && element.mouse_enabled && element.parent.children_mouse_enabled)
+				if(@element.parent != null)
 				{
-					if(element.overlaps_point(mouse.x, mouse.y))
+					element._queue_children_for_layout(@element_stack);
+					
+					if(check_mouse_over &&!element.disabled && element.mouse_enabled && element.parent.children_mouse_enabled)
 					{
-						@_mouse_over_element = element;
+						if(element.overlaps_point(mouse.x, mouse.y))
+						{
+							@mouse_over = element;
+						}
 					}
 				}
 			}
@@ -307,18 +336,15 @@ class UI
 			@element = element_stack.pop();
 		}
 		
-		if(@_mouse_over_element == @contents)
+		if(@mouse_over == @base)
 		{
-			@_mouse_over_element = null;
+			@mouse_over = null;
 		}
 		
-		if(@_mouse_over_element != null && @_mouse_over_element.tooltip != null)
-		{
-			
-		}
+		return mouse_over;
 	}
 	
-	private void process_mouse_events()
+	private void process_mouse_events(Element@ mouse_over_root)
 	{
 		is_mouse_over = @_mouse_over_element != null;
 		
@@ -337,7 +363,7 @@ class UI
 				elements_mouse_enter.insertLast(mouse_over_traversal);
 				@mouse_over_traversal = mouse_over_traversal.parent;
 			}
-			while(@mouse_over_traversal != @contents);
+			while(@mouse_over_traversal != @mouse_over_root);
 		}
 		
 		/*
@@ -531,6 +557,21 @@ class UI
 			elements_middle_pressed.deleteAll();
 	}
 	
+	private void update_tooltips()
+	{
+		if(@_mouse_over_element != null && @_mouse_over_element.tooltip != null)
+		{
+			if(!tooltips.exists(_mouse_over_element._id))
+			{
+				Tooltip@ tooltip = Tooltip(this, _mouse_over_element, _mouse_over_element.tooltip, _mouse_over_element.tooltip_position);
+				tooltip.interactable = _mouse_over_element.tooltip_interactable;
+				tooltip.hide.on(on_tooltip_hide_delegate);
+				overlays.add_child(tooltip);
+				@tooltips[_mouse_over_element._id] = tooltip;
+			}
+		}
+	}
+	
 	private uint get_element_id_colour(Element@ element, const uint alpha=0xff)
 	{
 		const float hash = float(string::hash(element._id));
@@ -539,6 +580,24 @@ class UI
 			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
 			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
 		) | (alpha << 24);
+	}
+	
+	// Events
+	// ---------------------------------------------------------
+	
+	private void on_tooltip_hide(EventInfo@ event)
+	{
+		Tooltip@ tooltip = cast<Tooltip@>(event.target);
+		
+		if(@tooltip == null)
+			return;
+		
+		if(!tooltips.exists(tooltip.target._id))
+			return;
+		
+		tooltip.hide.off(on_tooltip_hide_delegate);
+		tooltips.delete(tooltip.target._id);
+		overlays.remove_child(tooltip);
 	}
 	
 }

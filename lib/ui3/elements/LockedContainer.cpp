@@ -13,7 +13,7 @@ class LockedContainer : Container
 	
 	bool add_child(Element@ child) override
 	{
-		puts('add_child not supporte');
+		puts('add_child not supported');
 		return false;
 	}
 	
@@ -23,10 +23,30 @@ class LockedContainer : Container
 		return false;
 	}
 	
-	protected bool _remove_child_internal(Element@ child) override
+	void set_child_index(Element@ child, int index)
 	{
-		puts('_remove_child_internal not supported.');
-		return false;
+		puts('set_child_index not supported');
 	}
+	
+	void move_to_front(Element@ child)
+	{
+		puts('move_to_front not supported');
+	}
+	
+	void move_to_back(Element@ child)
+	{
+		puts('move_to_back not supported');
+	}
+	
+	void move_up(Element@ child)
+	{
+		puts('move_up not supported');
+	}
+	
+	void move_down(Element@ child)
+	{
+		puts('move_down not supported');
+	}
+	
 	
 }
