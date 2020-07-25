@@ -1,5 +1,6 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
+#include '../TextAlign.cpp';
 #include 'Element.cpp';
 #include 'SingleContainer.cpp';
 
@@ -17,6 +18,33 @@ class Button : SingleContainer
 	{
 		super(ui, content, 'btn');
 		
+		init();
+	}
+	
+	Button(UI@ ui, string text)
+	{
+		Label@ label = ui._label_pool.get(
+			ui, text,
+			TextAlign::Left, TextAlign::Top,
+			ui.style.default_text_scale, ui.style.text_clr,
+			ui.style.default_font, ui.style.default_text_size);
+		
+		super(ui, label, 'btn');
+		
+		init();
+	}
+	
+	Button(UI@ ui, const string sprite_text, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
+	{
+		Image@ image = ui._image_pool.get(ui, sprite_text, sprite_name, width, height, offset_x, offset_y);
+		
+		super(ui, image, 'btn');
+		
+		init();
+	}
+	
+	protected void init()
+	{
 		children_mouse_enabled = false;
 	}
 	
@@ -78,6 +106,6 @@ class Button : SingleContainer
 			style.restore_alpha();
 	}
 	
-		protected float border_size { get const override { return ui.style.border_size; } }
+	protected float border_size { get const override { return ui.style.border_size; } }
 	
 }

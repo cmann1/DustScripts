@@ -6,6 +6,7 @@
 #include 'UIMouse.cpp';
 #include 'Style.cpp';
 #include 'utils/ElementStack.cpp';
+#include 'utils/pools/ImagePool.cpp';
 #include 'utils/pools/LabelPool.cpp';
 #include 'events/Event.cpp';
 #include 'elements/Element.cpp';
@@ -70,6 +71,7 @@ class UI
 	// Common reusable things
 	
 	/*private*/ LabelPool _label_pool;
+	/*private*/ ImagePool _image_pool;
 	
 	/*private*/ EventInfo@ _event_info = EventInfo();
 	/*private*/ FlowLayout@ _toolbar_flow_layout;

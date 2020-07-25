@@ -55,6 +55,11 @@ class Toolbar : Container
 		set { if(@value != null) @flow_layout = @value; }
 	}
 	
+	void add_button(Element@ content)
+	{
+		
+	}
+	
 	void do_layout(const float parent_x, const float parent_y) override
 	{
 		const bool is_horizontal = flow_layout.is_horizontal;

@@ -29,9 +29,18 @@ class Image : Element
 	{
 		super(ui, 'img');
 		
+		set_sprite(sprite_set, sprite_name, width, height, offset_x, offset_y);
+	}
+	
+	void set_sprite(const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
+	{
+		if(this.sprite_set == sprite_set && this.sprite_name == sprite_name)
+			return;
+		
 		this.sprite_set = sprite_set;
 		this.sprite_name = sprite_name;
-		@sprite = ui.style.get_sprite_for_set(sprite_set);
+		@sprite = @sprite == null ? ui.style.get_sprite_for_set(sprite_set) : @sprite;
+		sprite.add_sprite_set(sprite_set);
 		
 		if(width <= 0 || height <= 0)
 		{
