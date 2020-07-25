@@ -1,5 +1,6 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
+#include '../events/Event.cpp';
 #include '../layouts/flow/FlowLayout.cpp';
 #include 'Container.cpp';
 
@@ -10,10 +11,16 @@ class Toolbar : Container
 	bool auto_fit;
 	float max_size;
 	
+	Event move;
+	Event move_complete;
+	
 	protected FlowLayout@ flow_layout;
 	protected bool busy_dragging;
 	protected float drag_offset_x;
 	protected float drag_offset_y;
+	protected float prev_drag_x;
+	protected float prev_drag_y;
+	protected bool has_moved;
 	
 	Toolbar(UI@ ui, bool draggable = true, bool auto_fit=true, float max_size=0)
 	{
@@ -56,20 +63,44 @@ class Toolbar : Container
 		{
 			drag_offset_x = ui.mouse.x - x1;
 			drag_offset_y = ui.mouse.y - y1;
+			prev_drag_x = parent.mouse_x;
+			prev_drag_y = parent.mouse_y;
 			busy_dragging = true;
+			has_moved = false;
 			ui.move_to_front(this);
 		}
 		
 		if(busy_dragging)
 		{
-			// TODO: Move event
-			x = ui.mouse_x - drag_offset_x;
-			y = ui.mouse_y - drag_offset_y;
+			const float mouse_x = parent.mouse_x;
+			const float mouse_y = parent.mouse_y;
+			
+			if(prev_drag_x != mouse_x || prev_drag_y != mouse_y)
+			{
+				x = mouse_x - drag_offset_x;
+				y = mouse_y - drag_offset_y;
+				prev_drag_x = mouse_x;
+				prev_drag_y = mouse_y;
+				
+				ui._event_info.reset(EventType::MOVE, this);
+				ui._event_info.x = x;
+				ui._event_info.y = y;
+				move.dispatch(ui._event_info);
+				
+				has_moved = true;
+			}
 			
 			if(!ui.mouse.primary_down)
 			{
 				busy_dragging = false;
-				// TODO: Moved event
+				
+				if(has_moved)
+				{
+					ui._event_info.reset(EventType::MOVE_COMPLETED, this);
+					ui._event_info.x = x;
+					ui._event_info.y = y;
+					move_complete.dispatch(ui._event_info);
+				}
 			}
 		}
 		

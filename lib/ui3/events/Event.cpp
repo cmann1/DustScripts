@@ -1,4 +1,5 @@
 #include 'EventInfo.cpp';
+#include 'EventType.cpp';
 
 funcdef void EventCallback(EventInfo@);
 

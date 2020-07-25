@@ -42,7 +42,6 @@ abstract class Element
 	float x2, y2;
 	
 	Event mouse_enter;
-	Event mouse_mouse;
 	Event mouse_exit;
 	Event mouse_press;
 	Event mouse_move;
