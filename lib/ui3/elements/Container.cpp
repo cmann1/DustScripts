@@ -20,7 +20,7 @@ class Container : Element
 	
 	Layout@ layout
 	{
-		get { return _layout; }
+		get { return @_layout; }
 		set { @_layout = value; }
 	}
 	

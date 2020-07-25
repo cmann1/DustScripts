@@ -1,4 +1,6 @@
+#include '../math/math.cpp';
 #include '../fonts.cpp';
+#include '../utils/colour.cpp';
 #include 'TextAlign.cpp';
 #include 'elements/Element.cpp';
 
@@ -6,13 +8,13 @@ class Style
 {
 	
 	uint text_clr						= 0xffffffff;
-	uint normal_bg_clr					= 0xd9000000;
+	uint normal_bg_clr					= 0xd9050505;
 	uint normal_border_clr				= 0x33ffffff;
 	uint highlight_bg_clr				= 0xd9622a24;
 	uint highlight_border_clr			= 0xd9933c34;
-	uint selected_bg_clr				= 0xd9000000;
+	uint selected_bg_clr				= normal_bg_clr;
 	uint selected_border_clr			= 0xffb16860;
-	uint selected_highlight_bg_clr		= 0xd9622a24;
+	uint selected_highlight_bg_clr		= highlight_bg_clr;
 	uint selected_highlight_border_clr	= 0xffb16860;
 	uint disabled_bg_clr				= 0xa6000000;
 	uint disabled_border_clr			= 0x26ffffff;
@@ -44,10 +46,11 @@ class Style
 	uint tooltip_text_size = 26;
 	float tooltip_text_scale = 0.75;
 	uint tooltip_text_colour = text_clr;
+	float tooltip_padding = spacing * 2;
 	
 	int tooltip_fade_frames = 6;
 	float tooltip_fade_offset = 5;
-	float tooltip_default_spacing = spacing;
+	float tooltip_default_spacing = spacing * 1.5;
 	
 	// Text measurements don't seem to line up exactly always. Use these global values to offset
 	float text_offset_x = -1;
@@ -72,6 +75,8 @@ class Style
 	uint _layer;
 	uint _sub_layer;
 	bool _hud;
+	
+	Style(){}
 	
 	Style(bool hud)
 	{

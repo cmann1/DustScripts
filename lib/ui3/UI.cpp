@@ -11,7 +11,7 @@
 #include 'elements/Element.cpp';
 #include 'elements/Container.cpp';
 #include 'elements/Tooltip.cpp';
-#include 'layouts/FlowLayout.cpp';
+#include 'layouts/flow/FlowLayout.cpp';
 
 class UI
 {
@@ -69,7 +69,7 @@ class UI
 	/*private*/ LabelPool _label_pool;
 	
 	/*private*/ EventInfo@ _event_info = EventInfo();
-	/*private*/ FlowLayout@ _toolbar_flow_layout = FlowLayout(Orientation::Horizontal);
+	/*private*/ FlowLayout@ _toolbar_flow_layout;
 	
 	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
 	{
@@ -104,6 +104,8 @@ class UI
 		debug_text_field.set_font(font::PROXIMANOVA_REG, 26);
 		
 		set_region(x1, y1, x2, y2);
+		
+		@_toolbar_flow_layout = FlowLayout(this, FlowDirection::Row, FlowAlign::Start, FlowAlign::Centre, FlowWrap::Wrap, FlowAlign::Start);
 	}
 	
 	// The top most element the mouse is over
@@ -122,13 +124,13 @@ class UI
 	bool hud
 	{
 		get { return _hud; }
-		set { style._hud = _hud = value; }
+		set { mouse.hud = style._hud = _hud = value; }
 	}
 	
 	uint layer
 	{
 		get { return _layer; }
-		set { style._layer = _layer = value; }
+		set { mouse.layer = style._layer = _layer = value; }
 	}
 	
 	uint sub_layer

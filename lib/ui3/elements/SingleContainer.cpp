@@ -1,4 +1,5 @@
 #include '../UI.cpp';
+#include '../../math/math.cpp';
 #include '../utils/ElementStack.cpp';
 #include 'Element.cpp';
 #include 'LockedContainer.cpp';
@@ -42,22 +43,17 @@ class SingleContainer : LockedContainer
 		}
 	}
 	
-	void fit_to_contents(float padding_x=-1, float padding_y=-1)
+	void fit_to_contents(float padding_x=NAN, float padding_y=NAN)
 	{
 		fit_to_contents(true, padding_x, padding_y);
 	}
 	
-	void fit_to_contents(bool include_border, float padding_x=-1, float padding_y=-1)
+	void fit_to_contents(bool include_border, float padding_x=NAN, float padding_y=NAN)
 	{
-		if(padding_x < 0)
-		{
+		if(is_nan(padding_x))
 			padding_x = ui.style.spacing;
-		}
-		
-		if(padding_y < 0)
-		{
+		if(is_nan(padding_y))
 			padding_y = ui.style.spacing;
-		}
 		
 		if(@content == null)
 		{

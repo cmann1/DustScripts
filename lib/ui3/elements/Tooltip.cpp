@@ -42,6 +42,16 @@ class Tooltip : SingleContainer
 		children_mouse_enabled = false;
 	}
 	
+	void fit_to_contents(bool include_border, float padding_x=NAN, float padding_y=NAN) override
+	{
+		if(is_nan(padding_x))
+			padding_x = ui.style.tooltip_padding;
+		if(is_nan(padding_y))
+			padding_y = ui.style.tooltip_padding;
+		
+		SingleContainer::fit_to_contents(include_border, padding_x, padding_y);
+	}
+	
 	void do_layout(const float parent_x, const float parent_y) override
 	{
 		TooltipPosition calculatedPosition = options.position;
@@ -285,8 +295,8 @@ class Tooltip : SingleContainer
 		
 		if(@content != null)
 		{
-			content.x = ui.style.spacing;
-			content.y = ui.style.spacing;
+			content.x = ui.style.tooltip_padding;
+			content.y = ui.style.tooltip_padding;
 		}
 	}
 	
