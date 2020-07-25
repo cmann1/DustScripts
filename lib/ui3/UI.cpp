@@ -27,7 +27,7 @@ class UI
 	UIMouse@ mouse;
 	bool is_mouse_over;
 	
-	// Manually set during testing
+	// Uncomment and manually set during testing
 	Debug@ debug;
 	
 	private scene@ g;
@@ -66,10 +66,16 @@ class UI
 	
 	private EventCallback@ on_tooltip_hide_delegate;
 	
+	// ///////////////////////////////////////////////////////////////
+	// Common reusable things
+	
 	/*private*/ LabelPool _label_pool;
 	
 	/*private*/ EventInfo@ _event_info = EventInfo();
 	/*private*/ FlowLayout@ _toolbar_flow_layout;
+	
+	/*private*/ array<float> _float_array(16);
+	/*private*/ array<int> _int_array(16);
 	
 	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
 	{

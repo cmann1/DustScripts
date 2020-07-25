@@ -1,6 +1,7 @@
 #include '../Layout.cpp';
 #include 'FlowAlign.cpp';
 #include 'FlowDirection.cpp';
+#include 'FlowFit.cpp';
 #include 'FlowWrap.cpp';
 
 class FlowLayout : Layout
@@ -12,12 +13,16 @@ class FlowLayout : Layout
 	FlowAlign justify;
 	FlowAlign align;
 	FlowWrap wrap;
+	FlowFit fit;
 	float padding = NAN;
 	float spacing = NAN;
 	
+	// TODO: Remove
+	bool _db = false;
+	
 	FlowLayout(UI@ ui,
 		const FlowDirection direction, FlowAlign justify=FlowAlign::Start, FlowAlign align=FlowAlign::Start,
-		FlowWrap wrap=FlowWrap::Wrap)
+		FlowWrap wrap=FlowWrap::Wrap, FlowFit fit=FlowFit::None)
 	{
 		@this.ui		= ui;
 		
@@ -25,21 +30,25 @@ class FlowLayout : Layout
 		this.justify		= justify;
 		this.align			= align;
 		this.wrap			= wrap;
+		this.fit			= fit;
 	}
 	
-	void do_layout(UI@ ui, const array<Element@>@ elements,
+	void do_layout(const array<Element@>@ elements,
 		const float x1, const float y1, const float x2, const float y2,
 		float &out out_x1, float &out out_y1, float &out out_x2, float &out out_y2) override
 	{
 		const int num_children = elements.size();
+		const float padding = is_nan(this.padding) ? ui.style.spacing : this.padding;
 		
 		if(num_children == 0)
+		{
+			out_x1 = x1;
+			out_y1 = y1;
+			out_x2 = x1 + padding * 2;
+			out_y2 = y1 + padding * 2;
 			return;
+		}
 		
-		Element@ element = elements[0];
-		bool first_element_placed = false;
-		
-		const float padding = is_nan(this.padding) ? ui.style.spacing : this.padding;
 		const float spacing = is_nan(this.spacing) ? ui.style.spacing : this.spacing;
 		
 		const bool is_horizontal	= this.is_horizontal;
@@ -48,146 +57,244 @@ class FlowLayout : Layout
 		const bool wrap = this.wrap == FlowWrap::Wrap || this.wrap == FlowWrap::WrapReversed;
 		const bool wrap_reversed = this.wrap == FlowWrap::WrapReversed;
 		
-		const float main_axis_size		= (is_horizontal ? (x2 - x1) : (y2 - y1)) - padding * 2;
-		const float main_axis_start		= (is_horizontal ? x1 : y1) + padding;
-		const float main_axis_end		= main_axis_start + main_axis_size;
-		const float cross_axis_size		= (is_horizontal ? (y2 - y1) : (x2 - x1)) - padding * 2;
-		const float cross_axis_start	= (is_horizontal ? y1 : x1) + padding;
-		const float cross_axis_end		= cross_axis_start + cross_axis_size;
-		const float main_axis_mid		= (main_axis_start + main_axis_end) * 0.5;
+		float main_axis_size	= (is_horizontal ? (x2 - x1) : (y2 - y1)) - padding * 2;
+		float main_axis_start	= (is_horizontal ? x1 : y1) + padding;
+		float main_axis_end		= main_axis_start + main_axis_size;
+		float cross_axis_size	= (is_horizontal ? (y2 - y1) : (x2 - x1)) - padding * 2;
+		float cross_axis_start	= (is_horizontal ? y1 : x1) + padding;
+		float cross_axis_end	= cross_axis_start + cross_axis_size;
 		
+		// //////////////////////////////////////////////////////
+		// Step 1. Find the extents of each row and column
+		
+		// Stores the main and cross axis size for each row/column in pairs of two values
+		array<float>@ axis_sizes = ui._float_array;
+		int axis_sizes_stacksize = axis_sizes.size();
+		int axis_sizes_index = 0;
+		// Stores the index for the end of each main axis
+		array<int>@ axis_end_indices = ui._int_array;
+		int axis_end_indices_stacksize = axis_end_indices.size();
+		int axis_end_indices_index = 0;
+		
+		// Exlcuding padding
+		float main_axis_total_size = 0;
+		// Exlcuding padding
+		float cross_axis_total_size = 0;
+		int num_cross_axis = 0;
+		
+		float main_x  = main_axis_start;
 		float cross_x = cross_axis_start;
+		float current_main_axis_size = 0;
+		float current_cross_axis_size = 0;
+		int num_axis_elements = 0;
 		
 		for(int i = 0; i < num_children; i++)
 		{
-			int main_end_index = i;
-			int main_start_index = i;
-			float cross_size = 0;
-			float main_elements_size = 0;
-			float main_x = main_axis_start;
+			Element@ element = elements[i];
 			
-			// -----------------------------------------------------------
-			// Find the cross axis width and elements for this row
+			const float el_main_size  = is_horizontal ? element.width  : element.height;
+			const float el_cross_size = is_horizontal ? element.height : element.width;
 			
-			for(int j = i; j < num_children; j++)
+			if(wrap && main_x + el_main_size > main_axis_end)
 			{
-				@element = elements[j];
+				// Add spacing
+				current_main_axis_size += (num_axis_elements - 1) * spacing;
 				
-				const float el_main_size  = is_horizontal ? element.width  : element.height;
-				const float el_cross_size = is_horizontal ? element.height : element.width;
+				// New row/column
+				if(current_main_axis_size > main_axis_total_size)
+					main_axis_total_size = current_main_axis_size;
 				
-				if(wrap && main_x + el_main_size > main_axis_end)
-				{
-					if(main_elements_size == 0)
-						main_elements_size = el_main_size;
-					
-					break;
-				}
+				cross_axis_total_size += current_cross_axis_size;
 				
-				main_elements_size += el_main_size;
+				// Store this row/column size
+				if(axis_sizes_index >= axis_sizes_stacksize - 1)
+					axis_sizes.resize(axis_sizes_stacksize += 16);
+				axis_sizes[axis_sizes_index++] = current_main_axis_size;
+				axis_sizes[axis_sizes_index++] = current_cross_axis_size;
 				
-				if(el_cross_size > cross_size)
-				{
-					cross_size = el_cross_size;
-				}
+				// Store the end index of this row/column
+				if(axis_end_indices_index == axis_end_indices_stacksize)
+					axis_end_indices.resize(axis_end_indices_stacksize += 16);
+				axis_end_indices[axis_end_indices_index++] = i;
 				
-				main_x += el_main_size + spacing;
-				main_end_index = j;
+				// Reset
+				main_x = main_axis_start + el_main_size + spacing;
+				cross_x += current_cross_axis_size + spacing;
+				current_main_axis_size = el_main_size;
+				current_cross_axis_size = el_cross_size;
+				num_axis_elements = 1;
+				num_cross_axis++;
+				
+				continue;
 			}
 			
-			const int main_num_elements = main_end_index - main_start_index + 1;
-			const float main_size = main_elements_size + (main_num_elements - 1) * spacing;
+			current_main_axis_size += el_main_size;
+			main_x += el_main_size + spacing;
 			
-			i = main_end_index;
+			if(el_cross_size > current_cross_axis_size)
+				current_cross_axis_size = el_cross_size;
 			
-			// -----------------------------------------------------------
-			// Position elements in this row
+			num_axis_elements++;
+		}
+		
+		// Only add the final row if it wasn't already added
+		// This could happen if the last element is the start of a new row/column and it is wider than the main axis
+		if(axis_end_indices_index == 0 || axis_end_indices[axis_end_indices_index - 1] < num_children)
+		{
+			// Add spacing
+			current_main_axis_size += (num_axis_elements - 1) * spacing;
 			
-			main_x = main_axis_start;
+			// New row/column
+			if(current_main_axis_size > main_axis_total_size)
+				main_axis_total_size = current_main_axis_size;
 			
-			switch(justify)
+			cross_axis_total_size += current_cross_axis_size;
+			
+			// Store this row/column size
+			if(axis_sizes_index >= axis_sizes_stacksize - 1)
+				axis_sizes.resize(axis_sizes_stacksize += 16);
+			axis_sizes[axis_sizes_index++] = current_main_axis_size;
+			axis_sizes[axis_sizes_index++] = current_cross_axis_size;
+			
+			// Store the end index of this row/column
+			if(axis_end_indices_index == axis_end_indices_stacksize)
+				axis_end_indices.resize(axis_end_indices_stacksize += 16);
+			axis_end_indices[axis_end_indices_index++] = num_children;
+			
+			num_cross_axis++;
+		}
+		
+		// Add spacing
+		cross_axis_total_size += (num_cross_axis - 1) * spacing;
+		
+		// //////////////////////////////////////////////////////
+		// Step 2. Position the elements
+		
+		int i = 0;
+		int prev_axis_index = 0;
+		int next_axis_index = 0;
+		current_main_axis_size = 0;
+		current_cross_axis_size = 0;
+		axis_sizes_index = 0;
+		axis_end_indices_index = 0;
+		cross_x = cross_axis_start;
+		
+		if(fit == FlowFit::MainAxis || fit == FlowFit::Both)
+		{
+			main_axis_end = main_axis_start + main_axis_total_size;
+			main_axis_size = main_axis_total_size;
+		}
+		
+		if(fit == FlowFit::CrossAxis || fit == FlowFit::Both)
+		{
+			cross_axis_end = cross_axis_start + cross_axis_total_size;
+			cross_axis_size = cross_axis_total_size;
+		}
+		
+		float main_spacing;
+		const float main_axis_mid = main_axis_start + main_axis_size * 0.5;
+		bool first_element_placed = false;
+		
+		do
+		{
+			// Start a new row/column
+			if(i == next_axis_index)
 			{
-				case FlowAlign::Start:
-				case FlowAlign::Space:
-					main_x = main_axis_start;
-					break;
-				case FlowAlign::Centre:
-					main_x = main_axis_mid - main_size * 0.5;
-					break;
-				case FlowAlign::End:
-					main_x = main_axis_end - main_size;
-					break;
-			}
-			
-			const float main_spacing = justify == FlowAlign::Space
-				? (main_num_elements > 1
-					? (main_axis_size - main_elements_size) / (main_num_elements - 1)
-					: 0)
-				: spacing;
-			
-			for(int j = main_start_index; j <= main_end_index; j++)
-			{
-				@element = elements[j];
+				main_x = main_axis_start;
+				cross_x += current_cross_axis_size;
 				
-				const float el_main_size  = is_horizontal ? element.width  : element.height;
-				const float el_cross_size = is_horizontal ? element.height : element.width;
-				const float main_x_final = is_reversed ? (main_axis_end - main_x + main_axis_start - el_main_size) : main_x;
-				float cross_x_final = cross_x;
+				if(i > 0)
+					cross_x += spacing;
 				
-				switch(align)
+				prev_axis_index = next_axis_index;
+				next_axis_index = axis_end_indices[axis_end_indices_index++];
+				
+				num_axis_elements = next_axis_index - prev_axis_index;
+				
+				current_main_axis_size = axis_sizes[axis_sizes_index++];
+				current_cross_axis_size = axis_sizes[axis_sizes_index++];
+				
+				main_spacing = justify == FlowAlign::Space
+					? (num_axis_elements > 1
+						? (main_axis_size - current_main_axis_size + (num_axis_elements - 1) * spacing) / (num_axis_elements - 1)
+						: 0)
+					: spacing;
+				
+				switch(justify)
 				{
 					case FlowAlign::Centre:
-						cross_x_final += (cross_size - el_cross_size) * 0.5;
+						main_x = main_axis_mid - current_main_axis_size * 0.5;
 						break;
 					case FlowAlign::End:
-						cross_x_final += cross_size - el_cross_size;
-						break;
-					case FlowAlign::Stretch:
-						if(is_horizontal)
-							element.height = cross_size;
-						else
-							element.width = cross_size;
+						main_x = main_axis_end - current_main_axis_size;
 						break;
 				}
-				
-				if(wrap_reversed)
-				{
-					cross_x_final = cross_axis_end - cross_x_final + cross_axis_start - cross_size;
-				}
-				
-				if(is_horizontal)
-				{
-					element.x = main_x_final;
-					element.y = cross_x_final;
-				}
-				else
-				{
-					element.y = main_x_final;
-					element.x = cross_x_final;
-				}
-				
-				if(!first_element_placed)
-				{
-					out_x1 = element.x;
-					out_y1 = element.y;
-					out_x2 = element.x + element.width;
-					out_y2 = element.y + element.height;
-					
-					first_element_placed = true;
-				}
-				else
-				{
-					if(element.x < out_x1) out_x1 = element.x;
-					if(element.y < out_y1) out_y1 = element.y;
-					if(element.x + element.width  > out_x2) out_x2 = element.x + element.width;
-					if(element.y + element.height > out_y2) out_y2 = element.y + element.height;
-				}
-				
-				main_x += el_main_size + main_spacing;
 			}
 			
-			cross_x += cross_size + spacing;
+			Element@ element = elements[i];
+			
+			const float el_main_size  = is_horizontal ? element.width  : element.height;
+			const float el_cross_size = is_horizontal ? element.height : element.width;
+			const float main_x_final = is_reversed ? (main_axis_end - main_x + main_axis_start - el_main_size) : main_x;
+			float cross_x_final = cross_x;
+			
+			switch(align)
+			{
+				case FlowAlign::Centre:
+					cross_x_final += ((current_cross_axis_size - el_cross_size) * 0.5) * (wrap_reversed ? -1 : 1);
+					break;
+				case FlowAlign::End:
+					cross_x_final += (current_cross_axis_size - el_cross_size) * (wrap_reversed ? -1 : 1);
+					break;
+				case FlowAlign::Stretch:
+					if(is_horizontal)
+						element.height = current_cross_axis_size;
+					else
+						element.width = current_cross_axis_size;
+					break;
+			}
+			
+			if(wrap_reversed)
+			{
+				cross_x_final = cross_axis_end - cross_x_final + cross_axis_start - current_cross_axis_size;
+			}
+			
+			if(is_horizontal)
+			{
+				element.x = main_x_final;
+				element.y = cross_x_final;
+			}
+			else
+			{
+				element.y = main_x_final;
+				element.x = cross_x_final;
+			}
+			
+			if(!first_element_placed)
+			{
+				out_x1 = element.x;
+				out_y1 = element.y;
+				out_x2 = out_x1 + element.width;
+				out_y2 = out_y1 + element.height;
+				first_element_placed = true;
+			}
+			else
+			{
+				if(element.x < out_x1)
+					out_x1 = element.x;
+				if(element.y < out_y1)
+					out_y1 = element.y;
+				if(element.x + element.width > out_x2)
+					out_x2 = element.x + element.width;
+				if(element.y + element.height > out_y2)
+					out_y2 = element.y + element.height;
+			}
+			
+			main_x += el_main_size + main_spacing;
+			
+			i++;
 		}
+		while(i < num_children);
 		
 		out_x1 -= padding;
 		out_y1 -= padding;
