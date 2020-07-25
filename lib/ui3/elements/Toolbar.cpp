@@ -182,20 +182,20 @@ class Toolbar : Container
 		return ui.mouse.x >= gripper_x1 && ui.mouse.x <= gripper_x2 && ui.mouse.y >= gripper_y1 && ui.mouse.y <= gripper_y2;
 	}
 	
-	void get_gripper_bounds(float &out gripper_x1, float &out gripper_y1, float &out gripper_x2, float &out gripper_y2, bool inner)
+	void get_gripper_bounds(float &out gripper_x1, float &out gripper_y1, float &out gripper_x2, float &out gripper_y2, const bool inner)
 	{
 		gripper_x1 = x1;
 		gripper_y1 = y1;
 		
 		if(flow_layout.is_horizontal)
 		{
-			gripper_x2 = x1 + ui.style.spacing + ui.style.gripper_required_space;
+			gripper_x2 = x1 + ui.style.spacing * 2 + ui.style.gripper_required_space;
 			gripper_y2 = y2;
 		}
 		else
 		{
 			gripper_x2 = x2;
-			gripper_y2 = y1 + ui.style.spacing + ui.style.gripper_required_space;
+			gripper_y2 = y1 + ui.style.spacing * 2 + ui.style.gripper_required_space;
 		}
 		
 		if(inner)
