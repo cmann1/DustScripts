@@ -111,7 +111,7 @@ class UI
 		
 		set_region(x1, y1, x2, y2);
 		
-		@_toolbar_flow_layout = FlowLayout(this, FlowDirection::Row, FlowAlign::Start, FlowAlign::Centre, FlowWrap::Wrap);
+		@_toolbar_flow_layout = FlowLayout(this, FlowDirection::Row, FlowAlign::Start, FlowAlign::Stretch, FlowWrap::Wrap);
 	}
 	
 	// The top most element the mouse is over

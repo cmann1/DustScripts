@@ -116,7 +116,7 @@ class FlowLayout : Layout
 				if(axis_end_indices_index == axis_end_indices_stacksize)
 					axis_end_indices.resize(axis_end_indices_stacksize += 16);
 				axis_end_indices[axis_end_indices_index++] = i;
-				
+
 				// Reset
 				main_x = main_axis_start + el_main_size + spacing;
 				cross_x += current_cross_axis_size + spacing;
@@ -207,12 +207,15 @@ class FlowLayout : Layout
 					cross_x += spacing;
 				
 				prev_axis_index = next_axis_index;
-				next_axis_index = axis_end_indices[axis_end_indices_index++];
+				
+				while(i == next_axis_index)
+				{
+					next_axis_index = axis_end_indices[axis_end_indices_index++];
+					current_main_axis_size = axis_sizes[axis_sizes_index++];
+					current_cross_axis_size = axis_sizes[axis_sizes_index++];
+				}
 				
 				num_axis_elements = next_axis_index - prev_axis_index;
-				
-				current_main_axis_size = axis_sizes[axis_sizes_index++];
-				current_cross_axis_size = axis_sizes[axis_sizes_index++];
 				
 				main_spacing = justify == FlowAlign::Space
 					? (num_axis_elements > 1
