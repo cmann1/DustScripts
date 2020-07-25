@@ -3,6 +3,7 @@
 #include '../utils/colour.cpp';
 #include 'TextAlign.cpp';
 #include 'elements/Element.cpp';
+#include 'utils/Orientation.cpp';
 
 class Style
 {
@@ -34,6 +35,9 @@ class Style
 	float border_size = 1;
 	float spacing = 4;
 	float button_pressed_icon_offset = 1;
+	
+	float gripper_thickness = 2;
+	float gripper_margin = 1;
 	
 	// The default font used when creating labels, etc.
 	string default_font = font::PROXIMANOVA_REG;
@@ -154,6 +158,8 @@ class Style
 		
 		global_alpha = global_alpha_stack[--global_alpha_index];
 	}
+	
+	float gripper_required_space { get { return gripper_thickness + gripper_margin * 2; } }
 	
 	// -----------------------------------------------------------------
 	// Basic drawing methods
@@ -405,6 +411,36 @@ class Style
 		if(border_clr != 0)
 		{
 			outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
+		}
+	}
+	
+	void draw_gripper(const Orientation orientation, const float x, float start, float end)
+	{
+		// Calculate how many whole dots will fit between start and end
+		const int num_dots = floor_int((end - start) / (gripper_thickness * 2));
+		
+		if(num_dots <= 1)
+		{
+			if(orientation == Orientation::Horizontal)
+				draw_rectangle(x + gripper_margin, start, x + gripper_margin + gripper_thickness, end, 0, normal_border_clr);
+			else
+				draw_rectangle(start, x + gripper_margin, end, x + gripper_margin + gripper_thickness, 0, normal_border_clr);
+		}
+		else
+		{
+			// Centre the dots lengthwise
+			const float dots_length = gripper_thickness * (num_dots * 2 - 1);
+			float y = start + ((end - start) - dots_length) * 0.5;
+			
+			for(int i = 0; i < num_dots; i++)
+			{
+				if(orientation == Orientation::Horizontal)
+					draw_rectangle(x + gripper_margin, y, x + gripper_margin + gripper_thickness, y + gripper_thickness, 0, normal_border_clr);
+				else
+					draw_rectangle(y, x + gripper_margin, y + gripper_thickness, x + gripper_margin + gripper_thickness, 0, normal_border_clr);
+				
+				y += gripper_thickness * 2;
+			}
 		}
 	}
 	

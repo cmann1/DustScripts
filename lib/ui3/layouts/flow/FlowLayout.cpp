@@ -17,9 +17,6 @@ class FlowLayout : Layout
 	float padding = NAN;
 	float spacing = NAN;
 	
-	// TODO: Remove
-	bool _db = false;
-	
 	FlowLayout(UI@ ui,
 		const FlowDirection direction, FlowAlign justify=FlowAlign::Start, FlowAlign align=FlowAlign::Start,
 		FlowWrap wrap=FlowWrap::Wrap, FlowFit fit=FlowFit::None)
