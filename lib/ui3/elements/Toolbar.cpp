@@ -11,7 +11,7 @@ class Toolbar : Container
 	
 	protected FlowLayout@ flow_layout;
 	
-	// TODO: Remove auto_fit. A toolbar should always fit content
+	// TODO: auto_fit should only control wether the main axis is fit
 	Toolbar(UI@ ui, bool auto_fit=true, float max_size=0)
 	{
 		super(ui, 'tbar');

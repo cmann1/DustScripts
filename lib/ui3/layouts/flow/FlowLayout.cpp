@@ -12,13 +12,12 @@ class FlowLayout : Layout
 	FlowAlign justify;
 	FlowAlign align;
 	FlowWrap wrap;
-	FlowAlign cross_justify;
 	float padding = NAN;
 	float spacing = NAN;
 	
 	FlowLayout(UI@ ui,
 		const FlowDirection direction, FlowAlign justify=FlowAlign::Start, FlowAlign align=FlowAlign::Start,
-		FlowWrap wrap=FlowWrap::Wrap, FlowAlign cross_justify=FlowAlign::Start)
+		FlowWrap wrap=FlowWrap::Wrap)
 	{
 		@this.ui		= ui;
 		
@@ -26,7 +25,6 @@ class FlowLayout : Layout
 		this.justify		= justify;
 		this.align			= align;
 		this.wrap			= wrap;
-		this.cross_justify	= cross_justify;
 	}
 	
 	void do_layout(UI@ ui, const array<Element@>@ elements,
@@ -122,7 +120,9 @@ class FlowLayout : Layout
 			}
 			
 			const float main_spacing = justify == FlowAlign::Space
-				? (main_axis_size - main_elements_size) / (main_num_elements - 1)
+				? (main_num_elements > 1
+					? (main_axis_size - main_elements_size) / (main_num_elements - 1)
+					: 0)
 				: spacing;
 			
 			for(int j = main_start_index; j <= main_end_index; j++)
