@@ -427,7 +427,8 @@ class Toolbar : Container, IOrientationParent
 	
 	void get_gripper_bounds(float &out gripper_x1, float &out gripper_y1, float &out gripper_x2, float &out gripper_y2, const bool inner)
 	{
-		const float gripper_space = ui.style.spacing + ui.style.gripper_required_space;
+		const float spacing = ui.style.spacing;
+		const float gripper_space = spacing + ui.style.gripper_required_space + spacing;
 		const bool is_horizontal = flow_layout.is_horizontal;
 		
 		if(is_horizontal)
@@ -467,14 +468,10 @@ class Toolbar : Container, IOrientationParent
 		{
 			const bool is_reversed = flow_layout.direction == FlowDirection::RowReverse || flow_layout.direction == FlowDirection::ColumnReverse;
 			
-			if(!is_horizontal || !is_reversed)
-				gripper_x1 += ui.style.spacing;
-			if(!is_horizontal ||  is_reversed)
-				gripper_x2 -= ui.style.spacing;
-			if(is_horizontal || !is_reversed)
-				gripper_y1 += ui.style.spacing;
-			if(is_horizontal ||  is_reversed)
-				gripper_y2 -= ui.style.spacing;
+			gripper_x1 += spacing;
+			gripper_y1 += spacing;
+			gripper_x2 -= spacing;
+			gripper_y2 -= spacing;
 		}
 	}
 	
