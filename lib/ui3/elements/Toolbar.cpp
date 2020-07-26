@@ -2,6 +2,7 @@
 #include '../Style.cpp';
 #include '../events/Event.cpp';
 #include '../layouts/flow/FlowLayout.cpp';
+#include '../utils/ButtonGroup.cpp';
 #include 'Container.cpp';
 
 class Toolbar : Container
@@ -13,6 +14,8 @@ class Toolbar : Container
 	
 	Event move;
 	Event move_complete;
+	
+	ButtonGroup@ button_group;
 	
 	protected FlowLayout@ flow_layout;
 	protected bool busy_dragging;
@@ -55,10 +58,48 @@ class Toolbar : Container
 		set { if(@value != null) @flow_layout = @value; }
 	}
 	
-	void add_button(Element@ content)
+	// Add methods
+	
+	Image@ add_image(const string sprite_text, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
 	{
-		
+		Image@ image = Image(ui, sprite_text, sprite_name, width, height, offset_x, offset_y);
+		add_child(image);
+		return image;
 	}
+	
+	Button@ add_button(Element@ content)
+	{
+		Button@ button = Button(ui, content);
+		@button.group = button_group;
+		add_child(button);
+		return button;
+	}
+	
+	Button@ add_button(const string text)
+	{
+		Button@ button = Button(ui, text);
+		@button.group = button_group;
+		add_child(button);
+		return button;
+	}
+	
+	Button@ add_button(const string sprite_text, const string sprite_name,
+		const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
+	{
+		Button@ button = Button(ui, sprite_text, sprite_name, width, height, offset_x, offset_y);
+		@button.group = button_group;
+		add_child(button);
+		return button;
+	}
+	
+	Element@ add_divider()
+	{
+		puts('Not implemented');
+		return null;
+	}
+	
+	// /////////////////////////////////////
+	// Internal/Util
 	
 	void do_layout(const float parent_x, const float parent_y) override
 	{

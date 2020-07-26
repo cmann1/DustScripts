@@ -1,6 +1,7 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../TextAlign.cpp';
+#include '../utils/ButtonGroup.cpp';
 #include 'Element.cpp';
 #include 'SingleContainer.cpp';
 
@@ -8,11 +9,12 @@ class Button : SingleContainer
 {
 	
 	bool selectable;
-	bool selected;
+	bool _selected;
 	
 	Event select;
 	
 	protected bool pressed;
+	protected ButtonGroup@ _group;
 	
 	Button(UI@ ui, Element@ content)
 	{
@@ -21,7 +23,7 @@ class Button : SingleContainer
 		init();
 	}
 	
-	Button(UI@ ui, string text)
+	Button(UI@ ui, const string text)
 	{
 		Label@ label = ui._label_pool.get(
 			ui, text,
@@ -48,6 +50,41 @@ class Button : SingleContainer
 		children_mouse_enabled = false;
 	}
 	
+	ButtonGroup@ group
+	{
+		get { return _group; }
+		set
+		{
+			if(@_group == @value)
+				return;
+			
+			value.add(this);
+			@_group = value;
+		}
+	}
+	
+	bool selected
+	{
+		get const { return _selected; }
+		set
+		{
+			if(_selected == value)
+				return;
+			
+			if(@_group != null && !_group._try_select(this, value))
+				return;
+			
+			_selected = value;
+			ui._event_info.reset(EventType::SELECT, this);
+			select.dispatch(ui._event_info);
+			
+			if(@_group != null)
+			{
+				_group._change_selection(this, _selected);
+			}
+		}
+	}
+	
 	void do_layout(const float parent_x, const float parent_y) override
 	{
 		Element::do_layout(parent_x, parent_y);
@@ -60,9 +97,7 @@ class Button : SingleContainer
 		{
 			if(selectable && hovered && ui.mouse.primary_release)
 			{
-				selected = !selected;
-				ui._event_info.reset(EventType::SELECT, this);
-				select.dispatch(ui._event_info);
+				selected = !_selected;
 			}
 			
 			if(!ui.mouse.primary_down)

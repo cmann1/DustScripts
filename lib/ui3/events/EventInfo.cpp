@@ -11,7 +11,7 @@ class EventInfo
 	MouseButton button;
 	float x, y;
 	
-	void reset(string type, MouseButton button, float x, float y)
+	void reset(const string type, MouseButton button, const float x, const float y)
 	{
 		this.type = type;
 		this.button = button;
@@ -19,7 +19,7 @@ class EventInfo
 		this.y = y;
 	}
 	
-	void reset(string type, Element@ target)
+	void reset(const string type, Element@ target)
 	{
 		this.type = type;
 		this.button = MouseButton::None;

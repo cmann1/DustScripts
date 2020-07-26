@@ -9,6 +9,7 @@
 #include 'utils/pools/ImagePool.cpp';
 #include 'utils/pools/LabelPool.cpp';
 #include 'events/Event.cpp';
+#include 'events/GenericEvent.cpp';
 #include 'elements/Element.cpp';
 #include 'elements/Container.cpp';
 #include 'elements/Tooltip.cpp';
@@ -74,6 +75,7 @@ class UI
 	/*private*/ ImagePool _image_pool;
 	
 	/*private*/ EventInfo@ _event_info = EventInfo();
+	/*private*/ GenericEventInfo@ _generic_event_info = GenericEventInfo();
 	/*private*/ FlowLayout@ _toolbar_flow_layout;
 	
 	/*private*/ array<float> _float_array(16);
@@ -113,7 +115,7 @@ class UI
 		
 		set_region(x1, y1, x2, y2);
 		
-		@_toolbar_flow_layout = FlowLayout(this, FlowDirection::Row, FlowAlign::Start, FlowAlign::Stretch, FlowWrap::Wrap);
+		@_toolbar_flow_layout = FlowLayout(this, FlowDirection::Row, FlowAlign::Start, FlowAlign::Centre, FlowWrap::Wrap);
 	}
 	
 	// The top most element the mouse is over

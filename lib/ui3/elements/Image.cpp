@@ -69,8 +69,8 @@ class Image : Element
 	
 	void do_layout(const float parent_x, const float parent_y) override
 	{
-		width = sprite_width * scale_x;
-		height = sprite_height * scale_y;
+//		width = sprite_width * scale_x;
+//		height = sprite_height * scale_y;
 		
 		Element::do_layout(parent_x, parent_y);
 	}

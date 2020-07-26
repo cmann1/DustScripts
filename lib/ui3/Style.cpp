@@ -11,11 +11,11 @@ class Style
 	uint text_clr						= 0xffffffff;
 	uint normal_bg_clr					= 0xd9050505;
 	uint normal_border_clr				= 0x33ffffff;
-	uint highlight_bg_clr				= 0xd9622a24;
+	uint highlight_bg_clr				= 0xd9521c17;
 	uint highlight_border_clr			= 0xd9933c34;
-	uint selected_bg_clr				= normal_bg_clr;
+	uint selected_bg_clr				= highlight_bg_clr;
 	uint selected_border_clr			= 0xffb16860;
-	uint selected_highlight_bg_clr		= highlight_bg_clr;
+	uint selected_highlight_bg_clr		= 0xd9622a24;
 	uint selected_highlight_border_clr	= 0xffb16860;
 	uint disabled_bg_clr				= 0xa6000000;
 	uint disabled_border_clr			= 0x26ffffff;
@@ -33,6 +33,7 @@ class Style
 	float disabled_alpha	= 0.35;
 	
 	float border_size = 1;
+	float selected_border_size = 2;
 	float spacing = 4;
 	float button_pressed_icon_offset = 1;
 	
@@ -368,6 +369,7 @@ class Style
 			: (highlighted && selected ? selected_highlight_border_clr
 				: selected ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
 		
+		const float border_size = selected ? selected_border_size : this.border_size;
 		const float inset = border_clr != 0 ? max(0, border_size) : 0;
 		
 		draw_rectangle(
