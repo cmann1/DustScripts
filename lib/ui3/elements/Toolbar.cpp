@@ -123,6 +123,11 @@ class Toolbar : Container, IOrientationParent
 	{
 		const bool is_horizontal = _flow_layout.is_horizontal;
 		
+		if(hovered && ui.mouse.primary_press)
+		{
+			ui.move_to_front(this);
+		}
+		
 		if(draggable && hovered && ui.mouse.primary_press && is_mouse_over_gripper())
 		{
 			drag_offset_x = ui.mouse.x - x1;
@@ -131,7 +136,6 @@ class Toolbar : Container, IOrientationParent
 			prev_drag_y = parent.mouse_y;
 			busy_dragging = true;
 			has_moved = false;
-			ui.move_to_front(this);
 		}
 		
 		if(busy_dragging)
