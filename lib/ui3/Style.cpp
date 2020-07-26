@@ -44,7 +44,7 @@ class Style
 	float divider_margin = 1;
 	
 	float snap_distance  = 6;
-	float snap_threshold = 6;
+	float snap_threshold = 3;
 	
 	// The default font used when creating labels, etc.
 	string default_font = font::PROXIMANOVA_REG;

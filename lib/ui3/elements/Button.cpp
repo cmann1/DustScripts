@@ -1,6 +1,7 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../TextAlign.cpp';
+#include '../events/Event.cpp';
 #include '../utils/ButtonGroup.cpp';
 #include 'Element.cpp';
 #include 'SingleContainer.cpp';
@@ -38,7 +39,7 @@ class Button : SingleContainer
 	
 	Button(UI@ ui, const string sprite_text, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
 	{
-		Image@ image = ui._image_pool.get(ui, sprite_text, sprite_name, width, height, offset_x, offset_y);
+		Image@ image = Image(ui, sprite_text, sprite_name, width, height, offset_x, offset_y);
 		
 		super(ui, image, 'btn');
 		
@@ -48,6 +49,8 @@ class Button : SingleContainer
 	protected void init()
 	{
 		children_mouse_enabled = false;
+		width  = 40;
+		height = 40;
 	}
 	
 	ButtonGroup@ group
@@ -106,15 +109,15 @@ class Button : SingleContainer
 			}
 		}
 		
-		if(@content != null)
+		if(@_content != null)
 		{
-			content.x = (width  - content.width)  * 0.5;
-			content.y = (height - content.height) * 0.5;
+			_content.x = (width  - _content.width)  * 0.5;
+			_content.y = (height - _content.height) * 0.5;
 			
 			if(pressed)
 			{
-				content.x += ui.style.button_pressed_icon_offset;
-				content.y += ui.style.button_pressed_icon_offset;
+				_content.x += ui.style.button_pressed_icon_offset;
+				_content.y += ui.style.button_pressed_icon_offset;
 			}
 		}
 	}
@@ -126,12 +129,12 @@ class Button : SingleContainer
 		
 		style.draw_interactive_element(this, hovered, selectable && selected, disabled);
 		
-		if(@content != null)
+		if(@_content != null)
 		{
 			if(disabled)
 				style.disable_alpha();
 			
-			content.draw(style, sub_frame);
+			_content.draw(style, sub_frame);
 			
 			if(disabled)
 				style.restore_alpha();
