@@ -4,8 +4,10 @@
 #include '../layouts/flow/FlowLayout.cpp';
 #include '../utils/ButtonGroup.cpp';
 #include 'Container.cpp';
+#include 'Button.cpp';
+#include 'Divider.cpp';
 
-class Toolbar : Container
+class Toolbar : Container, IOrientationParent
 {
 	
 	bool draggable;
@@ -17,7 +19,7 @@ class Toolbar : Container
 	
 	ButtonGroup@ button_group;
 	
-	protected FlowLayout@ flow_layout;
+	protected FlowLayout@ _flow_layout;
 	protected bool busy_dragging;
 	protected float drag_offset_x;
 	protected float drag_offset_y;
@@ -44,18 +46,30 @@ class Toolbar : Container
 	{
 		get
 		{
-			if(@flow_layout == null)
+			if(@_flow_layout == null)
 			{
-				@flow_layout = FlowLayout(ui,
+				@_flow_layout = FlowLayout(ui,
 					ui._toolbar_flow_layout.direction,
 					ui._toolbar_flow_layout.justify,
 					ui._toolbar_flow_layout.align,
 					ui._toolbar_flow_layout.wrap, ui._toolbar_flow_layout.fit);
 			}
 			
-			return @flow_layout;
+			return @_flow_layout;
 		}
-		set { if(@value != null) @flow_layout = @value; }
+		set { if(@value != null) @_flow_layout = @value; }
+	}
+	
+	Orientation orientation
+	{
+		get const
+		{
+			FlowLayout@ flow_layout = @this._flow_layout != null ? @this._flow_layout : @ui._toolbar_flow_layout;
+			
+			return flow_layout.direction == FlowDirection::Row || flow_layout.direction == FlowDirection::RowReverse
+				? Orientation::Horizontal
+				: Orientation::Vertical;
+		}
 	}
 	
 	// Add methods
@@ -92,10 +106,11 @@ class Toolbar : Container
 		return button;
 	}
 	
-	Element@ add_divider()
+	Divider@ add_divider()
 	{
-		puts('Not implemented');
-		return null;
+		Divider@ divider = Divider(ui, this);
+		add_child(divider);
+		return divider;
 	}
 	
 	// /////////////////////////////////////
@@ -103,8 +118,8 @@ class Toolbar : Container
 	
 	void do_layout(const float parent_x, const float parent_y) override
 	{
-		const bool is_horizontal = flow_layout.is_horizontal;
-		is_mouse_over_gripper();
+		const bool is_horizontal = _flow_layout.is_horizontal;
+		
 		if(draggable && ui.mouse.primary_press && is_mouse_over_gripper())
 		{
 			drag_offset_x = ui.mouse.x - x1;
@@ -154,7 +169,7 @@ class Toolbar : Container
 		
 		float out_x1, out_y1, out_x2, out_y2;
 		
-		FlowLayout@ flow_layout = @this.flow_layout != null ? @this.flow_layout : @ui._toolbar_flow_layout;
+		FlowLayout@ flow_layout = @this._flow_layout != null ? @this._flow_layout : @ui._toolbar_flow_layout;
 		flow_layout.fit = FlowFit::Both;
 		
 		float view_x1, view_y1, view_x2, view_y2;
@@ -171,7 +186,7 @@ class Toolbar : Container
 		{
 			if(is_horizontal)
 				width = max_size > 0 ? max_size : view_x2 - view_x1 - x + 1;
-			else if(is_horizontal)
+			else
 				height = max_size > 0 ? max_size : view_y2 - view_y1 - y + 1;
 		}
 		

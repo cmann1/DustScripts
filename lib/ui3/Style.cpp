@@ -40,6 +40,9 @@ class Style
 	float gripper_thickness = 2;
 	float gripper_margin = 1;
 	
+	float divider_thickness = 1;
+	float divider_margin = 1;
+	
 	// The default font used when creating labels, etc.
 	string default_font = font::PROXIMANOVA_REG;
 	// The default text size used when creating labels, etc.
