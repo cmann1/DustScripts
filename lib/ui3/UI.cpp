@@ -5,6 +5,7 @@
 #include '../utils/colour.cpp';
 #include 'UIMouse.cpp';
 #include 'Style.cpp';
+#include 'utils/BoolStack.cpp';
 #include 'utils/ElementStack.cpp';
 #include 'utils/pools/ImagePool.cpp';
 #include 'utils/pools/LabelPool.cpp';
@@ -46,6 +47,8 @@ class UI
 	
 	// Used for processing element layouts
 	private ElementStack element_stack;
+	// Used for processing element layouts
+	private BoolStack mouse_stack;
 	// The top most element the mouse is over
 	private Element@ _mouse_over_element;
 	// Elements entered on this frame
@@ -216,10 +219,10 @@ class UI
 		
 		const bool mouse_in_ui = mouse.x >= contents.x1 && mouse.x <= contents.x2 && mouse.y >= contents.y1 && mouse.y <= contents.y2;
 		
-		Element@ mouse_over_main		= update_layout(contents, mouse_in_ui);
+		Element@ mouse_over_main = update_layout(contents, mouse_in_ui);
 		@_mouse_over_element = mouse_over_main;
 		
-		Element@ mouse_over_overlays	= update_layout(overlays, mouse_in_ui);
+		Element@ mouse_over_overlays = update_layout(overlays, mouse_in_ui);
 		
 		if(@mouse_over_overlays != null)
 		{
@@ -396,33 +399,65 @@ class UI
 	{
 		Element@ mouse_over = null;
 		
+		ElementStack@ element_stack = @this.element_stack;
+		BoolStack@ mouse_stack = @this.mouse_stack;
+		
 		element_stack.clear();
+		mouse_stack.clear();
+		
 		base.do_layout(0, 0);
 		base._queue_children_for_layout(@element_stack);
 		
+		int stack_size = element_stack.size;
+		
+		if(check_mouse_over)
+		{
+			for(int i = 0; i < stack_size; i++)
+			{
+				mouse_stack.push(true);
+			}
+		}
+		
 		Element@ element = element_stack.pop();
+		bool parent_mouse = mouse_stack.pop();
+		stack_size--;
 		
 		while(@element != null)
 		{
 			if(element.visible)
 			{
 				element.do_layout(element.parent.x1, element.parent.y1);
+				element._queue_children_for_layout(@element_stack);
 				
-				if(@element.parent != null)
+				if(check_mouse_over)
 				{
-					element._queue_children_for_layout(@element_stack);
+					if(!element.mouse_enabled)
+						parent_mouse = false;
 					
-					if(check_mouse_over &&!element.disabled && element.mouse_enabled && element.parent.children_mouse_enabled)
+					if(parent_mouse)
 					{
 						if(element.overlaps_point(mouse.x, mouse.y))
 						{
 							@mouse_over = element;
 						}
 					}
+					
+					if(element.disabled || !element.children_mouse_enabled)
+						parent_mouse = false;
+					
+					int new_stack_size = element_stack.size;
+					
+					while(stack_size < new_stack_size)
+					{
+						mouse_stack.push(parent_mouse);
+						stack_size++;
+					}
 				}
 			}
 			
 			@element = element_stack.pop();
+			parent_mouse = mouse_stack.pop();
+			stack_size--;
 		}
 		
 		if(@mouse_over == @base)
@@ -449,7 +484,11 @@ class UI
 			
 			do
 			{
-				elements_mouse_enter.insertLast(mouse_over_traversal);
+				if(!mouse_over_traversal.disabled)
+				{
+					elements_mouse_enter.insertLast(mouse_over_traversal);
+				}
+				
 				@mouse_over_traversal = mouse_over_traversal.parent;
 			}
 			while(@mouse_over_traversal != @mouse_over_root);
@@ -687,7 +726,7 @@ class UI
 		
 		// Hover tooltip
 		
-		if(@_mouse_over_element != null && @_mouse_over_element.tooltip != null && _mouse_over_element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
+		if(@_mouse_over_element != null && !_mouse_over_element.disabled && @_mouse_over_element.tooltip != null && _mouse_over_element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
 		{
 			show_tooltip(_mouse_over_element);
 		}
