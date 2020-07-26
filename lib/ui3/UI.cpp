@@ -56,6 +56,8 @@ class UI
 	// The hierarchy of elements the mouse is over, from the outermost to the inner
 	private array<Element@> elements_mouse_over();
 	
+	private Element@ mouse_over_overlays;
+	
 	private dictionary elements_left_pressed();
 	private dictionary elements_right_pressed();
 	private dictionary elements_middle_pressed();
@@ -190,6 +192,8 @@ class UI
 	
 	void step()
 	{
+		process_mouse_events(@_mouse_over_element == @mouse_over_overlays ? overlays : contents);
+		
 		mouse.step();
 		
 		switch(primary_button)
@@ -222,14 +226,17 @@ class UI
 		Element@ mouse_over_main = update_layout(contents, mouse_in_ui);
 		@_mouse_over_element = mouse_over_main;
 		
-		Element@ mouse_over_overlays = update_layout(overlays, mouse_in_ui);
+		@mouse_over_overlays = update_layout(overlays, mouse_in_ui);
 		
 		if(@mouse_over_overlays != null)
 		{
 			@_mouse_over_element = @mouse_over_overlays;
 		}
 		
-		process_mouse_events(@_mouse_over_element == @mouse_over_main ? contents : overlays);
+		// Process the mouse events before the start of the next frame.
+		// Changes made during an event callback might affect the layout so when draw is called next
+		// some elements might not be positioned correctly.
+		// Wait for the next frame so that these changes will be reflected when the next layout pass happens.
 	}
 	
 	void draw(float sub_frame)
