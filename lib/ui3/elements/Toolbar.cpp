@@ -180,10 +180,35 @@ class Toolbar : Container, IOrientationParent
 		float view_x1, view_y1, view_x2, view_y2;
 		ui.get_region(view_x1, view_y1, view_x2, view_y2);
 		
-		float x =  is_horizontal && draggable ? ui.style.spacing + ui.style.gripper_required_space : 0;
-		float y = !is_horizontal && draggable ? ui.style.spacing + ui.style.gripper_required_space : 0;
-		float width  = this.width - x;
-		float height = this.height - y;
+		float x = 0;
+		float y = 0;
+		float width  = this.width;
+		float height = this.height;
+		
+		const float gripper_space = draggable ? ui.style.spacing + ui.style.gripper_required_space : 0;
+		const float hor_gripper_space = is_horizontal ? gripper_space : 0;
+		const float ver_gripper_space = is_horizontal ? 0 : gripper_space;
+		
+		if(draggable)
+		{
+			switch(flow_layout.direction)
+			{
+				case FlowDirection::Row:
+					x += gripper_space;
+					width -= gripper_space;
+					break;
+				case FlowDirection::RowReverse:
+					width -= gripper_space;
+					break;
+				case FlowDirection::Column:
+					y += gripper_space;
+					height -= gripper_space;
+					break;
+				case FlowDirection::ColumnReverse:
+					height -= gripper_space;
+					break;
+			}
+		}
 		
 		// Temporarily expand to max width and height to allow the max number of items
 		// Then shrink to fit after laying out children
@@ -201,13 +226,13 @@ class Toolbar : Container, IOrientationParent
 		
 		if(auto_fit || is_horizontal)
 		{
-			this.height = y + out_y2 - out_y1;
+			this.height = out_y2 - out_y1 + ver_gripper_space;
 			this.y2 = this.y1 + this.height;
 		}
 		
 		if(auto_fit || !is_horizontal)
 		{
-			this.width  = x + out_x2 - out_x1;
+			this.width  = out_x2 - out_x1 + hor_gripper_space;
 			this.x2 = this.x1 + this.width;
 		}
 	}
@@ -398,26 +423,54 @@ class Toolbar : Container, IOrientationParent
 	
 	void get_gripper_bounds(float &out gripper_x1, float &out gripper_y1, float &out gripper_x2, float &out gripper_y2, const bool inner)
 	{
-		gripper_x1 = x1;
-		gripper_y1 = y1;
+		const float gripper_space = ui.style.spacing + ui.style.gripper_required_space;
+		const bool is_horizontal = flow_layout.is_horizontal;
 		
-		if(flow_layout.is_horizontal)
+		if(is_horizontal)
 		{
-			gripper_x2 = x1 + ui.style.spacing * 2 + ui.style.gripper_required_space;
+			gripper_y1 = y1;
 			gripper_y2 = y2;
+			
+			if(flow_layout.direction == FlowDirection::Row)
+			{
+				gripper_x1 = x1;
+				gripper_x2 = x1 + gripper_space;
+			}
+			else
+			{
+				gripper_x1 = x2 - gripper_space;
+				gripper_x2 = x2;
+			}
 		}
 		else
 		{
+			gripper_x1 = x1;
 			gripper_x2 = x2;
-			gripper_y2 = y1 + ui.style.spacing * 2 + ui.style.gripper_required_space;
+			
+			if(flow_layout.direction == FlowDirection::Column)
+			{
+				gripper_y1 = y1;
+				gripper_y2 = y1 + gripper_space;
+			}
+			else
+			{
+				gripper_y1 = y2 - gripper_space;
+				gripper_y2 = y2;
+			}
 		}
 		
 		if(inner)
 		{
-			gripper_x1 += ui.style.spacing;
-			gripper_y1 += ui.style.spacing;
-			gripper_x2 -= ui.style.spacing;
-			gripper_y2 -= ui.style.spacing;
+			const bool is_reversed = flow_layout.direction == FlowDirection::RowReverse || flow_layout.direction == FlowDirection::ColumnReverse;
+			
+			if(!is_horizontal || !is_reversed)
+				gripper_x1 += ui.style.spacing;
+			if(!is_horizontal ||  is_reversed)
+				gripper_x2 -= ui.style.spacing;
+			if(is_horizontal || !is_reversed)
+				gripper_y1 += ui.style.spacing;
+			if(is_horizontal ||  is_reversed)
+				gripper_y2 -= ui.style.spacing;
 		}
 	}
 	
