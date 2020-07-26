@@ -175,6 +175,11 @@ class Tooltip : SingleContainer
 		// Fade the tooltip in or out
 		//
 		
+		if(!options.enabled)
+		{
+			_force_hide = true;
+		}
+		
 		bool active = !_force_hide;
 		
 		if(options.hide_type == TooltipHideType::MouseLeave)

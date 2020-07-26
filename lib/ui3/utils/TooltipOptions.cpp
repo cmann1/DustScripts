@@ -18,6 +18,7 @@ class TooltipOptions
 	
 	TextAlign align_h = TextAlign::Left;
 	
+	bool enabled = true;
 	bool interactable;
 	TooltipPosition position;
 	TooltipTriggerType trigger_type;
@@ -97,6 +98,12 @@ class TooltipOptions
 	
 	void set_content(Element@ content)
 	{
+		if(@content_str_label != null)
+		{
+			ui._label_pool.release(@content_str_label);
+			@content_str_label = null;
+		}
+		
 		@_content = content;
 		has_content_element = true;
 	}
@@ -105,18 +112,23 @@ class TooltipOptions
 	{
 		_content_str = content;
 		has_content_element = false;
+		
+		if(@content_str_label != null)
+		{
+			content_str_label.text = _content_str;
+		}
 	}
 	
 	Element@ content_element
 	{
 		get const { return _content; }
-		set { @_content = value; has_content_element = true; }
+		set { set_content(value); }
 	}
 	
 	string content_string
 	{
 		get const { return _content_str; }
-		set { _content_str = value; has_content_element = false; }
+		set { set_content(value); }
 	}
 	
 	Element@ get_contenet_element()
@@ -124,11 +136,14 @@ class TooltipOptions
 		if(has_content_element)
 			return _content;
 		
-		@content_str_label = ui._label_pool.get(
-			ui, _content_str,
-			align_h, TextAlign::Top,
-			ui.style.tooltip_text_scale, ui.style.tooltip_text_colour,
-			ui.style.tooltip_font, ui.style.tooltip_text_size);
+		if(@content_str_label == null)
+		{
+			@content_str_label = ui._label_pool.get(
+				ui, _content_str,
+				align_h, TextAlign::Top,
+				ui.style.tooltip_text_scale, ui.style.tooltip_text_colour,
+				ui.style.tooltip_font, ui.style.tooltip_text_size);
+		}
 		
 		return content_str_label;
 	}

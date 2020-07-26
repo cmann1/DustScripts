@@ -392,6 +392,22 @@ class UI
 		hide_tooltip(options._id);
 	}
 	
+	void update_tooltip(Element@ element)
+	{
+		if(@element == null || @element.tooltip == null)
+			return;
+		
+		update_tooltip(element._id, element.tooltip);
+	}
+	
+	void update_tooltip(TooltipOptions@ options)
+	{
+		if(@options == null)
+			return;
+		
+		update_tooltip(options._id, options);
+	}
+	
 	// Private
 	// ---------------------------------------------------------
 	
@@ -726,7 +742,10 @@ class UI
 		
 		// Hover tooltip
 		
-		if(@_mouse_over_element != null && !_mouse_over_element.disabled && @_mouse_over_element.tooltip != null && _mouse_over_element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
+		if(
+			@_mouse_over_element != null && !_mouse_over_element.disabled &&
+			@_mouse_over_element.tooltip != null &&
+			_mouse_over_element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
 		{
 			show_tooltip(_mouse_over_element);
 		}
@@ -734,6 +753,9 @@ class UI
 	
 	private void show_tooltip(const string id, TooltipOptions@ options, Element@ element, bool wait_for_mouse)
 	{
+		if(!options.enabled)
+			return;
+		
 		if(!tooltips.exists(id))
 		{
 			Tooltip@ tooltip = Tooltip(this, options, element, wait_for_mouse);
@@ -754,6 +776,16 @@ class UI
 		
 		Tooltip@ tooltip = cast<Tooltip@>(tooltips[id]);
 		tooltip.force_hide();
+	}
+	
+	private void update_tooltip(const string id, TooltipOptions@ options)
+	{
+		if(!tooltips.exists(id))
+			return;
+		
+		Tooltip@ tooltip = cast<Tooltip@>(tooltips[id]);
+		@tooltip.content = @options.get_contenet_element();
+		tooltip.fit_to_contents();
 	}
 	
 	private uint get_element_id_colour(Element@ element, const uint alpha=0xff)

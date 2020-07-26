@@ -2,10 +2,13 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../events/Event.cpp';
+#include '../utils/TooltipOptions.cpp';
 #include 'SingleContainer.cpp';
 
 class MultiButton : SingleContainer
 {
+	
+	bool auto_tooltips = true;
 	
 	Event select;
 	
@@ -15,6 +18,7 @@ class MultiButton : SingleContainer
 	
 	protected array<string> item_names;
 	protected array<Image@> images;
+	protected array<string> tooltips;
 	protected string _selected_name;
 	protected Image@ _selected_image;
 	protected int _selected_index = -1;
@@ -41,12 +45,14 @@ class MultiButton : SingleContainer
 		{
 			item_names.insertLast(name);
 			images.insertLast(image);
+			tooltips.insertLast('');
 			insert_index = item_names.length() - 1;
 		}
 		else
 		{
 			item_names.insertAt(index, name);
 			images.insertAt(index, @image);
+			tooltips.insertAt(index, '');
 			insert_index = index;
 		}
 		
@@ -84,6 +90,22 @@ class MultiButton : SingleContainer
 			return null;
 		
 		return _remove(index, image);
+	}
+	
+	void set_tooltip(const string tooltip, int index=-1)
+	{
+		const int num_items = int(item_names.length());
+		
+		if(index >= num_items)
+			return;
+		
+		if(index < 0)
+		{
+			index = num_items - 1;
+		}
+		
+		tooltips[index] = tooltip;
+		update_tooltip();
 	}
 	
 	void do_layout(const float parent_x, const float parent_y) override
@@ -177,6 +199,7 @@ class MultiButton : SingleContainer
 		
 		item_names.removeAt(index);
 		images.removeAt(index);
+		tooltips.removeAt(index);
 		
 		if(@new_image != null)
 		{
@@ -194,8 +217,35 @@ class MultiButton : SingleContainer
 		
 		@content = @image;
 		
+		if(auto_tooltips)
+		{
+			update_tooltip();
+		}
+		
 		ui._event_info.reset(EventType::SELECT, this);
 		select.dispatch(ui._event_info);
+	}
+	
+	private void update_tooltip()
+	{
+		if(_selected_index == -1 || tooltips[_selected_index] == '')
+		{
+			if(@tooltip != null)
+			{
+				tooltip.enabled = false;
+			}
+			
+			return;
+		}
+		
+		if(@tooltip == null)
+		{
+			@tooltip = TooltipOptions(ui, null);
+		}
+		
+		tooltip.enabled = true;
+		tooltip.content_string = tooltips[_selected_index];
+		ui.update_tooltip(this);
 	}
 	
 	protected float border_size { get const override { return ui.style.border_size; } }
