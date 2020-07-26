@@ -24,6 +24,11 @@ class Container : Element
 		set { @_layout = value; }
 	}
 	
+	array<Element@>@ get_children()
+	{
+		return @children;
+	}
+	
 	bool add_child(Element@ child)
 	{
 		if(child is null || @child == @this || @child.parent == @this)

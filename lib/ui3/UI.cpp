@@ -80,6 +80,7 @@ class UI
 	
 	/*private*/ array<float> _float_array(16);
 	/*private*/ array<int> _int_array(16);
+	/*private*/ array<Element@> _element_array(16);
 	
 	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
 	{
