@@ -40,6 +40,8 @@ class SingleContainer : LockedContainer
 			{
 				Container::add_child(_content);
 			}
+			
+			_validate_layout = true;
 		}
 	}
 	
@@ -62,14 +64,17 @@ class SingleContainer : LockedContainer
 			return;
 		}
 		
-		width  = _content.width + padding_x * 2;
-		height = _content.height + padding_y * 2;
+		float width  = _content.width + padding_x * 2;
+		float height = _content.height + padding_y * 2;
 		
 		if(include_border)
 		{
 			width  += border_size * 2;
 			height += border_size * 2;
 		}
+		
+		this.width = width;
+		this.height = height;
 	}
 	
 	void _queue_children_for_layout(ElementStack@ stack) override

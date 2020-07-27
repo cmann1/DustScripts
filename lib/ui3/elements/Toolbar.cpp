@@ -60,7 +60,14 @@ class Toolbar : Container, IOrientationParent
 			
 			return @_flow_layout;
 		}
-		set { if(@value != null) @_flow_layout = @value; }
+		set
+		{
+			if(@value == null || @_flow_layout == @value)
+				return;
+			
+			@_flow_layout = @value;
+			_validate_layout = true;
+		}
 	}
 	
 	Orientation orientation
@@ -184,8 +191,8 @@ class Toolbar : Container, IOrientationParent
 		
 		float x = 0;
 		float y = 0;
-		float width  = this.width;
-		float height = this.height;
+		float width  = this._width;
+		float height = this._height;
 		
 		const float gripper_space = draggable ? ui.style.spacing + ui.style.gripper_required_space : 0;
 		const float hor_gripper_space = is_horizontal ? gripper_space : 0;
@@ -212,28 +219,31 @@ class Toolbar : Container, IOrientationParent
 			}
 		}
 		
-		// Temporarily expand to max width and height to allow the max number of items
-		// Then shrink to fit after laying out children
-		if(auto_fit)
+		if(_validate_layout)
 		{
-			if(is_horizontal)
-				width = max_size > 0 ? max_size : view_x2 - view_x1 - x + 1;
-			else
-				height = max_size > 0 ? max_size : view_y2 - view_y1 - y + 1;
-		}
-		
-		flow_layout.do_layout(@children,
-			x, y, x + width, y + height,
-			out_x1, out_y1, out_x2, out_y2);
-		
-		if(auto_fit || is_horizontal)
-		{
-			this.height = out_y2 - out_y1 + ver_gripper_space;
-		}
-		
-		if(auto_fit || !is_horizontal)
-		{
-			this.width  = out_x2 - out_x1 + hor_gripper_space;
+			// Temporarily expand to max width and height to allow the max number of items
+			// Then shrink to fit after laying out children
+			if(auto_fit)
+			{
+				if(is_horizontal)
+					width = max_size > 0 ? max_size : view_x2 - view_x1 - x + 1;
+				else
+					height = max_size > 0 ? max_size : view_y2 - view_y1 - y + 1;
+			}
+			
+			flow_layout.do_layout(@children,
+				x, y, x + width, y + height,
+				out_x1, out_y1, out_x2, out_y2);
+			
+			if(auto_fit || is_horizontal)
+			{
+				this.height = out_y2 - out_y1 + ver_gripper_space;
+			}
+			
+			if(auto_fit || !is_horizontal)
+			{
+				this.width  = out_x2 - out_x1 + hor_gripper_space;
+			}
 		}
 	}
 	
@@ -391,8 +401,8 @@ class Toolbar : Container, IOrientationParent
 		float snap_x = (abs(closest_x1) < closest_x2 ? closest_x1 : closest_x2);
 		float snap_y = (abs(closest_y1) < closest_y2 ? closest_y1 : closest_y2);
 		
-		x = this.x;
-		y = this.y;
+		x = this._x;
+		y = this._y;
 		x1 = this.x1;
 		y1 = this.y1;
 		x2 = this.x2;

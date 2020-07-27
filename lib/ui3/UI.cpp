@@ -337,10 +337,15 @@ class UI
 		this.x2 = x2;
 		this.y2 = y2;
 		
-		overlays.x = contents.x = x1;
-		overlays.y = contents.y = y1;
-		overlays.width = contents.width  = x2 - x1;
-		overlays.height = contents.height = y2 - y1;
+		contents.x = x1;
+		contents.y = y1;
+		contents.width  = x2 - x1;
+		contents.height = y2 - y1;
+		
+		overlays.x = x1;
+		overlays.y = y1;
+		overlays.width  = x2 - x1;
+		overlays.height = y2 - y1;
 	}
 	
 	void get_region(float &out x1, float &out y1, float &out x2, float &out y2)

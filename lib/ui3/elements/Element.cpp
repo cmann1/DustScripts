@@ -36,8 +36,10 @@ abstract class Element
 	
 	float alpha = 1;
 	
-	float x, y;
-	float width = 100, height = 100;
+	float _x;
+	float _y;
+	float _width = 100;
+	float _height = 100;
 	
 	// After do_layout, these will be the element's position in world/ui space
 	float x1, y1;
@@ -120,6 +122,50 @@ abstract class Element
 	 * @brief Returns mouse y relative to this element
 	 */
 	float mouse_y { get { return ui.mouse.y - y1; } }
+	
+	float x
+	{
+		get const { return _x; }
+		set
+		{
+			if(_x == value) return;
+			_x = value;
+			if(@parent != null) parent._validate_layout = true;
+		}
+	}
+	
+	float y
+	{
+		get const { return _y; }
+		set
+		{
+			if(_y == value) return;
+			_y = value;
+			if(@parent != null) parent._validate_layout = true;
+		}
+	}
+	
+	float width
+	{
+		get const { return _width; }
+		set
+		{
+			if(_width == value) return;
+			_width = value;
+			if(@parent != null) parent._validate_layout = true;
+		}
+	}
+	
+	float height
+	{
+		get const { return _height; }
+		set
+		{
+			if(_height == value) return;
+			_height = value;
+			if(@parent != null) parent._validate_layout = true;
+		}
+	}
 	
 	// ------------------------------------------------
 	// Internal

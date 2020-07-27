@@ -63,8 +63,8 @@ class Image : Element
 			sprite_offset_y = offset_y;
 		}
 		
-		this.width = sprite_width * scale_x;
-		this.height = sprite_height * scale_y;
+		this._width = sprite_width * scale_x;
+		this._height = sprite_height * scale_y;
 	}
 	
 //	void _do_layout() override

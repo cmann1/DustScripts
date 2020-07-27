@@ -12,7 +12,7 @@ class ButtonGroup : IGenericEventTarget
 	private UI@ ui;
 	private array<Button@> buttons;
 	private bool busy_deselecting;
-	private Button@ selected_button;
+	private Button@ _selected_button;
 	
 	ButtonGroup(UI@ ui, bool allow_deselect=true)
 	{
@@ -49,7 +49,7 @@ class ButtonGroup : IGenericEventTarget
 		
 		if(button.selected)
 		{
-			_set_selected_button(button);
+			_set__selected_button(button);
 		}
 	}
 	
@@ -66,9 +66,9 @@ class ButtonGroup : IGenericEventTarget
 		buttons.removeAt(index);
 		@button.group = null;
 		
-		if(@button == @selected_button)
+		if(@button == @_selected_button)
 		{
-			_set_selected_button(null);
+			_set__selected_button(null);
 		}
 	}
 	
@@ -77,13 +77,13 @@ class ButtonGroup : IGenericEventTarget
 		if(busy_deselecting)
 			return true;
 		
-		if(!allow_deselect && @button == @selected_button)
+		if(!allow_deselect && @button == @_selected_button)
 			return false;
 		
-		if(selected && @button != @selected_button && @selected_button != null)
+		if(selected && @button != @_selected_button && @_selected_button != null)
 		{
 			busy_deselecting = true;
-			selected_button.selected = false;
+			_selected_button.selected = false;
 			busy_deselecting = false;
 		}
 		
@@ -92,36 +92,38 @@ class ButtonGroup : IGenericEventTarget
 	
 	void _change_selection(Button@ button, bool selected)
 	{
-		if(@button == @selected_button)
+		if(@button == @_selected_button)
 		{
 			if(!selected)
 			{
-				@selected_button = null;
+				@_selected_button = null;
 			}
 		}
 		else if(selected)
 		{
-			@selected_button = button;
+			@_selected_button = button;
 		}
 		
-		ui._generic_event_info.reset(EventType::SELECT, @this, @selected_button);
+		ui._generic_event_info.reset(EventType::SELECT, @this, @_selected_button);
 		select.dispatch(ui._generic_event_info);
 	}
 	
-	private void _set_selected_button(Button@ button)
+	Button@ selected_button { get { return _selected_button; } }
+	
+	private void _set__selected_button(Button@ button)
 	{
-		if(@button == @selected_button)
+		if(@button == @_selected_button)
 			return;
 		
-		if(@selected_button != null)
+		if(@_selected_button != null)
 		{
 			busy_deselecting = true;
-			selected_button.selected = false;
+			_selected_button.selected = false;
 			busy_deselecting = false;
 		}
 		
-		@selected_button = @button;
-		ui._generic_event_info.reset(EventType::SELECT, @this, @selected_button);
+		@_selected_button = @button;
+		ui._generic_event_info.reset(EventType::SELECT, @this, @_selected_button);
 		select.dispatch(ui._generic_event_info);
 	}
 	

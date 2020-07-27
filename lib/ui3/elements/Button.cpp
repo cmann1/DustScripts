@@ -48,8 +48,8 @@ class Button : SingleContainer
 	protected void init()
 	{
 		children_mouse_enabled = false;
-		width  = 40;
-		height = 40;
+		_width  = 40;
+		_height = 40;
 	}
 	
 	ButtonGroup@ group
@@ -91,13 +91,13 @@ class Button : SingleContainer
 	{
 		if(@_content != null)
 		{
-			_content.x = (width  - _content.width)  * 0.5;
-			_content.y = (height - _content.height) * 0.5;
+			_content._x = (_width  - _content._width)  * 0.5;
+			_content._y = (_height - _content._height) * 0.5;
 			
 			if(pressed)
 			{
-				_content.x += ui.style.button_pressed_icon_offset;
-				_content.y += ui.style.button_pressed_icon_offset;
+				_content._x += ui.style.button_pressed_icon_offset;
+				_content._y += ui.style.button_pressed_icon_offset;
 			}
 		}
 	}

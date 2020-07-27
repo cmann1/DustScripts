@@ -68,11 +68,11 @@ class Divider : Element
 		
 		if(orientation == Orientation::Horizontal)
 		{
-			size = width;
+			size = _width;
 		}
 		else
 		{
-			size = height;
+			size = _height;
 		}
 	}
 	

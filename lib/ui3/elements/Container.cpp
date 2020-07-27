@@ -8,6 +8,8 @@ class Container : Element
 	 * @brief Any element that can contain other elements
 	 */
 	
+	bool _validate_layout;
+	
 	protected array<Element@> children;
 	protected int num_children;
 	
@@ -21,7 +23,14 @@ class Container : Element
 	Layout@ layout
 	{
 		get { return @_layout; }
-		set { @_layout = value; }
+		set
+		{
+			if(@_layout == @value)
+				return;
+			
+			@_layout = value;
+			_validate_layout = true;
+		}
 	}
 	
 	array<Element@>@ get_children()
@@ -42,6 +51,8 @@ class Container : Element
 		children.insertLast(child);
 		num_children++;
 		@child.parent = @this;
+		
+		_validate_layout = true;
 		return true;
 	}
 	
@@ -69,6 +80,8 @@ class Container : Element
 		num_children--;
 		child._added();
 		@child.parent = null;
+		
+		_validate_layout = true;
 		return true;
 	}
 	
@@ -95,6 +108,8 @@ class Container : Element
 		{
 			children.insertAt(index < 0 ? 0 : index, child);
 		}
+		
+		_validate_layout = true;
 	}
 	
 	void move_to_front(Element@ child)
@@ -125,6 +140,7 @@ class Container : Element
 		
 		@children[index] = @children[index + 1];
 		@children[index + 1] = child;
+		_validate_layout = true;
 	}
 	
 	void move_down(Element@ child)
@@ -139,11 +155,13 @@ class Container : Element
 		
 		@children[index] = @children[index - 1];
 		@children[index - 1] = child;
+		_validate_layout = true;
 	}
 	
 	void clear()
 	{
 		children.resize(0);
+		_validate_layout = true;
 	}
 	
 	void _queue_children_for_layout(ElementStack@ stack) override
@@ -153,7 +171,7 @@ class Container : Element
 	
 	void _do_layout()
 	{
-		if(@_layout != null)
+		if(_validate_layout && @_layout != null)
 		{
 			float out_x1, out_y1, out_x2, out_y2;
 			
