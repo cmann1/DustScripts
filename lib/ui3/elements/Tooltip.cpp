@@ -52,7 +52,13 @@ class Tooltip : SingleContainer
 		SingleContainer::fit_to_contents(include_border, padding_x, padding_y);
 	}
 	
-	void do_layout(const float parent_x, const float parent_y) override
+	void force_hide()
+	{
+		_force_hide = true;
+		waiting_for_mouse = false;
+	}
+	
+	void _do_layout() override
 	{
 		TooltipPosition calculatedPosition = options.position;
 		
@@ -69,6 +75,8 @@ class Tooltip : SingleContainer
 		view_x2 -= ui.style.spacing;
 		view_y1 += ui.style.spacing;
 		view_y2 -= ui.style.spacing;
+		
+		update_world_bounds();
 		
 		if(@target != null)
 		{
@@ -231,30 +239,6 @@ class Tooltip : SingleContainer
 			}
 		}
 		
-		if(active)
-		{
-			if(fade < options.fade_max)
-			{
-				fade++;
-				update_fade();
-			}
-		}
-		else
-		{
-			if(fade > 0)
-			{
-				fading_out = true;
-				fade--;
-				update_fade();
-			}
-			else
-			{
-				ui._event_info.reset(EventType::HIDE, this);
-				hide.dispatch(ui._event_info);
-				options._on_tooltip_hide();
-			}
-		}
-		
 		//
 		// Offset while fading
 		//
@@ -295,29 +279,53 @@ class Tooltip : SingleContainer
 				break;
 		}
 		
-		x = x1;
-		y = y1;
+		x = x1 - parent.x1;
+		y = y1 - parent.y1;
 		
 		if(@content != null)
 		{
 			content.x = ui.style.tooltip_padding;
 			content.y = ui.style.tooltip_padding;
 		}
+		
+		if(active)
+		{
+			if(fade < options.fade_max)
+			{
+				fade++;
+				update_fade();
+			}
+		}
+		else
+		{
+			if(fade > 0)
+			{
+				fading_out = true;
+				fade--;
+				update_fade();
+			}
+			else
+			{
+				ui._event_info.reset(EventType::HIDE, this);
+				hide.dispatch(ui._event_info);
+				options._on_tooltip_hide();
+			}
+		}
 	}
 	
-	void draw(Style@ style, const float sub_frame) override
+	void _draw(Style@ style) override
 	{
 		if(alpha != 1)
 			style.multiply_alpha(alpha);
 		
 		style.draw_popup_element(this);
 		
-		if(@content != null)
+		if(@_content != null)
 		{
 			if(disabled)
 				style.disable_alpha();
 			
-			content.draw(style, sub_frame);
+			_content._draw(style);
 			
 			if(disabled)
 				style.restore_alpha();
@@ -325,12 +333,6 @@ class Tooltip : SingleContainer
 		
 		if(alpha != 1)
 			style.restore_alpha();
-	}
-	
-	void force_hide()
-	{
-		_force_hide = true;
-		waiting_for_mouse = false;
 	}
 	
 	private void update_fade()

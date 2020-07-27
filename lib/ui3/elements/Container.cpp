@@ -146,29 +146,34 @@ class Container : Element
 		children.resize(0);
 	}
 	
-	void do_layout(const float parent_x, const float parent_y)
-	{
-		Element::do_layout(parent_x, parent_y);
-		
-		// TODO: Layouts
-	}
-	
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
 		stack.push_reversed(@children);
 	}
 	
-	void draw(Style@ style, const float sub_frame) override
+	void _do_layout()
+	{
+		if(@_layout != null)
+		{
+			float out_x1, out_y1, out_x2, out_y2;
+			
+			_layout.do_layout(@children,
+				x, y, x + width, y + height,
+				out_x1, out_y1, out_x2, out_y2);
+		}
+	}
+	
+	void _draw(Style@ style) override
 	{
 		if(num_children == 0)
 			return;
 		
 		if(disabled || alpha != 1)
-			style.disable_alpha();
+			style.disable_alpha(alpha);
 		
 		for(int i = 0; i < num_children; i++)
 		{
-			children[i].draw(style, sub_frame);
+			children[i]._draw(style);
 		}
 		
 		if(disabled || alpha != 1)

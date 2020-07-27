@@ -29,6 +29,8 @@ abstract class Element
 	bool children_mouse_enabled = true;
 	// Is the mouse within/over this element, or any of its descendants
 	bool hovered;
+	// The mouse is down and was pressed over this element
+	bool pressed;
 	// Disabled this element. Only relevant for interactive elements
 	bool disabled;
 	
@@ -57,23 +59,39 @@ abstract class Element
 		_id = type_identifier + (++ui.NEXT_ID);
 	}
 	
-	void do_layout(const float parent_x, const float parent_y)
+	bool overlaps_point(const float x, const float y)
 	{
-		x1 = parent_x + x;
-		y1 = parent_y + y;
-		x2 = x1 + width;
-		y2 = y1 + height;
+		return x < x2 && x >= x1 && y < y2 && y >= y1;
 	}
 	
-	void draw(Style@ style, const float sub_frame)
+	void to_local(const float x, const float y, float &out out_x, float &out out_y)
 	{
-		// Debug
-		//style.draw_rectangle(x1, y1, x2, y2, 0, 0x55000000);
+		out_x = x;
+		out_y = y;
+		
+		Container@ p = @parent;
+		
+		while(@p != null)
+		{
+			out_x -= parent.x;
+			out_y -= parent.y;
+			@p = p.parent;
+		}
 	}
 	
-	bool overlaps_point(const float px, const float py)
+	void to_global(const float x, const float y, float &out out_x, float &out out_y)
 	{
-		return px < x2 && px >= x1 && py < y2 && py >= y1;
+		out_x = x;
+		out_y = y;
+		
+		Container@ p = @parent;
+		
+		while(@p != null)
+		{
+			out_x += parent.x;
+			out_y += parent.y;
+			@p = p.parent;
+		}
 	}
 	
 	/**
@@ -124,5 +142,44 @@ abstract class Element
 	{
 		
 	}
+	
+	void _do_layout()
+	{
+		
+	}
+	
+	void _draw(Style@ style)
+	{
+		// Debug
+		//style.draw_rectangle(x1, y1, x2, y2, 0, 0x55000000);
+	}
+	
+	void update_world_bounds(Element@ parent)
+	{
+		x1 = parent.x1 + x;
+		y1 = parent.y1 + y;
+		x2 = x1 + width;
+		y2 = y1 + height;
+	}
+	
+	void update_world_bounds()
+	{
+		x1 = x;
+		y1 = y;
+		x2 = x + width;
+		y2 = y + height;
+	}
+	
+	// ------------------------------------------------
+	// Mouse Events
+	// ------------------------------------------------
+	
+	void _mouse_enter() { }
+	void _mouse_exit() { }
+	void _mouse_press(const MouseButton button) { }
+	void _mouse_move() { }
+	void _mouse_release(const MouseButton button) { }
+	void _mouse_click() { }
+	void _mouse_button_click(const MouseButton button) { }
 	
 }

@@ -131,7 +131,7 @@ class Style
 		global_alpha_index = 0;
 	}
 	
-	void disable_alpha()
+	void disable_alpha(const float multiplier=1)
 	{
 		if(global_alpha_index == global_alpha_size)
 		{
@@ -140,7 +140,7 @@ class Style
 		}
 		
 		global_alpha_stack[global_alpha_index++] = global_alpha;
-		global_alpha *= clamp01(disabled_alpha);
+		global_alpha *= clamp01(disabled_alpha * multiplier);
 	}
 	
 	void multiply_alpha(float alpha)

@@ -119,7 +119,7 @@ class Toolbar : Container, IOrientationParent
 	// /////////////////////////////////////
 	// Internal/Util
 	
-	void do_layout(const float parent_x, const float parent_y) override
+	void _do_layout() override
 	{
 		const bool is_horizontal = _flow_layout.is_horizontal;
 		
@@ -150,7 +150,7 @@ class Toolbar : Container, IOrientationParent
 				prev_drag_x = mouse_x;
 				prev_drag_y = mouse_y;
 				
-				snap(parent_x, parent_y);
+				snap();
 				
 				ui._event_info.reset(EventType::MOVE, this);
 				ui._event_info.x = x;
@@ -173,8 +173,6 @@ class Toolbar : Container, IOrientationParent
 				}
 			}
 		}
-		
-		Element::do_layout(parent_x, parent_y);
 		
 		float out_x1, out_y1, out_x2, out_y2;
 		
@@ -231,22 +229,48 @@ class Toolbar : Container, IOrientationParent
 		if(auto_fit || is_horizontal)
 		{
 			this.height = out_y2 - out_y1 + ver_gripper_space;
-			this.y2 = this.y1 + this.height;
 		}
 		
 		if(auto_fit || !is_horizontal)
 		{
 			this.width  = out_x2 - out_x1 + hor_gripper_space;
-			this.x2 = this.x1 + this.width;
 		}
 	}
 	
-	private void snap(const float parent_x, const float parent_y)
+	void _draw(Style@ style) override
+	{
+		if(alpha != 1)
+			style.multiply_alpha(alpha);
+		
+		style.draw_dialog_element(this);
+		
+		if(draggable)
+		{
+			float gripper_x1, gripper_y1, gripper_x2, gripper_y2;
+			get_gripper_bounds(gripper_x1, gripper_y1, gripper_x2, gripper_y2, true);
+			
+			if(flow_layout.is_horizontal)
+			{
+				style.draw_gripper(Orientation::Horizontal, gripper_x1, gripper_y1, gripper_y2);
+			}
+			else
+			{
+				style.draw_gripper(Orientation::Vertical, gripper_y1, gripper_x1, gripper_x2);
+			}
+		}
+		
+		Container::_draw(style);
+		
+		if(alpha != 1)
+			style.restore_alpha();
+	}
+	
+	private void snap()
 	{
 		if(!snap_to_screen && !snap_to_siblings)
 			return;
 		
-		Element::do_layout(parent_x, parent_y);
+		update_world_bounds(parent);
 		
 		const float snap_distance = ui.style.snap_distance;
 		
@@ -389,35 +413,7 @@ class Toolbar : Container, IOrientationParent
 		}
 	}
 	
-	void draw(Style@ style, const float sub_frame) override
-	{
-		if(alpha != 1)
-			style.multiply_alpha(alpha);
-		
-		style.draw_dialog_element(this);
-		
-		if(draggable)
-		{
-			float gripper_x1, gripper_y1, gripper_x2, gripper_y2;
-			get_gripper_bounds(gripper_x1, gripper_y1, gripper_x2, gripper_y2, true);
-			
-			if(flow_layout.is_horizontal)
-			{
-				style.draw_gripper(Orientation::Horizontal, gripper_x1, gripper_y1, gripper_y2);
-			}
-			else
-			{
-				style.draw_gripper(Orientation::Vertical, gripper_y1, gripper_x1, gripper_x2);
-			}
-		}
-		
-		Container::draw(style, sub_frame);
-		
-		if(alpha != 1)
-			style.restore_alpha();
-	}
-	
-	bool is_mouse_over_gripper()
+	private bool is_mouse_over_gripper()
 	{
 		float gripper_x1, gripper_y1, gripper_x2, gripper_y2;
 		get_gripper_bounds(gripper_x1, gripper_y1, gripper_x2, gripper_y2, false);
@@ -425,7 +421,7 @@ class Toolbar : Container, IOrientationParent
 		return ui.mouse.x >= gripper_x1 && ui.mouse.x <= gripper_x2 && ui.mouse.y >= gripper_y1 && ui.mouse.y <= gripper_y2;
 	}
 	
-	void get_gripper_bounds(float &out gripper_x1, float &out gripper_y1, float &out gripper_x2, float &out gripper_y2, const bool inner)
+	private void get_gripper_bounds(float &out gripper_x1, float &out gripper_y1, float &out gripper_x2, float &out gripper_y2, const bool inner)
 	{
 		const float spacing = ui.style.spacing;
 		const float gripper_space = spacing + ui.style.gripper_required_space + spacing;

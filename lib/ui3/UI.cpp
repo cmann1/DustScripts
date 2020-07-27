@@ -61,6 +61,7 @@ class UI
 	private dictionary elements_left_pressed();
 	private dictionary elements_right_pressed();
 	private dictionary elements_middle_pressed();
+	private array<Element@> elements_pressed_list();
 	
 	private dictionary tooltips;
 	
@@ -244,10 +245,10 @@ class UI
 		style._layer = _layer;
 		style._sub_layer = _sub_layer;
 		
-		contents.draw(@style, sub_frame);
+		contents._draw(@style);
 		style._reset_state();
 		
-		overlays.draw(@style, sub_frame);
+		overlays._draw(@style);
 		style._reset_state();
 	}
 	
@@ -428,8 +429,9 @@ class UI
 		element_stack.clear();
 		mouse_stack.clear();
 		
-		base.do_layout(0, 0);
+		base._do_layout();
 		base._queue_children_for_layout(@element_stack);
+		base.update_world_bounds();
 		
 		int stack_size = element_stack.size;
 		
@@ -449,8 +451,22 @@ class UI
 		{
 			if(element.visible)
 			{
-				element.do_layout(element.parent.x1, element.parent.y1);
+				element._do_layout();
 				element._queue_children_for_layout(@element_stack);
+				
+				if(@element.parent!=null)
+				{
+					element.x1 = element.parent.x1 + element.x;
+					element.y1 = element.parent.y1 + element.y;
+				}
+				else
+				{
+					element.x1 = element.x;
+					element.y1 = element.y;
+				}
+				
+				element.x2 = element.x1 + element.width;
+				element.y2 = element.y1 + element.height;
 				
 				if(check_mouse_over)
 				{
@@ -545,6 +561,7 @@ class UI
 				element.hovered = false;
 				
 				@_event_info.target = element;
+				element._mouse_exit();
 				element.mouse_exit.dispatch(_event_info);
 			}
 			
@@ -570,6 +587,7 @@ class UI
 				elements_mouse_over.insertLast(element);
 				
 				@_event_info.target = element;
+				element._mouse_enter();
 				element.mouse_enter.dispatch(_event_info);
 			}
 		}
@@ -589,27 +607,30 @@ class UI
 				if(mouse.left_press)
 				{
 					elements_left_pressed[element._id] = true;
-					_event_info.button = MouseButton::Left;
+					element._mouse_press(_event_info.button = MouseButton::Left);
 					element.mouse_press.dispatch(_event_info);
 				}
 				
 				if(mouse.right_press)
 				{
 					elements_right_pressed[element._id] = true;
-					_event_info.button = MouseButton::Right;
+					element._mouse_press(_event_info.button = MouseButton::Right);
 					element.mouse_press.dispatch(_event_info);
 				}
 				
 				if(mouse.middle_press)
 				{
 					elements_middle_pressed[element._id] = true;
-					_event_info.button = MouseButton::Middle;
+					element._mouse_press(_event_info.button = MouseButton::Middle);
 					element.mouse_press.dispatch(_event_info);
 				}
 				
-				// Tooltip
 				if(mouse.primary_press)
 				{
+					element.pressed = true;
+					elements_pressed_list.insertLast(element);
+					
+					// Tooltip
 					if(@element.tooltip != null && element.tooltip.trigger_type == TooltipTriggerType::MouseDown)
 					{
 						show_tooltip(_mouse_over_element);
@@ -629,6 +650,7 @@ class UI
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
 				Element@ element = @_event_info.target = @elements_mouse_enter[i];
+				element._mouse_move();
 				element.mouse_move.dispatch(_event_info);
 			}
 		}
@@ -649,19 +671,19 @@ class UI
 				
 				if(mouse.left_release)
 				{
-					_event_info.button = MouseButton::Left;
+					element._mouse_release(_event_info.button = MouseButton::Left);
 					element.mouse_release.dispatch(_event_info);
 				}
 				
 				if(mouse.right_release)
 				{
-					_event_info.button = MouseButton::Right;
+					element._mouse_release(_event_info.button = MouseButton::Right);
 					element.mouse_release.dispatch(_event_info);
 				}
 				
 				if(mouse.middle_release)
 				{
-					_event_info.button = MouseButton::Middle;
+					element._mouse_release(_event_info.button = MouseButton::Middle);
 					element.mouse_release.dispatch(_event_info);
 				}
 			}
@@ -682,9 +704,11 @@ class UI
 					
 					if(primary_clicked)
 					{
+						element._mouse_click();
 						element.mouse_click.dispatch(_event_info);
 					}
 					
+					element._mouse_button_click(MouseButton::Left);
 					element.mouse_button_click.dispatch(_event_info);
 				}
 				
@@ -695,9 +719,11 @@ class UI
 					
 					if(primary_clicked)
 					{
+						element._mouse_click();
 						element.mouse_click.dispatch(_event_info);
 					}
 					
+					element._mouse_button_click( MouseButton::Right);
 					element.mouse_button_click.dispatch(_event_info);
 				}
 				
@@ -708,9 +734,11 @@ class UI
 					
 					if(primary_clicked)
 					{
+						element._mouse_click();
 						element.mouse_click.dispatch(_event_info);
 					}
 					
+					element._mouse_button_click(MouseButton::Middle);
 					element.mouse_button_click.dispatch(_event_info);
 				}
 				
@@ -741,11 +769,28 @@ class UI
 		// Clear pressed elements
 		
 		if(mouse.left_release)
+		{
 			elements_left_pressed.deleteAll();
+			
+			if(primary_button == MouseButton::Left)
+				clear_press();
+		}
+		
 		if(mouse.right_release)
+		{
 			elements_right_pressed.deleteAll();
+			
+			if(primary_button == MouseButton::Right)
+				clear_press();
+		}
+		
 		if(mouse.middle_release)
+		{
 			elements_middle_pressed.deleteAll();
+			
+			if(primary_button == MouseButton::Middle)
+				clear_press();
+		}
 		
 		// Hover tooltip
 		
@@ -756,6 +801,16 @@ class UI
 		{
 			show_tooltip(_mouse_over_element);
 		}
+	}
+	
+	private void clear_press()
+	{
+		for(int i = int(elements_pressed_list.length()) - 1; i >= 0; i--)
+		{
+			elements_pressed_list[i].pressed = false;
+		}
+		
+		elements_pressed_list.resize(0);
 	}
 	
 	private void show_tooltip(const string id, TooltipOptions@ options, Element@ element, bool wait_for_mouse)

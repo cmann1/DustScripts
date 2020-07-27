@@ -28,7 +28,27 @@ class Divider : Element
 		fit();
 	}
 	
-	void do_layout(const float parent_x, const float parent_y) override
+	void fit()
+	{
+		const Orientation orientation = @orientation_parent != null ? orientation_parent.orientation : this.orientation;
+		const float size = ui.style.divider_thickness + ui.style.divider_margin * 2;
+		
+		if(orientation == Orientation::Horizontal)
+		{
+			width = size;
+			height = 20;
+		}
+		else
+		{
+			width = 20;
+			height = size;
+		}
+		
+		this.size = size;
+		this.orientation = orientation;
+	}
+	
+	void _do_layout() override
 	{
 		if(@orientation_parent != null && orientation != orientation_parent.orientation)
 		{
@@ -54,31 +74,9 @@ class Divider : Element
 		{
 			size = height;
 		}
-		
-		Element::do_layout(parent_x, parent_y);
 	}
 	
-	void fit()
-	{
-		const Orientation orientation = @orientation_parent != null ? orientation_parent.orientation : this.orientation;
-		const float size = ui.style.divider_thickness + ui.style.divider_margin * 2;
-		
-		if(orientation == Orientation::Horizontal)
-		{
-			width = size;
-			height = 20;
-		}
-		else
-		{
-			width = 20;
-			height = size;
-		}
-		
-		this.size = size;
-		this.orientation = orientation;
-	}
-	
-	void draw(Style@ style, const float sub_frame) override
+	void _draw(Style@ style) override
 	{
 		style.draw_rectangle(
 			x1 + ui.style.divider_margin, y1 + ui.style.divider_margin,

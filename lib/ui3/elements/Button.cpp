@@ -14,7 +14,6 @@ class Button : SingleContainer
 	
 	Event select;
 	
-	protected bool pressed;
 	protected ButtonGroup@ _group;
 	
 	Button(UI@ ui, Element@ content)
@@ -88,27 +87,8 @@ class Button : SingleContainer
 		}
 	}
 	
-	void do_layout(const float parent_x, const float parent_y) override
+	void _do_layout() override
 	{
-		Element::do_layout(parent_x, parent_y);
-		
-		if(hovered && ui.mouse.primary_press)
-		{
-			pressed = true;
-		}
-		else if(pressed)
-		{
-			if(selectable && hovered && ui.mouse.primary_release)
-			{
-				selected = !_selected;
-			}
-			
-			if(!ui.mouse.primary_down)
-			{
-				pressed = false;
-			}
-		}
-		
 		if(@_content != null)
 		{
 			_content.x = (width  - _content.width)  * 0.5;
@@ -122,7 +102,7 @@ class Button : SingleContainer
 		}
 	}
 	
-	void draw(Style@ style, const float sub_frame) override
+	void _draw(Style@ style) override
 	{
 		if(alpha != 1)
 			style.multiply_alpha(alpha);
@@ -134,7 +114,7 @@ class Button : SingleContainer
 			if(disabled)
 				style.disable_alpha();
 			
-			_content.draw(style, sub_frame);
+			_content._draw(style);
 			
 			if(disabled)
 				style.restore_alpha();
@@ -142,6 +122,14 @@ class Button : SingleContainer
 		
 		if(alpha != 1)
 			style.restore_alpha();
+	}
+	
+	void _mouse_click() override
+	{
+		if(selectable)
+		{
+			selected = !_selected;
+		}
 	}
 	
 	protected float border_size { get const override { return ui.style.border_size; } }

@@ -23,8 +23,6 @@ class MultiButton : SingleContainer
 	protected Image@ _selected_image;
 	protected int _selected_index = -1;
 	
-	protected bool pressed;
-	
 	MultiButton(UI@ ui)
 	{
 		super(ui, null, 'mbtn');
@@ -108,37 +106,8 @@ class MultiButton : SingleContainer
 		update_tooltip();
 	}
 	
-	void do_layout(const float parent_x, const float parent_y) override
+	void _do_layout() override
 	{
-		Element::do_layout(parent_x, parent_y);
-		
-		if(hovered && ui.mouse.primary_press)
-		{
-			pressed = true;
-		}
-		else if(pressed)
-		{
-			if(hovered && ui.mouse.primary_release)
-			{
-				const int num_items = int(item_names.length());
-				
-				if(num_items > 0)
-				{
-					const int new_index = (_selected_index + 1) % num_items;
-					
-					if(new_index != _selected_index)
-					{
-						set_selected(new_index, item_names[new_index], images[new_index]);
-					}
-				}
-			}
-			
-			if(!ui.mouse.primary_down)
-			{
-				pressed = false;
-			}
-		}
-		
 		if(@_content != null)
 		{
 			_content.x = (width  - _content.width)  * 0.5;
@@ -152,7 +121,7 @@ class MultiButton : SingleContainer
 		}
 	}
 	
-	void draw(Style@ style, const float sub_frame) override
+	void _draw(Style@ style) override
 	{
 		if(alpha != 1)
 			style.multiply_alpha(alpha);
@@ -164,7 +133,7 @@ class MultiButton : SingleContainer
 			if(disabled)
 				style.disable_alpha();
 			
-			_content.draw(style, sub_frame);
+			_content._draw(style);
 			
 			if(disabled)
 				style.restore_alpha();
@@ -172,6 +141,21 @@ class MultiButton : SingleContainer
 		
 		if(alpha != 1)
 			style.restore_alpha();
+	}
+	
+	void _mouse_click() override
+	{
+		const int num_items = int(item_names.length());
+		
+		if(num_items > 0)
+		{
+			const int new_index = (_selected_index + 1) % num_items;
+			
+			if(new_index != _selected_index)
+			{
+				set_selected(new_index, item_names[new_index], images[new_index]);
+			}
+		}
 	}
 	
 	private Image@ _remove(const int index, Image@ image)
