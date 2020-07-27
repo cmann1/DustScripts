@@ -84,10 +84,16 @@ class FlowLayout : Layout
 		float current_main_axis_size = 0;
 		float current_cross_axis_size = 0;
 		int num_axis_elements = 0;
+		int num_visible_elements = 0;
 		
 		for(int i = 0; i < num_children; i++)
 		{
 			Element@ element = elements[i];
+			
+			if(!element.visible)
+				continue;
+			
+			num_visible_elements++;
 			
 			const float el_main_size  = is_horizontal ? element.width  : element.height;
 			const float el_cross_size = is_horizontal ? element.height : element.width;
@@ -132,6 +138,16 @@ class FlowLayout : Layout
 				current_cross_axis_size = el_cross_size;
 			
 			num_axis_elements++;
+		}
+		
+		
+		if(num_visible_elements == 0)
+		{
+			out_x1 = x1;
+			out_y1 = y1;
+			out_x2 = x1 + padding * 2;
+			out_y2 = y1 + padding * 2;
+			return;
 		}
 		
 		// Only add the final row if it wasn't already added
@@ -194,6 +210,13 @@ class FlowLayout : Layout
 		
 		do
 		{
+			Element@ element = elements[i];
+			
+			while(!element.visible && i < num_children)
+			{
+				@element = elements[++i];
+			}
+			
 			// Start a new row/column
 			if(i == next_axis_index)
 			{
@@ -230,8 +253,6 @@ class FlowLayout : Layout
 						break;
 				}
 			}
-			
-			Element@ element = elements[i];
 			
 			const float el_main_size  = is_horizontal ? element.width  : element.height;
 			const float el_cross_size = is_horizontal ? element.height : element.width;
