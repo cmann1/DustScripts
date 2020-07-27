@@ -106,7 +106,7 @@ class MultiButton : SingleContainer
 		update_tooltip();
 	}
 	
-	void _do_layout() override
+	void _do_layout(LayoutContext@ ctx) override
 	{
 		if(@_content != null)
 		{
@@ -121,26 +121,9 @@ class MultiButton : SingleContainer
 		}
 	}
 	
-	void _draw(Style@ style) override
+	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		if(alpha != 1)
-			style.multiply_alpha(alpha);
-		
 		style.draw_interactive_element(this, hovered, false, disabled);
-		
-		if(@_content != null)
-		{
-			if(disabled)
-				style.disable_alpha();
-			
-			_content._draw(style);
-			
-			if(disabled)
-				style.restore_alpha();
-		}
-		
-		if(alpha != 1)
-			style.restore_alpha();
 	}
 	
 	void _mouse_click() override

@@ -58,13 +58,9 @@ class Tooltip : SingleContainer
 		waiting_for_mouse = false;
 	}
 	
-	void _do_layout() override
+	TooltipPosition _do_position()
 	{
 		TooltipPosition calculatedPosition = options.position;
-		
-		//
-		// Position tool tip
-		//
 		
 		bool reposition_x = false;
 		bool reposition_y = false;
@@ -78,35 +74,19 @@ class Tooltip : SingleContainer
 		
 		update_world_bounds();
 		
-		if(@target != null)
-		{
-			if(waiting_for_mouse)
-			{
-				if(hovered || @target == @ui.mouse_over_element)
-				{
-					waiting_for_mouse = false;
-				}
-			}
-			
-			if(!fading_out)
-			{
-				target_x1 = target.x1;
-				target_y1 = target.y1;
-				target_x2 = target.x2;
-				target_y2 = target.y2;
-			}
-		}
-		else
-		{
-			waiting_for_mouse = false;
-		}
-		
 		if(options.follow_mouse)
 		{
 			target_x1 = ui.mouse.x;
 			target_y1 = ui.mouse.y;
 			target_x2 = ui.mouse.x;
 			target_y2 = ui.mouse.y;
+		}
+		else if(!fading_out && @target != null)
+		{
+			target_x1 = target.x1;
+			target_y1 = target.y1;
+			target_x2 = target.x2;
+			target_y2 = target.y2;
 		}
 		
 		// Initial positioning
@@ -178,6 +158,39 @@ class Tooltip : SingleContainer
 			y1 -= y2 - view_y2;
 			y2 -= y2 - view_y2;
 		}
+		
+		if(@parent != null)
+		{
+			_x = x1 - parent.x1;
+			_y = y1 - parent.y1;
+		}
+		else
+		{
+			_x = x1;
+			_y = y1;
+		}
+		
+		return calculatedPosition;
+	}
+	
+	void _do_layout(LayoutContext@ ctx) override
+	{
+		if(@target != null)
+		{
+			if(waiting_for_mouse)
+			{
+				if(hovered || @target == @ui.mouse_over_element)
+				{
+					waiting_for_mouse = false;
+				}
+			}
+		}
+		else
+		{
+			waiting_for_mouse = false;
+		}
+		
+		const TooltipPosition calculatedPosition = _do_position();
 		
 		//
 		// Fade the tooltip in or out
@@ -279,8 +292,8 @@ class Tooltip : SingleContainer
 				break;
 		}
 		
-		x = x1 - parent.x1;
-		y = y1 - parent.y1;
+		_x = x1 - parent.x1;
+		_y = y1 - parent.y1;
 		
 		if(@content != null)
 		{
@@ -313,26 +326,9 @@ class Tooltip : SingleContainer
 		}
 	}
 	
-	void _draw(Style@ style) override
+	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		if(alpha != 1)
-			style.multiply_alpha(alpha);
-		
 		style.draw_popup_element(this);
-		
-		if(@_content != null)
-		{
-			if(disabled)
-				style.disable_alpha();
-			
-			_content._draw(style);
-			
-			if(disabled)
-				style.restore_alpha();
-		}
-		
-		if(alpha != 1)
-			style.restore_alpha();
 	}
 	
 	private void update_fade()

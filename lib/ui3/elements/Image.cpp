@@ -67,13 +67,13 @@ class Image : Element
 		this._height = sprite_height * scale_y;
 	}
 	
-//	void _do_layout() override
-//	{
-////		width = sprite_width * scale_x;
-////		height = sprite_height * scale_y;
-//	}
+	/*void _do_layout(LayoutContext@ ctx) override
+	{
+		width = sprite_width * scale_x;
+		height = sprite_height * scale_y;
+	}*/
 	
-	void _draw(Style@ style) override
+	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		const float x = x1 + (x2 - x1) * origin_x;
 		const float y = y1 + (y2 - y1) * origin_y;

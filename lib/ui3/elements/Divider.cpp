@@ -48,7 +48,7 @@ class Divider : Element
 		this.orientation = orientation;
 	}
 	
-	void _do_layout() override
+	void _do_layout(LayoutContext@ ctx) override
 	{
 		if(@orientation_parent != null && orientation != orientation_parent.orientation)
 		{
@@ -76,7 +76,7 @@ class Divider : Element
 		}
 	}
 	
-	void _draw(Style@ style) override
+	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		style.draw_rectangle(
 			x1 + ui.style.divider_margin, y1 + ui.style.divider_margin,

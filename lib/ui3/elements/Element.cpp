@@ -1,5 +1,8 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
+#include '../utils/ClippingMode.cpp';
+#include '../utils/DrawingContext.cpp';
+#include '../utils/LayoutContext.cpp';
 #include '../utils/ElementStack.cpp';
 #include '../utils/TooltipOptions.cpp';
 #include '../events/Event.cpp';
@@ -34,6 +37,7 @@ abstract class Element
 	// Disabled this element. Only relevant for interactive elements
 	bool disabled;
 	
+	int clip_contents = ClippingMode::None;
 	float alpha = 1;
 	
 	float _x;
@@ -44,6 +48,9 @@ abstract class Element
 	// After do_layout, these will be the element's position in world/ui space
 	float x1, y1;
 	float x2, y2;
+	// This element bounds including children
+	float subtree_x1, subtree_y1;
+	float subtree_x2, subtree_y2;
 	
 	Event mouse_enter;
 	Event mouse_exit;
@@ -189,12 +196,12 @@ abstract class Element
 		
 	}
 	
-	void _do_layout()
+	void _do_layout(LayoutContext@ ctx)
 	{
 		
 	}
 	
-	void _draw(Style@ style)
+	void _draw(Style@ style, DrawingContext@ ctx)
 	{
 		// Debug
 		//style.draw_rectangle(x1, y1, x2, y2, 0, 0x55000000);

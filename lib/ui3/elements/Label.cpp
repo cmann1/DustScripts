@@ -59,7 +59,7 @@ class Label : Element
 		height += padding * 2;
 	}
 	
-	void _draw(Style@ style) override
+	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		float x, y;
 		

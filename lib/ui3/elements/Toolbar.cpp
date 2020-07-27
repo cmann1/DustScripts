@@ -126,9 +126,12 @@ class Toolbar : Container, IOrientationParent
 	// /////////////////////////////////////
 	// Internal/Util
 	
-	void _do_layout() override
+	void _do_layout(LayoutContext@ ctx) override
 	{
-		const bool is_horizontal = _flow_layout.is_horizontal;
+		FlowLayout@ flow_layout = @this._flow_layout != null ? @this._flow_layout : @ui._toolbar_flow_layout;
+		flow_layout.fit = FlowFit::Both;
+		
+		const bool is_horizontal = flow_layout.is_horizontal;
 		
 		if(hovered && ui.mouse.primary_press)
 		{
@@ -157,7 +160,7 @@ class Toolbar : Container, IOrientationParent
 				prev_drag_x = mouse_x;
 				prev_drag_y = mouse_y;
 				
-				snap();
+				snap(ctx);
 				
 				ui._event_info.reset(EventType::MOVE, this);
 				ui._event_info.x = x;
@@ -180,14 +183,6 @@ class Toolbar : Container, IOrientationParent
 				}
 			}
 		}
-		
-		float out_x1, out_y1, out_x2, out_y2;
-		
-		FlowLayout@ flow_layout = @this._flow_layout != null ? @this._flow_layout : @ui._toolbar_flow_layout;
-		flow_layout.fit = FlowFit::Both;
-		
-		float view_x1, view_y1, view_x2, view_y2;
-		ui.get_region(view_x1, view_y1, view_x2, view_y2);
 		
 		float x = 0;
 		float y = 0;
@@ -221,14 +216,16 @@ class Toolbar : Container, IOrientationParent
 		
 		if(_validate_layout)
 		{
+			float out_x1, out_y1, out_x2, out_y2;
+			
 			// Temporarily expand to max width and height to allow the max number of items
 			// Then shrink to fit after laying out children
 			if(auto_fit)
 			{
 				if(is_horizontal)
-					width = max_size > 0 ? max_size : view_x2 - view_x1 - x + 1;
+					width = max_size > 0 ? max_size : ctx.x2 - ctx.x1 - x + 1;
 				else
-					height = max_size > 0 ? max_size : view_y2 - view_y1 - y + 1;
+					height = max_size > 0 ? max_size : ctx.y2 - ctx.y1 - y + 1;
 			}
 			
 			flow_layout.do_layout(@children,
@@ -247,11 +244,8 @@ class Toolbar : Container, IOrientationParent
 		}
 	}
 	
-	void _draw(Style@ style) override
+	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		if(alpha != 1)
-			style.multiply_alpha(alpha);
-		
 		style.draw_dialog_element(this);
 		
 		if(draggable)
@@ -268,14 +262,9 @@ class Toolbar : Container, IOrientationParent
 				style.draw_gripper(Orientation::Vertical, gripper_y1, gripper_x1, gripper_x2);
 			}
 		}
-		
-		Container::_draw(style);
-		
-		if(alpha != 1)
-			style.restore_alpha();
 	}
 	
-	private void snap()
+	private void snap(LayoutContext@ ctx)
 	{
 		if(!snap_to_screen && !snap_to_siblings)
 			return;
@@ -291,17 +280,14 @@ class Toolbar : Container, IOrientationParent
 		
 		if(snap_to_screen)
 		{
-			float view_x1, view_y1, view_x2, view_y2;
-			ui.get_region(view_x1, view_y1, view_x2, view_y2);
-			
-			if(abs(closest_x1) > abs(view_x1 - x1))
-				closest_x1 = view_x1 - x1;
-			if(abs(closest_y1) > abs(view_y1 - y1))
-				closest_y1 = view_y1 - y1;
-			if(abs(closest_x2) > abs(view_x2 - x2))
-				closest_x2 = view_x2 - x2;
-			if(abs(closest_y2) > abs(view_y2 - y2))
-				closest_y2 = view_y2 - y2;
+			if(abs(closest_x1) > abs(ctx.x1 - x1))
+				closest_x1 = ctx.x1 - x1;
+			if(abs(closest_y1) > abs(ctx.y1 - y1))
+				closest_y1 = ctx.y1 - y1;
+			if(abs(closest_x2) > abs(ctx.x2 - x2))
+				closest_x2 = ctx.x2 - x2;
+			if(abs(closest_y2) > abs(ctx.y2 - y2))
+				closest_y2 = ctx.y2 - y2;
 		}
 		
 		array<Element@>@ potential_snaps = @ui._element_array;

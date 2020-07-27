@@ -4,6 +4,7 @@
 #include 'TextAlign.cpp';
 #include 'elements/Element.cpp';
 #include 'utils/Orientation.cpp';
+#include 'utils/DrawingContext.cpp';
 
 class Style
 {
@@ -76,10 +77,12 @@ class Style
 	private textfield@ text_field;
 	private dictionary sprite_sets;
 	
-	private float global_alpha = 1;
-	private int global_alpha_size = 64;
-	private array<float> global_alpha_stack(global_alpha_size);
-	private int global_alpha_index;
+	private DrawingContext@ default_ctx = DrawingContext();
+	private DrawingContext@ ctx = @default_ctx;
+	
+	private int drawing_context_pool_size = 16;
+	private int drawing_context_pool_index = 0;
+	private array<DrawingContext@> drawing_context_pool(drawing_context_pool_size);
 	
 	private scene@ g;
 	
@@ -125,45 +128,55 @@ class Style
 		return sprite;
 	}
 	
-	void _reset_state()
+	void set_default_clipping_region(const float x1, const float y1, const float x2, const float y2)
 	{
-		global_alpha = 1;
-		global_alpha_index = 0;
+		default_ctx.x1 = x1;
+		default_ctx.y1 = y1;
+		default_ctx.x2 = x2;
+		default_ctx.y2 = y2;
 	}
 	
-	void disable_alpha(const float multiplier=1)
+	DrawingContext@ reset_drawing_context(Element@ root)
 	{
-		if(global_alpha_index == global_alpha_size)
-		{
-			global_alpha_size += 16;
-			global_alpha_stack.resize(global_alpha_size);
-		}
+		@ctx = @default_ctx;
+		@ctx.root = @root;
+		ctx.clipping_mode = ClippingMode::Outside;
+		ctx.num_children = 0;
 		
-		global_alpha_stack[global_alpha_index++] = global_alpha;
-		global_alpha *= clamp01(disabled_alpha * multiplier);
+		return @default_ctx;
 	}
 	
-	void multiply_alpha(float alpha)
+	DrawingContext@ push_drawing_context(Element@ new_root, const int num_children)
 	{
-		if(global_alpha_index == global_alpha_size)
-		{
-			global_alpha_size += 16;
-			global_alpha_stack.resize(global_alpha_size);
-		}
+		DrawingContext@ new_ctx = drawing_context_pool_index > 0
+			? @drawing_context_pool[--drawing_context_pool_index]
+			: DrawingContext();
 		
-		global_alpha_stack[global_alpha_index++] = global_alpha;
-		global_alpha *= clamp01(alpha);
+		@new_ctx.parent = @ctx;
+		@new_ctx.root = @new_root;
+		new_ctx.num_children = num_children;
+		new_ctx.alpha = ctx.alpha;
+		
+		new_ctx.clipping_mode = ctx.clipping_mode;
+		new_ctx.x1 = ctx.x1;
+		new_ctx.y1 = ctx.y1;
+		new_ctx.x2 = ctx.x2;
+		new_ctx.y2 = ctx.y2;
+		
+		@ctx = @new_ctx;
+		
+		return @ctx;
 	}
 	
-	void restore_alpha()
+	DrawingContext@ pop_drawing_context()
 	{
-		if(global_alpha_index == 0)
-		{
-			puts('ERROR: restore_alpha called more times than multiply_alpha');
-			return;
-		}
+		if(drawing_context_pool_index == drawing_context_pool_size)
+			drawing_context_pool.resize(drawing_context_pool_size += 16);
 		
-		global_alpha = global_alpha_stack[--global_alpha_index];
+		@drawing_context_pool[drawing_context_pool_index++] = @ctx;
+		
+		@ctx = @ctx.parent;
+		return @ctx;
 	}
 	
 	float gripper_required_space { get { return gripper_thickness + gripper_margin * 2; } }
@@ -176,7 +189,7 @@ class Style
 		const float x1, const float y1, const float x2, const float y2,
 		const float rotation, uint colour) const
 	{
-		if(global_alpha != 1)
+		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
 		if(_hud)
@@ -189,7 +202,7 @@ class Style
 		const float x1, const float y1, const float x2, const float y2,
 		const float rotation, uint colour) const
 	{
-		if(global_alpha != 1)
+		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
 		if(_hud)
@@ -200,7 +213,7 @@ class Style
 		const float x1, const float y1, const float x2, const float y2,
 		uint c00, uint c10, uint c11, uint c01) const
 	{
-		if(global_alpha != 1)
+		if(ctx.alpha != 1)
 		{
 			c00 = set_alpha(c00);
 			c10 = set_alpha(c10);
@@ -218,7 +231,7 @@ class Style
 		const float x1, const float y1, const float x2, const float y2,
 		const float width, uint colour) const
 	{
-		if(global_alpha != 1)
+		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
 		const float dx = x2 - x1;
@@ -244,7 +257,7 @@ class Style
 		const float x3, const float y3, const float x4, const float y4,
 		uint c1, uint c2, uint c3, uint c4) const
 	{
-		if(global_alpha != 1)
+		if(ctx.alpha != 1)
 		{
 			c1 = set_alpha(c1);
 			c2 = set_alpha(c2);
@@ -265,7 +278,7 @@ class Style
 		const float scale_x, const float scale_y,
 		uint colour) const
 	{
-		if(global_alpha != 1)
+		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
 		if(_hud)
@@ -302,7 +315,7 @@ class Style
 		if(current_align_v != align_v)
 			text_field.align_vertical(current_align_v = align_v);
 		
-		if(global_alpha != 1)
+		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
 		if(current_text_colour != colour)
@@ -353,10 +366,10 @@ class Style
 	
 	uint set_alpha(uint colour)
 	{
-		if(global_alpha == 0)
+		if(ctx.alpha == 0)
 			return colour & 0x00ffffff;
 		
-		return (colour & 0x00ffffff) | (uint(global_alpha * ((colour >> 24) & 0xff)) << 24);
+		return (colour & 0x00ffffff) | (uint(ctx.alpha * ((colour >> 24) & 0xff)) << 24);
 	}
 	
 	// -----------------------------------------------------------------

@@ -169,7 +169,7 @@ class Container : Element
 		stack.push_reversed(@children);
 	}
 	
-	void _do_layout()
+	void _do_layout(LayoutContext@ ctx)
 	{
 		if(_validate_layout && @_layout != null)
 		{
@@ -179,23 +179,6 @@ class Container : Element
 				x, y, x + width, y + height,
 				out_x1, out_y1, out_x2, out_y2);
 		}
-	}
-	
-	void _draw(Style@ style) override
-	{
-		if(num_children == 0)
-			return;
-		
-		if(disabled || alpha != 1)
-			style.disable_alpha(alpha);
-		
-		for(int i = 0; i < num_children; i++)
-		{
-			children[i]._draw(style);
-		}
-		
-		if(disabled || alpha != 1)
-			style.restore_alpha();
 	}
 	
 }
