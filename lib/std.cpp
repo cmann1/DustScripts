@@ -60,6 +60,7 @@ void puts(float x) { puts(x + ''); }
 void puts(double x) { puts(x + ''); }
 void puts(int x, int y) { puts(x + ', ' + y); }
 void puts(float x, float y) { puts(str(x) + ', ' + str(y)); }
+void puts(float x, float y, float z, float w) { puts(str(x) + ', ' + str(y) + ', ' + str(z) + ', ' + str(w)); }
 void puts(float x, int y) { puts(str(x) + ', ' + y); }
 void puts(int x, float y) { puts(x + ', ' + str(y)); }
 void puts(string x, string y) { puts(x + ', ' + y); }
