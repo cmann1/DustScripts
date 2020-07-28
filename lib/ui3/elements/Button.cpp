@@ -3,7 +3,6 @@
 #include '../TextAlign.cpp';
 #include '../events/Event.cpp';
 #include '../utils/ButtonGroup.cpp';
-#include 'Element.cpp';
 #include 'SingleContainer.cpp';
 
 class Button : SingleContainer

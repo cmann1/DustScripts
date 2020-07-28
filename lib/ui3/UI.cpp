@@ -435,21 +435,12 @@ class UI
 				Element@ parent = element.parent;
 				element._do_layout(ctx);
 				
-				if(element.clip_contents != ClippingMode::None)
-				{
-					ctx.clipping_mode = element.clip_contents;
-					ctx.x1 = element.x1;
-					ctx.y1 = element.y1;
-					ctx.x2 = element.x2;
-					ctx.y2 = element.y2;
-				}
-				
 				if(@parent != null)
 				{
 					element.x1 = parent.x1 + element.x;
 					element.y1 = parent.y1 + element.y;
-					element.x2 = element.x1 + element.width;
-					element.y2 = element.y1 + element.height;
+					element.x2 = element.x1 + element._width;
+					element.y2 = element.y1 + element._height;
 					
 					element.subtree_x1 = element.x1;
 					element.subtree_y1 = element.y1;
@@ -469,8 +460,17 @@ class UI
 				{
 					element.x1 = element.x;
 					element.y1 = element.y;
-					element.x2 = element.x1 + element.width;
-					element.y2 = element.y1 + element.height;
+					element.x2 = element.x1 + element._width;
+					element.y2 = element.y1 + element._height;
+				}
+				
+				if(element.clip_contents != ClippingMode::None)
+				{
+					ctx.clipping_mode = element.clip_contents;
+					ctx.x1 = element.x1;
+					ctx.y1 = element.y1;
+					ctx.x2 = element.x2;
+					ctx.y2 = element.y2;
 				}
 				
 				ctx.subtree_x1 = element.x1;

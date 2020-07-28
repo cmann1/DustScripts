@@ -1,4 +1,5 @@
 #include '../layouts/Layout.cpp';
+#include '../utils/ILayoutParentHandler.cpp';
 #include 'Element.cpp';
 
 class Container : Element
@@ -8,14 +9,23 @@ class Container : Element
 	 * @brief Any element that can contain other elements
 	 */
 	
-	bool _validate_layout;
+	bool _validate_layout = true;
+	float scroll_min_x;
+	float scroll_min_y;
+	float scroll_max_x;
+	float scroll_max_y;
+	
+	ILayoutParentHandler@ _layout_handler;
+	
+	float _scroll_x;
+	float _scroll_y;
 	
 	protected array<Element@> children;
 	protected int num_children;
 	
 	protected Layout@ _layout;
 	
-	Container(UI@ ui, const string &in type_identifier = 'cnt')
+	Container(UI@ ui, const string &in type_identifier = 'ctr')
 	{
 		super(ui, type_identifier);
 	}
@@ -29,6 +39,28 @@ class Container : Element
 				return;
 			
 			@_layout = value;
+			_validate_layout = true;
+		}
+	}
+	
+	float scroll_x
+	{
+		get const { return _scroll_x; }
+		set
+		{
+			if(_scroll_x == value) return;
+			_scroll_x = value;
+			_validate_layout = true;
+		}
+	}
+	
+	float scroll_y
+	{
+		get const { return _scroll_y; }
+		set
+		{
+			if(_scroll_y == value) return;
+			_scroll_y = value;
 			_validate_layout = true;
 		}
 	}
@@ -164,6 +196,14 @@ class Container : Element
 		_validate_layout = true;
 	}
 	
+	/**
+	 * @brief Required call after modifying layout properties
+	 */
+	void update_layout()
+	{
+		_validate_layout = true;
+	}
+	
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
 		stack.push_reversed(@children);
@@ -171,13 +211,59 @@ class Container : Element
 	
 	void _do_layout(LayoutContext@ ctx)
 	{
-		if(_validate_layout && @_layout != null)
+		if(@_layout_handler != null)
 		{
-			float out_x1, out_y1, out_x2, out_y2;
+			_layout_handler.do_child_layout(ctx, this);
+		}
+		else
+		{
+			_do_layout_internal(ctx);
+		}
+	}
+	
+	void _do_layout_internal(LayoutContext@ ctx)
+	{
+		if(_validate_layout)
+		{
+//			puts(_id+'.zvalidate_layout');
+			if(@_layout != null)
+			{
+				_layout.do_layout(@children,
+					_scroll_x, _scroll_y, _scroll_x + _width, _scroll_y + _height,
+					scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
+			}
+			else if(num_children > 0)
+			{
+				Element@ element = children[0];
+				
+				scroll_min_x = element._x;
+				scroll_min_y = element._y;
+				scroll_max_x = element._x + element._width;
+				scroll_max_y = element._y + element._height;
+				
+				for(int i = 1; i < num_children; i++)
+				{
+					@element = children[i];
+					
+					if(element._x < scroll_min_x)
+						scroll_min_x = element._x;
+					if(element._y < scroll_min_y)
+						scroll_min_y = element._y;
+					if(element._x + element._width > scroll_max_x)
+						scroll_max_x = element._x + element._width;
+					if(element._y + element._height> scroll_max_y)
+						scroll_max_y = element._y + element._height;
+				}
+			}
+			else
+			{
+				scroll_min_x = 0;
+				scroll_min_y = 0;
+				scroll_max_x = 0;
+				scroll_max_y = 0;
+			}
 			
-			_layout.do_layout(@children,
-				x, y, x + width, y + height,
-				out_x1, out_y1, out_x2, out_y2);
+			_validate_layout = false;
 		}
 	}
 	

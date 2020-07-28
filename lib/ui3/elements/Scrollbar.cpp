@@ -1,0 +1,132 @@
+#include '../UI.cpp';
+#include '../Style.cpp';
+#include '../utils/Orientation.cpp';
+#include 'Container.cpp';
+
+class Scrollbar : Element
+{
+	
+	Orientation orientation;
+	float scroll_visible;
+	float scroll_min;
+	float scroll_max;
+	float position;
+	bool flexible_thumb_size = true;
+	
+	protected float scroll_width;
+	protected float scroll_range;
+	protected float position_max;
+	protected float thumb_position;
+	protected float thumb_size;
+	
+	protected bool mouse_over_thumb;
+	protected bool dragging_thumb;
+	protected float drag_thumb_offset;
+	
+	protected previous_position;
+	
+	Scrollbar(UI@ ui, Orientation orientation)
+	{
+		super(ui, 'sbar');
+		
+		this.orientation = orientation;
+		
+		if(orientation == Orientation::Vertical)
+		{
+			_width = ui.style.default_scrollbar_size;
+		}
+		else
+		{
+			_height = ui.style.default_scrollbar_size;
+		}
+	}
+	
+	bool busy_dragging { get const { return dragging_thumb; } }
+	
+	void _do_layout(LayoutContext@ ctx) override
+	{
+		const bool is_horizontal = orientation == Horizontal;
+		const float size = is_horizontal ? _width : _height;
+		
+		if(scroll_min > scroll_max)
+		{
+			const float t = scroll_min;
+			scroll_min = scroll_max;
+			scroll_max = t;
+		}
+		
+		calculate_scroll_values();
+		
+		thumb_size = scroll_range <= 0 ? 0 : round(flexible_thumb_size
+			? size * (scroll_visible / scroll_width)
+			: min(size * 0.5, ui.style.scrollbar_fixed_size));
+		
+		if(position < scroll_min)
+		{
+			position = scroll_min;
+			calculate_scroll_values();
+		}
+		else if(position > scroll_min + scroll_range)
+		{
+			position = scroll_min + scroll_range;
+			calculate_scroll_values();
+		}
+		
+		if(dragging_thumb)
+		{
+			if(ui.mouse.primary_down)
+			{
+				const float mouse_t = position_max > 0 ? clamp((is_horizontal ? ui.mouse.x - x1 : ui.mouse.y - y1) - drag_thumb_offset, 0, position_max) / position_max : 0;
+				position = clamp(scroll_min + scroll_range * mouse_t, scroll_min, scroll_max);
+				calculate_scroll_values();
+			}
+			else
+			{
+				dragging_thumb = false;
+			}
+		}
+		
+		if(hovered)
+		{
+			const float mouse_t = is_horizontal ? ui.mouse.x - x1 : ui.mouse.y - y1;
+			mouse_over_thumb = mouse_t >= thumb_position && mouse_t <= thumb_position + thumb_size;
+			
+			if(mouse_over_thumb && ui.mouse.primary_press)
+			{
+				dragging_thumb = true;
+				drag_thumb_offset = mouse_t - thumb_position;
+			}
+		}
+		else
+		{
+			mouse_over_thumb = false;
+		}
+	}
+	
+	void _draw(Style@ style, DrawingContext@ ctx) override
+	{
+		const bool is_horizontal = orientation == Horizontal;
+		
+		style.draw_rectangle(x1, y1, x2, y2, 0, style.normal_bg_clr);
+		
+		if(thumb_size > 0)
+		{
+			if(!is_horizontal)
+				style.draw_rectangle(
+					x1, y1 + thumb_position,
+					x2, y1 + thumb_position + thumb_size,
+					0, dragging_thumb ? style.selected_highlight_bg_clr : (mouse_over_thumb ? style.highlight_bg_clr : style.secondary_bg_clr));
+		}
+	}
+	
+	protected void calculate_scroll_values()
+	{
+		const float size = orientation == Horizontal ? _width : _height;
+		
+		position_max = size - thumb_size;
+		scroll_width = scroll_max - scroll_min;
+		scroll_range = max(0, scroll_width - scroll_visible);
+		thumb_position = scroll_range > 0 ? position_max * ((position - scroll_min) / scroll_range) : 0;
+	}
+	
+}

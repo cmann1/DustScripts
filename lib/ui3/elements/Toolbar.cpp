@@ -241,6 +241,8 @@ class Toolbar : Container, IOrientationParent
 			{
 				this.width  = out_x2 - out_x1 + hor_gripper_space;
 			}
+			
+			_validate_layout = false;
 		}
 	}
 	

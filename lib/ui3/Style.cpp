@@ -14,12 +14,13 @@ class Style
 	uint normal_border_clr				= 0x33ffffff;
 	uint highlight_bg_clr				= 0xd9521c17;
 	uint highlight_border_clr			= 0xd9933c34;
-	uint selected_bg_clr				= highlight_bg_clr;
+	uint selected_bg_clr				= 0xd9702d26;
 	uint selected_border_clr			= 0xffb16860;
-	uint selected_highlight_bg_clr		= 0xd9622a24;
+	uint selected_highlight_bg_clr		= 0xd982352c;
 	uint selected_highlight_border_clr	= 0xffb16860;
 	uint disabled_bg_clr				= 0xa6000000;
 	uint disabled_border_clr			= 0x26ffffff;
+	uint secondary_bg_clr				= 0x33ffffff;
 	
 	uint popup_bg_clr					= normal_bg_clr;
 	uint popup_border_clr				= 0;
@@ -63,6 +64,9 @@ class Style
 	int tooltip_fade_frames = 6;
 	float tooltip_fade_offset = 5;
 	float tooltip_default_spacing = spacing * 1.5;
+	
+	float default_scrollbar_size = 8;
+	float scrollbar_fixed_size = 20;
 	
 	// Text measurements don't seem to line up exactly always. Use these global values to offset
 	float text_offset_x = -1;
@@ -396,7 +400,7 @@ class Style
 			0, bg_clr);
 		
 		// Border
-		if(border_clr != 0)
+		if(border_clr != 0 && border_size > 0)
 		{
 			outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
 		}
