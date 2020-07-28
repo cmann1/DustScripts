@@ -45,6 +45,9 @@ abstract class Element
 	float _width = 100;
 	float _height = 100;
 	
+	float _scroll_x;
+	float _scroll_y;
+	
 	// After do_layout, these will be the element's position in world/ui space
 	float x1, y1;
 	float x2, y2;
@@ -171,6 +174,26 @@ abstract class Element
 			if(_height == value) return;
 			_height = value;
 			if(@parent != null) parent._validate_layout = true;
+		}
+	}
+	
+	float scroll_x
+	{
+		get const { return _scroll_x; }
+		set
+		{
+			if(_scroll_x == value) return;
+			_scroll_x = value;
+		}
+	}
+	
+	float scroll_y
+	{
+		get const { return _scroll_y; }
+		set
+		{
+			if(_scroll_y == value) return;
+			_scroll_y = value;
 		}
 	}
 	

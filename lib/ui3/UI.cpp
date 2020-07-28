@@ -49,8 +49,8 @@ class UI
 	
 	// Used for processing element layouts
 	private ElementStack element_stack;
-	int layout_context_pool_size = 16;
-	int layout_context_pool_index = 0;
+	private int layout_context_pool_size = 16;
+	private int layout_context_pool_index = 0;
 	private array<LayoutContext@> layout_context_pool(layout_context_pool_size);
 	// The top most element the mouse is over
 	private Element@ _mouse_over_element;
@@ -394,6 +394,8 @@ class UI
 		base.subtree_y1 = ctx.y1;
 		base.subtree_x2 = ctx.x2;
 		base.subtree_y2 = ctx.y2;
+		ctx.scroll_x = base._scroll_x;
+		ctx.scroll_y = base._scroll_y;
 		
 		base._do_layout(ctx);
 		base.update_world_bounds();
@@ -414,7 +416,7 @@ class UI
 				stack_size += num_children;
 				
 				// Push a new context
-				{
+				//{
 					LayoutContext@ new_ctx = layout_context_pool_index > 0
 						? @layout_context_pool[--layout_context_pool_index]
 						: LayoutContext();
@@ -428,17 +430,21 @@ class UI
 					new_ctx.y1 = ctx.y1;
 					new_ctx.x2 = ctx.x2;
 					new_ctx.y2 = ctx.y2;
+//					new_ctx.scroll_x = element._scroll_x;
+//					new_ctx.scroll_y = element._scroll_y;
+					new_ctx.scroll_x = ctx.scroll_x;
+					new_ctx.scroll_y = ctx.scroll_y;
 					
 					@ctx = @new_ctx;
-				}
+				//}
 				
 				Element@ parent = element.parent;
 				element._do_layout(ctx);
 				
 				if(@parent != null)
 				{
-					element.x1 = parent.x1 + element.x;
-					element.y1 = parent.y1 + element.y;
+					element.x1 = ctx.scroll_x + parent.x1 + element.x;
+					element.y1 = ctx.scroll_y + parent.y1 + element.y;
 					element.x2 = element.x1 + element._width;
 					element.y2 = element.y1 + element._height;
 					
@@ -458,8 +464,8 @@ class UI
 				}
 				else
 				{
-					element.x1 = element.x;
-					element.y1 = element.y;
+					element.x1 = ctx.scroll_x + element.x;
+					element.y1 = ctx.scroll_y + element.y;
 					element.x2 = element.x1 + element._width;
 					element.y2 = element.y1 + element._height;
 				}
@@ -499,6 +505,14 @@ class UI
 				if(element.disabled || !element.children_mouse_enabled)
 				{
 					ctx.mouse_active = false;
+				}
+				
+				if(@ctx.root == @element)
+				{
+					ctx.scroll_x = element._scroll_x;
+					ctx.scroll_y = element._scroll_y;
+//					ctx.scroll_x += element._scroll_x;
+//					ctx.scroll_y += element._scroll_y;
 				}
 			}
 			

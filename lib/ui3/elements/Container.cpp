@@ -22,9 +22,6 @@ class Container : Element
 	bool _scrolled_into_view;
 	ILayoutParentHandler@ _layout_handler;
 	
-	float _scroll_x;
-	float _scroll_y;
-	
 	protected array<Element@> children;
 	protected int num_children;
 	
@@ -44,30 +41,6 @@ class Container : Element
 				return;
 			
 			@_layout = value;
-			_validate_layout = true;
-		}
-	}
-	
-	// TODO: After scroll changes - Do not invalidate layout when changing scroll
-	float scroll_x
-	{
-		get const { return _scroll_x; }
-		set
-		{
-			if(_scroll_x == value) return;
-			_scroll_x = value;
-			_validate_layout = true;
-		}
-	}
-	
-			// TODO: After scroll changes - Do not invalidate layout when changing scroll
-	float scroll_y
-	{
-		get const { return _scroll_y; }
-		set
-		{
-			if(_scroll_y == value) return;
-			_scroll_y = value;
 			_validate_layout = true;
 		}
 	}
@@ -281,8 +254,6 @@ class Container : Element
 				}
 			}
 			
-			// TODO: After scroll changes - Do not invalidate layout when changing scroll
-			_validate_layout = scroll_changed;
 			_scrolled_into_view = scroll_changed;
 			@scroll_into_view = null;
 		}
@@ -292,7 +263,7 @@ class Container : Element
 			if(@_layout != null)
 			{
 				_layout.do_layout(@children,
-					_scroll_x, _scroll_y, _scroll_x + _width, _scroll_y + _height,
+					0, 0, _width, _height,
 					scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
 			}
 			else if(num_children > 0)
