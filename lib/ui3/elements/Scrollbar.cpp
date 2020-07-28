@@ -65,6 +65,11 @@ class Scrollbar : Element
 			}
 			
 			scroll_visible = container._height;
+			
+			if(container._scrolled_into_view)
+			{
+				position = is_horizontal ? -container._scroll_x : -container._scroll_y;
+			}
 		}
 		
 		if(scroll_min > scroll_max)
@@ -95,8 +100,8 @@ class Scrollbar : Element
 		{
 			if(ui.mouse.primary_down)
 			{
-				const float mouse_t = position_max > 0 ? clamp((is_horizontal ? ui.mouse.x - x1 : ui.mouse.y - y1) - drag_thumb_offset, 0, position_max) / position_max : 0;
-				position = clamp(scroll_min + scroll_range * mouse_t, scroll_min, scroll_max);
+				const float mouse_t = position_max > 0 ? ((is_horizontal ? ui.mouse.x - x1 : ui.mouse.y - y1) - drag_thumb_offset) / position_max : 0;
+				position = clamp(scroll_min + scroll_range * mouse_t, scroll_min, scroll_min + scroll_range);
 				calculate_scroll_values();
 			}
 			else
@@ -118,10 +123,22 @@ class Scrollbar : Element
 			const float mouse_t = is_horizontal ? ui.mouse.x - x1 : ui.mouse.y - y1;
 			mouse_over_thumb = mouse_t >= thumb_position && mouse_t <= thumb_position + thumb_size;
 			
-			if(mouse_over_thumb && ui.mouse.primary_press)
+			if(ui.mouse.primary_press)
 			{
-				dragging_thumb = true;
-				drag_thumb_offset = mouse_t - thumb_position;
+				if(mouse_over_thumb)
+				{
+					dragging_thumb = true;
+					drag_thumb_offset = mouse_t - thumb_position;
+				}
+				else if(scroll_range > 0)
+				{
+					dragging_thumb = true;
+					drag_thumb_offset = thumb_size * 0.5;
+					
+					calculate_scroll_values();
+					position = clamp(scroll_min + scroll_range * (position_max > 0 ? (mouse_t - drag_thumb_offset) / position_max : 0), scroll_min, scroll_min + scroll_range);
+					calculate_scroll_values();
+				}
 			}
 		}
 		else

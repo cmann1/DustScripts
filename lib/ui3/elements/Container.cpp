@@ -9,12 +9,17 @@ class Container : Element
 	 * @brief Any element that can contain other elements
 	 */
 	
+	Element@ scroll_into_view;
+	
 	bool _validate_layout = true;
 	float scroll_min_x;
 	float scroll_min_y;
 	float scroll_max_x;
 	float scroll_max_y;
 	
+	/// After scrolling an element into view this will be set for one frame.
+	/// Prevents attached scrollbars from resetting the position.
+	bool _scrolled_into_view;
 	ILayoutParentHandler@ _layout_handler;
 	
 	float _scroll_x;
@@ -43,6 +48,7 @@ class Container : Element
 		}
 	}
 	
+	// TODO: After scroll changes - Do not invalidate layout when changing scroll
 	float scroll_x
 	{
 		get const { return _scroll_x; }
@@ -54,6 +60,7 @@ class Container : Element
 		}
 	}
 	
+			// TODO: After scroll changes - Do not invalidate layout when changing scroll
 	float scroll_y
 	{
 		get const { return _scroll_y; }
@@ -196,6 +203,26 @@ class Container : Element
 		_validate_layout = true;
 	}
 	
+	Element@ first_child
+	{
+		get { return num_children > 0 ? @children[0] : null; }
+	}
+	
+	Element@ last_child
+	{
+		get { return num_children > 0 ? @children[num_children - 1] : null; }
+	}
+	
+	Element@ get_child(int index)
+	{
+		if(index < 0 || index >= num_children)
+			return null;
+		
+		return @children[index];
+	}
+	
+	int child_count { get const { return num_children; } }
+	
 	/**
 	 * @brief Required call after modifying layout properties
 	 */
@@ -223,9 +250,45 @@ class Container : Element
 	
 	void _do_layout_internal(LayoutContext@ ctx)
 	{
+		_scrolled_into_view = false;
+		
+		if(@scroll_into_view != null)
+		{
+			bool scroll_changed = false;
+			
+			if(@scroll_into_view.parent == @this)
+			{
+				if(scroll_into_view.x1 < x1 + ui.style.spacing)
+				{
+					_scroll_x += x1 + ui.style.spacing - scroll_into_view.x1;
+					scroll_changed = true;
+				}
+				else if(scroll_into_view.x2 > x2 - ui.style.spacing)
+				{
+					_scroll_x += x2 - ui.style.spacing - scroll_into_view.x2;
+					scroll_changed = true;
+				}
+				
+				if(scroll_into_view.y1 < y1 + ui.style.spacing)
+				{
+					_scroll_y += y1 + ui.style.spacing - scroll_into_view.y1;
+					scroll_changed = true;
+				}
+				else if(scroll_into_view.y2 > y2 - ui.style.spacing)
+				{
+					_scroll_y += y2 - ui.style.spacing - scroll_into_view.y2;
+					scroll_changed = true;
+				}
+			}
+			
+			// TODO: After scroll changes - Do not invalidate layout when changing scroll
+			_validate_layout = scroll_changed;
+			_scrolled_into_view = scroll_changed;
+			@scroll_into_view = null;
+		}
+		
 		if(_validate_layout)
 		{
-//			puts(_id+'.zvalidate_layout');
 			if(@_layout != null)
 			{
 				_layout.do_layout(@children,
