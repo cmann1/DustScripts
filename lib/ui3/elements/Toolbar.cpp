@@ -304,7 +304,7 @@ class Toolbar : Container, IOrientationParent
 			{
 				Element@ sibling = @siblings[i];
 				
-				if(@sibling == @this)
+				if(!sibling.visible || @sibling == @this)
 					continue;
 				
 				if(

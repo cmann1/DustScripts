@@ -243,7 +243,7 @@ class UI
 		// Wait for the next frame so that these changes will be reflected when the next layout pass happens.
 	}
 	
-	void draw(float sub_frame)
+	void draw()
 	{
 		style._layer = _layer;
 		style._sub_layer = _sub_layer;

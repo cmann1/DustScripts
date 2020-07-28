@@ -23,6 +23,8 @@ class Mouse
 	
 	float x;
 	float y;
+	float delta_x;
+	float delta_y;
 	int scroll;
 	int state;
 	
@@ -80,7 +82,9 @@ class Mouse
 		prev_right_down = right_down;
 		prev_middle_down = middle_down;
 		
-		moved = prev_x != x || prev_y != y;
+		delta_x = x - prev_x;
+		delta_y = y - prev_y;
+		moved = delta_x != 0 || delta_y != 0;
 		
 		prev_x = x;
 		prev_y = y;
