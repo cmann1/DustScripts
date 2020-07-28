@@ -84,6 +84,7 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 			if(@scrollbar_vertical == null)
 			{
 				@scrollbar_vertical = Scrollbar(ui, Orientation::Vertical);
+				@scrollbar_vertical.container = content;
 				Container::add_child(scrollbar_vertical);
 			}
 			else if(!scrollbar_vertical.visible)
@@ -104,6 +105,7 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 			if(@scrollbar_horizontal == null)
 			{
 				@scrollbar_horizontal = Scrollbar(ui, Orientation::Horizontal);
+				@scrollbar_horizontal.container = content;
 				Container::add_child(scrollbar_horizontal);
 			}
 			else if(!scrollbar_horizontal.visible)
@@ -133,20 +135,15 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		const bool scrolled_x = scrolled && @scrollbar_horizontal != null && scrollbar_horizontal.hovered;
 		const bool scrolled_y = scrolled && _content.hovered || @scrollbar_vertical != null && scrollbar_vertical.hovered;
 		
-		content.scroll_y = clamp(
-			scrollbar_vertical_update ? -scrollbar_vertical.position :
-				(scrolled_y
-					? _content.scroll_y - scroll_dir * scroll_amount
-					: _content._scroll_y),
-			-max(0, (_content.scroll_max_y - _content.scroll_min_y) - _content._height),
-			0);
-		content.scroll_x = clamp(
-			scrollbar_horizontal_update ? -scrollbar_horizontal.position :
-			(scrolled_x
-				? _content.scroll_x - scroll_dir * scroll_amount
-				: _content._scroll_x),
-			-max(0, (_content.scroll_max_x - _content.scroll_min_x) - _content._width),
-			0);
+		if(scrolled_y && needs_scroll_vertical)
+		{
+			scrollbar_vertical.position += scroll_dir * scroll_amount;
+		}
+		
+		if(scrolled_x && needs_scroll_horizontal)
+		{
+			scrollbar_horizontal.position += scroll_dir * scroll_amount;
+		}
 		
 		if(needs_scroll_vertical)
 			update_vertical_scrollbar();
@@ -167,11 +164,6 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		scrollbar_vertical._x = _content._x + _content._width;
 		scrollbar_vertical._y = ui.style.spacing;
 		scrollbar_vertical._height = _height - ui.style.spacing * 2;
-		
-		scrollbar_vertical.scroll_min = 0;
-		scrollbar_vertical.scroll_max = _content.scroll_max_y - _content.scroll_min_y;
-		scrollbar_vertical.scroll_visible = _content._height;
-		scrollbar_vertical.position = -_content._scroll_y;
 	}
 	
 	protected void update_horizontal_scrollbar()
@@ -182,11 +174,6 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		scrollbar_horizontal._x = ui.style.spacing;
 		scrollbar_horizontal._y = _content._y + _content._height;
 		scrollbar_horizontal._width = _width - ui.style.spacing * 2;
-		
-		scrollbar_horizontal.scroll_min = 0;
-		scrollbar_horizontal.scroll_max = _content.scroll_max_x - _content.scroll_min_x;
-		scrollbar_horizontal.scroll_visible = _content._width;
-		scrollbar_horizontal.position = -_content._scroll_x;
 	}
 	
 }

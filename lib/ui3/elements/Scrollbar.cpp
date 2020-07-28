@@ -13,6 +13,9 @@ class Scrollbar : Element
 	float position;
 	bool flexible_thumb_size = true;
 	
+	Container@ container;
+	bool scroll_container_at_origin = true;
+	
 	protected float scroll_width;
 	protected float scroll_range;
 	protected float position_max;
@@ -23,7 +26,7 @@ class Scrollbar : Element
 	protected bool dragging_thumb;
 	protected float drag_thumb_offset;
 	
-	protected previous_position;
+	protected float previous_position;
 	
 	Scrollbar(UI@ ui, Orientation orientation)
 	{
@@ -47,6 +50,22 @@ class Scrollbar : Element
 	{
 		const bool is_horizontal = orientation == Horizontal;
 		const float size = is_horizontal ? _width : _height;
+		
+		if(@container != null)
+		{
+			if(scroll_container_at_origin)
+			{
+				scroll_min = 0;
+				scroll_max = is_horizontal ? container.scroll_max_x - container.scroll_min_x : container.scroll_max_y - container.scroll_min_y;
+			}
+			else
+			{
+				scroll_min = is_horizontal ? container.scroll_min_x : container.scroll_min_y;
+				scroll_max = is_horizontal ? container.scroll_max_x : container.scroll_max_y;
+			}
+			
+			scroll_visible = container._height;
+		}
 		
 		if(scroll_min > scroll_max)
 		{
@@ -84,6 +103,14 @@ class Scrollbar : Element
 			{
 				dragging_thumb = false;
 			}
+		}
+		
+		if(@container != null)
+		{
+			if(is_horizontal)
+				container.scroll_x = -position;
+			else
+				container.scroll_y = -position;
 		}
 		
 		if(hovered)
