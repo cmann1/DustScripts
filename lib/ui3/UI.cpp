@@ -376,16 +376,16 @@ class UI
 		LayoutContext@ ctx = layout_context_pool_index > 0
 			? @layout_context_pool[--layout_context_pool_index]
 			: LayoutContext();
+		
 		@ctx.parent = null;
 		@ctx.root = @base;
 		ctx.num_children = element_stack.size + 1;
 		ctx.mouse_active = check_mouse_over;
 		ctx.clipping_mode = ClippingMode::Outside;
-		
-		ctx.x1 = base.x1;
-		ctx.y1 = base.y1;
-		ctx.x2 = base.x2;
-		ctx.y2 = base.y2;
+		ctx.x1 = base._x;
+		ctx.y1 = base._y;
+		ctx.x2 = base.x + base._width;
+		ctx.y2 = base.y + base._height;
 		ctx.subtree_x1 = ctx.x1;
 		ctx.subtree_y1 = ctx.y1;
 		ctx.subtree_x2 = ctx.x2;
