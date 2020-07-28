@@ -1,6 +1,7 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../utils/Orientation.cpp';
+#include '../events/Event.cpp';
 #include 'Container.cpp';
 
 class Scrollbar : Element
@@ -15,6 +16,8 @@ class Scrollbar : Element
 	
 	Container@ container;
 	bool scroll_container_at_origin = true;
+	
+	Event scroll;
 	
 	protected float scroll_width;
 	protected float scroll_range;
@@ -68,6 +71,7 @@ class Scrollbar : Element
 			
 			if(container._scrolled_into_view)
 			{
+				puts('T');
 				position = is_horizontal ? -container._scroll_x : -container._scroll_y;
 			}
 		}
@@ -144,6 +148,14 @@ class Scrollbar : Element
 		else
 		{
 			mouse_over_thumb = false;
+		}
+		
+		if(previous_position != position)
+		{
+			EventInfo@ event = ui._event_info_pool.get();
+			event.reset(EventType::SCROLL, @this);
+			ui._queue_event(@this.scroll, @event);
+			previous_position = position;
 		}
 	}
 	

@@ -13,6 +13,11 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 	float scroll_amount = 15;
 	Container@ content { get { return @_content; } }
 	
+	Event scroll;
+	
+	protected float previous_scroll_x;
+	protected float previous_scroll_y;
+	
 	protected Container@ _content;
 	protected Scrollbar@ scrollbar_horizontal;
 	protected Scrollbar@ scrollbar_vertical;
@@ -27,6 +32,10 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		@_content._layout_handler = this;
 	}
 	
+	float scroll_x { get const { return -_content._scroll_x; } }
+	
+	float scroll_y { get const { return -_content._scroll_y; } }
+	
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
 		if(@scrollbar_vertical != null && scrollbar_vertical.visible)
@@ -36,16 +45,6 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 			stack.push(scrollbar_horizontal);
 		
 		stack.push(_content);
-	}
-	
-	void _do_layout(LayoutContext@ ctx) override
-	{
-		if(@scrollbar_vertical != null && scrollbar_vertical.visible)
-		{
-			scrollbar_vertical._x = _width - scrollbar_vertical._width - ui.style.spacing;
-			scrollbar_vertical._y = ui.style.spacing;
-			scrollbar_vertical._height = _height - ui.style.spacing * 2;
-		}
 	}
 	
 	void do_child_layout(LayoutContext@ ctx, Container@ container)
@@ -149,8 +148,19 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 			update_vertical_scrollbar();
 		if(needs_scroll_horizontal)
 			update_horizontal_scrollbar();
+		
+		if(previous_scroll_x != _content._scroll_x || previous_scroll_y != _content._scroll_y)
+		{
+			EventInfo@ event = ui._event_info_pool.get();
+			event.reset(EventType::SCROLL, @this);
+			ui._queue_event(@this.scroll, @event);
+			
+			previous_scroll_x = _content._scroll_x;
+			previous_scroll_y = _content._scroll_y;
+		}
 	}
 	
+	// TODO: REMOVE
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		style.draw_rectangle(x1, y1, x2, y2, 0, style.normal_bg_clr);

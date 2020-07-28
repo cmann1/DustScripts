@@ -9,10 +9,10 @@
 #include 'utils/ElementStack.cpp';
 #include 'utils/LayoutContext.cpp';
 #include 'utils/DrawingContext.cpp';
+#include 'utils/pools/EventInfoPool.cpp';
 #include 'utils/pools/ImagePool.cpp';
 #include 'utils/pools/LabelPool.cpp';
 #include 'events/Event.cpp';
-#include 'events/GenericEvent.cpp';
 #include 'elements/Element.cpp';
 #include 'elements/Container.cpp';
 #include 'elements/Tooltip.cpp';
@@ -66,6 +66,11 @@ class UI
 	private dictionary elements_middle_pressed();
 	private array<Element@> elements_pressed_list();
 	
+	private int num_queued_events;
+	private int queued_events_size = 16;
+	private array<Event@> queued_events(queued_events_size);
+	private array<EventInfo@> queued_event_infos(queued_events_size);
+	
 	private dictionary tooltips;
 	
 	private textfield@ debug_text_field;
@@ -80,11 +85,11 @@ class UI
 	// ///////////////////////////////////////////////////////////////
 	// Common reusable things
 	
+	/*private*/ EventInfoPool _event_info_pool;
 	/*private*/ LabelPool _label_pool;
 	/*private*/ ImagePool _image_pool;
 	
 	/*private*/ EventInfo@ _event_info = EventInfo();
-	/*private*/ GenericEventInfo@ _generic_event_info = GenericEventInfo();
 	/*private*/ FlowLayout@ _toolbar_flow_layout;
 	
 	/*private*/ array<float> _float_array(16);
@@ -197,6 +202,11 @@ class UI
 	void step()
 	{
 		process_mouse_events(@_mouse_over_element == @mouse_over_overlays ? overlays : contents);
+		
+		if(num_queued_events > 0)
+		{
+			process_queued_events();
+		}
 		
 		mouse.step();
 		
@@ -866,6 +876,18 @@ class UI
 		elements_pressed_list.resize(0);
 	}
 	
+	private void process_queued_events()
+	{
+		for(int i = 0; i < num_queued_events; i++)
+		{
+			EventInfo@ event_info = @queued_event_infos[i];
+			queued_events[i].dispatch(event_info);
+			_event_info_pool.release(@event_info);
+		}
+		
+		num_queued_events = 0;
+	}
+	
 	private void draw_root(Element@ root)
 	{
 		Style@ style = @this.style;
@@ -1064,6 +1086,19 @@ class UI
 				}
 			}
 		}
+	}
+	
+	/* internal */ void _queue_event(Event@ event, EventInfo@ event_info)
+	{
+		if(num_queued_events == queued_events_size)
+		{
+			queued_events_size += 16;
+			queued_events.resize(queued_events_size);
+			queued_event_infos.resize(queued_events_size);
+		}
+		
+		@queued_events[num_queued_events]			= @event;
+		@queued_event_infos[num_queued_events++]	= event_info;
 	}
 	
 	private void show_tooltip(const string id, TooltipOptions@ options, Element@ element, bool wait_for_mouse)

@@ -1,5 +1,5 @@
 #include '../elements/Button.cpp';
-#include '../events/GenericEvent.cpp';
+#include '../events/Event.cpp';
 
 class ButtonGroup : IGenericEventTarget
 {
@@ -7,7 +7,7 @@ class ButtonGroup : IGenericEventTarget
 	string _name = '';
 	bool allow_deselect;
 	
-	GenericEvent select;
+	Event select;
 	
 	private UI@ ui;
 	private array<Button@> buttons;
@@ -104,8 +104,8 @@ class ButtonGroup : IGenericEventTarget
 			@_selected_button = button;
 		}
 		
-		ui._generic_event_info.reset(EventType::SELECT, @this, @_selected_button);
-		select.dispatch(ui._generic_event_info);
+		ui._event_info.reset(EventType::SELECT, @_selected_button, @this);
+		select.dispatch(ui._event_info);
 	}
 	
 	Button@ selected_button { get { return _selected_button; } }
@@ -123,8 +123,8 @@ class ButtonGroup : IGenericEventTarget
 		}
 		
 		@_selected_button = @button;
-		ui._generic_event_info.reset(EventType::SELECT, @this, @_selected_button);
-		select.dispatch(ui._generic_event_info);
+		ui._event_info.reset(EventType::SELECT, @_selected_button, @this);
+		select.dispatch(ui._event_info);
 	}
 	
 }

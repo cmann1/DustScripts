@@ -26,7 +26,7 @@ class ImagePool
 			pool.resize(pool_size);
 		}
 		
-		@pool[pool_index++] = obj;
+		@pool[pool_index++] = @obj;
 	}
 	
 }
