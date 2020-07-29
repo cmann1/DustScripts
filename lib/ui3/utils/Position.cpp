@@ -9,5 +9,6 @@ enum Position
 	Bottom,
 	LeftBottom,
 	Left,
+	Middle,
 	
 }

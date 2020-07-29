@@ -1,17 +1,10 @@
 #include '../../math/math.cpp';
 #include '../UI.cpp';
 #include '../Style.cpp';
+#include '../utils/Position.cpp';
 
 class Image : Element
 {
-	
-	protected string sprite_set;
-	protected string sprite_name;
-	protected sprites@ sprite;
-	protected float sprite_offset_x;
-	protected float sprite_offset_y;
-	protected float sprite_width;
-	protected float sprite_height;
 	
 	float origin_x = 0.5;
 	float origin_y = 0.5;
@@ -21,18 +14,28 @@ class Image : Element
 	float scale_y = 1;
 	uint colour = 0xffffffff;
 	
+	Position position = Position::Middle;
+	
+	protected string sprite_set;
+	protected string sprite_name;
+	protected sprites@ sprite;
+	protected float sprite_offset_x;
+	protected float sprite_offset_y;
+	protected float sprite_width;
+	protected float sprite_height;
+	
 	/**
 	 * @brief Normally the sprite's width, height, and offset will be calcualted automatically, but for embedded/script sprites (and possibly some other ones too)
 	 * these do not seem to be accurate
 	 */
-	Image(UI@ ui, const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
+	Image(UI@ ui, const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
 		super(ui, 'img');
 		
 		set_sprite(sprite_set, sprite_name, width, height, offset_x, offset_y);
 	}
 	
-	void set_sprite(const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
+	void set_sprite(const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
 		if(this.sprite_set == sprite_set && this.sprite_name == sprite_name)
 			return;
@@ -77,29 +80,68 @@ class Image : Element
 	{
 		Element::_draw(@style, @ctx);
 		
-		const float x = x1 + (x2 - x1) * origin_x;
-		const float y = y1 + (y2 - y1) * origin_y;
+		float x;
+		float y;
+		
+		switch(position)
+		{
+			case Position::LeftTop:
+				x = x1;
+				y = y1;
+				break;
+			case Position::Top:
+				x = x1 + (x2 - x1) * 0.5;
+				y = y1;
+				break;
+			case Position::RightTop:
+				x = x2;
+				y = y1;
+				break;
+			case Position::Right:
+				x = x2;
+				y = y1 + (y2 - y1) * 0.5;
+				break;
+			case Position::RightBottom:
+				x = x2;
+				y = y2;
+				break;
+			case Position::Bottom:
+				x = x1 + (x2 - x1) * 0.5;
+				y = y2;
+				break;
+			case Position::LeftBottom:
+				x = x1;
+				y = y2;
+				break;
+			case Position::Left:
+				x = x1;
+				y = y1 + (y2 - y1) * 0.5;
+				break;
+			case Position::Middle:
+				x = (x2 - x1) * 0.5;
+				y = (y2 - y1) * 0.5;
+				break;
+		}
+		
+		float dx;
+		float dy;
 		
 		if(rotation == 0)
 		{
-			style.draw_sprite(sprite,
-				sprite_name, 0, 0,
-				x + sprite_offset_x - sprite_width * 0.5,
-				y + sprite_offset_y - sprite_height * 0.5,
-				rotation, scale_x, scale_y,
-				colour);
-			
-			return;
+			dx = sprite_offset_x - sprite_width * origin_x;
+			dy = sprite_offset_y - sprite_height * origin_y;
 		}
-		
-		float dx = (sprite_offset_x - sprite_width * origin_x) * scale_x;
-		float dy = (sprite_offset_y - sprite_height * origin_y) * scale_y;
-		
-		rotate(dx, dy, rotation * DEG2RAD, dx, dy);
+		else
+		{
+			dx = sprite_offset_x - sprite_width * origin_x;
+			dy = sprite_offset_y - sprite_height * origin_y;
+			rotate(dx, dy, rotation * DEG2RAD, dx, dy);
+		}
 		
 		style.draw_sprite(sprite,
 			sprite_name, 0, 0,
-			x + dx, y + dy, rotation,
+			x + dx * scale_x - 0.5,
+			y + dy * scale_y - 0.5, rotation,
 			scale_x, scale_y,
 			colour);
 	}

@@ -35,7 +35,7 @@ class Button : SingleContainer
 		init();
 	}
 	
-	Button(UI@ ui, const string sprite_text, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
+	Button(UI@ ui, const string sprite_text, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
 		Image@ image = Image(ui, sprite_text, sprite_name, width, height, offset_x, offset_y);
 		
