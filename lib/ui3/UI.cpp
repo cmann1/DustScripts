@@ -480,15 +480,6 @@ class UI
 					element.y2 = element.y1 + element._height;
 				}
 				
-				if(element.clip_contents != ClippingMode::None)
-				{
-					ctx.clipping_mode = element.clip_contents;
-					ctx.x1 = element.x1;
-					ctx.y1 = element.y1;
-					ctx.x2 = element.x2;
-					ctx.y2 = element.y2;
-				}
-				
 				ctx.subtree_x1 = element.x1;
 				ctx.subtree_y1 = element.y1;
 				ctx.subtree_x2 = element.x2;
@@ -512,6 +503,15 @@ class UI
 					}
 				}
 				
+				if(element.clip_contents != ClippingMode::None)
+				{
+					ctx.clipping_mode = element.clip_contents;
+					ctx.x1 = max(ctx.x1, element.x1);
+					ctx.y1 = max(ctx.y1, element.y1);
+					ctx.x2 = min(ctx.x2, element.x2);
+					ctx.y2 = min(ctx.y2, element.y2);
+				}
+				
 				if(element.disabled || !element.children_mouse_enabled)
 				{
 					ctx.mouse_active = false;
@@ -521,8 +521,6 @@ class UI
 				{
 					ctx.scroll_x = element._scroll_x;
 					ctx.scroll_y = element._scroll_y;
-//					ctx.scroll_x += element._scroll_x;
-//					ctx.scroll_y += element._scroll_y;
 				}
 			}
 			
@@ -934,10 +932,10 @@ class UI
 				if(element.clip_contents != ClippingMode::None)
 				{
 					ctx.clipping_mode = element.clip_contents;
-					ctx.x1 = element.x1;
-					ctx.y1 = element.y1;
-					ctx.x2 = element.x2;
-					ctx.y2 = element.y2;
+					ctx.x1 = max(ctx.x1, element.x1);
+					ctx.y1 = max(ctx.y1, element.y1);
+					ctx.x2 = min(ctx.x2, element.x2);
+					ctx.y2 = min(ctx.y2, element.y2);
 				}
 				
 				if(element.disabled)
@@ -1038,10 +1036,10 @@ class UI
 				if(element.clip_contents != ClippingMode::None)
 				{
 					ctx.clipping_mode = element.clip_contents;
-					ctx.x1 = element.x1;
-					ctx.y1 = element.y1;
-					ctx.x2 = element.x2;
-					ctx.y2 = element.y2;
+					ctx.x1 = max(ctx.x1, element.x1);
+					ctx.y1 = max(ctx.y1, element.y1);
+					ctx.x2 = min(ctx.x2, element.x2);
+					ctx.y2 = min(ctx.y2, element.y2);
 				}
 			}
 			
