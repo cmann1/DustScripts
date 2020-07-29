@@ -67,7 +67,7 @@ class Scrollbar : Element
 				scroll_max = is_horizontal ? container.scroll_max_x : container.scroll_max_y;
 			}
 			
-			scroll_visible = container._height;
+			scroll_visible = is_horizontal ? container._width : container._height;
 			
 			if(container._scrolled_into_view)
 			{
@@ -166,11 +166,18 @@ class Scrollbar : Element
 		
 		if(thumb_size > 0)
 		{
+			const uint clr = dragging_thumb ? style.selected_highlight_bg_clr : (mouse_over_thumb ? style.highlight_bg_clr : style.secondary_bg_clr);
+			
 			if(!is_horizontal)
 				style.draw_rectangle(
 					x1, y1 + thumb_position,
 					x2, y1 + thumb_position + thumb_size,
-					0, dragging_thumb ? style.selected_highlight_bg_clr : (mouse_over_thumb ? style.highlight_bg_clr : style.secondary_bg_clr));
+					0, clr);
+			else
+				style.draw_rectangle(
+					x1 + thumb_position, y1,
+					x1 + thumb_position + thumb_size, y2,
+					0, clr);
 		}
 	}
 	

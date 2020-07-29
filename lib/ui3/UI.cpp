@@ -92,7 +92,8 @@ class UI
 	/*private*/ EventInfo@ _event_info = EventInfo();
 	/*private*/ FlowLayout@ _toolbar_flow_layout;
 	
-	/*private*/ array<float> _float_array(16);
+	/*private*/ array<float> _float_array_x(16);
+	/*private*/ array<float> _float_array_y(16);
 	/*private*/ array<int> _int_array(16);
 	/*private*/ array<Element@> _element_array(16);
 	

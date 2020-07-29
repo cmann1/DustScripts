@@ -177,7 +177,7 @@ abstract class Element
 		{
 			if(_height == value) return;
 			_height = value;
-			if(@parent != null) parent._validate_layout = true;
+			if(@parent != null) parent._validate_layout = true; 
 		}
 	}
 	

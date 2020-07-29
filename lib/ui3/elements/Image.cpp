@@ -75,6 +75,8 @@ class Image : Element
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
+		Element::_draw(@style, @ctx);
+		
 		const float x = x1 + (x2 - x1) * origin_x;
 		const float y = y1 + (y2 - y1) * origin_y;
 		

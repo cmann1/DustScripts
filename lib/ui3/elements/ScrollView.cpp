@@ -58,15 +58,15 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		
 		_content.x = ui.style.spacing;
 		_content.y = ui.style.spacing;
-		_content.width  = _width  - ui.style.spacing * 2;
-		_content.height = _height - ui.style.spacing * 2;
+		float content_width  = _width  - ui.style.spacing * 2;
+		float content_height = _height - ui.style.spacing * 2;
 		
 		if(prev_scroll_vertical)
 		{
 			if(!scroll_vertical)
 				scrollbar_vertical.visible = false;
 			else
-				_content._width -= scrollbar_vertical._width;
+				content_width -= scrollbar_vertical._width;
 		}
 		
 		if(prev_scroll_horizontal)
@@ -74,14 +74,17 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 			if(!scroll_horizontal)
 				scrollbar_horizontal.visible = false;
 			else
-				_content._height -= scrollbar_horizontal._height;
+				content_height -= scrollbar_horizontal._height;
 		}
 		
 		if(_validate_layout)
 		{
 			_content._validate_layout = true;
+			_validate_layout = false;
 		}
 		
+		content.width = content_width;
+		content.height = content_height;
 		_content._do_layout_internal(ctx);
 		
 		const bool needs_scroll_vertical   = scroll_vertical   && (_content.scroll_max_y - _content.scroll_min_y - _content._height) >= 1;
@@ -101,7 +104,7 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 			}
 			
 			if(!prev_scroll_vertical)
-				_content._width -= scrollbar_vertical._width;
+				content_width -= scrollbar_vertical._width;
 		}
 		else if(prev_scroll_vertical)
 		{
@@ -122,7 +125,7 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 			}
 			
 			if(!prev_scroll_horizontal)
-				_content._height-= scrollbar_horizontal._height;
+				content_height -= scrollbar_horizontal._height;
 		}
 		else if(prev_scroll_horizontal)
 		{
@@ -131,6 +134,9 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		
 		if(needs_scroll_horizontal != prev_scroll_horizontal || needs_scroll_vertical != prev_scroll_vertical)
 		{
+			content.width = content_width;
+			content.height = content_height;
+			
 			_content._validate_layout = true;
 			_content._do_layout_internal(ctx);
 		}
@@ -141,7 +147,7 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		int scroll_dir;
 		const bool scrolled = !scrollbar_vertical_update && !scrollbar_horizontal_update && ui.mouse.scrolled(scroll_dir);
 		const bool scrolled_x = scrolled && @scrollbar_horizontal != null && scrollbar_horizontal.hovered;
-		const bool scrolled_y = scrolled && _content.hovered || @scrollbar_vertical != null && scrollbar_vertical.hovered;
+		const bool scrolled_y = scrolled && (_content.hovered || @scrollbar_vertical != null && scrollbar_vertical.hovered);
 		
 		if(scrolled_y && needs_scroll_vertical)
 		{

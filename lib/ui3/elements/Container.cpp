@@ -45,6 +45,29 @@ class Container : Element
 		}
 	}
 	
+	float width
+	{
+		set override
+		{
+			if(_width == value) return;
+			_width = value;
+			_validate_layout = true;
+			if(@parent != null) parent._validate_layout = true;
+		}
+	}
+	
+	float height
+	{
+		set override
+		{
+			if(_height == value) return;
+			_height = value;
+			_validate_layout = true;
+			if(@parent != null) parent._validate_layout = true;
+		}
+	}
+	
+	
 	array<Element@>@ get_children()
 	{
 		return @children;
@@ -63,7 +86,6 @@ class Container : Element
 		children.insertLast(child);
 		num_children++;
 		@child.parent = @this;
-		
 		_validate_layout = true;
 		return true;
 	}
@@ -92,7 +114,6 @@ class Container : Element
 		num_children--;
 		child._added();
 		@child.parent = null;
-		
 		_validate_layout = true;
 		return true;
 	}
@@ -264,7 +285,7 @@ class Container : Element
 			{
 				_layout.do_layout(@children,
 					0, 0, _width, _height,
-					scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
+					scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y,x1,y1);
 			}
 			else if(num_children > 0)
 			{
@@ -296,8 +317,6 @@ class Container : Element
 				scroll_max_x = 0;
 				scroll_max_y = 0;
 			}
-			
-			_validate_layout = false;
 		}
 	}
 	

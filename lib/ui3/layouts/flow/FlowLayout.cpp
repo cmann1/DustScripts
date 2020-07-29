@@ -1,3 +1,4 @@
+#include '../../../math/math.cpp';
 #include '../Layout.cpp';
 #include 'FlowAlign.cpp';
 #include 'FlowDirection.cpp';
@@ -32,7 +33,7 @@ class FlowLayout : Layout
 	
 	void do_layout(const array<Element@>@ elements,
 		const float x1, const float y1, const float x2, const float y2,
-		float &out out_x1, float &out out_y1, float &out out_x2, float &out out_y2) override
+		float &out out_x1, float &out out_y1, float &out out_x2, float &out out_y2,float px=0,float py=0) override
 	{
 		const int num_children = elements.size();
 		const float padding = is_nan(this.padding) ? ui.style.spacing : this.padding;
@@ -46,7 +47,7 @@ class FlowLayout : Layout
 			return;
 		}
 		
-		const float spacing = is_nan(this.spacing) ? ui.style.spacing : this.spacing;
+		const float spacing = max(0, is_nan(this.spacing) ? ui.style.spacing : this.spacing);
 		
 		const bool is_horizontal	= this.is_horizontal;
 		const bool is_reversed		= direction == FlowDirection::RowReverse || direction == FlowDirection::ColumnReverse;
@@ -65,7 +66,7 @@ class FlowLayout : Layout
 		// Step 1. Find the extents of each row and column
 		
 		// Stores the main and cross axis size for each row/column in pairs of two values
-		array<float>@ axis_sizes = ui._float_array;
+		array<float>@ axis_sizes = ui._float_array_x;
 		int axis_sizes_stacksize = axis_sizes.size();
 		int axis_sizes_index = 0;
 		// Stores the index for the end of each main axis
@@ -95,8 +96,8 @@ class FlowLayout : Layout
 			
 			num_visible_elements++;
 			
-			const float el_main_size  = is_horizontal ? element.width  : element.height;
-			const float el_cross_size = is_horizontal ? element.height : element.width;
+			const float el_main_size  = is_horizontal ? element._width  : element._height;
+			const float el_cross_size = is_horizontal ? element._height : element._width;
 			
 			if(wrap && main_x + el_main_size > main_axis_end)
 			{
@@ -254,8 +255,8 @@ class FlowLayout : Layout
 				}
 			}
 			
-			const float el_main_size  = is_horizontal ? element.width  : element.height;
-			const float el_cross_size = is_horizontal ? element.height : element.width;
+			const float el_main_size  = is_horizontal ? element._width  : element._height;
+			const float el_cross_size = is_horizontal ? element._height : element._width;
 			const float main_x_final = is_reversed ? (main_axis_end - main_x + main_axis_start - el_main_size) : main_x;
 			float cross_x_final = cross_x;
 			
@@ -269,9 +270,9 @@ class FlowLayout : Layout
 					break;
 				case FlowAlign::Stretch:
 					if(is_horizontal)
-						element.height = current_cross_axis_size;
+						element._height = current_cross_axis_size;
 					else
-						element.width = current_cross_axis_size;
+						element._width = current_cross_axis_size;
 					break;
 			}
 			
@@ -282,33 +283,33 @@ class FlowLayout : Layout
 			
 			if(is_horizontal)
 			{
-				element.x = main_x_final;
-				element.y = cross_x_final;
+				element._x = main_x_final;
+				element._y = cross_x_final;
 			}
 			else
 			{
-				element.y = main_x_final;
-				element.x = cross_x_final;
+				element._y = main_x_final;
+				element._x = cross_x_final;
 			}
 			
 			if(!first_element_placed)
 			{
-				out_x1 = element.x;
-				out_y1 = element.y;
-				out_x2 = out_x1 + element.width;
-				out_y2 = out_y1 + element.height;
+				out_x1 = element._x;
+				out_y1 = element._y;
+				out_x2 = out_x1 + element._width;
+				out_y2 = out_y1 + element._height;
 				first_element_placed = true;
 			}
 			else
 			{
-				if(element.x < out_x1)
-					out_x1 = element.x;
-				if(element.y < out_y1)
-					out_y1 = element.y;
-				if(element.x + element.width > out_x2)
-					out_x2 = element.x + element.width;
-				if(element.y + element.height > out_y2)
-					out_y2 = element.y + element.height;
+				if(element._x < out_x1)
+					out_x1 = element._x;
+				if(element._y < out_y1)
+					out_y1 = element._y;
+				if(element._x + element._width > out_x2)
+					out_x2 = element._x + element._width;
+				if(element._y + element._height > out_y2)
+					out_y2 = element._y + element._height;
 			}
 			
 			main_x += el_main_size + main_spacing;
