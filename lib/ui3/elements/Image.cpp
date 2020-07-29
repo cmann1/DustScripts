@@ -19,58 +19,59 @@ class Image : Element
 	ImageSize sizing = ImageSize::ConstrainInside;
 	float padding;
 	
-	protected string sprite_set;
-	protected string sprite_name;
+	string _sprite_set;
+	string _sprite_name;
+	float _sprite_width;
+	float _sprite_height;
+	float _sprite_offset_x;
+	float _sprite_offset_y;
+	
 	protected sprites@ sprite;
-	protected float sprite_offset_x;
-	protected float sprite_offset_y;
-	protected float sprite_width;
-	protected float sprite_height;
 	
 	/**
 	 * @brief Normally the sprite's width, height, and offset will be calcualted automatically, but for embedded/script sprites (and possibly some other ones too)
 	 * these do not seem to be accurate
 	 */
-	Image(UI@ ui, const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
+	Image(UI@ ui, const string _sprite_set, const string _sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
 		super(ui, 'img');
 		
-		set_sprite(sprite_set, sprite_name, width, height, offset_x, offset_y);
+		set_sprite(_sprite_set, _sprite_name, width, height, offset_x, offset_y);
 	}
 	
-	void set_sprite(const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
+	void set_sprite(const string _sprite_set, const string _sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
-		if(this.sprite_set == sprite_set && this.sprite_name == sprite_name)
+		if(this._sprite_set == _sprite_set && this._sprite_name == _sprite_name)
 			return;
 		
-		this.sprite_set = sprite_set;
-		this.sprite_name = sprite_name;
-		@sprite = @sprite == null ? ui.style.get_sprite_for_set(sprite_set) : @sprite;
-		sprite.add_sprite_set(sprite_set);
+		this._sprite_set = _sprite_set;
+		this._sprite_name = _sprite_name;
+		@sprite = @sprite == null ? ui.style.get_sprite_for_set(_sprite_set) : @sprite;
+		sprite.add_sprite_set(_sprite_set);
 		
 		if(width <= 0 || height <= 0)
 		{
-			rectangle@ rect = sprite.get_sprite_rect(sprite_name, 0);
-			sprite_offset_x = -rect.left();
-			sprite_offset_y = -rect.top();
-			sprite_width = rect.get_width();
-			sprite_height = rect.get_height();
+			rectangle@ rect = sprite.get_sprite_rect(_sprite_name, 0);
+			_sprite_offset_x = -rect.left();
+			_sprite_offset_y = -rect.top();
+			_sprite_width = rect.get_width();
+			_sprite_height = rect.get_height();
 			
-			if(sprite_offset_x == 0 && sprite_offset_y == 0 && sprite_width == 1 && sprite_height == 1)
+			if(_sprite_offset_x == 0 && _sprite_offset_y == 0 && _sprite_width == 1 && _sprite_height == 1)
 			{
-				sprite_offset_x = sprite_offset_y = sprite_width = sprite_height = 0;
+				_sprite_offset_x = _sprite_offset_y = _sprite_width = _sprite_height = 0;
 			}
 		}
 		else
 		{
-			sprite_width = width;
-			sprite_height = height;
-			sprite_offset_x = offset_x;
-			sprite_offset_y = offset_y;
+			_sprite_width = width;
+			_sprite_height = height;
+			_sprite_offset_x = offset_x;
+			_sprite_offset_y = offset_y;
 		}
 		
-		_set_width  = this._width = sprite_width * scale_x;
-		_set_height = this._height = sprite_height * scale_y;
+		_set_width  = this._width = _sprite_width * scale_x;
+		_set_height = this._height = _sprite_height * scale_y;
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
@@ -154,16 +155,16 @@ class Image : Element
 				scale_y = this.scale_y;
 				break;
 			case ImageSize::Fit:
-				scale_x = sprite_width > 0  ? width  / sprite_width : 0;
-				scale_y = sprite_height > 0 ? height / sprite_height : 0;
+				scale_x = _sprite_width > 0  ? width  / _sprite_width : 0;
+				scale_y = _sprite_height > 0 ? height / _sprite_height : 0;
 				break;
 			case ImageSize::FitInside:
 			case ImageSize::ConstrainInside:
 			{
-				if(sizing == ImageSize::FitInside || sprite_width * this.scale_x > width || sprite_height * this.scale_y > height)
+				if(sizing == ImageSize::FitInside || _sprite_width * this.scale_x > width || _sprite_height * this.scale_y > height)
 				{
-					const float width_scale  = sprite_width  * this.scale_x > 0 ? width  / (sprite_width  * this.scale_x) : 0;
-					const float height_scale = sprite_height * this.scale_y > 0 ? height / (sprite_height * this.scale_y) : 0;
+					const float width_scale  = _sprite_width  * this.scale_x > 0 ? width  / (_sprite_width  * this.scale_x) : 0;
+					const float height_scale = _sprite_height * this.scale_y > 0 ? height / (_sprite_height * this.scale_y) : 0;
 					const float scale = min(width_scale, height_scale);
 					scale_x = this.scale_x * scale;
 					scale_y = this.scale_y * scale;
@@ -177,18 +178,18 @@ class Image : Element
 				break;
 		}
 		
-		float dx = sprite_offset_x - sprite_width * origin_x;
-		float dy = sprite_offset_y - sprite_height * origin_y;
+		float dx = _sprite_offset_x - _sprite_width * origin_x;
+		float dy = _sprite_offset_y - _sprite_height * origin_y;
 		
 		if(rotation != 0)
 		{
-			dx = sprite_offset_x - sprite_width * origin_x;
-			dy = sprite_offset_y - sprite_height * origin_y;
+			dx = _sprite_offset_x - _sprite_width * origin_x;
+			dy = _sprite_offset_y - _sprite_height * origin_y;
 			rotate(dx, dy, rotation * DEG2RAD, dx, dy);
 		}
 		
 		style.draw_sprite(sprite,
-			sprite_name, 0, 0,
+			_sprite_name, 0, 0,
 			x + dx * scale_x - 0.5,
 			y + dy * scale_y - 0.5, rotation,
 			scale_x, scale_y,

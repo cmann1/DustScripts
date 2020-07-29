@@ -59,6 +59,11 @@ class UI
 	// The hierarchy of elements the mouse is over, from the outermost to the inner
 	private array<Element@> elements_mouse_over();
 	
+	private Element@ debug_mouse_over_element;
+	private bool debug_draw_active;
+	private TooltipOptions@ debug_tooltip_options;
+	private DrawingContext debug_mouse_over_clipping_ctx;
+	
 	private Element@ mouse_over_overlays;
 	
 	private dictionary elements_left_pressed();
@@ -236,6 +241,11 @@ class UI
 		
 		@_mouse_over_element = null;
 		
+		if(debug_draw_active)
+		{
+			@debug_mouse_over_element = null;
+		}
+		
 		const bool mouse_in_ui = mouse.x >= contents.x1 && mouse.x <= contents.x2 && mouse.y >= contents.y1 && mouse.y <= contents.y2;
 		
 		Element@ mouse_over_main = update_layout(contents, mouse_in_ui);
@@ -252,6 +262,8 @@ class UI
 		// Changes made during an event callback might affect the layout so when draw is called next
 		// some elements might not be positioned correctly.
 		// Wait for the next frame so that these changes will be reflected when the next layout pass happens.
+		
+		debug_draw_active = false;
 	}
 	
 	void draw()
@@ -263,7 +275,7 @@ class UI
 		draw_root(overlays);
 	}
 	
-	void debug_draw(bool just_outline=false, const float id_scale=0.4)
+	void debug_draw(bool just_outline=false, bool show_element_data=true, const float id_scale=0.4)
 	{
 		style.reset_drawing_context(null);
 		style.outline(contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
@@ -271,8 +283,18 @@ class UI
 		if(just_outline)
 			return;
 		
+		debug_mouse_over_clipping_ctx.clipping_mode = ClippingMode::None;
+		
 		debug_draw_root(contents, id_scale);
 		debug_draw_root(overlays, id_scale);
+		
+		if(show_element_data)
+		{
+			debug_print_mouse_stack();
+			debug_draw_element_data();
+		}
+		
+		debug_draw_active = true;
 	}
 	
 	void set_region(const float x1, const float y1, const float x2, const float y2)
@@ -333,7 +355,7 @@ class UI
 	/**
 	 * @param wait_for_mouse - If true and the tooltip hide type is MouseLeave, the tooltip will not close until the mouse enters it for the first time.
 	 */
-	void show_tooltip(TooltipOptions@ options, bool wait_for_mouse=false)
+	void show_tooltip(TooltipOptions@ options, Element@ target = null, bool wait_for_mouse=false)
 	{
 		if(@options == null)
 			return;
@@ -341,7 +363,7 @@ class UI
 		if(options._id == '')
 			options._id = '_tt_target' + (CUSTOM_TOOLTIP_ID++);
 		
-		show_tooltip(options._id, options, null, wait_for_mouse);
+		show_tooltip(options._id, options, target, wait_for_mouse);
 	}
 	
 	void hide_tooltip(TooltipOptions@ options)
@@ -373,7 +395,9 @@ class UI
 	
 	private Element@ update_layout(Element@ base, bool check_mouse_over)
 	{
+		const bool debug_draw_active = this.debug_draw_active;
 		Element@ mouse_over = null;
+		Element@ debug_mouse_over = null;
 		
 		ElementStack@ element_stack = @this.element_stack;
 		element_stack.clear();
@@ -500,8 +524,12 @@ class UI
 				{
 					if(element.overlaps_point(mouse_x, mouse_y))
 					{
-						@mouse_over = element;
+						@mouse_over = @element;
 					}
+				}
+				else if(debug_draw_active && element.overlaps_point(mouse_x, mouse_y))
+				{
+					@debug_mouse_over = @element;
 				}
 				
 				if(element.clip_contents != ClippingMode::None)
@@ -550,8 +578,15 @@ class UI
 		}
 		
 		if(@mouse_over == @base)
-		{
 			@mouse_over = null;
+		
+		if(debug_draw_active)
+		{
+			if(@mouse_over != null)
+				@debug_mouse_over = @mouse_over;
+			
+			if(@debug_mouse_over != null)
+				@debug_mouse_over_element = @debug_mouse_over;
 		}
 		
 		while(@ctx != null && @ctx.parent != null)
@@ -693,9 +728,9 @@ class UI
 					elements_pressed_list.insertLast(element);
 					
 					// Tooltip
-					if(@element.tooltip != null && element.tooltip.trigger_type == TooltipTriggerType::MouseDown)
+					if(@element.tooltip != null && element.tooltip.trigger_type == TooltipTriggerType::MouseDown && @element == @_mouse_over_element)
 					{
-						show_tooltip(_mouse_over_element);
+						show_tooltip(element);
 					}
 				}
 			}
@@ -807,9 +842,9 @@ class UI
 				// Tooltip
 				if(primary_clicked)
 				{
-					if(@element.tooltip != null && element.tooltip.trigger_type == TooltipTriggerType::MouseClick)
+					if(@element.tooltip != null && element.tooltip.trigger_type == TooltipTriggerType::MouseClick && @element == @_mouse_over_element)
 					{
-						show_tooltip(_mouse_over_element);
+						show_tooltip(element);
 					}
 				}
 			}
@@ -974,6 +1009,14 @@ class UI
 		debug_text_field.align_vertical(-1);
 		uint clr;
 		
+		bool mouse_over_clipped = false;
+		float mouse_over_clipping_x1;
+		float mouse_over_clipping_y1;
+		float mouse_over_clipping_x2;
+		float mouse_over_clipping_y2;
+		
+		Element@ mouse_over_element = @debug_mouse_over_element != null ? @debug_mouse_over_element : @_mouse_over_element;
+		
 		do
 		{
 			Element@ element = element_stack.pop();
@@ -995,7 +1038,10 @@ class UI
 				int num_children = element_stack.size - stack_size;
 				stack_size += num_children;
 				
+				// Instead only remeber clipping roots
+				DrawingContext@ prev_ctx = @ctx;
 				@ctx = style.push_drawing_context(element, num_children);
+				@ctx.root = @prev_ctx.root;
 				
 				clr = get_element_id_colour(element, 0x00);
 				const uint el_alpha = not_clipped ? 0x55000000 : 0x22000000;
@@ -1032,10 +1078,20 @@ class UI
 							clr | (uint((el_alpha>>24) * 1.75)<<24),
 							id_scale, id_scale);
 					}
+					else
+					{
+						@debug_mouse_over_clipping_ctx.root = @ctx.root;
+						debug_mouse_over_clipping_ctx.clipping_mode = ctx.clipping_mode;
+						debug_mouse_over_clipping_ctx.x1 = ctx.x1;
+						debug_mouse_over_clipping_ctx.y1 = ctx.y1;
+						debug_mouse_over_clipping_ctx.x2 = ctx.x2;
+						debug_mouse_over_clipping_ctx.y2 = ctx.y2;
+					}
 				}
 				
 				if(element.clip_contents != ClippingMode::None)
 				{
+					@ctx.root = @element;
 					ctx.clipping_mode = element.clip_contents;
 					ctx.x1 = max(ctx.x1, element.x1);
 					ctx.y1 = max(ctx.y1, element.y1);
@@ -1073,18 +1129,108 @@ class UI
 				0xffffffff, 0xff000000, 2 * id_scale,
 				id_scale, id_scale);
 			
-			// Debug print mouse stack
-			if(@debug != null)
+			if(debug_mouse_over_clipping_ctx.clipping_mode != ClippingMode::None)
 			{
-				const int num_elements_mouse_over = int(elements_mouse_over.size());
-				
-				for(int i = num_elements_mouse_over - 1; i >= 0; i--)
-				{
-					Element@ element = @elements_mouse_over[i];
-					debug.print(string::repeat('- ', i) + element._id, set_alpha(get_element_id_colour(element), 1), element._id, 1);
-				}
+				style.outline_dotted(
+					debug_mouse_over_clipping_ctx.x1, debug_mouse_over_clipping_ctx.y1,
+					debug_mouse_over_clipping_ctx.x2, debug_mouse_over_clipping_ctx.y2,
+					-2, 0x99ffffff);
 			}
 		}
+	}
+	
+	void debug_draw_element_data()
+	{
+		if(@debug == null)
+			return;
+		
+		Element@ debug_el = @debug_mouse_over_element != null ? @debug_mouse_over_element : @_mouse_over_element;
+		
+		if(@debug_el == null && contents.overlaps_point(mouse.x, mouse.y))
+			@debug_el = @contents;
+		
+		if(@debug_el == null)
+			return;
+		
+		const uint id_clr = get_element_id_colour(debug_el, 0xff);
+		const uint txt_clr = 0xffffffff; // scale_lightness(id_clr, 0.25);
+		const string print_id = debug_el._id + '_db_';
+		const string indent = '  ';
+		int id = 0;
+		
+		Image@ img = cast<Image@>(debug_el);
+		
+		if(@img != null)
+		{
+			debug.print(indent + 'origin: ' + img.origin_x + ', ' + img.origin_y, txt_clr, print_id + id++, 1);
+			debug.print(indent + 'offset: ' + img._sprite_offset_x + ', ' + img._sprite_offset_y, txt_clr, print_id + id++, 1);
+			debug.print(indent + 'size:   ' + img._sprite_width + ' x ' + img._sprite_height, txt_clr, print_id + id++, 1);
+			debug.print(indent + 'src:    ' + img._sprite_set + '/' + img._sprite_name, txt_clr, print_id + id++, 1);
+		}
+		
+		if(
+			debug_mouse_over_clipping_ctx.clipping_mode != ClippingMode::None &&
+			@debug_mouse_over_clipping_ctx.root != @contents &&
+			@debug_mouse_over_clipping_ctx.root != @overlays)
+		{
+			debug.print(
+				indent + '      <' + debug_mouse_over_clipping_ctx.x1 + ', ' + debug_mouse_over_clipping_ctx.y1 +
+					'> <' + debug_mouse_over_clipping_ctx.x2 + ', ' + debug_mouse_over_clipping_ctx.y2 + '>',
+				txt_clr, print_id + id++, 1);
+			const string type = debug_mouse_over_clipping_ctx.clipping_mode == ClippingMode::Inside ? 'inside' : 'outside';
+			debug.print(
+				indent + 'clip: ' + debug_mouse_over_clipping_ctx.root._id + '.' + type, txt_clr, print_id + id++, 1);
+		}
+		
+		string size_data = indent +     'size: ' + debug_el._width + ' x ' + debug_el._height;
+		if(debug_el._width != debug_el._set_width || debug_el._height != debug_el._set_height)
+			size_data += ' (' + debug_el._set_width + ' x ' + debug_el._set_height + ')';
+		debug.print(size_data, txt_clr, print_id + id++, 1);
+		
+		if(debug_el.x1 != debug_el._x || debug_el.y1 != debug_el._y)
+			debug.print(indent +     'global: ' + debug_el.x1 + ', ' + debug_el.y1, txt_clr, print_id + id++, 1);
+			debug.print(indent +     'local:  ' + debug_el._x + ', ' + debug_el._y, txt_clr, print_id + id++, 1);
+		
+		debug.print('[' + debug_el._id + ']', id_clr, print_id + id++, 1);
+	}
+	
+	void debug_print_mouse_stack()
+	{
+		if(@debug == null)
+			return;
+		
+		Element@ debug_el = @debug_mouse_over_element != null ? @debug_mouse_over_element : @_mouse_over_element;
+		
+		if(@debug_el == null)
+			return;
+		
+		array<Element@>@ stack = @_element_array;
+		int stack_size = int(stack.length());
+		int index = 0;
+		
+		Element@ element = @debug_el;
+		int element_count = 0;
+		
+		while(@element != null)
+		{
+			element_count++;
+			@element = @element.parent;
+		}
+		
+		@element = @debug_el;
+		
+		while(@element != null)
+		{
+			string data = element._id;
+			
+			if(!element.hovered)
+				data =  '{' + data + '}';
+			
+			debug.print(string::repeat('-', (element_count - index++)) + ' ' + data, set_alpha(get_element_id_colour(element), element.hovered ? 1.0 : 0.6), element._id + 'a', 1);
+			@element = @element.parent;
+		}
+		
+		debug.print('[mouse path]', 0x99ffffff, '[mouse path]', 1);
 	}
 	
 	/* internal */ void _queue_event(Event@ event, EventInfo@ event_info)
@@ -1157,10 +1303,18 @@ class UI
 		if(@tooltip == null)
 			return;
 		
-		const string id = @tooltip.target != null ? tooltip.target._id : tooltip.options._id;
+		string id = tooltip.options._id;//@tooltip.target != null ? tooltip.target._id : tooltip.options._id;
 		
 		if(!tooltips.exists(id))
-			return;
+		{
+			if(@tooltip.target == null)
+				return;
+			
+			id = tooltip.target._id;
+			
+			if(!tooltips.exists(id))
+				return;
+		}
 		
 		tooltip.hide.off(on_tooltip_hide_delegate);
 		tooltips.delete(id);

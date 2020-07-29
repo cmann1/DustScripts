@@ -51,7 +51,7 @@ class Container : Element
 		{
 			if(value < 0) value = 0;
 			if(_width == value) return;
-			_width = value;
+			_set_width = _width = value;
 			_validate_layout = true;
 			if(@parent != null) parent._validate_layout = true;
 		}
@@ -63,7 +63,7 @@ class Container : Element
 		{
 			if(value < 0) value = 0;
 			if(_height == value) return;
-			_height = value;
+			_set_height = _height = value;
 			_validate_layout = true;
 			if(@parent != null) parent._validate_layout = true;
 		}
