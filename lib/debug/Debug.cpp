@@ -26,8 +26,8 @@ class Debug
 	float text_shadow_oy = 2;
 	bool text_outline = false;
 
-	private string _text_font = font::PROXIMANOVA_REG;
-	private uint _text_size = 36;
+	private string _text_font = font::ENVY_BOLD;
+	private uint _text_size = 20;
 	private int _text_align_x = -1;
 	private int _text_align_y = -1;
 	private float _text_line_spacing = 8;
