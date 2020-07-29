@@ -47,8 +47,8 @@ class Button : SingleContainer
 	protected void init()
 	{
 		children_mouse_enabled = false;
-		_width  = 40;
-		_height = 40;
+		_set_width  = _width  = 40;
+		_set_height = _height = 40;
 	}
 	
 	ButtonGroup@ group

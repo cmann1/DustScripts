@@ -39,11 +39,11 @@ class Scrollbar : Element
 		
 		if(orientation == Orientation::Vertical)
 		{
-			_width = ui.style.default_scrollbar_size;
+			_set_width  = _width = ui.style.default_scrollbar_size;
 		}
 		else
 		{
-			_height = ui.style.default_scrollbar_size;
+			_set_height = _height = ui.style.default_scrollbar_size;
 		}
 	}
 	

@@ -339,35 +339,6 @@ class Style
 			text_field.draw_world(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
 	}
 	
-	void shadowed_text(
-		const string text,
-		const float x, const float y,
-		uint colour, uint shadow_colour, float ox=3, float oy=3,
-		const float scale_x=-1, const float scale_y=-1, const float rotation=0,
-		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
-		string font='', uint size=0)
-	{
-		draw_text(text, x + ox, y + oy, shadow_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
-		draw_text(text, x,      y,      colour,        scale_x, scale_y, rotation, align_h, align_v, font, size);
-		
-	}
-	
-	void outline_text(
-		const string text,
-		const float x, const float y,
-		uint colour, uint outline_colour, float width=3,
-		const float scale_x=-1, const float scale_y=-1, const float rotation=0,
-		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
-		string font='', uint size=0)
-	{
-		draw_text(text, x + width, y        , outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
-		draw_text(text, x - width, y        , outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
-		draw_text(text, x        , y + width, outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
-		draw_text(text, x        , y - width, outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
-		
-		draw_text(text, x, y, colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
-	}
-	
 	uint set_alpha(uint colour)
 	{
 		if(ctx.alpha == 0)
@@ -379,7 +350,7 @@ class Style
 	// -----------------------------------------------------------------
 	// Advanced drawing methods
 	// -----------------------------------------------------------------
-		
+	
 	void draw_interactive_element(const Element@ &in element, const bool &in highlighted, const bool &in selected, const bool &in disabled)
 	{
 		// Fill/bg
@@ -467,6 +438,35 @@ class Style
 				y += gripper_thickness * 2;
 			}
 		}
+	}
+	
+	void shadowed_text(
+		const string text,
+		const float x, const float y,
+		uint colour, uint shadow_colour, float ox=3, float oy=3,
+		const float scale_x=-1, const float scale_y=-1, const float rotation=0,
+		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
+		string font='', uint size=0)
+	{
+		draw_text(text, x + ox, y + oy, shadow_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
+		draw_text(text, x,      y,      colour,        scale_x, scale_y, rotation, align_h, align_v, font, size);
+		
+	}
+	
+	void outline_text(
+		const string text,
+		const float x, const float y,
+		uint colour, uint outline_colour, float width=3,
+		const float scale_x=-1, const float scale_y=-1, const float rotation=0,
+		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
+		string font='', uint size=0)
+	{
+		draw_text(text, x + width, y        , outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
+		draw_text(text, x - width, y        , outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
+		draw_text(text, x        , y + width, outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
+		draw_text(text, x        , y - width, outline_colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
+		
+		draw_text(text, x, y, colour, scale_x, scale_y, rotation, align_h, align_v, font, size);
 	}
 	
 	/**

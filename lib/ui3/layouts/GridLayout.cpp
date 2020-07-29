@@ -102,13 +102,12 @@ class GridLayout : Layout
 		// Don't know if there's a better way to do this
 		if(columns <= 0)
 		{
-			while(num_columns * (column_width + max(0, num_columns - 1) * column_spacing) > max(0, main_axis_size))
+			while(num_columns * column_width + max(0, num_columns - 1) * column_spacing > max(0, main_axis_size))
 				num_columns--;
 			
 			if(num_columns < 1)
 				num_columns = 1;
 		}
-		
 		
 		int num_rows = ceil_int(float(num_children) / num_columns);
 		
@@ -125,12 +124,16 @@ class GridLayout : Layout
 		// //////////////////////////////////////////////////////
 		// Step 2. Calculate the column and row sizes
 		
+		int column_start_index = 0;
 		int row_index = 0;
 		int column_index = 0;
 		float column_size = 0;
 		float row_size = 0;
 		float total_column_size = 0;
 		float total_row_size = 0;
+		
+		float final_column_width = column_width;
+		float final_row_height = row_height;
 		
 		if(dynamic_column_width)
 		{
@@ -150,10 +153,12 @@ class GridLayout : Layout
 		
 		for(int i = 0; i < num_children; i++)
 		{
-			Element@ element = elements[i];
+			Element@ element = is_reversed
+				? elements[column_start_index + num_columns - column_index - 1]
+				: elements[i];
 			
-			const float el_column_size	= is_horizontal ? element._width  : element._height;
-			const float el_row_size		= is_horizontal ? element._height : element._width;
+			const float el_column_size	= is_horizontal ? element._set_width  : element._set_height;
+			const float el_row_size		= is_horizontal ? element._set_height : element._set_width;
 			
 			if(dynamic_column_width && column_sizes[column_index] < el_column_size)
 				column_sizes[column_index] = el_column_size;
@@ -168,6 +173,7 @@ class GridLayout : Layout
 			
 			if(++column_index == num_columns)
 			{
+				column_start_index = i + 1;
 				column_size = 0;
 				column_index = 0;
 				
@@ -187,23 +193,51 @@ class GridLayout : Layout
 		// //////////////////////////////////////////////////////
 		// Step 3. Expand
 		
-		if(expand_columns && (total_column_size + column_spacing * (num_columns - 1)) < main_axis_size)
+		if(expand_columns)
 		{
-			float fit_size = (main_axis_size - column_spacing * (num_columns - 1));
+			const float fit_size = (main_axis_size - column_spacing * (num_columns - 1));
 			
-			for(int i = 0; i < num_columns; i++)
+			if(columns <= 0)
 			{
-				column_sizes[i] = (column_sizes[i] / total_column_size) * fit_size;
+				final_column_width = fit_size / num_columns;
+			}
+			else if(dynamic_column_width)
+			{
+				if((total_column_size + column_spacing * (num_columns - 1)) < main_axis_size)
+				{
+					float new_total_size = 0;
+					
+					for(int i = 0; i < num_columns; i++)
+					{
+						new_total_size += (column_sizes[i] = (column_sizes[i] / total_column_size) * fit_size);
+					}
+					
+					total_column_size = new_total_size;
+				}
+			}
+			else if((column_width * num_columns + column_spacing * (num_columns - 1)) < main_axis_size)
+			{
+				final_column_width = fit_size / num_columns;
 			}
 		}
 		
-		if(expand_rows && (total_row_size + column_spacing * (num_rows - 1)) < cross_axis_size)
+		if(expand_rows)
 		{
-			float fit_size = (cross_axis_size - row_spacing * (num_rows - 1));
+			const float fit_size = (cross_axis_size - row_spacing * (num_rows - 1));
 			
-			for(int i = 0; i < num_rows ; i++)
+			if(dynamic_row_height)
 			{
-				row_sizes[i] = (row_sizes[i] / total_row_size) * fit_size;
+				if((total_row_size + column_spacing * (num_rows - 1)) < cross_axis_size)
+				{
+					for(int i = 0; i < num_rows ; i++)
+					{
+						row_sizes[i] = (row_sizes[i] / total_row_size) * fit_size;
+					}
+				}
+			}
+			else  if((row_height * num_rows + row_spacing * (num_rows - 1)) < cross_axis_size)
+			{
+				final_row_height = fit_size / num_rows;
 			}
 		}
 		
@@ -212,19 +246,27 @@ class GridLayout : Layout
 		
 		row_index = 0;
 		column_index = 0;
+		column_size = dynamic_column_width ? column_sizes[0] : final_column_width;
+		row_size = dynamic_row_height ? row_sizes[0] : final_row_height;
+		
+		if(!dynamic_column_width)
+			total_column_size = column_size * num_columns;
+		
+		total_column_size += main_axis_start + column_spacing * (num_columns - 1);
+		
+		column_start_index = 0;
 		float column_x = main_axis_start;
 		float row_y = cross_axis_start;
-		column_size = dynamic_column_width ? column_sizes[0] : column_width;
-		row_size = dynamic_row_height ? row_sizes[0] : row_height;
-		
 		bool first_element_placed = false;
 		
 		for(int i = 0; i < num_children; i++)
 		{
-			Element@ element = elements[i];
+			Element@ element = is_reversed
+				? elements[column_start_index + num_columns - column_index - 1]
+				: elements[i];
 			
-			const float el_column_size	= is_horizontal ? element._width  : element._height;
-			const float el_row_size		= is_horizontal ? element._height : element._width;
+			const float el_column_size	= is_horizontal ? element._set_width  : element._set_height;
+			const float el_row_size		= is_horizontal ? element._set_height : element._set_width;
 			
 			float el_col_x;
 			float el_row_y;
@@ -274,11 +316,6 @@ class GridLayout : Layout
 					break;
 			}
 			
-			if(is_reversed)
-			{
-				el_col_x = (main_axis_end - (el_col_x - main_axis_start)) - el_column_size;
-			}
-			
 			if(is_horizontal)
 			{
 				element._x = el_col_x;
@@ -314,6 +351,7 @@ class GridLayout : Layout
 			
 			if(++column_index == num_columns)
 			{
+				column_start_index = i + 1;
 				column_x = main_axis_start;
 				column_index = 0;
 				

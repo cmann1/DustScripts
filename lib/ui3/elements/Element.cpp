@@ -48,6 +48,12 @@ abstract class Element
 	float _y;
 	float _width = 100;
 	float _height = 100;
+	/// Stores the width that has explicitly been set.
+	/// Layouts can read _set_width and write _width allowing elements to grow and shrink back down.
+	/// Elements must remember to also set this when manually setting _width
+	float _set_width = _width;
+	/// Same as _set_width
+	float _set_height = _height;
 	
 	float _scroll_x;
 	float _scroll_y;
@@ -164,8 +170,9 @@ abstract class Element
 		get const { return _width; }
 		set
 		{
+			if(value < 0) value = 0;
 			if(_width == value) return;
-			_width = value;
+			_set_width = _width = value;
 			if(@parent != null) parent._validate_layout = true;
 		}
 	}
@@ -175,8 +182,9 @@ abstract class Element
 		get const { return _height; }
 		set
 		{
+			if(value < 0) value = 0;
 			if(_height == value) return;
-			_height = value;
+			_set_height = _height = value;
 			if(@parent != null) parent._validate_layout = true; 
 		}
 	}

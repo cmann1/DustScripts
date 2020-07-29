@@ -28,8 +28,8 @@ class MultiButton : SingleContainer
 		super(ui, null, 'mbtn');
 		
 		children_mouse_enabled = false;
-		_width  = 40;
-		_height = 40;
+		_set_width  = _width  = 40;
+		_set_height = _height = 40;
 	}
 	
 	Image@ add(const string name, Image@ image, int index=-1)

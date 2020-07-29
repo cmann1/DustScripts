@@ -87,8 +87,8 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		content.height = content_height;
 		_content._do_layout_internal(ctx);
 		
-		const bool needs_scroll_vertical   = scroll_vertical   && (_content.scroll_max_y - _content.scroll_min_y - _content._height) >= 1;
-		const bool needs_scroll_horizontal = scroll_horizontal && (_content.scroll_max_x - _content.scroll_min_x - _content._width) >= 1;
+		const bool needs_scroll_vertical   = scroll_vertical   && (_content.scroll_max_y - _content._height) >= 1;
+		const bool needs_scroll_horizontal = scroll_horizontal && (_content.scroll_max_x - _content._width)  >= 1;
 		
 		if(needs_scroll_vertical)
 		{

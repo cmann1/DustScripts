@@ -49,6 +49,7 @@ class Container : Element
 	{
 		set override
 		{
+			if(value < 0) value = 0;
 			if(_width == value) return;
 			_width = value;
 			_validate_layout = true;
@@ -60,6 +61,7 @@ class Container : Element
 	{
 		set override
 		{
+			if(value < 0) value = 0;
 			if(_height == value) return;
 			_height = value;
 			_validate_layout = true;
@@ -317,6 +319,8 @@ class Container : Element
 				scroll_max_x = 0;
 				scroll_max_y = 0;
 			}
+			
+			_validate_layout = false;
 		}
 	}
 	
