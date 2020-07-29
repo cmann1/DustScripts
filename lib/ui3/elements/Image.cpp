@@ -2,6 +2,7 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../utils/Position.cpp';
+#include '../utils/ImageSize.cpp';
 
 class Image : Element
 {
@@ -15,6 +16,8 @@ class Image : Element
 	uint colour = 0xffffffff;
 	
 	Position position = Position::Middle;
+	ImageSize sizing = ImageSize::ConstrainInside;
+	float padding;
 	
 	protected string sprite_set;
 	protected string sprite_name;
@@ -70,15 +73,33 @@ class Image : Element
 		_set_height = this._height = sprite_height * scale_y;
 	}
 	
-	/*void _do_layout(LayoutContext@ ctx) override
-	{
-		width = sprite_width * scale_x;
-		height = sprite_height * scale_y;
-	}*/
-	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		Element::_draw(@style, @ctx);
+		
+		float x1 = this.x1;
+		float y1 = this.y1;
+		float x2 = this.x2;
+		float y2 = this.y2;
+		
+		if(border_size > 0 && border_colour != 0)
+		{
+			x1 += border_size;
+			y1 += border_size;
+			x2 -= border_size;
+			y2 -= border_size;
+		}
+		
+		if(padding > 0)
+		{
+			x1 += padding;
+			y1 += padding;
+			x2 -= padding;
+			y2 -= padding;
+		}
+		
+		const float width  = x2 - x1;
+		const float height = y2 - y1;
 		
 		float x;
 		float y;
@@ -90,7 +111,7 @@ class Image : Element
 				y = y1;
 				break;
 			case Position::Top:
-				x = x1 + (x2 - x1) * 0.5;
+				x = x1 + width * 0.5;
 				y = y1;
 				break;
 			case Position::RightTop:
@@ -99,14 +120,14 @@ class Image : Element
 				break;
 			case Position::Right:
 				x = x2;
-				y = y1 + (y2 - y1) * 0.5;
+				y = y1 + height * 0.5;
 				break;
 			case Position::RightBottom:
 				x = x2;
 				y = y2;
 				break;
 			case Position::Bottom:
-				x = x1 + (x2 - x1) * 0.5;
+				x = x1 + width * 0.5;
 				y = y2;
 				break;
 			case Position::LeftBottom:
@@ -115,23 +136,51 @@ class Image : Element
 				break;
 			case Position::Left:
 				x = x1;
-				y = y1 + (y2 - y1) * 0.5;
+				y = y1 + height * 0.5;
 				break;
 			case Position::Middle:
-				x = (x2 - x1) * 0.5;
-				y = (y2 - y1) * 0.5;
+				x = x1 + width * 0.5;
+				y = y1 + height * 0.5;
 				break;
 		}
 		
-		float dx;
-		float dy;
+		float scale_x;
+		float scale_y;
 		
-		if(rotation == 0)
+		switch(sizing)
 		{
-			dx = sprite_offset_x - sprite_width * origin_x;
-			dy = sprite_offset_y - sprite_height * origin_y;
+			case ImageSize::None:
+				scale_x = this.scale_x;
+				scale_y = this.scale_y;
+				break;
+			case ImageSize::Fit:
+				scale_x = sprite_width > 0  ? width  / sprite_width : 0;
+				scale_y = sprite_height > 0 ? height / sprite_height : 0;
+				break;
+			case ImageSize::FitInside:
+			case ImageSize::ConstrainInside:
+			{
+				if(sizing == ImageSize::FitInside || sprite_width * this.scale_x > width || sprite_height * this.scale_y > height)
+				{
+					const float width_scale  = sprite_width  * this.scale_x > 0 ? width  / (sprite_width  * this.scale_x) : 0;
+					const float height_scale = sprite_height * this.scale_y > 0 ? height / (sprite_height * this.scale_y) : 0;
+					const float scale = min(width_scale, height_scale);
+					scale_x = this.scale_x * scale;
+					scale_y = this.scale_y * scale;
+				}
+				else
+				{
+					scale_x = this.scale_x;
+					scale_y = this.scale_y;
+				}
+			}
+				break;
 		}
-		else
+		
+		float dx = sprite_offset_x - sprite_width * origin_x;
+		float dy = sprite_offset_y - sprite_height * origin_y;
+		
+		if(rotation != 0)
 		{
 			dx = sprite_offset_x - sprite_width * origin_x;
 			dy = sprite_offset_y - sprite_height * origin_y;

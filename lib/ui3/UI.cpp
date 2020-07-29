@@ -906,7 +906,7 @@ class UI
 			stack_size--;
 			
 			if(
-				element.visible && (
+				element.visible/* && (
 					ctx.clipping_mode == ClippingMode::None ||
 					(
 						ctx.clipping_mode == ClippingMode::Outside &&
@@ -916,7 +916,7 @@ class UI
 						ctx.clipping_mode == ClippingMode::Inside &&
 						element.subtree_x1 >= ctx.x1 && element.subtree_x2 <= ctx.x2 &&
 						element.subtree_y1 >= ctx.y1 && element.subtree_y2 <= ctx.y2)
-				)
+				)*/
 			)
 			{
 				element._queue_children_for_layout(@element_stack);
