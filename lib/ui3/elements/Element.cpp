@@ -37,6 +37,10 @@ abstract class Element
 	// Disabled this element. Only relevant for interactive elements
 	bool disabled;
 	
+	uint background_colour = 0;
+	uint border_colour = 0;
+	float border_size = 0;
+	
 	int clip_contents = ClippingMode::None;
 	float alpha = 1;
 	
@@ -226,8 +230,21 @@ abstract class Element
 	
 	void _draw(Style@ style, DrawingContext@ ctx)
 	{
-		// Debug
-		//style.draw_rectangle(x1, y1, x2, y2, 0, 0x55000000);
+		bool has_border = border_colour != 0 && border_size != 0;
+		
+		if(background_colour != 0)
+		{
+			const float inset = has_border ? max(0, border_size) : 0;
+			
+			style.draw_rectangle(
+				x1 + inset, y1 + inset, x2 - inset, y2 - inset,
+				0, background_colour);
+		}
+		
+		if(has_border)
+		{
+			style.outline(x1, y1, x2, y2, border_size, border_colour);
+		}
 	}
 	
 	void update_world_bounds(Element@ parent)

@@ -71,7 +71,6 @@ class Scrollbar : Element
 			
 			if(container._scrolled_into_view)
 			{
-				puts('T');
 				position = is_horizontal ? -container._scroll_x : -container._scroll_y;
 			}
 		}

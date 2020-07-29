@@ -38,10 +38,14 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 	
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
-		if(@scrollbar_vertical != null && scrollbar_vertical.visible)
+		// If the scrollbars are not always queued for layout, then on the first frame one becomes visible it will not be in the layout queue
+		// but will still be drawn on that frame. As a result the drawing which may depend on values calculated during layout will
+		// probably be incorrect and could cause the scrollbar to flash
+		
+		if(@scrollbar_vertical != null)// && scrollbar_vertical.visible)
 			stack.push(scrollbar_vertical);
 			
-		if(@scrollbar_horizontal != null && scrollbar_horizontal.visible)
+		if(@scrollbar_horizontal != null)// && scrollbar_horizontal.visible)
 			stack.push(scrollbar_horizontal);
 		
 		stack.push(_content);
@@ -73,10 +77,15 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 				_content._height -= scrollbar_horizontal._height;
 		}
 		
+		if(_validate_layout)
+		{
+			_content._validate_layout = true;
+		}
+		
 		_content._do_layout_internal(ctx);
 		
-		const bool needs_scroll_vertical   = scroll_vertical   && _content.scroll_max_y - _content.scroll_min_y > _content._height;
-		const bool needs_scroll_horizontal = scroll_horizontal && _content.scroll_max_x - _content.scroll_min_x > _content._width;
+		const bool needs_scroll_vertical   = scroll_vertical   && (_content.scroll_max_y - _content.scroll_min_y - _content._height) >= 1;
+		const bool needs_scroll_horizontal = scroll_horizontal && (_content.scroll_max_x - _content.scroll_min_x - _content._width) >= 1;
 		
 		if(needs_scroll_vertical)
 		{
@@ -160,12 +169,6 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		}
 	}
 	
-	// TODO: REMOVE
-	void _draw(Style@ style, DrawingContext@ ctx) override
-	{
-		style.draw_rectangle(x1, y1, x2, y2, 0, style.normal_bg_clr);
-	}
-	
 	protected void update_vertical_scrollbar()
 	{
 		if(@scrollbar_vertical == null || !scrollbar_vertical.visible)
@@ -173,7 +176,7 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		
 		scrollbar_vertical._x = _content._x + _content._width;
 		scrollbar_vertical._y = ui.style.spacing;
-		scrollbar_vertical._height = _height - ui.style.spacing * 2;
+		scrollbar_vertical._height = _content._height;
 	}
 	
 	protected void update_horizontal_scrollbar()
@@ -183,7 +186,7 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		
 		scrollbar_horizontal._x = ui.style.spacing;
 		scrollbar_horizontal._y = _content._y + _content._height;
-		scrollbar_horizontal._width = _width - ui.style.spacing * 2;
+		scrollbar_horizontal._width = _content._width;
 	}
 	
 }

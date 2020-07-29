@@ -24,11 +24,11 @@ class Style
 	
 	uint popup_bg_clr					= normal_bg_clr;
 	uint popup_border_clr				= 0;
-	uint popup_shadow_clr				= 0x40000000;
+	uint popup_shadow_clr				= 0x30000000;
 	
 	uint dialog_bg_clr					= normal_bg_clr;
 	uint dialog_border_clr				= 0;
-	uint dialog_shadow_clr				= 0x50000000;
+	uint dialog_shadow_clr				= 0x40000000;
 	
 	float shadow_offset_x	= 3;
 	float shadow_offset_y	= 3;
