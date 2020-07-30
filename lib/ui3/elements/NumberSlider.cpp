@@ -17,7 +17,11 @@ class NumberSlider : LockedContainer
 	float drag_sensitivity = 0.25;
 	
 	bool show_fill;
+	bool orient_label = true;
+	uint label_precision = 4;
 	float button_size = 10;
+	float button_speed = 3;
+	float button_pause = button_speed * 5;
 	
 	Event change;
 	
@@ -25,6 +29,9 @@ class NumberSlider : LockedContainer
 	protected float _value = 0;
 	protected bool _show_buttons;
 	protected bool _show_text;
+	protected float button_timer;
+	protected bool first_button_press;
+	
 	Label@ _label;
 	Button@ _left_button;
 	Button@ _right_button;
@@ -59,12 +66,13 @@ class NumberSlider : LockedContainer
 				value = min_value;
 			else if(!is_nan(max_value) && value < max_value)
 				value = max_value;
-			else if(!is_nan(step))
+			
+			if(!is_nan(step))
 			{
 				if(!is_nan(min_value))
-					value = min_value + floor((value - min_value) / step) * step;
+					value = min_value + round((value - min_value) / step) * step;
 				else
-					value = floor(value / step);
+					value = round(value / step) * step;
 			}
 			
 			if(value == _value)
@@ -74,7 +82,7 @@ class NumberSlider : LockedContainer
 			
 			if(_show_text)
 			{
-				_label.text = formatFloat(_value, '', 0, 0);
+				update_label();
 			}
 			
 			ui._event_info.reset(EventType::CHANGE, @this);
@@ -99,10 +107,9 @@ class NumberSlider : LockedContainer
 			_set_width = _set_height;
 			_set_height = temp;
 			
-			// TODO: Set label orientation;
 			if(@_label != null)
 			{
-				_label.rotation = (_orientation == Orientation::Horizontal) ? 0 : -90;
+				_label.rotation = (_orientation == Orientation::Horizontal || !orient_label) ? 0 : -90;
 			}
 			
 			// TODO: Set buttons orientation;
@@ -132,7 +139,8 @@ class NumberSlider : LockedContainer
 				_label.mouse_enabled = false;
 				_label.sizing = ImageSize::ConstrainInside;
 				_label.padding = ui.style.spacing;
-				// TODO: Set label orientation;
+				_label.rotation = (_orientation == Orientation::Horizontal || !orient_label) ? 0 : -90;
+				update_label();
 				Container::add_child(_label);
 			}
 		}
@@ -160,8 +168,10 @@ class NumberSlider : LockedContainer
 			{
 				@_left_button  = Button(ui, '<');
 				@_right_button = Button(ui, '>');
-				_left_button.draw_border = false;
-				_right_button.draw_border = false;
+				_left_button.draw_border = DrawOption::Never;
+				_right_button.draw_border = DrawOption::Never;
+				_left_button.draw_background = DrawOption::Hover;
+				_right_button.draw_background = DrawOption::Hover;
 				Container::add_child(_left_button);
 				Container::add_child(_right_button);
 			}
@@ -204,15 +214,19 @@ class NumberSlider : LockedContainer
 				_left_button.height = _right_button._height;
 			}
 			
-			// TODO: Step
-			// TODO: Step once, then after a small delay step continuously
-			if(_left_button.pressed)
+			if(_left_button.pressed || _right_button.pressed)
 			{
-				value -= step;
+				if(button_timer-- == 0)
+				{
+					value += _left_button.pressed ? -step : step;
+					button_timer = first_button_press ? button_pause : button_speed;
+					first_button_press = false;
+				}
 			}
-			else if(_right_button.pressed)
+			else
 			{
-				value += step;
+				button_timer = 0;
+				first_button_press = true;
 			}
 		}
 		
@@ -256,6 +270,34 @@ class NumberSlider : LockedContainer
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		style.draw_interactive_element(this, false, false, disabled);
+	}
+	
+	protected void update_label()
+	{
+		string text = formatFloat(_value, '', 0, label_precision);
+		
+		if(label_precision > 0)
+		{
+			const int length = int(text.length());
+			int end_index = length - 1;
+			
+			while(text[end_index] == 48) // "0"
+				end_index--;
+			
+			while(text[end_index] == 46) // "."
+				end_index--;
+			
+			if(end_index == -1)
+			{
+				text = '';
+			}
+			else if(end_index < length - 1)
+			{
+				text = text.substr(0, end_index + 1);
+			}
+		}
+		
+		_label.text = text;
 	}
 	
 }

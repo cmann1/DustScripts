@@ -365,24 +365,31 @@ class Style
 	// Advanced drawing methods
 	// -----------------------------------------------------------------
 	
-	void draw_interactive_element(const Element@ &in element, const bool &in highlighted, const bool &in selected, const bool &in disabled, bool draw_border=true)
+	void draw_interactive_element(
+		const Element@ element,
+		const bool highlighted, const bool selected, const bool disabled,
+		bool draw_background=true, bool draw_border=true)
 	{
-		// Fill/bg
-		
-		const uint bg_clr = disabled ? disabled_bg_clr
-			: (highlighted && selected ? selected_highlight_bg_clr
-				: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
-		
 		const uint border_clr = !draw_border ? 0 : disabled ? disabled_border_clr
 			: (highlighted && selected ? selected_highlight_border_clr
 				: selected ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
 		
 		const float border_size = selected ? selected_border_size : this.border_size;
-		const float inset = border_clr != 0 ? max(0, border_size) : 0;
 		
-		draw_rectangle(
-			element.x1 + inset, element.y1 + inset, element.x2 - inset, element.y2 - inset,
-			0, bg_clr);
+		// Fill/bg
+		
+		if(draw_background)
+		{
+			const uint bg_clr = disabled ? disabled_bg_clr
+				: (highlighted && selected ? selected_highlight_bg_clr
+					: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
+			
+			const float inset = border_clr != 0 ? max(0, border_size) : 0;
+			
+			draw_rectangle(
+				element.x1 + inset, element.y1 + inset, element.x2 - inset, element.y2 - inset,
+				0, bg_clr);
+		}
 		
 		// Border
 		if(border_clr != 0 && border_size > 0)

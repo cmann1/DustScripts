@@ -2,6 +2,7 @@
 #include '../Style.cpp';
 #include '../events/Event.cpp';
 #include '../utils/ButtonGroup.cpp';
+#include '../utils/DrawOption.cpp';
 #include '../utils/GraphicAlign.cpp';
 #include 'SingleContainer.cpp';
 
@@ -11,7 +12,8 @@ class Button : SingleContainer
 	bool selectable;
 	bool _selected;
 	
-	bool draw_border = true;
+	DrawOption draw_background = DrawOption::Always;
+	DrawOption draw_border = DrawOption::Always;
 	
 	Event select;
 	
@@ -105,7 +107,12 @@ class Button : SingleContainer
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		style.draw_interactive_element(this, hovered || pressed, selectable && selected, disabled, draw_border);
+		style.draw_interactive_element(this,
+			hovered || pressed,
+			selectable && selected,
+			disabled,
+			draw_background == DrawOption::Always || draw_background == DrawOption::Hover && hovered,
+			draw_border == DrawOption::Always || draw_border == DrawOption::Hover && hovered);
 	}
 	
 	void _mouse_click() override
