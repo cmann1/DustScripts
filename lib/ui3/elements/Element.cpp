@@ -38,6 +38,7 @@ abstract class Element
 	bool disabled;
 	
 	uint background_colour = 0;
+	bool background_blur = false;
 	uint border_colour = 0;
 	float border_size = 0;
 	
@@ -239,6 +240,11 @@ abstract class Element
 	void _draw(Style@ style, DrawingContext@ ctx)
 	{
 		bool has_border = border_colour != 0 && border_size != 0;
+		
+		if(background_blur)
+		{
+			style.draw_glass(x1 + 1, y1 + 1, x2 - 1, y2 - 1, 0);
+		}
 		
 		if(background_colour != 0)
 		{

@@ -25,10 +25,12 @@ class Style
 	uint popup_bg_clr					= normal_bg_clr;
 	uint popup_border_clr				= 0;
 	uint popup_shadow_clr				= 0x30000000;
+	bool blur_popup_bg					= true;
 	
 	uint dialog_bg_clr					= normal_bg_clr;
 	uint dialog_border_clr				= 0;
 	uint dialog_shadow_clr				= 0x40000000;
+	bool blur_dialog_bg					= true;
 	
 	float shadow_offset_x	= 3;
 	float shadow_offset_y	= 3;
@@ -204,12 +206,14 @@ class Style
 	
 	void draw_glass(
 		const float x1, const float y1, const float x2, const float y2,
-		const float rotation, uint colour) const
+		const float rotation, uint colour=0x00000000) const
 	{
-		if(ctx.alpha != 1)
-			colour = set_alpha(colour);
+		if(ctx.alpha < 1)
+			return;
 		
 		if(_hud)
+			g.draw_glass_hud  (_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
+		else
 			g.draw_glass_world(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
 	}
 
@@ -379,15 +383,15 @@ class Style
 	
 	void draw_popup_element(const Element@ &in element)
 	{
-		draw_element(element, popup_shadow_clr, popup_bg_clr, popup_border_clr);
+		draw_element(element, popup_shadow_clr, popup_bg_clr, popup_border_clr, blur_popup_bg);
 	}
 	
 	void draw_dialog_element(const Element@ element)
 	{
-		draw_element(element, dialog_shadow_clr, dialog_bg_clr, dialog_border_clr);
+		draw_element(element, dialog_shadow_clr, dialog_bg_clr, dialog_border_clr, blur_dialog_bg);
 	}
 	
-	void draw_element(const Element@ &in element, const uint shadow_clr, const uint bg_clr, const uint border_clr)
+	void draw_element(const Element@ &in element, const uint shadow_clr, const uint bg_clr, const uint border_clr, const bool blur)
 	{
 		// Shadow
 		if(shadow_clr != 0)
@@ -396,6 +400,11 @@ class Style
 				element.x1 + shadow_offset_x, element.y1 + shadow_offset_y,
 				element.x2 + shadow_offset_x, element.y2 + shadow_offset_y,
 				0, shadow_clr);
+		}
+		
+		if(blur)
+		{
+			draw_glass(element.x1 + 1, element.y1 + 1, element.x2 - 1, element.y2 - 1, 0);
 		}
 		
 		const float inset = border_clr != 0 ? max(0, border_size) : 0;
