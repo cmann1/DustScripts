@@ -278,7 +278,7 @@ class UI
 		draw_root(overlays);
 	}
 	
-	void debug_draw(bool just_outline=false, bool show_element_data=true, const float id_scale=0.4)
+	void debug_draw(bool just_outline=false, bool show_ids=false, bool show_element_data=true, const float id_scale=0.4)
 	{
 		style.reset_drawing_context(null);
 		style.outline(contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
@@ -288,8 +288,8 @@ class UI
 		
 		debug_mouse_over_clipping_ctx.clipping_mode = ClippingMode::None;
 		
-		debug_draw_root(contents, id_scale);
-		debug_draw_root(overlays, id_scale);
+		debug_draw_root(contents, show_ids, id_scale);
+		debug_draw_root(overlays, show_ids, id_scale);
 		
 		if(show_element_data)
 		{
@@ -1001,7 +1001,7 @@ class UI
 		}
 	}
 	
-	private void debug_draw_root(Element@ root, const float id_scale=0.4)
+	private void debug_draw_root(Element@ root, bool show_ids, const float id_scale=0.4)
 	{
 		Style@ style = @this.style;
 		DrawingContext@ ctx = style.reset_drawing_context(root);
@@ -1079,11 +1079,14 @@ class UI
 						
 						clr = scale_lightness(clr, 0.1) | el_alpha;
 						
-						style.draw_text(
-							element._id,
-							element.x1, element.y1,
-							clr | (uint((el_alpha>>24) * 1.75)<<24),
-							id_scale, id_scale);
+						if(show_ids)
+						{
+							style.draw_text(
+								element._id,
+								element.x1, element.y1,
+								clr | (uint((el_alpha>>24) * 1.75)<<24),
+								id_scale, id_scale);
+						}
 					}
 					else
 					{
