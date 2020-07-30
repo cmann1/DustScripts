@@ -7,14 +7,6 @@ const float DEG2RAD = 1.0 / 180.0 * PI;
 const float RAD2DEG = 1.0 / PI * 180.0;
 const float EPSILON = 5.3E-5;
 
-const float NAN = fpFromIEEE(0x7fc00000);
-const float INFINITY = fpFromIEEE(0x7f800000);
-
-bool is_nan(const float x)
-{
-	return fpToIEEE(x) == 0x7fc00000;
-}
-
 float rand_rotation()
 {
 	return rand_range(0, 360);

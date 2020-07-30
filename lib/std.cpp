@@ -12,6 +12,9 @@ const float MAX_FLOAT =  3.402823466e+38;
 const float MIN_FLOAT = -3.402823466e+38;
 const float SMALLEST_FLOAT = 1.175494351e-38;
 
+const float NAN = fpFromIEEE(0x7fc00000);
+const float INFINITY = fpFromIEEE(0x7f800000);
+
 int tile_coord(float v)
 {
 	return int(floor(v * PIXEL2TILE));
@@ -99,6 +102,11 @@ int rand_range(int min, int max)
 float rand_range(float min, float max)
 {
 	return min + (max - min) * frand();
+}
+
+bool is_nan(const float x)
+{
+	return fpToIEEE(x) == 0x7fc00000;
 }
 
 int round_int(float x)
