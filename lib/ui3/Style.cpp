@@ -57,9 +57,9 @@ class Style
 	// The default scaling for text - should be set before creating any UI. Changing it after may not reflect correctly everywhere.
 	float default_text_scale = 0.75;
 	
-	string tooltip_font = font::PROXIMANOVA_REG;
-	uint tooltip_text_size = 26;
-	float tooltip_text_scale = 0.75;
+	string tooltip_font = default_font;
+	uint tooltip_text_size = default_text_size;
+	float tooltip_text_scale = default_text_scale;
 	uint tooltip_text_colour = text_clr;
 	float tooltip_padding = spacing * 2;
 	
@@ -110,14 +110,24 @@ class Style
 		text_field.align_vertical(current_align_v);
 	}
 	
-	void measure_text(const string text, const string font, const uint size, const float scale, float &out width, float &out height)
+	void measure_text(const string text, string font, uint size, float scale_x, float scale_y, float &out width, float &out height)
 	{
+		if(is_nan(scale_x))
+			scale_x = default_text_scale;
+		if(is_nan(scale_y))
+			scale_y = default_text_scale;
+		
+		if(font == '')
+			font = default_font;
+		if(size == 0)
+			size = default_text_size;
+		
 		if(current_font != font || current_text_size != size)
 			text_field.set_font(current_font = font, current_text_size = size);
 		
 		text_field.text(text);
-		width  = text_field.text_width() * scale;
-		height = text_field.text_height() * scale;
+		width  = text_field.text_width() * scale_x;
+		height = text_field.text_height() * scale_y;
 	}
 	
 	sprites@ get_sprite_for_set(const string &in sprite_set)
@@ -299,14 +309,14 @@ class Style
 		const string text,
 		float x, float y,
 		uint colour,
-		float scale_x=-1, float scale_y=-1,
+		float scale_x=NAN, float scale_y=NAN,
 		const float rotation=0,
 		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
 		string font='', uint size=0)
 	{
-		if(scale_x <= 0)
+		if(is_nan(scale_x))
 			scale_x = default_text_scale;
-		if(scale_y <= 0)
+		if(is_nan(scale_y))
 			scale_y = default_text_scale;
 		
 		if(font == '')
@@ -355,7 +365,7 @@ class Style
 	// Advanced drawing methods
 	// -----------------------------------------------------------------
 	
-	void draw_interactive_element(const Element@ &in element, const bool &in highlighted, const bool &in selected, const bool &in disabled)
+	void draw_interactive_element(const Element@ &in element, const bool &in highlighted, const bool &in selected, const bool &in disabled, bool draw_border=true)
 	{
 		// Fill/bg
 		
@@ -363,7 +373,7 @@ class Style
 			: (highlighted && selected ? selected_highlight_bg_clr
 				: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
 		
-		const uint border_clr = disabled ? disabled_border_clr
+		const uint border_clr = !draw_border ? 0 : disabled ? disabled_border_clr
 			: (highlighted && selected ? selected_highlight_border_clr
 				: selected ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
 		

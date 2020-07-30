@@ -11,6 +11,7 @@ namespace EventType
 	const string HIDE			= 'hide';
 	const string SCROLL			= 'scroll';
 	const string SELECT 		= 'select';
+	const string CHANGE 		= 'change';
 	
 	const string MOVE			= 'move';
 	const string MOVE_COMPLETED	= 'move_completed';

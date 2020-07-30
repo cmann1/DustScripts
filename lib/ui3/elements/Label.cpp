@@ -1,28 +1,34 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../TextAlign.cpp';
+#include 'Graphic.cpp';
 
-class Label : Element
+class Label : Graphic
 {
 	
-	bool auto_size = true;
+	protected bool _auto_size = false;
+	protected string _text;
+	protected string _font;
+	protected uint _size;
+	protected uint _colour;
+	protected bool _has_colour = false;
+//	TextAlign align_h = TextAlign::Left;
+//	TextAlign align_v = TextAlign::Top;
 	
-	private string _text;
-	private string _font;
-	private uint _size;
-	private float _scale;
-	uint colour;
-	TextAlign align_h = TextAlign::Left;
-	TextAlign align_v = TextAlign::Top;
-	
-	Label(UI@ ui, const string text, const string font='', const uint size=0)
+	Label(UI@ ui, const string text, const bool auto_size=false, const string font='', const uint size=0)
 	{
 		super(ui, 'lbl');
 		
-		_font = font == '' ? ui.style.default_font : font;
-		_size = size == 0 ? ui.style.default_text_size : size;
-		_scale = ui.style.default_text_scale;
-		colour = ui.style.text_clr;
+		_auto_size = auto_size;
+		_font = font;
+		_size = size;
+		scale_x = ui.style.default_text_scale;
+		scale_y = ui.style.default_text_scale;
+		
+		sizing = ImageSize:: None;
+		
+		origin_x = 0.5;
+		origin_y = 0.5;
 		
 		this.text = text;
 	}
@@ -47,45 +53,73 @@ class Label : Element
 	 
 	float scale
 	{
-		get const { return _scale; }
-		set { _scale = value; update_size(); }
+		set
+		{
+			if(scale_x == value && scale_y == value)
+				return;
+			
+			scale_x = scale_y = value;
+			update_size();
+		}
 	}
 	
-	void fit_to_contents(const float padding=0)
+	bool auto_size
 	{
-		ui.style.measure_text(_text, _font, _size, _scale, width, height);
+		get const { return _auto_size; }
+		set
+		{
+			if(_auto_size == value)
+				return;
+			
+			_auto_size = value;
+			
+			if(value)
+			{
+				fit_to_contents();
+			}
+		}
+	}
+	
+	bool has_colour { get const { return _has_colour; } }
+	
+	uint colour
+	{
+		get const { return _has_colour ? _colour : ui.style.text_clr; }
+		set
+		{
+			_colour = value;
+			_has_colour = true;
+		}
+	}
+	
+	Label@ fit_to_contents()
+	{
+		float w, h;
+		ui.style.measure_text(_text, _font, _size, 1, 1, _graphic_width, _graphic_height);
 		
-		width  += padding * 2;
-		height += padding * 2;
+		width  = _graphic_width  * scale_x + padding * 2;
+		height = _graphic_height * scale_y + padding * 2;
+		
+		return @this;
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		float x, y;
-		
-		switch(align_h)
-		{
-			case TextAlign::Left:	x = x1; break;
-			case TextAlign::Centre:	x = (x1 + x2) * 0.5; break;
-			case TextAlign::Right:	x = x2; break;
-		}
-		
-		switch(align_v)
-		{
-			case TextAlign::Top:	y = y1; break;
-			case TextAlign::Middle:	y = (y1 + y2) * 0.5; break;
-			case TextAlign::Bottom:	y = y2; break;
-		}
-		
-		style.draw_text(_text, x, y, colour, _scale, _scale, 0, align_h, align_v, _font, _size);
+		style.draw_text(_text,
+			draw_x, draw_y,
+			_has_colour ? _colour : ui.style.text_clr,
+			draw_scale_x, draw_scale_y,
+			rotation, TextAlign::Left, TextAlign::Top, _font, _size);
 	}
 	
 	private void update_size()
 	{
+		ui.style.measure_text(_text, _font, _size, 1, 1, _graphic_width, _graphic_height);
+		
 		if(!auto_size)
 			return;
 		
-		fit_to_contents(0);
+		fit_to_contents();
 	}
 	
 }

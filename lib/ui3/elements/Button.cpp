@@ -1,8 +1,8 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
-#include '../TextAlign.cpp';
 #include '../events/Event.cpp';
 #include '../utils/ButtonGroup.cpp';
+#include '../utils/GraphicAlign.cpp';
 #include 'SingleContainer.cpp';
 
 class Button : SingleContainer
@@ -10,6 +10,8 @@ class Button : SingleContainer
 	
 	bool selectable;
 	bool _selected;
+	
+	bool draw_border = true;
 	
 	Event select;
 	
@@ -25,8 +27,8 @@ class Button : SingleContainer
 	Button(UI@ ui, const string text)
 	{
 		Label@ label = ui._label_pool.get(
-			ui, text,
-			TextAlign::Left, TextAlign::Top,
+			ui, text, true,
+			GraphicAlign::Centre, GraphicAlign::Middle,
 			ui.style.default_text_scale, ui.style.text_clr,
 			ui.style.default_font, ui.style.default_text_size);
 		
@@ -103,7 +105,7 @@ class Button : SingleContainer
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		style.draw_interactive_element(this, hovered, selectable && selected, disabled);
+		style.draw_interactive_element(this, hovered || pressed, selectable && selected, disabled, draw_border);
 	}
 	
 	void _mouse_click() override

@@ -69,7 +69,6 @@ class Container : Element
 		}
 	}
 	
-	
 	array<Element@>@ get_children()
 	{
 		return @children;

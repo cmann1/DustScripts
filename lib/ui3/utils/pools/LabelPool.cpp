@@ -9,12 +9,12 @@ class LabelPool
 	private array<Label@> pool(pool_size);
 	
 	Label@ get(
-		UI@ ui, const string text,
-		const TextAlign align_h, const TextAlign align_v,
+		UI@ ui, const string text, const bool auto_size,
+		const float align_h, const float align_v,
 		const float scale, const uint colour,
 		const string font, const uint size)
 	{
-		Label@ label = pool_index > 0 ? @pool[--pool_index] : Label(ui, text, font, size);
+		Label@ label = pool_index > 0 ? @pool[--pool_index] : Label(ui, text, auto_size, font, size);
 		
 		label.text		= text;
 		label.align_h	= align_h;

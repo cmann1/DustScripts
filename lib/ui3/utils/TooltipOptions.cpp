@@ -139,7 +139,7 @@ class TooltipOptions
 		if(@content_str_label == null)
 		{
 			@content_str_label = ui._label_pool.get(
-				ui, _content_str,
+				ui, _content_str, true,
 				align_h, TextAlign::Top,
 				ui.style.tooltip_text_scale, ui.style.tooltip_text_colour,
 				ui.style.tooltip_font, ui.style.tooltip_text_size);

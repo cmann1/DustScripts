@@ -15,6 +15,7 @@
 #include 'events/Event.cpp';
 #include 'elements/Element.cpp';
 #include 'elements/Container.cpp';
+#include 'elements/Graphic.cpp';
 #include 'elements/Tooltip.cpp';
 #include 'layouts/flow/FlowLayout.cpp';
 
@@ -1168,13 +1169,26 @@ class UI
 		const string indent = '  ';
 		int id = 0;
 		
+		Graphic@ gr = cast<Graphic@>(debug_el);
+		
+		if(@gr != null)
+		{
+			debug.print(indent + '  draw_scale: ' + gr.debug_draw_scale_x + ', ' + gr.debug_draw_scale_y, txt_clr, print_id + id++, 1);
+			debug.print(indent + '  draw_pos:   ' + gr.debug_draw_x + ', ' + gr.debug_draw_y, txt_clr, print_id + id++, 1);
+			if(gr.graphic_offset_x != 0 || gr.graphic_offset_y != 0)
+				debug.print(indent + '  offset:     ' + gr.graphic_offset_x + ', ' + gr.graphic_offset_y, txt_clr, print_id + id++, 1);
+			if(gr.origin_x != 0 || gr.origin_y != 0)
+				debug.print(indent + '  origin:     ' + gr.origin_x + ', ' + gr.origin_y, txt_clr, print_id + id++, 1);
+			debug.print(indent + '  align:      ' + gr.align_h + ', ' + gr.align_v, txt_clr, print_id + id++, 1);
+			debug.print(indent + '  scale:      ' + gr.scale_x + ', ' + gr.scale_y, txt_clr, print_id + id++, 1);
+			debug.print(indent + '  size:       ' + gr.graphic_width + ' x ' + gr.graphic_height, txt_clr, print_id + id++, 1);
+			debug.print(indent + '[graphic]', txt_clr, print_id + id++, 1);
+		}
+		
 		Image@ img = cast<Image@>(debug_el);
 		
 		if(@img != null)
 		{
-			debug.print(indent + 'origin: ' + img.origin_x + ', ' + img.origin_y, txt_clr, print_id + id++, 1);
-			debug.print(indent + 'offset: ' + img._sprite_offset_x + ', ' + img._sprite_offset_y, txt_clr, print_id + id++, 1);
-			debug.print(indent + 'size:   ' + img._sprite_width + ' x ' + img._sprite_height, txt_clr, print_id + id++, 1);
 			debug.print(indent + 'src:    ' + img._sprite_set + '/' + img._sprite_name, txt_clr, print_id + id++, 1);
 		}
 		
