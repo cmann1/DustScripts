@@ -142,6 +142,9 @@ class UI
 	// The top most element the mouse is over
 	Element@ mouse_over_element { get { return @_mouse_over_element; } }
 	
+	// The top most element the mouse is over
+	bool is_mouse_over_ui { get { return @_mouse_over_element != null; } }
+	
 	/**
 	 * @brief Returns mouse x relative to this element
 	 */
@@ -438,11 +441,15 @@ class UI
 		int stack_size = element_stack.size;
 		const float mouse_x = mouse.x;
 		const float mouse_y = mouse.y;
+		int element_index = 0;
+		int mouse_over_index = -1;
+		int debug_mouse_over_index = -1;
 		
 		while(stack_size > 0)
 		{
 			Element@ element = element_stack.pop();
 			stack_size--;
+			element_index++;
 			
 			if(element.visible)
 			{
@@ -523,11 +530,13 @@ class UI
 					if(element.overlaps_point(mouse_x, mouse_y))
 					{
 						@mouse_over = @element;
+						mouse_over_index = element_index;
 					}
 				}
 				else if(debug_draw_active && element.overlaps_point(mouse_x, mouse_y))
 				{
 					@debug_mouse_over = @element;
+					debug_mouse_over_index = element_index;
 				}
 				
 				if(element.clip_contents != ClippingMode::None)
@@ -580,7 +589,7 @@ class UI
 		
 		if(debug_draw_active)
 		{
-			if(@mouse_over != null)
+			if(@mouse_over != null && mouse_over_index >= debug_mouse_over_index)
 				@debug_mouse_over = @mouse_over;
 			
 			if(@debug_mouse_over != null)
