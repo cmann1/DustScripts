@@ -15,7 +15,7 @@ abstract class Graphic : Element
 	
 	float align_h = GraphicAlign::Centre;
 	float align_v = GraphicAlign::Middle;
-	ImageSize sizing = ImageSize::ConstrainInside;
+	ImageSize sizing = ImageSize:: ConstrainInside;
 	float padding;
 	
 	protected float _graphic_offset_x = 0;
@@ -55,6 +55,8 @@ abstract class Graphic : Element
 		is_transposed = abs(abs(rotation) - 90) <= EPSILON;
 		const float gr_width  = is_transposed ? _graphic_height : _graphic_width;
 		const float gr_height = is_transposed ? _graphic_width  : _graphic_height;
+		const float scale_x = is_transposed ? this.scale_y : this.scale_x;
+		const float scale_y = is_transposed ? this.scale_x : this.scale_y;
 		
 		if(border_size > 0 && border_colour != 0)
 		{
@@ -78,58 +80,47 @@ abstract class Graphic : Element
 		switch(sizing)
 		{
 			case ImageSize::None:
-				draw_scale_x = this.scale_x;
-				draw_scale_y = this.scale_y;
+				draw_scale_x = scale_x;
+				draw_scale_y = scale_y;
 				break;
 			case ImageSize::Fit:
-				draw_scale_x = gr_width > 0  ? width  / gr_width : 0;
-				draw_scale_y = gr_height > 0 ? height / gr_height : 0;
+				draw_scale_x = gr_width > 0  ? (width  / gr_width) : 0;
+				draw_scale_y = gr_height > 0 ? (height / gr_height) : 0;
+				ui.debug.print(_id + ' ' + width +'/'+ gr_width + ' - ' + height+'/'+ gr_height+' = '+draw_scale_x+','+draw_scale_y, 0xffffffff, _id+'aafs', 1);
 				break;
 			case ImageSize::FitInside:
 			case ImageSize::ConstrainInside:
 			{
-				if(sizing == ImageSize::FitInside || gr_width * this.scale_x > width || gr_height * this.scale_y > height)
+				if(sizing == ImageSize::FitInside || gr_width * scale_x > width || gr_height * scale_y > height)
 				{
-					const float width_scale  = gr_width  * this.scale_x > 0 ? width  / (gr_width  * this.scale_x) : 0;
-					const float height_scale = gr_height * this.scale_y > 0 ? height / (gr_height * this.scale_y) : 0;
+					const float width_scale  = gr_width  * scale_x > 0 ? width  / (gr_width  * scale_x) : 0;
+					const float height_scale = gr_height * scale_y > 0 ? height / (gr_height * scale_y) : 0;
 					const float scale = min(width_scale, height_scale);
-					draw_scale_x = this.scale_x * scale;
-					draw_scale_y = this.scale_y * scale;
+					draw_scale_x = scale_x * scale;
+					draw_scale_y = scale_y * scale;
 				}
 				else
 				{
-					draw_scale_x = this.scale_x;
-					draw_scale_y = this.scale_y;
+					draw_scale_x = scale_x;
+					draw_scale_y = scale_y;
 				}
 			}
 				break;
 		}
 		
-		float dx = _graphic_offset_x - gr_width  * origin_x;
-		float dy = _graphic_offset_y - gr_height * origin_y;
+		float dx = _graphic_offset_x - _graphic_width  * origin_x;
+		float dy = _graphic_offset_y - _graphic_height * origin_y;
 		
-		if(rotation != 0 && !is_transposed)
+		if(rotation != 0)
 		{
 			rotate(dx, dy, rotation * DEG2RAD, dx, dy);
 		}
 		
-		const float x = x1 + (width  - gr_width  * draw_scale_x) * align_h + gr_width  * draw_scale_x * origin_x;
-		const float y = y1 + (height - gr_height * draw_scale_y) * align_v + gr_height * draw_scale_y * origin_y;
+		const float x = x1 + (width  - gr_width  * draw_scale_x) * align_h + gr_width  * draw_scale_x * (is_transposed ? origin_y : origin_x);
+		const float y = y1 + (height - gr_height * draw_scale_y) * align_v + gr_height * draw_scale_y * (is_transposed ? origin_x : origin_y);
 		
 		draw_x = x + dx * draw_scale_x;
 		draw_y = y + dy * draw_scale_y;
-		
-		if(is_transposed)
-		{
-			if(rotation < 0)
-			{
-				draw_y += _graphic_width * draw_scale_x;
-			}
-			else
-			{
-				draw_x += _graphic_height * draw_scale_y;
-			}
-		}
 	}
 	
 }

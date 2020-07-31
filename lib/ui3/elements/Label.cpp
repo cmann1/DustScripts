@@ -108,7 +108,8 @@ class Label : Graphic
 		style.draw_text(_text,
 			draw_x, draw_y,
 			_has_colour ? _colour : ui.style.text_clr,
-			draw_scale_x, draw_scale_y,
+			is_transposed ? draw_scale_y : draw_scale_x,
+			is_transposed ? draw_scale_x : draw_scale_y,
 			rotation, TextAlign::Left, TextAlign::Top, _font, _size);
 	}
 	

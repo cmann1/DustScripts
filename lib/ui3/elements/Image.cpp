@@ -67,7 +67,10 @@ class Image : Graphic
 			_sprite_name, 0, 0,
 			draw_x - 0.5,
 			draw_y - 0.5, rotation,
-			draw_scale_x, draw_scale_y,
+			is_transposed ? draw_scale_y : draw_scale_x,
+			is_transposed ? draw_scale_x : draw_scale_y,
+//			draw_scale_x,
+//			draw_scale_y,
 			colour);
 	}
 	
