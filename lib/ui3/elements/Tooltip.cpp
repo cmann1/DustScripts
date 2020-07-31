@@ -203,7 +203,7 @@ class Tooltip : SingleContainer
 		
 		bool active = !_force_hide;
 		
-		if(options.hide_type == TooltipHideType::MouseLeave)
+		if(options.hide_type == PopupHideType::MouseLeave)
 		{
 			active = !_force_hide && (@target == null || @target == @ui.mouse_over_element || hovered || waiting_for_mouse);
 			
@@ -243,7 +243,7 @@ class Tooltip : SingleContainer
 				}
 			}
 		}
-		else if(options.hide_type == TooltipHideType::MouseDownOutside)
+		else if(options.hide_type == PopupHideType::MouseDownOutside)
 		{
 			if(ui.mouse.primary_press && !overlaps_point(ui.mouse.x, ui.mouse.y) && (@target == null || !target.overlaps_point(ui.mouse.x, ui.mouse.y)))
 			{

@@ -1,4 +1,4 @@
-enum TooltipHideType
+enum PopupHideType
 {
 	
 	MouseLeave,

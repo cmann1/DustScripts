@@ -1,5 +1,5 @@
 #include 'PopupPosition.cpp';
-#include 'TooltipHideType.cpp';
+#include 'PopupHideType.cpp';
 #include 'TooltipTriggerType.cpp';
 
 class TooltipOptions
@@ -22,7 +22,7 @@ class TooltipOptions
 	bool interactable;
 	PopupPosition position;
 	TooltipTriggerType trigger_type;
-	TooltipHideType hide_type;
+	PopupHideType hide_type;
 	bool follow_mouse;
 	
 	private float _fade_max;
@@ -35,7 +35,7 @@ class TooltipOptions
 	TooltipOptions(
 		UI@ ui, Element@ content, bool interactable=false, PopupPosition position=PopupPosition::Above,
 		TooltipTriggerType trigger_type=TooltipTriggerType::MouseOver,
-		TooltipHideType hide_type=TooltipHideType::MouseLeave,
+		PopupHideType hide_type=PopupHideType::MouseLeave,
 		bool follow_mouse=false)
 	{
 		init(
@@ -49,7 +49,7 @@ class TooltipOptions
 	TooltipOptions(
 		UI@ ui, const string content, bool interactable=false, PopupPosition position=PopupPosition::Above,
 		TooltipTriggerType trigger_type=TooltipTriggerType::MouseOver,
-		TooltipHideType hide_type=TooltipHideType::MouseLeave,
+		PopupHideType hide_type=PopupHideType::MouseLeave,
 		bool follow_mouse=false)
 	{
 		init(
@@ -63,7 +63,7 @@ class TooltipOptions
 	private void init(
 		UI@ ui, bool interactable, PopupPosition position,
 		TooltipTriggerType trigger_type,
-		TooltipHideType hide_type,
+		PopupHideType hide_type,
 		bool follow_mouse)
 	{
 		@this.ui			= ui;
