@@ -76,11 +76,15 @@ abstract class Element
 	// Called when any mouse button is clicked
 	Event mouse_button_click;
 	
-	Element(UI@ ui, const string &in type_identifier)
+	Element(UI@ ui)
 	{
 		@this.ui = @ui;
-		_id = type_identifier + (++ui.NEXT_ID);
+		_id = (++ui.NEXT_ID) + '';
 	}
+	
+	string element_type { get const { return 'Element'; } }
+	
+	string id { get const { return element_type + _id; } }
 	
 	bool overlaps_point(const float x, const float y)
 	{

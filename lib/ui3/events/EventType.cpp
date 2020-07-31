@@ -9,6 +9,7 @@ namespace EventType
 	const string MOUSE_CLICK 	= 'mouse_click';
 	
 	const string HIDE			= 'hide';
+	const string SHOW			= 'show';
 	const string SCROLL			= 'scroll';
 	const string SELECT 		= 'select';
 	const string CHANGE 		= 'change';

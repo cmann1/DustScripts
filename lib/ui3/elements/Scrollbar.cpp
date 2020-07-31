@@ -33,7 +33,7 @@ class Scrollbar : Element
 	
 	Scrollbar(UI@ ui, Orientation orientation)
 	{
-		super(ui, 'sbar');
+		super(ui);
 		
 		this.orientation = orientation;
 		
@@ -46,6 +46,8 @@ class Scrollbar : Element
 			_set_height = _height = ui.style.default_scrollbar_size;
 		}
 	}
+	
+	string element_type { get const override { return 'Scrollbar'; } }
 	
 	bool busy_dragging { get const { return dragging_thumb; } }
 	
@@ -87,6 +89,9 @@ class Scrollbar : Element
 		thumb_size = scroll_range <= 0 ? 0 : max((is_horizontal ? _height : _width) * 0.5, round(flexible_thumb_size
 			? size * (scroll_visible / scroll_width)
 			: ui.style.scrollbar_fixed_size));
+		
+		if(thumb_size > size * 0.5)
+			thumb_size = size * 0.5;
 		
 		if(position < scroll_min)
 		{

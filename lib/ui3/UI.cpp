@@ -114,8 +114,8 @@ class UI
 		
 		@contents = Container(this);
 		@overlays = Container(this);
-		contents._id = '_ROOT_';
-		overlays._id = '_OVERLAYS_';
+		contents.name = '_ROOT_';
+		overlays.name = '_OVERLAYS_';
 		
 		_hud = hud;
 		_layer = layer;
@@ -1131,7 +1131,7 @@ class UI
 						if(show_ids)
 						{
 							style.draw_text(
-								element._id,
+								element.name != '' ? element.name : element.id,
 								element.x1, element.y1,
 								clr | (uint((el_alpha>>24) * 1.75)<<24),
 								id_scale, id_scale);
@@ -1183,7 +1183,7 @@ class UI
 				-2, clr);
 			
 			style.outline_text(
-				mouse_over_element._id,
+				mouse_over_element.name != '' ? mouse_over_element.name : mouse_over_element.id,
 				mouse_over_element.x1, mouse_over_element.y1,
 				0xffffffff, 0xff000000, 2 * id_scale,
 				id_scale, id_scale);
@@ -1263,7 +1263,7 @@ class UI
 			debug.print(indent +     'global: ' + debug_el.x1 + ', ' + debug_el.y1, txt_clr, print_id + id++, 1);
 			debug.print(indent +     'local:  ' + debug_el._x + ', ' + debug_el._y, txt_clr, print_id + id++, 1);
 		
-		debug.print('[' + debug_el._id + ']', id_clr, print_id + id++, 1);
+		debug.print('[' + debug_el.id + (debug_el.name != '' ? '.' + debug_el.name : '') + ']', id_clr, print_id + id++, 1);
 	}
 	
 	void debug_print_mouse_stack()
@@ -1293,7 +1293,7 @@ class UI
 		
 		while(@element != null)
 		{
-			string data = element._id;
+			string data = element.name != '' ? element.name : element.id;
 			
 			if(!element.hovered)
 				data =  '{' + data + '}';
@@ -1325,7 +1325,7 @@ class UI
 		
 		if(!tooltips.exists(id))
 		{
-			Popup@ tooltip = Popup(this, options, element, wait_for_mouse, 'ttip');
+			Popup@ tooltip = Popup(this, options, element, wait_for_mouse);
 			tooltip.hide.on(on_tooltip_hide_delegate);
 			overlays.add_child(tooltip);
 			@tooltips[id] = tooltip;

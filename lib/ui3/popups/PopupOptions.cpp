@@ -2,8 +2,10 @@
 #include 'PopupTriggerType.cpp';
 #include 'PopupHideType.cpp';
 #include '../TextAlign.cpp';
+#include '../events/Event.cpp';
+#include '../events/IGenericEventTarget.cpp';
 
-class PopupOptions
+class PopupOptions : IGenericEventTarget
 {
 	
 	string _id = '';
@@ -19,6 +21,20 @@ class PopupOptions
 	bool interactable;
 	bool follow_mouse;
 	TextAlign text_align_h = TextAlign::Left;
+	/// Only relevant for PopupHideType::MouseDownOutside. If true any mouse button being pressed will close the tooltip
+	bool any_mouse_down_button = true;
+	
+	/// The amount of space around the outside. Leave as NAN to use the default style spacing.
+	float padding_left = NAN;
+	/// Same as padding_left.
+	float padding_right = NAN;
+	/// Same as padding_left.
+	float padding_top = NAN;
+	/// Same as padding_left.
+	float padding_bottom = NAN;
+	
+	Event show;
+	Event hide;
 	
 	protected UI@ ui;
 	
@@ -34,6 +50,19 @@ class PopupOptions
 	protected float _fade_max;
 	protected float _offset_max;
 	protected float _spacing;
+	
+	/*protected*/ uint _background_colour = 0;
+	/*protected*/ bool _background_blur = false;
+	/*protected*/ uint _border_colour = 0;
+	/*protected*/ float _border_size = 0;
+	/*protected*/ uint _shadow_colour = 0;
+	/*protected*/ float _blur_inset = 0;
+	/*protected*/ bool _has_background_colour = false;
+	/*protected*/ bool _has_background_blur = false;
+	/*protected*/ bool _has_border_colour = false;
+	/*protected*/ bool _has_border_size = false;
+	/*protected*/ bool _has_shadow_colour = false;
+	/*protected*/ bool _has_blur_inset = false;
 	
 	PopupOptions(
 		UI@ ui, Element@ content, bool interactable=false, PopupPosition position=PopupPosition::Above,
@@ -81,6 +110,8 @@ class PopupOptions
 		spacing 	= ui.style.tooltip_default_spacing;
 	}
 	
+	string name { get const { return _id; } }
+	
 	float fade_max
 	{
 		get { return _fade_max; }
@@ -97,6 +128,94 @@ class PopupOptions
 	{
 		get { return _spacing; }
 		set { _spacing = value; }
+	}
+	
+	float padding
+	{
+		set { padding_left = padding_right = padding_top = padding_bottom = value; }
+	}
+	
+	void padding(const float padding)
+	{
+		padding_left = padding_right = padding_top = padding_bottom = padding;
+	}
+	
+	void padding(const float padding_left_right, const float padding_top_bottom)
+	{
+		padding_left	= padding_left_right;
+		padding_right	= padding_left_right;
+		padding_top		= padding_top_bottom;
+		padding_bottom	= padding_top_bottom;
+	}
+	
+	void padding(const float padding_left, const float padding_right, const float padding_top, const float padding_bottom)
+	{
+		this.padding_left	= padding_left;
+		this.padding_right	= padding_right;
+		this.padding_top	= padding_top;
+		this.padding_bottom	= padding_bottom;
+	}
+	
+	uint background_colour
+	{
+		get const { return _background_colour; }
+		set { _background_colour = value; _has_background_colour = true; }
+	}
+	bool background_blur
+	{
+		get const { return _background_blur; }
+		set { _background_blur = value; _has_background_blur = true; }
+	}
+	uint border_colour
+	{
+		get const { return _border_colour; }
+		set { _border_colour = value; _has_border_colour = true; }
+	}
+	float border_size
+	{
+		get const { return _border_size; }
+		set { _border_size = value; _has_border_size = true; }
+	}
+	uint shadow_colour
+	{
+		get const { return _shadow_colour; }
+		set { _shadow_colour = value; _has_shadow_colour = true; }
+	}
+	float blur_inset
+	{
+		get const { return _blur_inset; }
+		set { _blur_inset = value; _has_blur_inset = true; }
+	}
+	
+	bool has_background_colour
+	{
+		get const { return _has_background_colour; }
+		set { _has_background_colour = value; }
+	}
+	bool has_background_blur
+	{
+		get const { return _has_background_blur; }
+		set { _has_background_blur = value; }
+	}
+	bool has_border_colour
+	{
+		get const { return _has_border_colour; }
+		set { _has_border_colour = value; }
+	}
+	bool has_border_size
+	{
+		get const { return _has_border_size; }
+		set { _has_border_size = value; }
+	}
+	bool has_shadow_colour
+	{
+		get const { return _has_shadow_colour; }
+		set { _has_shadow_colour = value; }
+	}
+	bool has_blur_inset
+	{
+		get const { return _has_blur_inset; }
+		set { _has_blur_inset = value; }
 	}
 	
 	void set_content(Element@ content)
@@ -152,13 +271,22 @@ class PopupOptions
 		return content_str_label;
 	}
 	
-	void _on_popup_hide()
+	void _on_popup_show(Popup@ popup)
+	{
+		ui._event_info.reset(EventType::SHOW, @popup, @this);
+		show.dispatch(ui._event_info);
+	}
+	
+	void _on_popup_hide(Popup@ popup)
 	{
 		if(@content_str_label != null)
 		{
 			ui._label_pool.release(@content_str_label);
 			@content_str_label = null;
 		}
+		
+		ui._event_info.reset(EventType::HIDE, @popup, @this);
+		hide.dispatch(ui._event_info);
 	}
 	
 }

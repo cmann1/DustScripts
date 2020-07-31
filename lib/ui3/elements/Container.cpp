@@ -26,10 +26,12 @@ class Container : Element
 	protected array<Element@> children;
 	protected int num_children;
 	
-	Container(UI@ ui, const string &in type_identifier = 'ctr')
+	Container(UI@ ui)
 	{
-		super(ui, type_identifier);
+		super(ui);
 	}
+	
+	string element_type { get const override { return 'Container'; } }
 	
 	Layout@ layout
 	{

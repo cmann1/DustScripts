@@ -22,7 +22,7 @@ class Button : SingleContainer
 	
 	Button(UI@ ui, Element@ content)
 	{
-		super(ui, content, 'btn');
+		super(ui, content);
 		
 		init();
 	}
@@ -35,7 +35,7 @@ class Button : SingleContainer
 			ui.style.default_text_scale, ui.style.text_clr,
 			ui.style.default_font, ui.style.default_text_size);
 		
-		super(ui, label, 'btn');
+		super(ui, label);
 		
 		init();
 	}
@@ -44,7 +44,7 @@ class Button : SingleContainer
 	{
 		Image@ image = Image(ui, sprite_text, sprite_name, width, height, offset_x, offset_y);
 		
-		super(ui, image, 'btn');
+		super(ui, image);
 		
 		init();
 	}
@@ -55,6 +55,8 @@ class Button : SingleContainer
 		_set_width  = _width  = 40;
 		_set_height = _height = 40;
 	}
+	
+	string element_type { get const override { return 'Button'; } }
 	
 	ButtonGroup@ group
 	{

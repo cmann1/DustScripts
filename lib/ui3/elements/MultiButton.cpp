@@ -25,12 +25,14 @@ class MultiButton : SingleContainer
 	
 	MultiButton(UI@ ui)
 	{
-		super(ui, null, 'mbtn');
+		super(ui, null);
 		
 		children_mouse_enabled = false;
 		_set_width  = _width  = 40;
 		_set_height = _height = 40;
 	}
+	
+	string element_type { get const override { return 'MultiButton'; } }
 	
 	Image@ add(const string name, Image@ image, int index=-1)
 	{

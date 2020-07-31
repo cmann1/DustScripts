@@ -40,10 +40,12 @@ abstract class Graphic : Element
 	float debug_draw_scale_x { get const { return draw_scale_x; } }
 	float debug_draw_scale_y { get const { return draw_scale_y; } }
 	
-	Graphic(UI@ ui, const string type_identifier)
+	Graphic(UI@ ui)
 	{
-		super(ui, type_identifier);
+		super(ui);
 	}
+	
+	string element_type { get const override { return 'Graphic'; } }
 	
 	void _do_layout(LayoutContext@ ctx)
 	{

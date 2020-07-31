@@ -6,13 +6,15 @@ class Arrow : Shape
 	
 	Arrow(UI@ ui)
 	{
-		super(ui, 'arr');
+		super(ui);
 	}
 	
 	Arrow(UI@ ui, const uint colour)
 	{
-		super(ui, 'arr', colour);
+		super(ui, colour);
 	}
+	
+	string element_type { get const override { return 'ArrowShape'; } }
 	
 	protected void init() override
 	{

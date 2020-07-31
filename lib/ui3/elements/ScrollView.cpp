@@ -33,12 +33,14 @@ class ScrollView : LockedContainer
 	
 	ScrollView(UI@ ui)
 	{
-		super(ui, 'scrv');
+		super(ui);
 		
 		@_content = Container(ui);
 		Container::add_child(_content);
 		_content.clip_contents = ClippingMode::Inside;
 	}
+	
+	string element_type { get const override { return 'ScrollView'; } }
 	
 	float scroll_x { get const { return -_content._scroll_x; } }
 	

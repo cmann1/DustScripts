@@ -3,7 +3,7 @@
 #include 'Element.cpp';
 #include 'LockedContainer.cpp';
 
-class LockedContainer : Container
+abstract class LockedContainer : Container
 {
 	
 	/**
@@ -11,9 +11,9 @@ class LockedContainer : Container
 	 * @brief A container that manages its own children, e.g. a Button or Tooltip
 	 */
 	 
-	LockedContainer(UI@ ui, const string &in type_identifier)
+	LockedContainer(UI@ ui)
 	{
-		super(ui, type_identifier);
+		super(ui);
 	}
 	
 	bool add_child(Element@ child) override

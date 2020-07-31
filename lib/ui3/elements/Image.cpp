@@ -21,10 +21,12 @@ class Image : Graphic
 	 */
 	Image(UI@ ui, const string _sprite_set, const string _sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
-		super(ui, 'img');
+		super(ui);
 		
 		set_sprite(_sprite_set, _sprite_name, width, height, offset_x, offset_y);
 	}
+	
+	string element_type { get const override { return 'Image'; } }
 	
 	void set_sprite(const string _sprite_set, const string _sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{

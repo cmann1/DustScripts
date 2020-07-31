@@ -14,7 +14,7 @@ class Divider : Element
 	
 	Divider(UI@ ui, Orientation orientation)
 	{
-		super(ui, 'div');
+		super(ui);
 		
 		this.orientation = orientation;
 		fit();
@@ -22,11 +22,13 @@ class Divider : Element
 	
 	Divider(UI@ ui, IOrientationParent@ orientation_parent=null)
 	{
-		super(ui, 'div');
+		super(ui);
 		
 		@this.orientation_parent = orientation_parent;
 		fit();
 	}
+	
+	string element_type { get const override { return 'Divider'; } }
 	
 	void fit()
 	{

@@ -54,7 +54,7 @@ class NumberSlider : LockedContainer
 		Orientation orientation=Orientation::Horizontal,
 		bool show_buttons=true, bool show_text=true, bool show_fill=true)
 	{
-		super(ui, 'numsldr');
+		super(ui);
 		
 		this.min_value = min_value;
 		this.max_value = max_value;
@@ -69,6 +69,8 @@ class NumberSlider : LockedContainer
 		_set_width  = _width  = orientation == Orientation::Horizontal ? 60 : 30;
 		_set_height = _height = orientation == Orientation::Horizontal ? 30 : 60;
 	}
+	
+	string element_type { get const override { return 'NumberSlider'; } }
 	
 	float value
 	{

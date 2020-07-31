@@ -24,11 +24,11 @@ class Popup : SingleContainer
 	protected float target_x2;
 	protected float target_y2;
 	
-	Popup(UI@ ui, PopupOptions@ options, Element@ target, const bool wait_for_mouse, const string type_identifier='popup')
+	Popup(UI@ ui, PopupOptions@ options, Element@ target, const bool wait_for_mouse)
 	{
 		@this._options = @options;
 		
-		super(ui, _options.get_contenet_element(), type_identifier);
+		super(ui, _options.get_contenet_element());
 		
 		@this._target = target;
 		waiting_for_mouse = wait_for_mouse && @_target != null;
@@ -40,17 +40,11 @@ class Popup : SingleContainer
 		
 		mouse_enabled = false;
 		children_mouse_enabled = false;
+		
+		options._on_popup_show(this);
 	}
 	
-	void fit_to_contents(bool include_border, float padding_x=NAN, float padding_y=NAN) override
-	{
-		if(is_nan(padding_x))
-			padding_x = ui.style.tooltip_padding;
-		if(is_nan(padding_y))
-			padding_y = ui.style.tooltip_padding;
-		
-		SingleContainer::fit_to_contents(include_border, padding_x, padding_y);
-	}
+	string element_type { get const override { return 'Popup'; } }
 	
 	void force_hide()
 	{
@@ -67,6 +61,7 @@ class Popup : SingleContainer
 		
 		float view_x1, view_y1, view_x2, view_y2;
 		ui.get_region(view_x1, view_y1, view_x2, view_y2);
+		
 		view_x1 += ui.style.spacing;
 		view_x2 -= ui.style.spacing;
 		view_y1 += ui.style.spacing;
@@ -265,7 +260,9 @@ class Popup : SingleContainer
 		}
 		else if(_options.hide_type == PopupHideType::MouseDownOutside)
 		{
-			if(ui.mouse.primary_press && !overlaps_point(ui.mouse.x, ui.mouse.y) && (@_target == null || !_target.overlaps_point(ui.mouse.x, ui.mouse.y)))
+			if(
+				(ui.mouse.primary_press || _options.any_mouse_down_button && (ui.mouse.left_press || ui.mouse.middle_press || ui.mouse.right_press)) &&
+				!overlaps_point(ui.mouse.x, ui.mouse.y) && (@_target == null || !_target.overlaps_point(ui.mouse.x, ui.mouse.y)))
 			{
 				active = false;
 				_force_hide = true;
@@ -317,8 +314,8 @@ class Popup : SingleContainer
 		
 		if(@content != null)
 		{
-			content.x = ui.style.tooltip_padding;
-			content.y = ui.style.tooltip_padding;
+			content.x = is_nan(_options.padding_left) ? ui.style.tooltip_padding : _options.padding_left;
+			content.y = is_nan(_options.padding_top)  ? ui.style.tooltip_padding : _options.padding_top;
 		}
 		
 		if(active)
@@ -343,14 +340,17 @@ class Popup : SingleContainer
 			{
 				ui._event_info.reset(EventType::HIDE, this);
 				hide.dispatch(ui._event_info);
-				_options._on_popup_hide();
+				_options._on_popup_hide(this);
 			}
 		}
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		style.draw_popup_element(this, style.tooltip_blur_inset);
+		style.draw_popup_element(this,
+			_options._shadow_colour, _options._background_colour, _options._border_colour, _options._border_size, _options._background_blur,
+			_options._has_shadow_colour, _options._has_background_colour, _options._has_border_colour, _options._has_border_size, _options._background_blur,
+			_options._has_blur_inset ? _options._blur_inset : NAN);
 	}
 	
 	private void update_fade()
@@ -437,5 +437,14 @@ class Popup : SingleContainer
 				break;
 		}
 	}
+	
+	protected float default_left_padding {
+		get const { return is_nan(_options.padding_left)   ? ui.style.tooltip_padding : _options.padding_left; } }
+	protected float default_right_padding {
+		get const { return is_nan(_options.padding_right)  ? ui.style.tooltip_padding : _options.padding_right; } }
+	protected float default_top_padding {
+		get const { return is_nan(_options.padding_top)    ? ui.style.tooltip_padding : _options.padding_top; } }
+	protected float default_bottom_padding {
+		get const { return is_nan(_options.padding_bottom) ? ui.style.tooltip_padding : _options.padding_bottom; } }
 	
 }

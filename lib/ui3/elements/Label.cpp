@@ -16,7 +16,7 @@ class Label : Graphic
 	
 	Label(UI@ ui, const string text, const bool auto_size=false, const string font='', const uint size=0)
 	{
-		super(ui, 'lbl');
+		super(ui);
 		
 		_auto_size = auto_size;
 		_font = font;
@@ -31,6 +31,8 @@ class Label : Graphic
 		
 		this.text = text;
 	}
+	
+	string element_type { get const override { return 'Label'; } }
 	
 	string text
 	{

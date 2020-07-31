@@ -32,12 +32,14 @@ class Toolbar : Container, IOrientationParent
 	
 	Toolbar(UI@ ui, bool draggable = true, bool auto_fit=true, float max_size=0)
 	{
-		super(ui, 'tbar');
+		super(ui);
 		
 		this.draggable = draggable;
 		this.auto_fit = auto_fit;
 		this.max_size = max_size;
 	}
+	
+	string element_type { get const override { return 'Toolbar'; } }
 	
 	Layout@ layout
 	{
