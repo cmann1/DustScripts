@@ -367,12 +367,10 @@ class Style
 	
 	void draw_interactive_element(
 		const Element@ element,
-		const bool highlighted, const bool selected, const bool disabled,
+		const bool highlighted, const bool selected, const bool active, const bool disabled,
 		bool draw_background=true, bool draw_border=true)
 	{
-		const uint border_clr = !draw_border ? 0 : disabled ? disabled_border_clr
-			: (highlighted && selected ? selected_highlight_border_clr
-				: selected ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
+		const uint border_clr = get_interactive_element_border_colour(highlighted, selected, active, disabled, draw_border);
 		
 		const float border_size = selected ? selected_border_size : this.border_size;
 		
@@ -380,9 +378,7 @@ class Style
 		
 		if(draw_background)
 		{
-			const uint bg_clr = disabled ? disabled_bg_clr
-				: (highlighted && selected ? selected_highlight_bg_clr
-					: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
+			const uint bg_clr = get_interactive_element_background_colour(highlighted, selected, active, disabled, draw_background);
 			
 			const float inset = border_clr != 0 ? max(0, border_size) : 0;
 			
@@ -396,6 +392,20 @@ class Style
 		{
 			outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
 		}
+	}
+	
+	uint get_interactive_element_background_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_background=true)
+	{
+		return !draw_background ? 0 : disabled ? disabled_bg_clr
+				: (highlighted && selected ? selected_highlight_bg_clr
+					: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
+	}
+	
+	uint get_interactive_element_border_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_border=true)
+	{
+		return !draw_border ? 0 : disabled ? disabled_border_clr
+			: (highlighted && (selected || active) ? selected_highlight_border_clr
+				: (selected || active) ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
 	}
 	
 	void draw_popup_element(const Element@ &in element)

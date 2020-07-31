@@ -123,11 +123,11 @@ abstract class Graphic : Element
 		{
 			if(rotation < 0)
 			{
-				draw_y += _graphic_width * draw_scale_x + 1;
+				draw_y += _graphic_width * draw_scale_x;
 			}
 			else
 			{
-				draw_x += _graphic_height * draw_scale_y + 1;
+				draw_x += _graphic_height * draw_scale_y;
 			}
 		}
 	}

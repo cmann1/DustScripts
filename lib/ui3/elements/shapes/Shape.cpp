@@ -1,5 +1,6 @@
 #include '../../UI.cpp';
-#include '../Graphic';
+#include '../../Style.cpp';
+#include '../Graphic.cpp';
 
 abstract class Shape : Graphic
 {
@@ -12,6 +13,8 @@ abstract class Shape : Graphic
 		super(ui, type_identifier + 'shp');
 		
 		_use_custom_colour = false;
+		
+		init();
 	}
 	
 	Shape(UI@ ui, const string type_identifier, const uint colour)
@@ -20,6 +23,13 @@ abstract class Shape : Graphic
 		
 		_use_custom_colour = true;
 		_colour = colour;
+		
+		init();
+	}
+	
+	protected void init()
+	{
+		
 	}
 	
 }

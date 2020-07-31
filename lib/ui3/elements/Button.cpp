@@ -110,8 +110,9 @@ class Button : SingleContainer
 		style.draw_interactive_element(this,
 			hovered || pressed,
 			selectable && selected,
+			pressed,
 			disabled,
-			draw_background == DrawOption::Always || draw_background == DrawOption::Hover && hovered,
+			draw_background == DrawOption::Always || draw_background == DrawOption::Hover && (hovered || pressed),
 			draw_border == DrawOption::Always || draw_border == DrawOption::Hover && hovered);
 	}
 	

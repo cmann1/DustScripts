@@ -123,7 +123,7 @@ class MultiButton : SingleContainer
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		style.draw_interactive_element(this, hovered, false, disabled);
+		style.draw_interactive_element(this, hovered, false, pressed, disabled);
 	}
 	
 	void _mouse_click() override

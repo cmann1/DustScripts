@@ -2,8 +2,10 @@
 #include '../Style.cpp';
 #include '../TextAlign.cpp';
 #include '../../math/math.cpp';
+#include '../../utils/colour.cpp';
 #include '../elements/Button.cpp';
 #include '../elements/Label.cpp';
+#include '../elements/shapes/Arrow.cpp';
 #include '../events/Event.cpp';
 #include '../utils/Orientation.cpp';
 #include 'LockedContainer.cpp';
@@ -14,14 +16,19 @@ class NumberSlider : LockedContainer
 	float min_value;
 	float max_value;
 	float step;
-	float drag_sensitivity = 0.25;
+	float drag_sensitivity = 0.1;
+	bool drag_relative = true;
 	
 	bool show_fill;
+	uint fill_colour = 0x00000000;
+	uint fill_hover_colour = 0x00000000;
+	uint fill_active_colour = 0x00000000;
 	bool orient_label = true;
 	uint label_precision = 4;
 	float button_size = 10;
 	float button_speed = 3;
 	float button_pause = button_speed * 5;
+	float fade_buttons = 0;
 	
 	Event change;
 	
@@ -32,9 +39,14 @@ class NumberSlider : LockedContainer
 	protected float button_timer;
 	protected bool first_button_press;
 	
+	protected bool busy_dragging;
+	protected float drag_value;
+	
 	Label@ _label;
 	Button@ _left_button;
 	Button@ _right_button;
+	Arrow@ _left_arrow;
+	Arrow@ _right_arrow;
 	
 	NumberSlider(UI@ ui,
 		const float value=0, const float min_value=NAN, const float max_value=NAN, const float step=1,
@@ -62,18 +74,7 @@ class NumberSlider : LockedContainer
 		get const { return _value; }
 		set
 		{
-			if(!is_nan(min_value) && value < min_value)
-				value = min_value;
-			else if(!is_nan(max_value) && value < max_value)
-				value = max_value;
-			
-			if(!is_nan(step))
-			{
-				if(!is_nan(min_value))
-					value = min_value + round((value - min_value) / step) * step;
-				else
-					value = round(value / step) * step;
-			}
+			value = clamp_value(value);
 			
 			if(value == _value)
 				return;
@@ -112,7 +113,11 @@ class NumberSlider : LockedContainer
 				_label.rotation = (_orientation == Orientation::Horizontal || !orient_label) ? 0 : -90;
 			}
 			
-			// TODO: Set buttons orientation;
+			if(@_left_button != null)
+			{
+				_left_arrow.rotation = _orientation == Orientation::Horizontal ? -180 : 90;
+				_right_arrow.rotation = _orientation == Orientation::Horizontal ? 0 : -90;
+			}
 		}
 	}
 	
@@ -166,12 +171,16 @@ class NumberSlider : LockedContainer
 			}
 			else if(@_left_button == null)
 			{
-				@_left_button  = Button(ui, '<');
-				@_right_button = Button(ui, '>');
+				@_left_button  = Button(ui, @_left_arrow = Arrow(ui));
+				@_right_button = Button(ui, @_right_arrow = Arrow(ui));
 				_left_button.draw_border = DrawOption::Never;
 				_right_button.draw_border = DrawOption::Never;
 				_left_button.draw_background = DrawOption::Hover;
 				_right_button.draw_background = DrawOption::Hover;
+				_left_arrow.rotation = _orientation == Orientation::Horizontal ? -180 : 90;
+				_right_arrow.rotation = _orientation == Orientation::Horizontal ? 0 : -90;
+				_left_arrow.alpha = fade_buttons < 1 ? fade_buttons : 1;
+				_right_arrow.alpha = fade_buttons < 1 ? fade_buttons : 1;
 				Container::add_child(_left_button);
 				Container::add_child(_right_button);
 			}
@@ -180,16 +189,15 @@ class NumberSlider : LockedContainer
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		const bool _is_horizontal = orientation == Orientation::Horizontal;
+		const bool is_horizontal = orientation == Orientation::Horizontal;
 		const float border_size = max(0, ui.style.border_size);
-		const float width  = _is_horizontal ? _width  : _height;
-		const float height = _is_horizontal ? _height : _width;
+		const float width  = is_horizontal ? _width  : _height;
+		const float height = is_horizontal ? _height : _width;
 		const float button_spacing = 2;
 		
 		if(_show_buttons && _left_button.visible)
 		{
-			// TODO: Set button icon rotation
-			if(_is_horizontal)
+			if(is_horizontal)
 			{
 				_left_button._x = border_size;
 				_left_button._y = border_size;
@@ -218,9 +226,38 @@ class NumberSlider : LockedContainer
 			{
 				if(button_timer-- == 0)
 				{
-					value += _left_button.pressed ? -step : step;
+					value = _value + (_left_button.pressed ? -step : step);
 					button_timer = first_button_press ? button_pause : button_speed;
 					first_button_press = false;
+				}
+			}
+			else if(ui.mouse.primary_press && hovered)
+			{
+				// Check the hovered button states here because at this point pressed may not be set yet
+				if(drag_sensitivity > 0 && !_left_button.hovered && !_right_button.hovered)
+				{
+					busy_dragging = true;
+					drag_value = _value;
+					children_mouse_enabled = false;
+				}
+			}
+			else if(busy_dragging)
+			{
+				if(!ui.mouse.primary_down)
+				{
+					busy_dragging = false;
+					children_mouse_enabled = true;
+				}
+				if(drag_relative && !is_nan(min_value) && !is_nan(max_value))
+				{
+					value = min_value + (is_horizontal
+						? ( ui.mouse.x - x1) / max(0.001, x2 - x1)
+						: (-ui.mouse.y + y2) / max(0.001, y2 - y1)) * (max_value - min_value);
+				}
+				else
+				{
+					drag_value = clamp_value(drag_value + (is_horizontal ? ui.mouse.delta_x : -ui.mouse.delta_y) * drag_sensitivity * step, false);
+					value = drag_value;
 				}
 			}
 			else
@@ -228,11 +265,30 @@ class NumberSlider : LockedContainer
 				button_timer = 0;
 				first_button_press = true;
 			}
+			
+			if(fade_buttons < 1)
+			{
+				const float fade_speed = 0.15;
+				
+				if((pressed || hovered) && !busy_dragging)
+				{
+					if(_left_arrow.alpha < 1)
+					{
+						_left_arrow.alpha = min(1, _left_arrow.alpha + fade_speed);
+						_right_arrow.alpha = min(1, _right_arrow.alpha + fade_speed);
+					}
+				}
+				else if(_left_arrow.alpha > fade_buttons)
+				{
+					_left_arrow.alpha = max(fade_buttons, _left_arrow.alpha - fade_speed);
+					_right_arrow.alpha = max(fade_buttons, _right_arrow.alpha - fade_speed);
+				}
+			}
 		}
 		
 		if(_show_text && _label.visible)
 		{
-			if(_is_horizontal)
+			if(is_horizontal)
 			{
 				if(_show_buttons && _left_button.visible)
 				{
@@ -269,7 +325,72 @@ class NumberSlider : LockedContainer
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		style.draw_interactive_element(this, false, false, disabled);
+		const bool is_horizontal = orientation == Orientation::Horizontal;
+		
+		style.draw_interactive_element(this, false, false, busy_dragging, disabled);
+		
+		if(show_fill && !is_nan(min_value) && !is_nan(max_value))
+		{
+			const float border_size = style.normal_border_clr != 0 && style.border_size > 0 ? style.border_size : 0;
+			const float x1 = this.x1 + border_size;
+			const float y1 = this.y1 + border_size;
+			const float x2 = this.x2 - border_size;
+			const float y2 = this.y2 - border_size;
+			
+			uint clr;
+			
+			if(busy_dragging)
+			{
+				clr = fill_active_colour != 0
+					? multiply_alpha(fill_active_colour, disabled ? style.disabled_alpha : 1)
+					: style.get_interactive_element_background_colour(hovered || pressed, true, true, disabled);
+			}
+			else if(hovered)
+			{
+				clr = fill_hover_colour != 0
+					? multiply_alpha(fill_hover_colour, disabled ? style.disabled_alpha : 1)
+					: style.get_interactive_element_background_colour(hovered || pressed, false, false, disabled);
+			}
+			else
+			{
+				clr = multiply_alpha(fill_colour != 0
+					? fill_colour
+					: style.secondary_bg_clr, disabled ? style.disabled_alpha : 1);
+			}
+			
+			if(is_horizontal)
+			{
+				style.draw_rectangle(
+					x1, y1,
+					x1 + (x2 - x1) * (_value - min_value) / (max_value - min_value), y2,
+					0, clr);
+			}
+			else
+			{
+				style.draw_rectangle(
+					x1, y2 - (y2 - y1) * (_value - min_value) / (max_value - min_value),
+					x2, y2,
+					0, clr);
+			}
+		}
+	}
+	
+	float clamp_value(float value, const bool clamp_to_step=true)
+	{
+		if(!is_nan(min_value) && value < min_value)
+			value = min_value;
+		else if(!is_nan(max_value) && value > max_value)
+			value = max_value;
+		
+		if(clamp_to_step && !is_nan(step))
+		{
+			if(!is_nan(min_value))
+				value = min_value + round((value - min_value) / step) * step;
+			else
+				value = round(value / step) * step;
+		}
+		
+		return value;
 	}
 	
 	protected void update_label()
