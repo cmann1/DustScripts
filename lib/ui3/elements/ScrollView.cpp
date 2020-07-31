@@ -220,10 +220,8 @@ class ScrollView : LockedContainer
 			scrollbar_horizontal.position += scroll_dir * scroll_amount;
 		}
 		
-		if(needs_scroll_vertical)
-			update_vertical_scrollbar();
-		if(needs_scroll_horizontal)
-			update_horizontal_scrollbar();
+		update_vertical_scrollbar(needs_scroll_vertical);
+		update_horizontal_scrollbar(needs_scroll_horizontal);
 		
 		if(previous_scroll_x != _content._scroll_x || previous_scroll_y != _content._scroll_y)
 		{
@@ -236,24 +234,44 @@ class ScrollView : LockedContainer
 		}
 	}
 	
-	protected void update_vertical_scrollbar()
+	protected void update_vertical_scrollbar(const bool scroll)
 	{
-		if(@scrollbar_vertical == null || !scrollbar_vertical.visible)
+		if(!scroll)
+			_content._scroll_y = 0;
+		
+		if(@scrollbar_vertical == null)
 			return;
 		
-		scrollbar_vertical._x = _content._x + _content._width;
-		scrollbar_vertical._y = ui.style.spacing;
-		scrollbar_vertical._height = _content._height;
+		if(scroll && scrollbar_vertical.visible)
+		{
+			scrollbar_vertical._x = _content._x + _content._width;
+			scrollbar_vertical._y = ui.style.spacing;
+			scrollbar_vertical._height = _content._height;
+		}
+		else
+		{
+			scrollbar_vertical.position = 0;
+		}
 	}
 	
-	protected void update_horizontal_scrollbar()
+	protected void update_horizontal_scrollbar(const bool scroll)
 	{
-		if(@scrollbar_horizontal == null || !scrollbar_horizontal.visible)
+		if(!scroll)
+			_content._scroll_x = 0;
+		
+		if(@scrollbar_horizontal == null)
 			return;
 		
-		scrollbar_horizontal._x = ui.style.spacing;
-		scrollbar_horizontal._y = _content._y + _content._height;
-		scrollbar_horizontal._width = _content._width;
+		if(scroll && scrollbar_horizontal.visible)
+		{
+			scrollbar_horizontal._x = ui.style.spacing;
+			scrollbar_horizontal._y = _content._y + _content._height;
+			scrollbar_horizontal._width = _content._width;
+		}
+		else
+		{
+			scrollbar_horizontal.position = 0;
+		}
 	}
 	
 }

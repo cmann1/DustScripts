@@ -205,7 +205,11 @@ class Tooltip : SingleContainer
 		
 		if(options.hide_type == PopupHideType::MouseLeave)
 		{
-			active = !_force_hide && (@target == null || @target == @ui.mouse_over_element || hovered || waiting_for_mouse);
+			// Also check the pressed to allow interactive or active elements inside the tooltip to prevent the tooltip from disappearing
+			active = !_force_hide && (
+				@target == null || @target == @ui.mouse_over_element || pressed || hovered || waiting_for_mouse ||
+				options.trigger_when_hovered && target.hovered
+			);
 			
 			// Don't start fading if the mouse is in the space between the target and the tooltip.
 			if(!_force_hide && !options.follow_mouse && options.interactable && !active && options.spacing > 0 && (
@@ -303,6 +307,8 @@ class Tooltip : SingleContainer
 		
 		if(active)
 		{
+			fading_out = false;
+			
 			if(fade < options.fade_max)
 			{
 				fade++;

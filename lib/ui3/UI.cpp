@@ -217,7 +217,7 @@ class UI
 	void step()
 	{
 		// Don't clear on the firt frame so that pressed elements will still update once
-		if(@_active_mouse_element != null)
+		if(@_active_mouse_element != null && mouse.primary_down)
 		{
 			if(active_mouse_element_processed)
 				@_mouse_over_element = null;
@@ -412,6 +412,27 @@ class UI
 		
 		update_tooltip(options._id, options);
 	}
+	
+	uint get_element_id_colour(Element@ element, const uint alpha=0xff)
+	{
+		const float hash = float(string::hash(element._id));
+		return hsl_to_rgb(
+			sin(hash) * 0.5 + 0.5,
+			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
+			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
+		) | (alpha << 24);
+	}
+	
+	uint get_element_id_colour(const string id, const uint alpha=0xff)
+	{
+		const float hash = float(string::hash(id));
+		return hsl_to_rgb(
+			sin(hash) * 0.5 + 0.5,
+			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
+			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
+		) | (alpha << 24);
+	}
+	
 	
 	// Private
 	// ---------------------------------------------------------
@@ -709,6 +730,13 @@ class UI
 				
 				element.hovered = true;
 				elements_mouse_over.insertLast(element);
+				
+				if(
+					!element.disabled && @element.tooltip != null && element.tooltip.trigger_when_hovered &&
+					element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
+				{
+					show_tooltip(element);
+				}
 				
 				@_event_info.target = element;
 				element._mouse_enter();
@@ -1325,16 +1353,6 @@ class UI
 		Tooltip@ tooltip = cast<Tooltip@>(tooltips[id]);
 		@tooltip.content = @options.get_contenet_element();
 		tooltip.fit_to_contents();
-	}
-	
-	private uint get_element_id_colour(Element@ element, const uint alpha=0xff)
-	{
-		const float hash = float(string::hash(element._id));
-		return hsl_to_rgb(
-			sin(hash) * 0.5 + 0.5,
-			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
-			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
-		) | (alpha << 24);
 	}
 	
 	// Events

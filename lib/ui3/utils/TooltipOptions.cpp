@@ -19,6 +19,10 @@ class TooltipOptions
 	TextAlign align_h = TextAlign::Left;
 	
 	bool enabled = true;
+	/// Normally only the top most element element will trigger tooltips.
+	/// If this is set to true, this tooltip will trigger when the mouse is over
+	/// this element or any of its descendants
+	bool trigger_when_hovered = false;
 	bool interactable;
 	PopupPosition position;
 	TooltipTriggerType trigger_type;
