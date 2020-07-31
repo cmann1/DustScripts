@@ -16,8 +16,8 @@ class NumberSlider : LockedContainer
 	float min_value;
 	float max_value;
 	float step;
-	float drag_sensitivity = 0.1;
-	bool drag_relative = true;
+	float drag_sensitivity = 0.25;
+	bool drag_relative = false;
 	
 	bool show_fill;
 	uint fill_colour = 0x00000000;
@@ -268,6 +268,16 @@ class NumberSlider : LockedContainer
 			}
 			else
 			{
+				if(hovered)
+				{
+					int scroll_dir;
+					
+					if(ui.mouse.scrolled(scroll_dir))
+					{
+						value = _value - step * scroll_dir;
+					}
+				}
+				
 				button_timer = 0;
 				first_button_press = true;
 			}
