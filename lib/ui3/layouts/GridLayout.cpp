@@ -59,7 +59,15 @@ class GridLayout : Layout
 		const float padding_h		= padding_left + padding_right;
 		const float padding_v		= padding_top + padding_bottom;
 		
-		if(num_children == 0)
+		int num_visible_children = 0;
+		
+		for(int i = 0; i < num_children; i++)
+		{
+			if(elements[i].visible)
+				num_visible_children++;
+		}
+		
+		if(num_visible_children == 0)
 		{
 			out_x1 = x1;
 			out_y1 = y1;
@@ -113,7 +121,7 @@ class GridLayout : Layout
 				num_columns = 1;
 		}
 		
-		int num_rows = ceil_int(float(num_children) / num_columns);
+		int num_rows = ceil_int(float(num_visible_children) / num_columns);
 		
 		array<float>@ column_sizes = ui._float_array_x;
 		int column_sizes_index = 0;
@@ -128,7 +136,7 @@ class GridLayout : Layout
 		// //////////////////////////////////////////////////////
 		// Step 2. Calculate the column and row sizes
 		
-		int column_start_index = 0;
+		int column_start_index = -1;
 		int row_index = 0;
 		int column_index = 0;
 		float column_size = 0;
@@ -160,6 +168,12 @@ class GridLayout : Layout
 			Element@ element = is_reversed
 				? elements[column_start_index + num_columns - column_index - 1]
 				: elements[i];
+			
+			if(!element.visible)
+				continue;
+			
+			if(column_start_index == -1)
+				column_start_index = i;
 			
 			const float el_column_size	= is_horizontal ? element._set_width  : element._set_height;
 			const float el_row_size		= is_horizontal ? element._set_height : element._set_width;
@@ -258,7 +272,7 @@ class GridLayout : Layout
 		
 		total_column_size += main_axis_start + column_spacing * (num_columns - 1);
 		
-		column_start_index = 0;
+		column_start_index = -1;
 		float column_x = main_axis_start;
 		float row_y = cross_axis_start;
 		bool first_element_placed = false;
@@ -268,6 +282,12 @@ class GridLayout : Layout
 			Element@ element = is_reversed
 				? elements[column_start_index + num_columns - column_index - 1]
 				: elements[i];
+			
+			if(!element.visible)
+				continue;
+			
+			if(column_start_index == -1)
+				column_start_index = i;
 			
 			const float el_column_size	= is_horizontal ? element._set_width  : element._set_height;
 			const float el_row_size		= is_horizontal ? element._set_height : element._set_width;
