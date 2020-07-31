@@ -367,8 +367,8 @@ class Style
 	uint get_interactive_element_background_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_background=true)
 	{
 		return !draw_background ? 0 : disabled ? disabled_bg_clr
-				: (highlighted && selected ? selected_highlight_bg_clr
-					: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
+				: (highlighted && (selected || active) ? selected_highlight_bg_clr
+					: (selected || active) ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
 	}
 	
 	uint get_interactive_element_border_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_border=true)

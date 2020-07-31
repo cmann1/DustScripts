@@ -51,6 +51,7 @@ class UI
 	private Element@ active_element;
 	/// Prevents all elements from interacting with the mouse. Must be set every frame by the active element
 	/*private*/ Element@ _active_mouse_element;
+	private bool active_mouse_element_processed;
 	
 	// Used for processing element layouts
 	private ElementStack element_stack;
@@ -215,8 +216,18 @@ class UI
 	
 	void step()
 	{
+		// Don't clear on the firt frame so that pressed elements will still update once
 		if(@_active_mouse_element != null)
-			@_mouse_over_element = null;
+		{
+			if(active_mouse_element_processed)
+				@_mouse_over_element = null;
+			else
+				active_mouse_element_processed = true;
+		}
+		else
+		{
+			active_mouse_element_processed = false;
+		}
 		
 		process_mouse_events(@_mouse_over_element == @mouse_over_overlays ? overlays : contents);
 		

@@ -103,6 +103,11 @@ class Button : SingleContainer
 				_content._y += ui.style.button_pressed_icon_offset;
 			}
 		}
+		
+		if(pressed || hovered && ui.mouse.primary_press)
+		{
+			@ui._active_mouse_element = @this;
+		}
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
