@@ -1,5 +1,6 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
+#include '../TextAlign.cpp';
 #include '../events/Event.cpp';
 #include '../utils/ButtonGroup.cpp';
 #include '../utils/DrawOption.cpp';
@@ -26,11 +27,11 @@ class Button : SingleContainer
 		init();
 	}
 	
-	Button(UI@ ui, const string text)
+	Button(UI@ ui, const string text, const TextAlign text_align_h=TextAlign::Left)
 	{
 		Label@ label = ui._label_pool.get(
 			ui, text, true,
-			GraphicAlign::Centre, GraphicAlign::Middle,
+			text_align_h, GraphicAlign::Centre, GraphicAlign::Middle,
 			ui.style.default_text_scale, ui.style.text_clr,
 			ui.style.default_font, ui.style.default_text_size);
 		

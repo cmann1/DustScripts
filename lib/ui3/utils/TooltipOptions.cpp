@@ -16,7 +16,7 @@ class TooltipOptions
 	// and used to display the string
 	private string _content_str;
 	
-	TextAlign align_h = TextAlign::Left;
+	TextAlign text_align_h = TextAlign::Left;
 	
 	bool enabled = true;
 	/// Normally only the top most element element will trigger tooltips.
@@ -144,7 +144,8 @@ class TooltipOptions
 		{
 			@content_str_label = ui._label_pool.get(
 				ui, _content_str, true,
-				align_h, TextAlign::Top,
+				text_align_h,
+				GraphicAlign::Left, GraphicAlign::Top,
 				ui.style.tooltip_text_scale, ui.style.tooltip_text_colour,
 				ui.style.tooltip_font, ui.style.tooltip_text_size);
 		}

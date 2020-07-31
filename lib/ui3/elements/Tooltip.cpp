@@ -140,23 +140,31 @@ class Tooltip : SingleContainer
 		if(x1 < view_x1)
 		{
 			x2 += view_x1 - x1;
-			x1 += view_x1 - x1;
+			x1  = view_x1;
+			
+			if(x2 > view_x2) x2 = view_x2;
 		}
 		else if(x2 > view_x2)
 		{
 			x1 -= x2 - view_x2;
-			x2 -= x2 - view_x2;
+			x2  = view_x2;
+			
+			if(x1 < view_x1) x1 = view_x1;
 		}
 		
 		if(y1 < view_y1)
 		{
 			y2 += view_y1 - y1;
-			y1 += view_y1 - y1;
+			y1  = view_y1;
+			
+			if(y2 > view_y2) y2 = view_y2;
 		}
 		else if(y2 > view_y2)
 		{
 			y1 -= y2 - view_y2;
-			y2 -= y2 - view_y2;
+			y2  = view_y2;
+			
+			if(y1 < view_y1) y1 = view_y1;
 		}
 		
 		if(@parent != null)
@@ -169,6 +177,9 @@ class Tooltip : SingleContainer
 			_x = x1;
 			_y = y1;
 		}
+		
+		_width  = x2 - x1;
+		_height = y2 - y1;
 		
 		return calculatedPosition;
 	}
@@ -361,28 +372,28 @@ class Tooltip : SingleContainer
 			case PopupPosition::InsideTop:
 			case PopupPosition::InsideBottom:
 			case PopupPosition::InsideMiddle:
-				x1 = (target_x1 + target_x2) * 0.5 - width * 0.5;
-				x2 = x1 + width;
+				x1 = (target_x1 + target_x2) * 0.5 - _set_width * 0.5;
+				x2 = x1 + _set_width;
 				break;
 			case PopupPosition::InsideLeftTop:
 			case PopupPosition::InsideLeft:
 			case PopupPosition::InsideLeftBottom:
 				x1 = target_x1 + options.spacing;
-				x2 = x1 + width;
+				x2 = x1 + _set_width;
 				break;
 			case PopupPosition::InsideRightTop:
 			case PopupPosition::InsideRight:
 			case PopupPosition::InsideRightBottom:
 				x2 = target_x2 - options.spacing;
-				x1 = x2 - width;
+				x1 = x2 - _set_width;
 				break;
 			case PopupPosition::Left:
 				x2 = target_x1 - options.spacing;
-				x1 = x2 - width;
+				x1 = x2 - _set_width;
 				break;
 			case PopupPosition::Right:
 				x1 = target_x2 + options.spacing;
-				x2 = x1 + width;
+				x2 = x1 + _set_width;
 				break;
 		}
 	}
@@ -396,28 +407,28 @@ class Tooltip : SingleContainer
 			case PopupPosition::InsideLeft:
 			case PopupPosition::InsideRight:
 			case PopupPosition::InsideMiddle:
-				y1 = (target_y1 + target_y2) * 0.5 - height * 0.5;
-				y2 = y1 + height;
+				y1 = (target_y1 + target_y2) * 0.5 - _set_height * 0.5;
+				y2 = y1 + _set_height;
 				break;
 			case PopupPosition::InsideLeftTop:
 			case PopupPosition::InsideTop:
 			case PopupPosition::InsideRightTop:
 				y1 = target_y1 + options.spacing;
-				y2 = y1 + height;
+				y2 = y1 + _set_height;
 				break;
 			case PopupPosition::InsideLeftBottom:
 			case PopupPosition::InsideBottom:
 			case PopupPosition::InsideRightBottom:
 				y2 = target_y2 - options.spacing;
-				y1 = y2 - height;
+				y1 = y2 - _set_height;
 				break;
 			case PopupPosition::Above:
 				y2 = target_y1 - options.spacing;
-				y1 = y2 - height;
+				y1 = y2 - _set_height;
 				break;
 			case PopupPosition::Below:
 				y1 = target_y2 + options.spacing;
-				y2 = y1 + height;
+				y2 = y1 + _set_height;
 				break;
 		}
 	}

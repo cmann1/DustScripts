@@ -10,17 +10,18 @@ class LabelPool
 	
 	Label@ get(
 		UI@ ui, const string text, const bool auto_size,
-		const float align_h, const float align_v,
+		const TextAlign text_align_h, const float align_h, const float align_v,
 		const float scale, const uint colour,
 		const string font, const uint size)
 	{
 		Label@ label = pool_index > 0 ? @pool[--pool_index] : Label(ui, text, auto_size, font, size);
 		
-		label.text		= text;
-		label.align_h	= align_h;
-		label.align_v	= align_v;
-		label.scale		= scale;
-		label.colour	= colour;
+		label.text			= text;
+		label.text_align_h	= text_align_h;
+		label.align_h		= align_h;
+		label.align_v		= align_v;
+		label.scale			= scale;
+		label.colour		= colour;
 		
 		return label;
 	}

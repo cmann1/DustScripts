@@ -12,8 +12,7 @@ class Label : Graphic
 	protected uint _size;
 	protected uint _colour;
 	protected bool _has_colour = false;
-//	TextAlign align_h = TextAlign::Left;
-//	TextAlign align_v = TextAlign::Top;
+	TextAlign text_align_h = TextAlign::Left;
 	
 	Label(UI@ ui, const string text, const bool auto_size=false, const string font='', const uint size=0)
 	{
@@ -105,12 +104,30 @@ class Label : Graphic
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
+		float align_origin;
+		
+		switch(text_align_h)
+		{
+			case TextAlign::Left:   align_origin = 0; break;
+			case TextAlign::Centre: align_origin = 0.5; break;
+			case TextAlign::Right:  align_origin = 1; break;
+		}
+		
+		const float final_scale_x = is_transposed ? draw_scale_y : draw_scale_x;
+		const float final_scale_y = is_transposed ? draw_scale_x : draw_scale_y;
+		float dx = (is_transposed ? _graphic_height : _graphic_width)  * align_origin * final_scale_x;
+		float dy = 0;
+		
+		if(rotation != 0)
+		{
+			rotate(dx, dy, rotation * DEG2RAD, dx, dy);
+		}
+		
 		style.draw_text(_text,
-			draw_x, draw_y,
+			draw_x + dx, draw_y + dy,
 			_has_colour ? _colour : ui.style.text_clr,
-			is_transposed ? draw_scale_y : draw_scale_x,
-			is_transposed ? draw_scale_x : draw_scale_y,
-			rotation, TextAlign::Left, TextAlign::Top, _font, _size);
+			final_scale_x, final_scale_y,
+			rotation, text_align_h, TextAlign::Top, _font, _size);
 	}
 	
 	private void update_size()

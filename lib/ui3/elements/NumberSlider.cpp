@@ -25,6 +25,7 @@ class NumberSlider : LockedContainer
 	uint fill_active_colour = 0x00000000;
 	bool orient_label = true;
 	uint label_precision = 4;
+	bool trim_label_precision = true;
 	float button_size = 10;
 	float button_speed = 3;
 	float button_pause = button_speed * 5;
@@ -361,7 +362,7 @@ class NumberSlider : LockedContainer
 					? multiply_alpha(fill_active_colour, disabled ? style.disabled_alpha : 1)
 					: style.get_interactive_element_background_colour(hovered || pressed, true, true, disabled);
 			}
-			else if(hovered)
+			else if(hovered || _show_buttons && (_left_button.pressed || _right_button.pressed))
 			{
 				clr = fill_hover_colour != 0
 					? multiply_alpha(fill_hover_colour, disabled ? style.disabled_alpha : 1)
@@ -413,7 +414,7 @@ class NumberSlider : LockedContainer
 	{
 		string text = formatFloat(_value, '', 0, label_precision);
 		
-		if(label_precision > 0)
+		if(trim_label_precision && label_precision > 0)
 		{
 			const int length = int(text.length());
 			int end_index = length - 1;

@@ -64,8 +64,8 @@ class SingleContainer : LockedContainer
 			return;
 		}
 		
-		float width  = _content.width + padding_x * 2;
-		float height = _content.height + padding_y * 2;
+		float width  = _content._width  + padding_x * 2;
+		float height = _content._height + padding_y * 2;
 		
 		if(include_border)
 		{
@@ -73,7 +73,7 @@ class SingleContainer : LockedContainer
 			height += border_size * 2;
 		}
 		
-		this.width = width;
+		this.width  = width;
 		this.height = height;
 	}
 	
