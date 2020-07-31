@@ -2,7 +2,7 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../events/Event.cpp';
-#include '../popups/TooltipOptions.cpp';
+#include '../popups/PopupOptions.cpp';
 #include 'SingleContainer.cpp';
 
 class MultiButton : SingleContainer
@@ -212,7 +212,7 @@ class MultiButton : SingleContainer
 		
 		if(@tooltip == null)
 		{
-			@tooltip = TooltipOptions(ui, null);
+			@tooltip = PopupOptions(ui, null);
 		}
 		
 		tooltip.enabled = true;

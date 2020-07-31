@@ -16,7 +16,7 @@
 #include 'elements/Element.cpp';
 #include 'elements/Container.cpp';
 #include 'elements/Graphic.cpp';
-#include 'elements/Tooltip.cpp';
+#include 'elements/Popup.cpp';
 #include 'layouts/flow/FlowLayout.cpp';
 
 class UI
@@ -67,7 +67,7 @@ class UI
 	
 	private Element@ debug_mouse_over_element;
 	private bool debug_draw_active;
-	private TooltipOptions@ debug_tooltip_options;
+	private PopupOptions@ debug_tooltip_options;
 	private DrawingContext debug_mouse_over_clipping_ctx;
 	
 	private Element@ mouse_over_overlays;
@@ -378,7 +378,7 @@ class UI
 	/**
 	 * @param wait_for_mouse - If true and the tooltip hide type is MouseLeave, the tooltip will not close until the mouse enters it for the first time.
 	 */
-	void show_tooltip(TooltipOptions@ options, Element@ target = null, bool wait_for_mouse=false)
+	void show_tooltip(PopupOptions@ options, Element@ target = null, bool wait_for_mouse=false)
 	{
 		if(@options == null)
 			return;
@@ -389,7 +389,7 @@ class UI
 		show_tooltip(options._id, options, target, wait_for_mouse);
 	}
 	
-	void hide_tooltip(TooltipOptions@ options)
+	void hide_tooltip(PopupOptions@ options)
 	{
 		if(@options == null)
 			return;
@@ -405,7 +405,7 @@ class UI
 		update_tooltip(element._id, element.tooltip);
 	}
 	
-	void update_tooltip(TooltipOptions@ options)
+	void update_tooltip(PopupOptions@ options)
 	{
 		if(@options == null)
 			return;
@@ -733,7 +733,7 @@ class UI
 				
 				if(
 					!element.disabled && @element.tooltip != null && element.tooltip.trigger_when_hovered &&
-					element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
+					element.tooltip.trigger_type == PopupTriggerType::MouseOver)
 				{
 					show_tooltip(element);
 				}
@@ -783,7 +783,7 @@ class UI
 					elements_pressed_list.insertLast(element);
 					
 					// Tooltip
-					if(@element.tooltip != null && element.tooltip.trigger_type == TooltipTriggerType::MouseDown && @element == @_mouse_over_element)
+					if(@element.tooltip != null && element.tooltip.trigger_type == PopupTriggerType::MouseDown && @element == @_mouse_over_element)
 					{
 						show_tooltip(element);
 					}
@@ -897,7 +897,7 @@ class UI
 				// Tooltip
 				if(primary_clicked)
 				{
-					if(@element.tooltip != null && element.tooltip.trigger_type == TooltipTriggerType::MouseClick && @element == @_mouse_over_element)
+					if(@element.tooltip != null && element.tooltip.trigger_type == PopupTriggerType::MouseClick && @element == @_mouse_over_element)
 					{
 						show_tooltip(element);
 					}
@@ -949,7 +949,7 @@ class UI
 		if(
 			@_mouse_over_element != null && !_mouse_over_element.disabled &&
 			@_mouse_over_element.tooltip != null &&
-			_mouse_over_element.tooltip.trigger_type == TooltipTriggerType::MouseOver)
+			_mouse_over_element.tooltip.trigger_type == PopupTriggerType::MouseOver)
 		{
 			show_tooltip(_mouse_over_element);
 		}
@@ -1318,21 +1318,21 @@ class UI
 		@queued_event_infos[num_queued_events++]	= event_info;
 	}
 	
-	private void show_tooltip(const string id, TooltipOptions@ options, Element@ element, bool wait_for_mouse)
+	private void show_tooltip(const string id, PopupOptions@ options, Element@ element, bool wait_for_mouse)
 	{
 		if(!options.enabled)
 			return;
 		
 		if(!tooltips.exists(id))
 		{
-			Tooltip@ tooltip = Tooltip(this, options, element, wait_for_mouse);
+			Popup@ tooltip = Popup(this, options, element, wait_for_mouse, 'ttip');
 			tooltip.hide.on(on_tooltip_hide_delegate);
 			overlays.add_child(tooltip);
 			@tooltips[id] = tooltip;
 		}
 		else
 		{
-			overlays.move_to_front(cast<Tooltip@>(tooltips[id]));
+			overlays.move_to_front(cast<Popup@>(tooltips[id]));
 		}
 	}
 	
@@ -1341,16 +1341,16 @@ class UI
 		if(!tooltips.exists(id))
 			return;
 		
-		Tooltip@ tooltip = cast<Tooltip@>(tooltips[id]);
+		Popup@ tooltip = cast<Popup@>(tooltips[id]);
 		tooltip.force_hide();
 	}
 	
-	private void update_tooltip(const string id, TooltipOptions@ options)
+	private void update_tooltip(const string id, PopupOptions@ options)
 	{
 		if(!tooltips.exists(id))
 			return;
 		
-		Tooltip@ tooltip = cast<Tooltip@>(tooltips[id]);
+		Popup@ tooltip = cast<Popup@>(tooltips[id]);
 		@tooltip.content = @options.get_contenet_element();
 		tooltip.fit_to_contents();
 	}
@@ -1360,7 +1360,7 @@ class UI
 	
 	private void on_tooltip_hide(EventInfo@ event)
 	{
-		Tooltip@ tooltip = cast<Tooltip@>(event.target);
+		Popup@ tooltip = cast<Popup@>(event.target);
 		
 		if(@tooltip == null)
 			return;

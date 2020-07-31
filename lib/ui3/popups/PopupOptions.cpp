@@ -1,44 +1,43 @@
 #include 'PopupPosition.cpp';
+#include 'PopupTriggerType.cpp';
 #include 'PopupHideType.cpp';
-#include 'TooltipTriggerType.cpp';
+#include '../TextAlign.cpp';
 
-class TooltipOptions
+class PopupOptions
 {
 	
 	string _id = '';
 	
-	private UI@ ui;
-	
-	// Content can be any element
-	private Element@ _content;
-	// Content can be set to a string and this will be used instead of "content".
-	// Behind the scenes a Label with some default settings element will be created if need
-	// and used to display the string
-	private string _content_str;
-	
-	TextAlign text_align_h = TextAlign::Left;
-	
 	bool enabled = true;
+	PopupPosition position;
+	PopupTriggerType trigger_type;
+	PopupHideType hide_type;
 	/// Normally only the top most element element will trigger tooltips.
 	/// If this is set to true, this tooltip will trigger when the mouse is over
 	/// this element or any of its descendants
 	bool trigger_when_hovered = false;
 	bool interactable;
-	PopupPosition position;
-	TooltipTriggerType trigger_type;
-	PopupHideType hide_type;
 	bool follow_mouse;
+	TextAlign text_align_h = TextAlign::Left;
 	
-	private float _fade_max;
-	private float _offset_max;
-	private float _spacing;
+	protected UI@ ui;
 	
-	private bool has_content_element;
-	private Label@ content_str_label;
+	// Content can be any element
+	protected Element@ _content;
+	// Content can be set to a string and this will be used instead of "content".
+	// Behind the scenes a Label with some default settings element will be created if need
+	// and used to display the string
+	protected string _content_str;
+	protected bool has_content_element;
+	protected Label@ content_str_label;
 	
-	TooltipOptions(
+	protected float _fade_max;
+	protected float _offset_max;
+	protected float _spacing;
+	
+	PopupOptions(
 		UI@ ui, Element@ content, bool interactable=false, PopupPosition position=PopupPosition::Above,
-		TooltipTriggerType trigger_type=TooltipTriggerType::MouseOver,
+		PopupTriggerType trigger_type=PopupTriggerType::MouseOver,
 		PopupHideType hide_type=PopupHideType::MouseLeave,
 		bool follow_mouse=false)
 	{
@@ -50,9 +49,9 @@ class TooltipOptions
 		has_content_element = true;
 	}
 	
-	TooltipOptions(
+	PopupOptions(
 		UI@ ui, const string content, bool interactable=false, PopupPosition position=PopupPosition::Above,
-		TooltipTriggerType trigger_type=TooltipTriggerType::MouseOver,
+		PopupTriggerType trigger_type=PopupTriggerType::MouseOver,
 		PopupHideType hide_type=PopupHideType::MouseLeave,
 		bool follow_mouse=false)
 	{
@@ -64,9 +63,9 @@ class TooltipOptions
 		has_content_element = false;
 	}
 	
-	private void init(
+	protected void init(
 		UI@ ui, bool interactable, PopupPosition position,
-		TooltipTriggerType trigger_type,
+		PopupTriggerType trigger_type,
 		PopupHideType hide_type,
 		bool follow_mouse)
 	{
@@ -153,7 +152,7 @@ class TooltipOptions
 		return content_str_label;
 	}
 	
-	void _on_tooltip_hide()
+	void _on_popup_hide()
 	{
 		if(@content_str_label != null)
 		{

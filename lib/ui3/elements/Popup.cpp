@@ -1,13 +1,13 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
-#include '../popups/TooltipOptions.cpp';
+#include '../popups/PopupOptions.cpp';
 #include 'SingleContainer.cpp';
 
-class Tooltip : SingleContainer
+class Popup : SingleContainer
 {
 	
-	/*private*/ Element@ _target;
-	/*private*/ TooltipOptions@ _options;
+	/*protected*/ Element@ _target;
+	/*protected*/ PopupOptions@ _options;
 	
 	Event hide;
 	
@@ -19,16 +19,16 @@ class Tooltip : SingleContainer
 	private bool _force_hide = false;
 	private bool fading_out = false;
 	
-	private float target_x1;
-	private float target_y1;
-	private float target_x2;
-	private float target_y2;
+	protected float target_x1;
+	protected float target_y1;
+	protected float target_x2;
+	protected float target_y2;
 	
-	Tooltip(UI@ ui, TooltipOptions@ options, Element@ target, bool wait_for_mouse)
+	Popup(UI@ ui, PopupOptions@ options, Element@ target, const bool wait_for_mouse, const string type_identifier='popup')
 	{
 		@this._options = @options;
 		
-		super(ui, _options.get_contenet_element(), 'ttip');
+		super(ui, _options.get_contenet_element(), type_identifier);
 		
 		@this._target = target;
 		waiting_for_mouse = wait_for_mouse && @_target != null;
@@ -338,7 +338,7 @@ class Tooltip : SingleContainer
 			{
 				ui._event_info.reset(EventType::HIDE, this);
 				hide.dispatch(ui._event_info);
-				_options._on_tooltip_hide();
+				_options._on_popup_hide();
 			}
 		}
 	}

@@ -4,7 +4,7 @@
 #include '../utils/DrawingContext.cpp';
 #include '../utils/LayoutContext.cpp';
 #include '../utils/ElementStack.cpp';
-#include '../popups/TooltipOptions.cpp';
+#include '../popups/PopupOptions.cpp';
 #include '../events/Event.cpp';
 #include 'Container.cpp';
 
@@ -23,7 +23,7 @@ abstract class Element
 	// A way to identify this element, e.g. during even callbacks - can be anything.
 	string name = '';
 	
-	TooltipOptions@ tooltip = null;
+	PopupOptions@ tooltip = null;
 	
 	bool visible = true;
 	// Can this element interact with the mouse

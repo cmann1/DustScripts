@@ -1,4 +1,4 @@
-enum TooltipTriggerType
+enum PopupTriggerType
 {
 	
 	MouseOver,
