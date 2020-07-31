@@ -328,7 +328,7 @@ class Tooltip : SingleContainer
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		style.draw_popup_element(this);
+		style.draw_popup_element(this, style.tooltip_blur_inset);
 	}
 	
 	private void update_fade()

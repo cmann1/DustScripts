@@ -62,6 +62,7 @@ class Style
 	float tooltip_text_scale = default_text_scale;
 	uint tooltip_text_colour = text_clr;
 	float tooltip_padding = spacing * 2;
+	float tooltip_blur_inset = 0;
 	
 	int tooltip_fade_frames = 6;
 	float tooltip_fade_offset = 5;
@@ -361,6 +362,20 @@ class Style
 		return (colour & 0x00ffffff) | (uint(ctx.alpha * ((colour >> 24) & 0xff)) << 24);
 	}
 	
+	uint get_interactive_element_background_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_background=true)
+	{
+		return !draw_background ? 0 : disabled ? disabled_bg_clr
+				: (highlighted && selected ? selected_highlight_bg_clr
+					: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
+	}
+	
+	uint get_interactive_element_border_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_border=true)
+	{
+		return !draw_border ? 0 : disabled ? disabled_border_clr
+			: (highlighted && (selected || active) ? selected_highlight_border_clr
+				: (selected || active) ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
+	}
+	
 	// -----------------------------------------------------------------
 	// Advanced drawing methods
 	// -----------------------------------------------------------------
@@ -394,31 +409,17 @@ class Style
 		}
 	}
 	
-	uint get_interactive_element_background_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_background=true)
+	void draw_popup_element(const Element@ element, const float blur_inset=1)
 	{
-		return !draw_background ? 0 : disabled ? disabled_bg_clr
-				: (highlighted && selected ? selected_highlight_bg_clr
-					: selected ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
+		draw_element(element, popup_shadow_clr, popup_bg_clr, popup_border_clr, blur_popup_bg, blur_inset);
 	}
 	
-	uint get_interactive_element_border_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_border=true)
+	void draw_dialog_element(const Element@ element, const float blur_inset=1)
 	{
-		return !draw_border ? 0 : disabled ? disabled_border_clr
-			: (highlighted && (selected || active) ? selected_highlight_border_clr
-				: (selected || active) ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
+		draw_element(element, dialog_shadow_clr, dialog_bg_clr, dialog_border_clr, blur_dialog_bg, blur_inset);
 	}
 	
-	void draw_popup_element(const Element@ &in element)
-	{
-		draw_element(element, popup_shadow_clr, popup_bg_clr, popup_border_clr, blur_popup_bg);
-	}
-	
-	void draw_dialog_element(const Element@ element)
-	{
-		draw_element(element, dialog_shadow_clr, dialog_bg_clr, dialog_border_clr, blur_dialog_bg);
-	}
-	
-	void draw_element(const Element@ &in element, const uint shadow_clr, const uint bg_clr, const uint border_clr, const bool blur)
+	void draw_element(const Element@ element, const uint shadow_clr, const uint bg_clr, const uint border_clr, const bool blur, const float blur_inset)
 	{
 		// Shadow
 		if(shadow_clr != 0)
@@ -431,7 +432,7 @@ class Style
 		
 		if(blur)
 		{
-			draw_glass(element.x1 + 1, element.y1 + 1, element.x2 - 1, element.y2 - 1, 0);
+			draw_glass(element.x1 + blur_inset, element.y1 + blur_inset, element.x2 - blur_inset, element.y2 - blur_inset, 0);
 		}
 		
 		const float inset = border_clr != 0 ? max(0, border_size) : 0;

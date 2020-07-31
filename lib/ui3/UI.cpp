@@ -33,6 +33,8 @@ class UI
 	UIMouse@ mouse;
 	bool is_mouse_over;
 	
+	bool _disable_clipping = false;
+	
 	// Uncomment and manually set during testing
 	Debug@ debug;
 	
@@ -964,7 +966,8 @@ class UI
 					(
 						ctx.clipping_mode == ClippingMode::Inside &&
 						element.subtree_x1 >= ctx.x1 && element.subtree_x2 <= ctx.x2 &&
-						element.subtree_y1 >= ctx.y1 && element.subtree_y2 <= ctx.y2)
+						element.subtree_y1 >= ctx.y1 && element.subtree_y2 <= ctx.y2) ||
+					_disable_clipping
 				)
 			)
 			{
