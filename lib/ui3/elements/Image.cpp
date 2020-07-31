@@ -10,6 +10,8 @@ class Image : Graphic
 	
 	string _sprite_set;
 	string _sprite_name;
+	uint palette;
+	uint frame;
 	
 	protected sprites@ sprite;
 	
@@ -64,13 +66,11 @@ class Image : Graphic
 		Element::_draw(@style, @ctx);
 		
 		style.draw_sprite(sprite,
-			_sprite_name, 0, 0,
+			_sprite_name, frame, palette,
 			draw_x - 0.5,
 			draw_y - 0.5, rotation,
 			is_transposed ? draw_scale_y : draw_scale_x,
 			is_transposed ? draw_scale_x : draw_scale_y,
-//			draw_scale_x,
-//			draw_scale_y,
 			colour);
 	}
 	
