@@ -232,6 +232,10 @@ class ScrollView : LockedContainer
 			previous_scroll_x = _content._scroll_x;
 			previous_scroll_y = _content._scroll_y;
 		}
+		
+//		ui.debug.rect(22, 22,
+//			_content.x1 + _content.scroll_min_x, _content.y1 + _content.scroll_min_y,
+//			_content.x1 + _content.scroll_max_x, _content.y1 + _content.scroll_max_y, 0, 1, 0xaa0000ff, true, 1);
 	}
 	
 	protected void update_vertical_scrollbar(const bool scroll)

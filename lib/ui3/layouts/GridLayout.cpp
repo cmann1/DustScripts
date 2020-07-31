@@ -388,8 +388,8 @@ class GridLayout : Layout
 		}
 		
 		out_x1 -= padding_left;
-		out_y1 -= padding_right;
-		out_x2 += padding_top;
+		out_y1 -= padding_top;
+		out_x2 += padding_right;
 		out_y2 += padding_bottom;
 	}
 	
