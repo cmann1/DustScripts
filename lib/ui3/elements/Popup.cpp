@@ -254,8 +254,13 @@ class Popup : SingleContainer
 				
 				if(!active && !_options.follow_mouse)
 				{
-					active = overlaps_point(ui.mouse.x, ui.mouse.y) || @_target == @ui.mouse_over_element;
+					active = @_target == @ui.mouse_over_element;
 				}
+			}
+			
+			if(!_force_hide && !active && _options.interactable)
+			{
+				active = overlaps_point(ui.mouse.x, ui.mouse.y) || @_target == @ui.mouse_over_element;
 			}
 		}
 		else if(_options.hide_type == PopupHideType::MouseDownOutside)

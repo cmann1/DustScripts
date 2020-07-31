@@ -84,9 +84,9 @@ class Scrollbar : Element
 		
 		calculate_scroll_values();
 		
-		thumb_size = scroll_range <= 0 ? 0 : round(flexible_thumb_size
+		thumb_size = scroll_range <= 0 ? 0 : max((is_horizontal ? _height : _width) * 0.5, round(flexible_thumb_size
 			? size * (scroll_visible / scroll_width)
-			: min(size * 0.5, ui.style.scrollbar_fixed_size));
+			: ui.style.scrollbar_fixed_size));
 		
 		if(position < scroll_min)
 		{
