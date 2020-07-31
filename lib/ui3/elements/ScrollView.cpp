@@ -1,11 +1,10 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../events/Event.cpp';
-#include '../utils/ILayoutParentHandler.cpp';
 #include 'SingleContainer.cpp';
 #include 'Scrollbar.cpp';
 
-class ScrollView : LockedContainer, ILayoutParentHandler
+class ScrollView : LockedContainer
 {
 	
 	bool scroll_horizontal = true;
@@ -29,7 +28,6 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		@_content = Container(ui);
 		Container::add_child(_content);
 		_content.clip_contents = ClippingMode::Inside;
-		@_content._layout_handler = this;
 	}
 	
 	float scroll_x { get const { return -_content._scroll_x; } }
@@ -51,7 +49,7 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		stack.push(_content);
 	}
 	
-	void do_child_layout(LayoutContext@ ctx, Container@ container)
+	void _do_layout(LayoutContext@ ctx) override
 	{
 		const bool prev_scroll_vertical = @scrollbar_vertical != null && scrollbar_vertical.visible;
 		const bool prev_scroll_horizontal = @scrollbar_horizontal != null && scrollbar_horizontal.visible;
@@ -85,7 +83,8 @@ class ScrollView : LockedContainer, ILayoutParentHandler
 		
 		content.width = content_width;
 		content.height = content_height;
-		_content._do_layout_internal(ctx);
+		_content._do_layout(ctx);
+		_content._defer_layout = true;
 		
 		const bool needs_scroll_vertical   = scroll_vertical   && (_content.scroll_max_y - _content._height) >= 1;
 		const bool needs_scroll_horizontal = scroll_horizontal && (_content.scroll_max_x - _content._width)  >= 1;

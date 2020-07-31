@@ -1,5 +1,4 @@
 #include '../layouts/Layout.cpp';
-#include '../utils/ILayoutParentHandler.cpp';
 #include 'Element.cpp';
 
 class Container : Element
@@ -20,7 +19,8 @@ class Container : Element
 	/// After scrolling an element into view this will be set for one frame.
 	/// Prevents attached scrollbars from resetting the position.
 	bool _scrolled_into_view;
-	ILayoutParentHandler@ _layout_handler;
+	
+	bool _defer_layout;
 	
 	protected array<Element@> children;
 	protected int num_children;
@@ -231,20 +231,16 @@ class Container : Element
 		stack.push_reversed(@children);
 	}
 	
-	void _do_layout(LayoutContext@ ctx)
+	void _do_layout(LayoutContext@ ctx) override
 	{
-		if(@_layout_handler != null)
+		if(_defer_layout)
 		{
-			_layout_handler.do_child_layout(ctx, this);
+			_defer_layout = false;
+			return;
 		}
-		else
-		{
-			_do_layout_internal(ctx);
-		}
-	}
-	
-	void _do_layout_internal(LayoutContext@ ctx)
-	{
+		
+		_do_layout_internal(@ctx);
+		
 		_scrolled_into_view = false;
 		
 		if(@scroll_into_view != null)
@@ -279,48 +275,51 @@ class Container : Element
 			_scrolled_into_view = scroll_changed;
 			@scroll_into_view = null;
 		}
+	}
+	
+	void _do_layout_internal(LayoutContext@ ctx)
+	{
+		if(!_validate_layout)
+			return;
 		
-		if(_validate_layout)
+		if(@_layout != null)
 		{
-			if(@_layout != null)
-			{
-				_layout.do_layout(@children,
-					0, 0, _width, _height,
-					scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y,x1,y1);
-			}
-			else if(num_children > 0)
-			{
-				Element@ element = children[0];
-				
-				scroll_min_x = element._x;
-				scroll_min_y = element._y;
-				scroll_max_x = element._x + element._width;
-				scroll_max_y = element._y + element._height;
-				
-				for(int i = 1; i < num_children; i++)
-				{
-					@element = children[i];
-					
-					if(element._x < scroll_min_x)
-						scroll_min_x = element._x;
-					if(element._y < scroll_min_y)
-						scroll_min_y = element._y;
-					if(element._x + element._width > scroll_max_x)
-						scroll_max_x = element._x + element._width;
-					if(element._y + element._height> scroll_max_y)
-						scroll_max_y = element._y + element._height;
-				}
-			}
-			else
-			{
-				scroll_min_x = 0;
-				scroll_min_y = 0;
-				scroll_max_x = 0;
-				scroll_max_y = 0;
-			}
-			
-			_validate_layout = false;
+			_layout.do_layout(@children,
+				0, 0, _width, _height,
+				scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y,x1,y1);
 		}
+		else if(num_children > 0)
+		{
+			Element@ element = children[0];
+			
+			scroll_min_x = element._x;
+			scroll_min_y = element._y;
+			scroll_max_x = element._x + element._width;
+			scroll_max_y = element._y + element._height;
+			
+			for(int i = 1; i < num_children; i++)
+			{
+				@element = children[i];
+				
+				if(element._x < scroll_min_x)
+					scroll_min_x = element._x;
+				if(element._y < scroll_min_y)
+					scroll_min_y = element._y;
+				if(element._x + element._width > scroll_max_x)
+					scroll_max_x = element._x + element._width;
+				if(element._y + element._height> scroll_max_y)
+					scroll_max_y = element._y + element._height;
+			}
+		}
+		else
+		{
+			scroll_min_x = 0;
+			scroll_min_y = 0;
+			scroll_max_x = 0;
+			scroll_max_y = 0;
+		}
+		
+		_validate_layout = false;
 	}
 	
 }
