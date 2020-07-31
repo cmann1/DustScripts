@@ -26,11 +26,13 @@ class Style
 	uint popup_border_clr				= 0;
 	uint popup_shadow_clr				= 0x30000000;
 	bool blur_popup_bg					= true;
+	float popup_blur_inset				= 1;
 	
 	uint dialog_bg_clr					= normal_bg_clr;
 	uint dialog_border_clr				= 0;
 	uint dialog_shadow_clr				= 0x40000000;
 	bool blur_dialog_bg					= true;
+	float dialog_blur_inset				= 1;
 	
 	float shadow_offset_x	= 3;
 	float shadow_offset_y	= 3;
@@ -409,14 +411,14 @@ class Style
 		}
 	}
 	
-	void draw_popup_element(const Element@ element, const float blur_inset=1)
+	void draw_popup_element(const Element@ element, const float blur_inset=NAN)
 	{
-		draw_element(element, popup_shadow_clr, popup_bg_clr, popup_border_clr, blur_popup_bg, blur_inset);
+		draw_element(element, popup_shadow_clr, popup_bg_clr, popup_border_clr, blur_popup_bg, is_nan(blur_inset) ? popup_blur_inset : blur_inset);
 	}
 	
-	void draw_dialog_element(const Element@ element, const float blur_inset=1)
+	void draw_dialog_element(const Element@ element, const float blur_inset=NAN)
 	{
-		draw_element(element, dialog_shadow_clr, dialog_bg_clr, dialog_border_clr, blur_dialog_bg, blur_inset);
+		draw_element(element, dialog_shadow_clr, dialog_bg_clr, dialog_border_clr, blur_dialog_bg, is_nan(blur_inset) ? dialog_blur_inset : blur_inset);
 	}
 	
 	void draw_element(const Element@ element, const uint shadow_clr, const uint bg_clr, const uint border_clr, const bool blur, const float blur_inset)

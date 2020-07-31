@@ -1,4 +1,4 @@
-#include 'TooltipPosition.cpp';
+#include 'PopupPosition.cpp';
 #include 'TooltipHideType.cpp';
 #include 'TooltipTriggerType.cpp';
 
@@ -20,7 +20,7 @@ class TooltipOptions
 	
 	bool enabled = true;
 	bool interactable;
-	TooltipPosition position;
+	PopupPosition position;
 	TooltipTriggerType trigger_type;
 	TooltipHideType hide_type;
 	bool follow_mouse;
@@ -33,7 +33,7 @@ class TooltipOptions
 	private Label@ content_str_label;
 	
 	TooltipOptions(
-		UI@ ui, Element@ content, bool interactable=false, TooltipPosition position=TooltipPosition::Above,
+		UI@ ui, Element@ content, bool interactable=false, PopupPosition position=PopupPosition::Above,
 		TooltipTriggerType trigger_type=TooltipTriggerType::MouseOver,
 		TooltipHideType hide_type=TooltipHideType::MouseLeave,
 		bool follow_mouse=false)
@@ -47,7 +47,7 @@ class TooltipOptions
 	}
 	
 	TooltipOptions(
-		UI@ ui, const string content, bool interactable=false, TooltipPosition position=TooltipPosition::Above,
+		UI@ ui, const string content, bool interactable=false, PopupPosition position=PopupPosition::Above,
 		TooltipTriggerType trigger_type=TooltipTriggerType::MouseOver,
 		TooltipHideType hide_type=TooltipHideType::MouseLeave,
 		bool follow_mouse=false)
@@ -61,7 +61,7 @@ class TooltipOptions
 	}
 	
 	private void init(
-		UI@ ui, bool interactable, TooltipPosition position,
+		UI@ ui, bool interactable, PopupPosition position,
 		TooltipTriggerType trigger_type,
 		TooltipHideType hide_type,
 		bool follow_mouse)

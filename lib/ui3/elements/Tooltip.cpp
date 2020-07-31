@@ -58,9 +58,9 @@ class Tooltip : SingleContainer
 		waiting_for_mouse = false;
 	}
 	
-	TooltipPosition _do_position()
+	PopupPosition _do_position()
 	{
-		TooltipPosition calculatedPosition = options.position;
+		PopupPosition calculatedPosition = options.position;
 		
 		bool reposition_x = false;
 		bool reposition_y = false;
@@ -98,31 +98,31 @@ class Tooltip : SingleContainer
 		
 		switch(calculatedPosition)
 		{
-			case TooltipPosition::Above:
+			case PopupPosition::Above:
 				if(y1 < view_y1 && view_y2 - target_y2 > target_y1 - view_y1)
 				{
-					calculatedPosition = TooltipPosition::Below;
+					calculatedPosition = PopupPosition::Below;
 					reposition_y = true;
 				}
 				break;
-			case TooltipPosition::Below:
+			case PopupPosition::Below:
 				if(y2 > view_y2 && target_y1 - view_y1 > view_y2 - target_y2)
 				{
-					calculatedPosition = TooltipPosition::Below;
+					calculatedPosition = PopupPosition::Below;
 					reposition_y = true;
 				}
 				break;
-			case TooltipPosition::Left:
+			case PopupPosition::Left:
 				if(x1 < view_x1 && view_x2 - target_x2 > target_x1 - view_x1)
 				{
-					calculatedPosition = TooltipPosition::Right;
+					calculatedPosition = PopupPosition::Right;
 					reposition_x = true;
 				}
 				break;
-			case TooltipPosition::Right:
+			case PopupPosition::Right:
 				if(x2 > view_x2 && target_x1 - view_x1 > view_x2 - target_x2)
 				{
-					calculatedPosition = TooltipPosition::Left;
+					calculatedPosition = PopupPosition::Left;
 					reposition_x = true;
 				}
 				break;
@@ -190,7 +190,7 @@ class Tooltip : SingleContainer
 			waiting_for_mouse = false;
 		}
 		
-		const TooltipPosition calculatedPosition = _do_position();
+		const PopupPosition calculatedPosition = _do_position();
 		
 		//
 		// Fade the tooltip in or out
@@ -209,25 +209,25 @@ class Tooltip : SingleContainer
 			
 			// Don't start fading if the mouse is in the space between the target and the tooltip.
 			if(!_force_hide && !options.follow_mouse && options.interactable && !active && options.spacing > 0 && (
-				calculatedPosition == TooltipPosition::Left  || calculatedPosition == TooltipPosition::Right ||
-				calculatedPosition == TooltipPosition::Above || calculatedPosition == TooltipPosition::Below
+				calculatedPosition == PopupPosition::Left  || calculatedPosition == PopupPosition::Right ||
+				calculatedPosition == PopupPosition::Above || calculatedPosition == PopupPosition::Below
 			))
 			{
 				switch(calculatedPosition)
 				{
-					case TooltipPosition::Above:
+					case PopupPosition::Above:
 						if(ui.mouse.x >= target_x1 && ui.mouse.x <= target_x2 && ui.mouse.y <= target_y1 && ui.mouse.y >= target_y1 - options.spacing)
 							active = true;
 						break;
-					case TooltipPosition::Below:
+					case PopupPosition::Below:
 						if(ui.mouse.x >= target_x1 && ui.mouse.x <= target_x2 && ui.mouse.y >= target_y2 && ui.mouse.y <= target_y2 + options.spacing)
 							active = true;
 						break;
-					case TooltipPosition::Left:
+					case PopupPosition::Left:
 						if(ui.mouse.y >= target_y1 && ui.mouse.y <= target_y2 && ui.mouse.y <= target_y1 && ui.mouse.y >= target_y1 - options.spacing)
 							active = true;
 						break;
-					case TooltipPosition::Right:
+					case PopupPosition::Right:
 						if(ui.mouse.y >= target_y1 && ui.mouse.y <= target_y2 && ui.mouse.y >= target_y2 && ui.mouse.y <= target_y2 + options.spacing)
 							active = true;
 						break;
@@ -258,17 +258,17 @@ class Tooltip : SingleContainer
 		
 		switch(calculatedPosition)
 		{
-			case TooltipPosition::Above:
-			case TooltipPosition::InsideLeftTop:
-			case TooltipPosition::InsideTop:
-			case TooltipPosition::InsideRightTop:
+			case PopupPosition::Above:
+			case PopupPosition::InsideLeftTop:
+			case PopupPosition::InsideTop:
+			case PopupPosition::InsideRightTop:
 				y1 += offset;
 				y2 += offset;
 				break;
-			case TooltipPosition::Below:
-			case TooltipPosition::InsideLeftBottom:
-			case TooltipPosition::InsideBottom:
-			case TooltipPosition::InsideRightBottom:
+			case PopupPosition::Below:
+			case PopupPosition::InsideLeftBottom:
+			case PopupPosition::InsideBottom:
+			case PopupPosition::InsideRightBottom:
 				y1 -= offset;
 				y2 -= offset;
 				break;
@@ -276,17 +276,17 @@ class Tooltip : SingleContainer
 		
 		switch(calculatedPosition)
 		{
-			case TooltipPosition::Left:
-			case TooltipPosition::InsideLeftTop:
-			case TooltipPosition::InsideLeft:
-			case TooltipPosition::InsideLeftBottom:
+			case PopupPosition::Left:
+			case PopupPosition::InsideLeftTop:
+			case PopupPosition::InsideLeft:
+			case PopupPosition::InsideLeftBottom:
 				x1 -= offset;
 				x2 -= offset;
 				break;
-			case TooltipPosition::Right:
-			case TooltipPosition::InsideRightTop:
-			case TooltipPosition::InsideRight:
-			case TooltipPosition::InsideRightBottom:
+			case PopupPosition::Right:
+			case PopupPosition::InsideRightTop:
+			case PopupPosition::InsideRight:
+			case PopupPosition::InsideRightBottom:
 				x1 += offset;
 				x2 += offset;
 				break;
@@ -346,70 +346,70 @@ class Tooltip : SingleContainer
 		}
 	}
 	
-	private void position_x(const TooltipPosition position)
+	private void position_x(const PopupPosition position)
 	{
 		switch(position)
 		{
-			case TooltipPosition::Above:
-			case TooltipPosition::Below:
-			case TooltipPosition::InsideTop:
-			case TooltipPosition::InsideBottom:
-			case TooltipPosition::InsideMiddle:
+			case PopupPosition::Above:
+			case PopupPosition::Below:
+			case PopupPosition::InsideTop:
+			case PopupPosition::InsideBottom:
+			case PopupPosition::InsideMiddle:
 				x1 = (target_x1 + target_x2) * 0.5 - width * 0.5;
 				x2 = x1 + width;
 				break;
-			case TooltipPosition::InsideLeftTop:
-			case TooltipPosition::InsideLeft:
-			case TooltipPosition::InsideLeftBottom:
+			case PopupPosition::InsideLeftTop:
+			case PopupPosition::InsideLeft:
+			case PopupPosition::InsideLeftBottom:
 				x1 = target_x1 + options.spacing;
 				x2 = x1 + width;
 				break;
-			case TooltipPosition::InsideRightTop:
-			case TooltipPosition::InsideRight:
-			case TooltipPosition::InsideRightBottom:
+			case PopupPosition::InsideRightTop:
+			case PopupPosition::InsideRight:
+			case PopupPosition::InsideRightBottom:
 				x2 = target_x2 - options.spacing;
 				x1 = x2 - width;
 				break;
-			case TooltipPosition::Left:
+			case PopupPosition::Left:
 				x2 = target_x1 - options.spacing;
 				x1 = x2 - width;
 				break;
-			case TooltipPosition::Right:
+			case PopupPosition::Right:
 				x1 = target_x2 + options.spacing;
 				x2 = x1 + width;
 				break;
 		}
 	}
 	
-	private void position_y(const TooltipPosition position)
+	private void position_y(const PopupPosition position)
 	{
 		switch(position)
 		{
-			case TooltipPosition::Left:
-			case TooltipPosition::Right:
-			case TooltipPosition::InsideLeft:
-			case TooltipPosition::InsideRight:
-			case TooltipPosition::InsideMiddle:
+			case PopupPosition::Left:
+			case PopupPosition::Right:
+			case PopupPosition::InsideLeft:
+			case PopupPosition::InsideRight:
+			case PopupPosition::InsideMiddle:
 				y1 = (target_y1 + target_y2) * 0.5 - height * 0.5;
 				y2 = y1 + height;
 				break;
-			case TooltipPosition::InsideLeftTop:
-			case TooltipPosition::InsideTop:
-			case TooltipPosition::InsideRightTop:
+			case PopupPosition::InsideLeftTop:
+			case PopupPosition::InsideTop:
+			case PopupPosition::InsideRightTop:
 				y1 = target_y1 + options.spacing;
 				y2 = y1 + height;
 				break;
-			case TooltipPosition::InsideLeftBottom:
-			case TooltipPosition::InsideBottom:
-			case TooltipPosition::InsideRightBottom:
+			case PopupPosition::InsideLeftBottom:
+			case PopupPosition::InsideBottom:
+			case PopupPosition::InsideRightBottom:
 				y2 = target_y2 - options.spacing;
 				y1 = y2 - height;
 				break;
-			case TooltipPosition::Above:
+			case PopupPosition::Above:
 				y2 = target_y1 - options.spacing;
 				y1 = y2 - height;
 				break;
-			case TooltipPosition::Below:
+			case PopupPosition::Below:
 				y1 = target_y2 + options.spacing;
 				y2 = y1 + height;
 				break;
