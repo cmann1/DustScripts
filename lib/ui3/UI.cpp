@@ -1365,14 +1365,14 @@ class UI
 		if(@tooltip == null)
 			return;
 		
-		string id = tooltip.options._id;//@tooltip.target != null ? tooltip.target._id : tooltip.options._id;
+		string id = tooltip._options._id;
 		
 		if(!tooltips.exists(id))
 		{
-			if(@tooltip.target == null)
+			if(@tooltip._target == null)
 				return;
 			
-			id = tooltip.target._id;
+			id = tooltip._target._id;
 			
 			if(!tooltips.exists(id))
 				return;

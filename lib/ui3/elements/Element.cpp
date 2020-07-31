@@ -4,7 +4,7 @@
 #include '../utils/DrawingContext.cpp';
 #include '../utils/LayoutContext.cpp';
 #include '../utils/ElementStack.cpp';
-#include '../utils/TooltipOptions.cpp';
+#include '../popups/TooltipOptions.cpp';
 #include '../events/Event.cpp';
 #include 'Container.cpp';
 

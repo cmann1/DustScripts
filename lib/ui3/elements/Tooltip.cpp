@@ -1,13 +1,13 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
-#include '../utils/TooltipOptions.cpp';
+#include '../popups/TooltipOptions.cpp';
 #include 'SingleContainer.cpp';
 
 class Tooltip : SingleContainer
 {
 	
-	Element@ target;
-	TooltipOptions@ options;
+	/*private*/ Element@ _target;
+	/*private*/ TooltipOptions@ _options;
 	
 	Event hide;
 	
@@ -26,12 +26,12 @@ class Tooltip : SingleContainer
 	
 	Tooltip(UI@ ui, TooltipOptions@ options, Element@ target, bool wait_for_mouse)
 	{
-		@this.options = options;
+		@this._options = @options;
 		
-		super(ui, options.get_contenet_element(), 'ttip');
+		super(ui, _options.get_contenet_element(), 'ttip');
 		
-		@this.target = target;
-		waiting_for_mouse = wait_for_mouse && @target != null;
+		@this._target = target;
+		waiting_for_mouse = wait_for_mouse && @_target != null;
 		
 		fit_to_contents();
 		
@@ -60,7 +60,7 @@ class Tooltip : SingleContainer
 	
 	PopupPosition _do_position()
 	{
-		PopupPosition calculatedPosition = options.position;
+		PopupPosition calculatedPosition = _options.position;
 		
 		bool reposition_x = false;
 		bool reposition_y = false;
@@ -74,19 +74,19 @@ class Tooltip : SingleContainer
 		
 		update_world_bounds();
 		
-		if(options.follow_mouse)
+		if(_options.follow_mouse)
 		{
 			target_x1 = ui.mouse.x;
 			target_y1 = ui.mouse.y;
 			target_x2 = ui.mouse.x;
 			target_y2 = ui.mouse.y;
 		}
-		else if(!fading_out && @target != null)
+		else if(!fading_out && @_target != null)
 		{
-			target_x1 = target.x1;
-			target_y1 = target.y1;
-			target_x2 = target.x2;
-			target_y2 = target.y2;
+			target_x1 = _target.x1;
+			target_y1 = _target.y1;
+			target_x2 = _target.x2;
+			target_y2 = _target.y2;
 		}
 		
 		// Initial positioning
@@ -99,28 +99,28 @@ class Tooltip : SingleContainer
 		switch(calculatedPosition)
 		{
 			case PopupPosition::Above:
-				if(y1 < view_y1 && view_y2 - target_y2 > target_y1 - view_y1)
+				if(y1 < view_y1 && view_y2 - target_y2 > _set_height)
 				{
 					calculatedPosition = PopupPosition::Below;
 					reposition_y = true;
 				}
 				break;
 			case PopupPosition::Below:
-				if(y2 > view_y2 && target_y1 - view_y1 > view_y2 - target_y2)
+				if(y2 > view_y2 && target_y1 - view_y1 > _set_height)
 				{
 					calculatedPosition = PopupPosition::Below;
 					reposition_y = true;
 				}
 				break;
 			case PopupPosition::Left:
-				if(x1 < view_x1 && view_x2 - target_x2 > target_x1 - view_x1)
+				if(x1 < view_x1 && view_x2 - target_x2 > _set_width)
 				{
 					calculatedPosition = PopupPosition::Right;
 					reposition_x = true;
 				}
 				break;
 			case PopupPosition::Right:
-				if(x2 > view_x2 && target_x1 - view_x1 > view_x2 - target_x2)
+				if(x2 > view_x2 && target_x1 - view_x1 > _set_width)
 				{
 					calculatedPosition = PopupPosition::Left;
 					reposition_x = true;
@@ -186,11 +186,11 @@ class Tooltip : SingleContainer
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		if(@target != null)
+		if(@_target != null)
 		{
 			if(waiting_for_mouse)
 			{
-				if(hovered || @target == @ui.mouse_over_element)
+				if(hovered || @_target == @ui.mouse_over_element)
 				{
 					waiting_for_mouse = false;
 				}
@@ -207,23 +207,23 @@ class Tooltip : SingleContainer
 		// Fade the tooltip in or out
 		//
 		
-		if(!options.enabled)
+		if(!_options.enabled)
 		{
 			_force_hide = true;
 		}
 		
 		bool active = !_force_hide;
 		
-		if(options.hide_type == PopupHideType::MouseLeave)
+		if(_options.hide_type == PopupHideType::MouseLeave)
 		{
 			// Also check the pressed to allow interactive or active elements inside the tooltip to prevent the tooltip from disappearing
 			active = !_force_hide && (
-				@target == null || @target == @ui.mouse_over_element || pressed || hovered || waiting_for_mouse ||
-				options.trigger_when_hovered && target.hovered
+				@_target == null || @_target == @ui.mouse_over_element || pressed || hovered || waiting_for_mouse ||
+				_options.trigger_when_hovered && _target.hovered
 			);
 			
-			// Don't start fading if the mouse is in the space between the target and the tooltip.
-			if(!_force_hide && !options.follow_mouse && options.interactable && !active && options.spacing > 0 && (
+			// Don't start fading if the mouse is in the space between the _target and the tooltip.
+			if(!_force_hide && !_options.follow_mouse && _options.interactable && !active && _options.spacing > 0 && (
 				calculatedPosition == PopupPosition::Left  || calculatedPosition == PopupPosition::Right ||
 				calculatedPosition == PopupPosition::Above || calculatedPosition == PopupPosition::Below
 			))
@@ -231,36 +231,36 @@ class Tooltip : SingleContainer
 				switch(calculatedPosition)
 				{
 					case PopupPosition::Above:
-						if(ui.mouse.x >= target_x1 && ui.mouse.x <= target_x2 && ui.mouse.y <= target_y1 && ui.mouse.y >= target_y1 - options.spacing)
+						if(ui.mouse.x >= target_x1 && ui.mouse.x <= target_x2 && ui.mouse.y <= target_y1 && ui.mouse.y >= target_y1 - _options.spacing)
 							active = true;
 						break;
 					case PopupPosition::Below:
-						if(ui.mouse.x >= target_x1 && ui.mouse.x <= target_x2 && ui.mouse.y >= target_y2 && ui.mouse.y <= target_y2 + options.spacing)
+						if(ui.mouse.x >= target_x1 && ui.mouse.x <= target_x2 && ui.mouse.y >= target_y2 && ui.mouse.y <= target_y2 + _options.spacing)
 							active = true;
 						break;
 					case PopupPosition::Left:
-						if(ui.mouse.y >= target_y1 && ui.mouse.y <= target_y2 && ui.mouse.y <= target_y1 && ui.mouse.y >= target_y1 - options.spacing)
+						if(ui.mouse.y >= target_y1 && ui.mouse.y <= target_y2 && ui.mouse.y <= target_y1 && ui.mouse.y >= target_y1 - _options.spacing)
 							active = true;
 						break;
 					case PopupPosition::Right:
-						if(ui.mouse.y >= target_y1 && ui.mouse.y <= target_y2 && ui.mouse.y >= target_y2 && ui.mouse.y <= target_y2 + options.spacing)
+						if(ui.mouse.y >= target_y1 && ui.mouse.y <= target_y2 && ui.mouse.y >= target_y2 && ui.mouse.y <= target_y2 + _options.spacing)
 							active = true;
 						break;
 				}
 				
-				// Also check if the mouse overlaps the tooltip or target_
-				// do_layout is called before mouse events are processed, so at this point hovered for the tooltip or target
+				// Also check if the mouse overlaps the tooltip or _target_
+				// do_layout is called before mouse events are processed, so at this point hovered for the tooltip or _target
 				// may not be set yet even if the mouse is over them
 				
-				if(!active && !options.follow_mouse)
+				if(!active && !_options.follow_mouse)
 				{
-					active = overlaps_point(ui.mouse.x, ui.mouse.y) || @target == @ui.mouse_over_element;
+					active = overlaps_point(ui.mouse.x, ui.mouse.y) || @_target == @ui.mouse_over_element;
 				}
 			}
 		}
-		else if(options.hide_type == PopupHideType::MouseDownOutside)
+		else if(_options.hide_type == PopupHideType::MouseDownOutside)
 		{
-			if(ui.mouse.primary_press && !overlaps_point(ui.mouse.x, ui.mouse.y) && (@target == null || !target.overlaps_point(ui.mouse.x, ui.mouse.y)))
+			if(ui.mouse.primary_press && !overlaps_point(ui.mouse.x, ui.mouse.y) && (@_target == null || !_target.overlaps_point(ui.mouse.x, ui.mouse.y)))
 			{
 				active = false;
 				_force_hide = true;
@@ -320,7 +320,7 @@ class Tooltip : SingleContainer
 		{
 			fading_out = false;
 			
-			if(fade < options.fade_max)
+			if(fade < _options.fade_max)
 			{
 				fade++;
 				update_fade();
@@ -338,7 +338,7 @@ class Tooltip : SingleContainer
 			{
 				ui._event_info.reset(EventType::HIDE, this);
 				hide.dispatch(ui._event_info);
-				options._on_tooltip_hide();
+				_options._on_tooltip_hide();
 			}
 		}
 	}
@@ -350,8 +350,8 @@ class Tooltip : SingleContainer
 	
 	private void update_fade()
 	{
-		alpha = options.fade_max <= 0 ? 1.0 : fade / options.fade_max;
-		offset = options.offset_max * (1 - alpha);
+		alpha = _options.fade_max <= 0 ? 1.0 : fade / _options.fade_max;
+		offset = _options.offset_max * (1 - alpha);
 		
 		if(alpha < 1)
 		{
@@ -359,7 +359,7 @@ class Tooltip : SingleContainer
 		}
 		else if(active)
 		{
-			mouse_enabled = children_mouse_enabled = options.interactable;
+			mouse_enabled = children_mouse_enabled = _options.interactable;
 		}
 	}
 	
@@ -378,21 +378,21 @@ class Tooltip : SingleContainer
 			case PopupPosition::InsideLeftTop:
 			case PopupPosition::InsideLeft:
 			case PopupPosition::InsideLeftBottom:
-				x1 = target_x1 + options.spacing;
+				x1 = target_x1 + _options.spacing;
 				x2 = x1 + _set_width;
 				break;
 			case PopupPosition::InsideRightTop:
 			case PopupPosition::InsideRight:
 			case PopupPosition::InsideRightBottom:
-				x2 = target_x2 - options.spacing;
+				x2 = target_x2 - _options.spacing;
 				x1 = x2 - _set_width;
 				break;
 			case PopupPosition::Left:
-				x2 = target_x1 - options.spacing;
+				x2 = target_x1 - _options.spacing;
 				x1 = x2 - _set_width;
 				break;
 			case PopupPosition::Right:
-				x1 = target_x2 + options.spacing;
+				x1 = target_x2 + _options.spacing;
 				x2 = x1 + _set_width;
 				break;
 		}
@@ -413,21 +413,21 @@ class Tooltip : SingleContainer
 			case PopupPosition::InsideLeftTop:
 			case PopupPosition::InsideTop:
 			case PopupPosition::InsideRightTop:
-				y1 = target_y1 + options.spacing;
+				y1 = target_y1 + _options.spacing;
 				y2 = y1 + _set_height;
 				break;
 			case PopupPosition::InsideLeftBottom:
 			case PopupPosition::InsideBottom:
 			case PopupPosition::InsideRightBottom:
-				y2 = target_y2 - options.spacing;
+				y2 = target_y2 - _options.spacing;
 				y1 = y2 - _set_height;
 				break;
 			case PopupPosition::Above:
-				y2 = target_y1 - options.spacing;
+				y2 = target_y1 - _options.spacing;
 				y1 = y2 - _set_height;
 				break;
 			case PopupPosition::Below:
-				y1 = target_y2 + options.spacing;
+				y1 = target_y2 + _options.spacing;
 				y2 = y1 + _set_height;
 				break;
 		}
