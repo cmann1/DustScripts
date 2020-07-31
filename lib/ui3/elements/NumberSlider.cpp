@@ -239,6 +239,7 @@ class NumberSlider : LockedContainer
 					busy_dragging = true;
 					drag_value = _value;
 					children_mouse_enabled = false;
+					@ui._active_mouse_element = @this;
 				}
 			}
 			else if(busy_dragging)
@@ -248,16 +249,21 @@ class NumberSlider : LockedContainer
 					busy_dragging = false;
 					children_mouse_enabled = true;
 				}
-				if(drag_relative && !is_nan(min_value) && !is_nan(max_value))
-				{
-					value = min_value + (is_horizontal
-						? ( ui.mouse.x - x1) / max(0.001, x2 - x1)
-						: (-ui.mouse.y + y2) / max(0.001, y2 - y1)) * (max_value - min_value);
-				}
 				else
 				{
-					drag_value = clamp_value(drag_value + (is_horizontal ? ui.mouse.delta_x : -ui.mouse.delta_y) * drag_sensitivity * step, false);
-					value = drag_value;
+					@ui._active_mouse_element = @this;
+					
+					if(drag_relative && !is_nan(min_value) && !is_nan(max_value))
+					{
+						value = min_value + (is_horizontal
+							? ( ui.mouse.x - x1) / max(0.001, x2 - x1)
+							: (-ui.mouse.y + y2) / max(0.001, y2 - y1)) * (max_value - min_value);
+					}
+					else
+					{
+						drag_value = clamp_value(drag_value + (is_horizontal ? ui.mouse.delta_x : -ui.mouse.delta_y) * drag_sensitivity * step, false);
+						value = drag_value;
+					}
 				}
 			}
 			else

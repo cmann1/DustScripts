@@ -45,8 +45,10 @@ class UI
 	
 	private Container@ contents;
 	private Container@ overlays;
-	// e.g. a drop down box that is open. There can only by one active element in a UI.
+	/// e.g. a drop down box that is open. There can only by one active element in a UI.
 	private Element@ active_element;
+	/// Prevents all elements from interacting with the mouse. Must be set every frame by the active element
+	/*private*/ Element@ _active_mouse_element;
 	
 	// Used for processing element layouts
 	private ElementStack element_stack;
@@ -211,6 +213,9 @@ class UI
 	
 	void step()
 	{
+		if(@_active_mouse_element != null)
+			@_mouse_over_element = null;
+		
 		process_mouse_events(@_mouse_over_element == @mouse_over_overlays ? overlays : contents);
 		
 		if(num_queued_events > 0)
@@ -243,6 +248,7 @@ class UI
 		 * Update layout
 		 */
 		
+		@_active_mouse_element = null;
 		@_mouse_over_element = null;
 		
 		if(debug_draw_active)
