@@ -14,6 +14,16 @@ class ScrollView : LockedContainer
 	
 	Event scroll;
 	
+	/// Controls the amount of space around the outside of the contents. Leave as NAN to use the default style spacing.
+	/// Overrides the content layout padding.
+	float content_padding_left = NAN;
+	/// Same as padding_left.
+	float content_padding_right = NAN;
+	/// Same as padding_left.
+	float content_padding_top = NAN;
+	/// Same as padding_left.
+	float content_padding_bottom = NAN;
+	
 	protected float previous_scroll_x;
 	protected float previous_scroll_y;
 	
@@ -54,25 +64,61 @@ class ScrollView : LockedContainer
 		const bool prev_scroll_vertical = @scrollbar_vertical != null && scrollbar_vertical.visible;
 		const bool prev_scroll_horizontal = @scrollbar_horizontal != null && scrollbar_horizontal.visible;
 		
-		_content.x = ui.style.spacing;
-		_content.y = ui.style.spacing;
-		float content_width  = _width  - ui.style.spacing * 2;
-		float content_height = _height - ui.style.spacing * 2;
+		const float padding_left	= is_nan(this.content_padding_left)		? ui.style.spacing : this.content_padding_left;
+		const float padding_right	= is_nan(this.content_padding_right)	? ui.style.spacing : this.content_padding_right;
+		const float padding_top		= is_nan(this.content_padding_top)		? ui.style.spacing : this.content_padding_top;
+		const float padding_bottom	= is_nan(this.content_padding_bottom)	? ui.style.spacing : this.content_padding_bottom;
+		const float padding_h		= padding_left + padding_right;
+		const float padding_v		= padding_top + padding_bottom;
+		
+		_content.x = padding_left;
+		_content.y = padding_top;
+		float content_width  = _width  - padding_h;
+		float content_height = _height - padding_v;
+		
+		if(@_content._layout != null)
+		{
+			// Set to some really small number to prevent elements exactly on the edge from possibly being clipped
+			_content._layout.padding_left	= EPSILON;
+			_content._layout.padding_top	= EPSILON;
+			_content._layout.padding_right	= EPSILON;
+			_content._layout.padding_bottom	= EPSILON;
+		}
 		
 		if(prev_scroll_vertical)
 		{
-			if(!scroll_vertical)
-				scrollbar_vertical.visible = false;
-			else
+			if(scroll_vertical)
+			{
 				content_width -= scrollbar_vertical._width;
+				
+				if(@_content._layout != null)
+					_content._layout.padding_right = content_padding_right;
+			}
+			else
+			{
+				scrollbar_vertical.visible = false;
+				
+				if(@_content._layout != null)
+					_content._layout.padding_right = 0;
+			}
 		}
 		
 		if(prev_scroll_horizontal)
 		{
-			if(!scroll_horizontal)
-				scrollbar_horizontal.visible = false;
-			else
+			if(scroll_horizontal)
+			{
 				content_height -= scrollbar_horizontal._height;
+				
+				if(@_content._layout != null)
+					_content._layout.padding_bottom = content_padding_bottom;
+			}
+			else
+			{
+				scrollbar_horizontal.visible = false;
+				
+				if(@_content._layout != null)
+					_content._layout.padding_bottom = 0;
+			}
 		}
 		
 		if(_validate_layout)
@@ -103,11 +149,19 @@ class ScrollView : LockedContainer
 			}
 			
 			if(!prev_scroll_vertical)
+			{
 				content_width -= scrollbar_vertical._width;
+				
+				if(@_content._layout != null)
+					_content._layout.padding_right = content_padding_right;
+			}
 		}
 		else if(prev_scroll_vertical)
 		{
 			scrollbar_vertical.visible = false;
+			
+			if(@_content._layout != null)
+					_content._layout.padding_right = 0;
 		}
 		
 		if(needs_scroll_horizontal)
@@ -124,11 +178,19 @@ class ScrollView : LockedContainer
 			}
 			
 			if(!prev_scroll_horizontal)
+			{
 				content_height -= scrollbar_horizontal._height;
+				
+				if(@_content._layout != null)
+					_content._layout.padding_bottom = content_padding_bottom;
+			}
 		}
 		else if(prev_scroll_horizontal)
 		{
 			scrollbar_horizontal.visible = false;
+			
+			if(@_content._layout != null)
+				_content._layout.padding_bottom = 0;
 		}
 		
 		if(needs_scroll_horizontal != prev_scroll_horizontal || needs_scroll_vertical != prev_scroll_vertical)

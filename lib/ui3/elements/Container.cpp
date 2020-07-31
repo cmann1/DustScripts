@@ -21,11 +21,10 @@ class Container : Element
 	bool _scrolled_into_view;
 	
 	bool _defer_layout;
+	Layout@ _layout;
 	
 	protected array<Element@> children;
 	protected int num_children;
-	
-	protected Layout@ _layout;
 	
 	Container(UI@ ui, const string &in type_identifier = 'ctr')
 	{
@@ -286,7 +285,7 @@ class Container : Element
 		{
 			_layout.do_layout(@children,
 				0, 0, _width, _height,
-				scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y,x1,y1);
+				scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
 		}
 		else if(num_children > 0)
 		{

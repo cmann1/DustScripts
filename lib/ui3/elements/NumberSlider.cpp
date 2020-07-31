@@ -17,7 +17,7 @@ class NumberSlider : LockedContainer
 	float max_value;
 	float step;
 	float drag_sensitivity = 0.25;
-	bool drag_relative = false;
+	bool drag_relative = true;
 	
 	bool show_fill;
 	uint fill_colour = 0x00000000;
@@ -234,7 +234,7 @@ class NumberSlider : LockedContainer
 			else if(ui.mouse.primary_press && hovered)
 			{
 				// Check the hovered button states here because at this point pressed may not be set yet
-				if(drag_sensitivity > 0 && !_left_button.hovered && !_right_button.hovered)
+				if((drag_sensitivity > 0 || drag_relative) && !_left_button.hovered && !_right_button.hovered)
 				{
 					busy_dragging = true;
 					drag_value = _value;

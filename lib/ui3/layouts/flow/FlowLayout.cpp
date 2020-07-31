@@ -15,7 +15,6 @@ class FlowLayout : Layout
 	FlowAlign align;
 	FlowWrap wrap;
 	FlowFit fit;
-	float padding = NAN;
 	float spacing = NAN;
 	
 	FlowLayout(UI@ ui,
@@ -33,17 +32,22 @@ class FlowLayout : Layout
 	
 	void do_layout(const array<Element@>@ elements,
 		const float x1, const float y1, const float x2, const float y2,
-		float &out out_x1, float &out out_y1, float &out out_x2, float &out out_y2,float px=0,float py=0) override
+		float &out out_x1, float &out out_y1, float &out out_x2, float &out out_y2) override
 	{
 		const int num_children = elements.size();
-		const float padding = is_nan(this.padding) ? ui.style.spacing : this.padding;
+		const float padding_left	= is_nan(this.padding_left)		? ui.style.spacing : this.padding_left;
+		const float padding_right	= is_nan(this.padding_right)	? ui.style.spacing : this.padding_right;
+		const float padding_top		= is_nan(this.padding_top)		? ui.style.spacing : this.padding_top;
+		const float padding_bottom	= is_nan(this.padding_bottom)	? ui.style.spacing : this.padding_bottom;
+		const float padding_h		= padding_left + padding_right;
+		const float padding_v		= padding_top + padding_bottom;
 		
 		if(num_children == 0)
 		{
 			out_x1 = x1;
 			out_y1 = y1;
-			out_x2 = x1 + padding * 2;
-			out_y2 = y1 + padding * 2;
+			out_x2 = x1 + padding_h;
+			out_y2 = y1 + padding_v;
 			return;
 		}
 		
@@ -55,11 +59,11 @@ class FlowLayout : Layout
 		const bool wrap = this.wrap == FlowWrap::Wrap || this.wrap == FlowWrap::WrapReversed;
 		const bool wrap_reversed = this.wrap == FlowWrap::WrapReversed;
 		
-		float main_axis_size	= (is_horizontal ? (x2 - x1) : (y2 - y1)) - padding * 2;
-		float main_axis_start	= (is_horizontal ? x1 : y1) + padding;
+		float main_axis_size	= is_horizontal ? (x2 - x1 - padding_h) : (y2 - y1 - padding_v);
+		float main_axis_start	= is_horizontal ? (x1 + padding_left) : (y1 + padding_top);
 		float main_axis_end		= main_axis_start + main_axis_size;
-		float cross_axis_size	= (is_horizontal ? (y2 - y1) : (x2 - x1)) - padding * 2;
-		float cross_axis_start	= (is_horizontal ? y1 : x1) + padding;
+		float cross_axis_size	= is_horizontal ? (y2 - y1 - padding_v) : (x2 - x1 - padding_h);
+		float cross_axis_start	= is_horizontal ? (y1 + padding_top) : (x1 + padding_left);
 		float cross_axis_end	= cross_axis_start + cross_axis_size;
 		
 		// //////////////////////////////////////////////////////
@@ -146,8 +150,8 @@ class FlowLayout : Layout
 		{
 			out_x1 = x1;
 			out_y1 = y1;
-			out_x2 = x1 + padding * 2;
-			out_y2 = y1 + padding * 2;
+			out_x2 = x1 + padding_h;
+			out_y2 = y1 + padding_v;
 			return;
 		}
 		
@@ -318,10 +322,10 @@ class FlowLayout : Layout
 		}
 		while(i < num_children);
 		
-		out_x1 -= padding;
-		out_y1 -= padding;
-		out_x2 += padding;
-		out_y2 += padding;
+		out_x1 -= padding_left;
+		out_y1 -= padding_top;
+		out_x2 += padding_right;
+		out_y2 += padding_bottom;
 	}
 	
 	bool is_horizontal { get const { return direction == FlowDirection::Row || direction == FlowDirection::RowReverse; } }
