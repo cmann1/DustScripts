@@ -86,12 +86,14 @@ class Scrollbar : Element
 		
 		calculate_scroll_values();
 		
-		thumb_size = scroll_range <= 0 ? 0 : max((is_horizontal ? _height : _width) * 0.5, round(flexible_thumb_size
+		thumb_size = scroll_range <= 0 ? 0 : max(0, round(flexible_thumb_size
 			? size * (scroll_visible / scroll_width)
 			: ui.style.scrollbar_fixed_size));
 		
-		if(thumb_size > size * 0.5)
-			thumb_size = size * 0.5;
+		const float min_size = min(size, is_horizontal ? _height : _width);
+		
+		if(thumb_size < min_size)
+			thumb_size = min_size;
 		
 		if(position < scroll_min)
 		{
@@ -111,6 +113,8 @@ class Scrollbar : Element
 				const float mouse_t = position_max > 0 ? ((is_horizontal ? ui.mouse.x - x1 : ui.mouse.y - y1) - drag_thumb_offset) / position_max : 0;
 				position = clamp(scroll_min + scroll_range * mouse_t, scroll_min, scroll_min + scroll_range);
 				calculate_scroll_values();
+				
+				@ui._active_mouse_element = @this;
 			}
 			else
 			{
@@ -137,11 +141,13 @@ class Scrollbar : Element
 				{
 					dragging_thumb = true;
 					drag_thumb_offset = mouse_t - thumb_position;
+					@ui._active_mouse_element = @this;
 				}
 				else if(scroll_range > 0)
 				{
 					dragging_thumb = true;
 					drag_thumb_offset = thumb_size * 0.5;
+					@ui._active_mouse_element = @this;
 					
 					calculate_scroll_values();
 					position = clamp(scroll_min + scroll_range * (position_max > 0 ? (mouse_t - drag_thumb_offset) / position_max : 0), scroll_min, scroll_min + scroll_range);

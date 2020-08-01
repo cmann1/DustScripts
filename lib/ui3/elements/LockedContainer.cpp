@@ -16,7 +16,7 @@ abstract class LockedContainer : Container
 		super(ui);
 	}
 	
-	bool add_child(Element@ child) override
+	bool add_child(Element@ child, int index=-1) override
 	{
 		puts('add_child not supported');
 		return false;
@@ -28,30 +28,29 @@ abstract class LockedContainer : Container
 		return false;
 	}
 	
-	void set_child_index(Element@ child, int index)
+	void set_child_index(Element@ child, int index) override
 	{
 		puts('set_child_index not supported');
 	}
 	
-	void move_to_front(Element@ child)
+	void move_to_front(Element@ child) override
 	{
 		puts('move_to_front not supported');
 	}
 	
-	void move_to_back(Element@ child)
+	void move_to_back(Element@ child) override
 	{
 		puts('move_to_back not supported');
 	}
 	
-	void move_up(Element@ child)
+	void move_up(Element@ child) override
 	{
 		puts('move_up not supported');
 	}
 	
-	void move_down(Element@ child)
+	void move_down(Element@ child) override
 	{
 		puts('move_down not supported');
 	}
-	
 	
 }

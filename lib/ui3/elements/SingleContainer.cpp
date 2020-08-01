@@ -106,7 +106,7 @@ class SingleContainer : LockedContainer
 		}
 	}
 	
-	bool add_child(Element@ child) override
+	bool add_child(Element@ child, int index=-1) override
 	{
 		return false;
 	}

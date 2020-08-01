@@ -148,6 +148,8 @@ class NumberSlider : LockedContainer
 				_label.sizing = ImageSize::ConstrainInside;
 				_label.padding = ui.style.spacing;
 				_label.rotation = (_orientation == Orientation::Horizontal || !orient_label) ? 0 : -90;
+				_label.align_h = GraphicAlign::Centre;
+				_label.align_v = GraphicAlign::Middle;
 				update_label();
 				Container::add_child(_label);
 			}

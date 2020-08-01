@@ -59,6 +59,10 @@ class Style
 	// The default scaling for text - should be set before creating any UI. Changing it after may not reflect correctly everywhere.
 	float default_text_scale = 0.75;
 	
+	// Text measurements don't seem to line up exactly always. Use these global values to offset
+	float text_offset_x = -1;
+	float text_offset_y = -1;
+	
 	string tooltip_font = default_font;
 	uint tooltip_text_size = default_text_size;
 	float tooltip_text_scale = default_text_scale;
@@ -73,9 +77,8 @@ class Style
 	float default_scrollbar_size = 8;
 	float scrollbar_fixed_size = 20;
 	
-	// Text measurements don't seem to line up exactly always. Use these global values to offset
-	float text_offset_x = -1;
-	float text_offset_y = -1;
+	float default_list_view_item_width  = 100;
+	float default_list_view_item_height = 30;
 	
 	private string current_font = default_font;
 	private uint current_text_size = default_text_size;
@@ -371,8 +374,11 @@ class Style
 					: (selected || active) ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
 	}
 	
-	uint get_interactive_element_border_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_border=true)
+	uint get_interactive_element_border_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_border=true, bool draw_border_selected_only=false)
 	{
+		if(draw_border_selected_only && !selected)
+			return 0;
+		
 		return !draw_border ? 0 : disabled ? disabled_border_clr
 			: (highlighted && (selected || active) ? selected_highlight_border_clr
 				: (selected || active) ? selected_border_clr : (highlighted ? highlight_border_clr : normal_border_clr));
@@ -385,9 +391,9 @@ class Style
 	void draw_interactive_element(
 		const Element@ element,
 		const bool highlighted, const bool selected, const bool active, const bool disabled,
-		bool draw_background=true, bool draw_border=true)
+		bool draw_background=true, bool draw_border=true, bool draw_border_selected_only=false)
 	{
-		const uint border_clr = get_interactive_element_border_colour(highlighted, selected, active, disabled, draw_border);
+		const uint border_clr = get_interactive_element_border_colour(highlighted, selected, active, disabled, draw_border, draw_border_selected_only);
 		
 		const float border_size = selected ? selected_border_size : this.border_size;
 		

@@ -30,6 +30,8 @@ class Label : Graphic
 		origin_y = 0.5;
 		
 		this.text = text;
+		align_h = GraphicAlign::Left;
+		align_v = GraphicAlign::Top;
 	}
 	
 	string element_type { get const override { return 'Label'; } }

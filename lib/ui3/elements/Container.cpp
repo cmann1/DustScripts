@@ -75,7 +75,7 @@ class Container : Element
 		return @children;
 	}
 	
-	bool add_child(Element@ child)
+	bool add_child(Element@ child, int index=-1)
 	{
 		if(child is null || @child == @this || @child.parent == @this)
 			return false;
@@ -85,7 +85,15 @@ class Container : Element
 			child.parent.remove_child(child);
 		}
 		
-		children.insertLast(child);
+		if(index < 0 || index >= num_children)
+		{
+			children.insertLast(child);
+		}
+		else
+		{
+			children.insertAt(index, child);
+		}
+		
 		num_children++;
 		@child.parent = @this;
 		_validate_layout = true;

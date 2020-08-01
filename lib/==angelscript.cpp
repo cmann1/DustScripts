@@ -42,11 +42,11 @@ class array
 	// These will return the index of the first element that has the same value as the wanted value.
 	// For object types, this will use the type's opEquals or opCmp method to compare the value. For arrays of handles any null handle will be skipped.
 	// If no match is found the methods will return a negative value.
-	int find(const T& in);
-	int find(uint startAt, const T& in);
+	int find(const T in);
+	int find(uint startAt, const T in);
 
-	int findByRef(const T& in)
-	int findByRef(uint startAt, const T& in);
+	int findByRef(const T in)
+	int findByRef(uint startAt, const T in);
 	
 }
 
