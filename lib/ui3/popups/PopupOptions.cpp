@@ -23,6 +23,7 @@ class PopupOptions : IGenericEventTarget
 	TextAlign text_align_h = TextAlign::Left;
 	/// Only relevant for PopupHideType::MouseDownOutside. If true any mouse button being pressed will close the tooltip
 	bool any_mouse_down_button = true;
+	bool allow_target_overlap = true;
 	
 	/// The amount of space around the outside. Leave as NAN to use the default style spacing.
 	float padding_left = NAN;

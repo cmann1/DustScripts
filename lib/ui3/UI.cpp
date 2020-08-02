@@ -433,6 +433,15 @@ class UI
 		) | (alpha << 24);
 	}
 	
+	bool contains(Element@ element)
+	{
+		return contents.contains(element);
+	}
+	
+	bool contains_overlay(Element@ element)
+	{
+		return overlays.contains(element);
+	}
 	
 	// Private
 	// ---------------------------------------------------------

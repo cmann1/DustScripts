@@ -511,11 +511,18 @@ class ListView : ScrollView
 	{
 		if(busy_drag_select)
 		{
-			ListViewItem@ item = cast<ListViewItem>(@ui.mouse_over_element);
-			
-			if(@item != null && @item._list_view == @this)
+			if(!ui.mouse.primary_down)
 			{
-				item.selected = drag_select_select;
+				busy_drag_select = false;
+			}
+			else
+			{
+				ListViewItem@ item = cast<ListViewItem>(@ui.mouse_over_element);
+				
+				if(@item != null && @item._list_view == @this)
+				{
+					item.selected = drag_select_select;
+				}
 			}
 		}
 	}

@@ -23,6 +23,9 @@ class Popup : SingleContainer
 	protected float target_y1;
 	protected float target_x2;
 	protected float target_y2;
+	protected float prev_content_width;
+	protected float prev_content_height;
+	protected bool try_expand;
 	
 	Popup(UI@ ui, PopupOptions@ options, Element@ target, const bool wait_for_mouse)
 	{
@@ -34,6 +37,8 @@ class Popup : SingleContainer
 		waiting_for_mouse = wait_for_mouse && @_target != null;
 		
 		fit_to_contents();
+		prev_content_width  = _content._width;
+		prev_content_height = _content._height;
 		
 		active = true;
 		update_fade();
@@ -182,14 +187,43 @@ class Popup : SingleContainer
 				break;
 		}
 		
-		_x = x1 - parent.x1;
-		_y = y1 - parent.y1;
-		
 		if(@content != null)
 		{
-			content.x = is_nan(_options.padding_left) ? ui.style.tooltip_padding : _options.padding_left;
-			content.y = is_nan(_options.padding_top)  ? ui.style.tooltip_padding : _options.padding_top;
+			_content._x = is_nan(_options.padding_left) ? ui.style.tooltip_padding : _options.padding_left;
+			_content._y = is_nan(_options.padding_top)  ? ui.style.tooltip_padding : _options.padding_top;
+			
+			float new_width  = _width  - content._x - (is_nan(_options.padding_right)  ? ui.style.tooltip_padding : _options.padding_right);
+			float new_height = _height - content._y - (is_nan(_options.padding_bottom) ? ui.style.tooltip_padding : _options.padding_bottom);
+			
+			// Try expanding again to allow for scrollbars etc.
+			
+			if(new_width != prev_content_width || new_height != prev_content_height)
+			{
+				if(new_width == prev_content_width)
+				{
+					new_width  = _content._get_preferred_width(new_height);
+				}
+				else if(new_height == prev_content_height)
+				{
+					new_height = _content._get_preferred_height(new_width);
+				}
+				
+				prev_content_width  = new_width;
+				prev_content_height = new_height;
+				try_expand = true;
+				
+				x2 = x1 + content._x + new_width  + (is_nan(_options.padding_right)  ? ui.style.tooltip_padding : _options.padding_right);
+				y2 = y1 + content._y + new_height + (is_nan(_options.padding_bottom) ? ui.style.tooltip_padding : _options.padding_bottom);
+			}
+			
+			_content.width  = new_width;
+			_content.height = new_height;
 		}
+		
+		_x = x1 - parent.x1;
+		_y = y1 - parent.y1;
+		_set_width  = _width  = x2 - x1;
+		_set_height = _height = y2 - y1;
 		
 		if(active)
 		{
@@ -326,7 +360,7 @@ class Popup : SingleContainer
 		view_y1 += ui.style.spacing;
 		view_y2 -= ui.style.spacing;
 		
-		update_world_bounds();
+		update_world_bounds(parent);
 		
 		if(_options.follow_mouse)
 		{
@@ -393,32 +427,60 @@ class Popup : SingleContainer
 		
 		if(x1 < view_x1)
 		{
-			x2 += view_x1 - x1;
-			x1  = view_x1;
-			
-			if(x2 > view_x2) x2 = view_x2;
+			if(_options.allow_target_overlap || calculatedPosition != PopupPosition::Left)
+			{
+				x2 += view_x1 - x1;
+				x1  = view_x1;
+				
+				if(x2 > view_x2) x2 = view_x2;
+			}
+			else
+			{
+				x1  = view_x1;
+			}
 		}
 		else if(x2 > view_x2)
 		{
-			x1 -= x2 - view_x2;
-			x2  = view_x2;
-			
-			if(x1 < view_x1) x1 = view_x1;
+			if(_options.allow_target_overlap || calculatedPosition != PopupPosition::Right)
+			{
+				x1 -= x2 - view_x2;
+				x2  = view_x2;
+				
+				if(x1 < view_x1) x1 = view_x1;
+			}
+			else
+			{
+				x2  = view_x2;
+			}
 		}
 		
 		if(y1 < view_y1)
 		{
-			y2 += view_y1 - y1;
-			y1  = view_y1;
-			
-			if(y2 > view_y2) y2 = view_y2;
+			if(_options.allow_target_overlap || calculatedPosition != PopupPosition::Above)
+			{
+				y2 += view_y1 - y1;
+				y1  = view_y1;
+				
+				if(y2 > view_y2) y2 = view_y2;
+			}
+			else
+			{
+				y1  = view_y1;
+			}
 		}
 		else if(y2 > view_y2)
 		{
-			y1 -= y2 - view_y2;
-			y2  = view_y2;
-			
-			if(y1 < view_y1) y1 = view_y1;
+			if(_options.allow_target_overlap || calculatedPosition != PopupPosition::Below)
+			{
+				y1 -= y2 - view_y2;
+				y2  = view_y2;
+				
+				if(y1 < view_y1) y1 = view_y1;
+			}
+			else
+			{
+				y2  = view_y2;
+			}
 		}
 		
 		if(@parent != null)

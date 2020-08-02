@@ -46,6 +46,42 @@ class ScrollView : LockedContainer
 	
 	float scroll_y { get const { return -_content._scroll_y; } }
 	
+	float _get_preferred_width(const float max_height=-1) override
+	{
+		do_fit_contents(true);
+		
+		float width = scroll_max_x - scroll_min_x + layout_padding_left + layout_padding_right + layout_border_size * 2;
+		
+		if(@scrollbar_vertical != null)
+		{
+			width += scrollbar_vertical._width + ui.style.spacing;
+		}
+		else if(scroll_max_y > (max_height >= 0 ? min(max_height, _height) : _height) - ui.style.spacing * 2)
+		{
+			width += ui.style.default_scrollbar_size + ui.style.spacing;
+		}
+		
+		return width;
+	}
+	
+	float _get_preferred_height(const float max_width=-1) override
+	{
+		do_fit_contents(true);
+		
+		float height = scroll_max_y - scroll_min_y + layout_padding_top + layout_padding_bottom + layout_border_size * 2;
+		
+		if(@scrollbar_horizontal != null)
+		{
+			height += scrollbar_horizontal._height + ui.style.spacing;
+		}
+		else if(scroll_max_x > (max_width >= 0 ? min(max_width, _width) : _width) - ui.style.spacing * 2)
+		{
+			height += ui.style.default_scrollbar_size + ui.style.spacing;
+		}
+		
+		return height;
+	}
+	
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
 		// If the scrollbars are not always queued for layout, then on the first frame one becomes visible it will not be in the layout queue
@@ -245,7 +281,7 @@ class ScrollView : LockedContainer
 //			_content.x1 + _content.scroll_max_x, _content.y1 + _content.scroll_max_y, 0, 1, 0xaa0000ff, true, 1);
 	}
 	
-	protected void do_fit_contents(const bool allow_shrink) override
+	protected void do_fit_contents(const bool fit_min) override
 	{
 		if(@scrollbar_vertical != null && scrollbar_vertical.visible)
 		{
@@ -262,9 +298,9 @@ class ScrollView : LockedContainer
 		_content._layout.padding_right	= EPSILON;
 		_content._layout.padding_bottom	= EPSILON;
 		
-		_content.fit_to_contents(allow_shrink);
+		_content.fit_to_contents(fit_min);
 		
-		Container::do_fit_contents(allow_shrink);
+		Container::do_fit_contents(fit_min);
 	}
 	
 	protected void update_vertical_scrollbar(const bool scroll)

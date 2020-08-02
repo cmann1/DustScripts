@@ -207,6 +207,19 @@ class Container : Element
 		_validate_layout = true;
 	}
 	
+	bool contains(Element@ element)
+	{
+		while(@element != null)
+		{
+			if(@element == @this)
+				return true;
+			
+			@element = @element.parent;
+		}
+		
+		return false;
+	}
+	
 	Element@ first_child
 	{
 		get { return num_children > 0 ? @children[0] : null; }
@@ -227,7 +240,7 @@ class Container : Element
 	
 	int child_count { get const { return num_children; } }
 	
-	void fit_to_contents(const bool allow_shrink=false)
+	void fit_to_contents(const bool fit_min=false)
 	{
 		const float padding_left	= layout_padding_left;
 		const float padding_top		= layout_padding_top;
@@ -235,9 +248,9 @@ class Container : Element
 		const float padding_bottom	= layout_padding_bottom;
 		const float border_size		= layout_border_size;
 		
-		if(_validate_layout || allow_shrink)
+		if(_validate_layout || fit_min)
 		{
-			do_fit_contents(allow_shrink);
+			do_fit_contents(fit_min);
 		}
 		
 		float width  = padding_left + (scroll_max_x - scroll_min_x) + padding_right;
@@ -331,7 +344,19 @@ class Container : Element
 		_validate_layout = false;
 	}
 	
-	protected void calculate_scroll_rect(const bool allow_shrink)
+	float get_preferred_width(const float max_height=-1)
+	{
+		do_fit_contents(true);
+		return scroll_max_x - scroll_min_x + layout_padding_left + layout_padding_right + layout_border_size * 2;
+	}
+	
+	float get_preferred_height(const float max_width=-1)
+	{
+		do_fit_contents(true);
+		return scroll_max_y - scroll_min_y + layout_padding_top + layout_padding_bottom + layout_border_size * 2;
+	}
+	
+	protected void calculate_scroll_rect(const bool fit_min)
 	{
 		if(num_children == 0)
 		{
@@ -347,8 +372,8 @@ class Container : Element
 		
 		scroll_min_x = element._x;
 		scroll_min_y = element._y;
-		scroll_max_x = element._x + (allow_shrink ? element._set_width  : element._width);
-		scroll_max_y = element._y + (allow_shrink ? element._set_height : element._height);
+		scroll_max_x = element._x + (fit_min ? element._set_width  : element._width);
+		scroll_max_y = element._y + (fit_min ? element._set_height : element._height);
 		
 		for(int i = 1; i < num_children; i++)
 		{
@@ -357,8 +382,8 @@ class Container : Element
 			if(!element.visible)
 				continue;
 			
-			const float width  = allow_shrink ? element._set_width  : element._width;
-			const float height = allow_shrink ? element._set_height : element._height;
+			const float width  = fit_min ? element._set_width  : element._width;
+			const float height = fit_min ? element._set_height : element._height;
 			
 			if(element._x < scroll_min_x)
 				scroll_min_x = element._x;
@@ -371,19 +396,19 @@ class Container : Element
 		}
 	}
 	
-	protected void do_fit_contents(const bool allow_shrink)
+	protected void do_fit_contents(const bool fit_min)
 	{
 		if(@_layout != null)
 		{
 			_layout.do_layout(@children,
 				0, 0,
-				allow_shrink ? 0 : _width,
-				allow_shrink ? 0 : _height,
+				fit_min ? 0 : _width,
+				fit_min ? 0 : _height,
 				scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
 		}
 		else
 		{
-			calculate_scroll_rect(allow_shrink);
+			calculate_scroll_rect(fit_min);
 		}
 	}
 	

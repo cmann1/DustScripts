@@ -214,6 +214,16 @@ abstract class Element
 		}
 	}
 	
+	float _get_preferred_width(const float max_height=-1)
+	{
+		return _set_width;
+	}
+	
+	float _get_preferred_height(const float max_width=-1)
+	{
+		return _set_height;
+	}
+	
 	// ------------------------------------------------
 	// Internal
 	// ------------------------------------------------
@@ -267,18 +277,18 @@ abstract class Element
 	
 	void update_world_bounds(Element@ parent)
 	{
-		x1 = parent.x1 + x;
-		y1 = parent.y1 + y;
-		x2 = x1 + width;
-		y2 = y1 + height;
+		x1 = parent.x1 + _x;
+		y1 = parent.y1 + _y;
+		x2 = x1 + _width;
+		y2 = y1 + _height;
 	}
 	
 	void update_world_bounds()
 	{
-		x1 = x;
-		y1 = y;
-		x2 = x + width;
-		y2 = y + height;
+		x1 = _x;
+		y1 = _y;
+		x2 = _x + _width;
+		y2 = _y + _height;
 	}
 	
 	// ------------------------------------------------
