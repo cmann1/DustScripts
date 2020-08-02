@@ -52,133 +52,6 @@ class Popup : SingleContainer
 		waiting_for_mouse = false;
 	}
 	
-	PopupPosition _do_position()
-	{
-		PopupPosition calculatedPosition = _options.position;
-		
-		bool reposition_x = false;
-		bool reposition_y = false;
-		
-		float view_x1, view_y1, view_x2, view_y2;
-		ui.get_region(view_x1, view_y1, view_x2, view_y2);
-		
-		view_x1 += ui.style.spacing;
-		view_x2 -= ui.style.spacing;
-		view_y1 += ui.style.spacing;
-		view_y2 -= ui.style.spacing;
-		
-		update_world_bounds();
-		
-		if(_options.follow_mouse)
-		{
-			target_x1 = ui.mouse.x;
-			target_y1 = ui.mouse.y;
-			target_x2 = ui.mouse.x;
-			target_y2 = ui.mouse.y;
-		}
-		else if(!fading_out && @_target != null)
-		{
-			target_x1 = _target.x1;
-			target_y1 = _target.y1;
-			target_x2 = _target.x2;
-			target_y2 = _target.y2;
-		}
-		
-		// Initial positioning
-		
-		position_x(calculatedPosition);
-		position_y(calculatedPosition);
-		
-		// Swap sides if the tooltip is outside of the view
-		
-		switch(calculatedPosition)
-		{
-			case PopupPosition::Above:
-				if(y1 < view_y1 && view_y2 - target_y2 > _set_height)
-				{
-					calculatedPosition = PopupPosition::Below;
-					reposition_y = true;
-				}
-				break;
-			case PopupPosition::Below:
-				if(y2 > view_y2 && target_y1 - view_y1 > _set_height)
-				{
-					calculatedPosition = PopupPosition::Below;
-					reposition_y = true;
-				}
-				break;
-			case PopupPosition::Left:
-				if(x1 < view_x1 && view_x2 - target_x2 > _set_width)
-				{
-					calculatedPosition = PopupPosition::Right;
-					reposition_x = true;
-				}
-				break;
-			case PopupPosition::Right:
-				if(x2 > view_x2 && target_x1 - view_x1 > _set_width)
-				{
-					calculatedPosition = PopupPosition::Left;
-					reposition_x = true;
-				}
-				break;
-		}
-		
-		// Reposition after swap
-		
-		if(reposition_x)
-			position_x(calculatedPosition);
-		if(reposition_y)
-			position_y(calculatedPosition);
-		
-		// Final clamp to view
-		
-		if(x1 < view_x1)
-		{
-			x2 += view_x1 - x1;
-			x1  = view_x1;
-			
-			if(x2 > view_x2) x2 = view_x2;
-		}
-		else if(x2 > view_x2)
-		{
-			x1 -= x2 - view_x2;
-			x2  = view_x2;
-			
-			if(x1 < view_x1) x1 = view_x1;
-		}
-		
-		if(y1 < view_y1)
-		{
-			y2 += view_y1 - y1;
-			y1  = view_y1;
-			
-			if(y2 > view_y2) y2 = view_y2;
-		}
-		else if(y2 > view_y2)
-		{
-			y1 -= y2 - view_y2;
-			y2  = view_y2;
-			
-			if(y1 < view_y1) y1 = view_y1;
-		}
-		
-		if(@parent != null)
-		{
-			_x = x1 - parent.x1;
-			_y = y1 - parent.y1;
-		}
-		else
-		{
-			_x = x1;
-			_y = y1;
-		}
-		
-		_width  = x2 - x1;
-		_height = y2 - y1;
-		
-		return calculatedPosition;
-	}
-	
 	void _do_layout(LayoutContext@ ctx) override
 	{
 		if(@_target != null)
@@ -196,7 +69,7 @@ class Popup : SingleContainer
 			waiting_for_mouse = false;
 		}
 		
-		const PopupPosition calculatedPosition = _do_position();
+		const PopupPosition calculatedPosition = do_position();
 		
 		//
 		// Fade the tooltip in or out
@@ -436,6 +309,133 @@ class Popup : SingleContainer
 				y2 = y1 + _set_height;
 				break;
 		}
+	}
+	
+	protected PopupPosition do_position()
+	{
+		PopupPosition calculatedPosition = _options.position;
+		
+		bool reposition_x = false;
+		bool reposition_y = false;
+		
+		float view_x1, view_y1, view_x2, view_y2;
+		ui.get_region(view_x1, view_y1, view_x2, view_y2);
+		
+		view_x1 += ui.style.spacing;
+		view_x2 -= ui.style.spacing;
+		view_y1 += ui.style.spacing;
+		view_y2 -= ui.style.spacing;
+		
+		update_world_bounds();
+		
+		if(_options.follow_mouse)
+		{
+			target_x1 = ui.mouse.x;
+			target_y1 = ui.mouse.y;
+			target_x2 = ui.mouse.x;
+			target_y2 = ui.mouse.y;
+		}
+		else if(!fading_out && @_target != null)
+		{
+			target_x1 = _target.x1;
+			target_y1 = _target.y1;
+			target_x2 = _target.x2;
+			target_y2 = _target.y2;
+		}
+		
+		// Initial positioning
+		
+		position_x(calculatedPosition);
+		position_y(calculatedPosition);
+		
+		// Swap sides if the tooltip is outside of the view
+		
+		switch(calculatedPosition)
+		{
+			case PopupPosition::Above:
+				if(y1 < view_y1 && max(0, view_y2 - target_y2) > max(0, target_y1 - view_y1))
+				{
+					calculatedPosition = PopupPosition::Below;
+					reposition_y = true;
+				}
+				break;
+			case PopupPosition::Below:
+				if(y2 > view_y2 && max(0, target_y1 - view_y1) > max(0, view_y2 - target_y2))
+				{
+					calculatedPosition = PopupPosition::Below;
+					reposition_y = true;
+				}
+				break;
+			case PopupPosition::Left:
+				if(x1 < view_x1 && max(0, view_x2 - target_x2) > max(0, target_x1 - view_x1))
+				{
+					calculatedPosition = PopupPosition::Right;
+					reposition_x = true;
+				}
+				break;
+			case PopupPosition::Right:
+				if(x2 > view_x2 && max(0, target_x1 - view_x1) > max(0, view_x2 - target_x2))
+				{
+					calculatedPosition = PopupPosition::Left;
+					reposition_x = true;
+				}
+				break;
+		}
+		
+		// Reposition after swap
+		
+		if(reposition_x)
+			position_x(calculatedPosition);
+		if(reposition_y)
+			position_y(calculatedPosition);
+		
+		// Final clamp to view
+		
+		if(x1 < view_x1)
+		{
+			x2 += view_x1 - x1;
+			x1  = view_x1;
+			
+			if(x2 > view_x2) x2 = view_x2;
+		}
+		else if(x2 > view_x2)
+		{
+			x1 -= x2 - view_x2;
+			x2  = view_x2;
+			
+			if(x1 < view_x1) x1 = view_x1;
+		}
+		
+		if(y1 < view_y1)
+		{
+			y2 += view_y1 - y1;
+			y1  = view_y1;
+			
+			if(y2 > view_y2) y2 = view_y2;
+		}
+		else if(y2 > view_y2)
+		{
+			y1 -= y2 - view_y2;
+			y2  = view_y2;
+			
+			if(y1 < view_y1) y1 = view_y1;
+		}
+		
+		if(@parent != null)
+		{
+			_x = x1 - parent.x1;
+			_y = y1 - parent.y1;
+		}
+		else
+		{
+			_x = x1;
+			_y = y1;
+		}
+		
+		_width  = x2 - x1;
+		_height = y2 - y1;
+		
+		return calculatedPosition;
 	}
 	
 	protected float layout_padding_left {
