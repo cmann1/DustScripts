@@ -17,6 +17,7 @@ class NumberSlider : LockedContainer
 	float max_value;
 	float step;
 	float drag_sensitivity = 0.25;
+	bool drag_normalised = true;
 	bool drag_relative = true;
 	
 	bool show_fill;
@@ -239,10 +240,12 @@ class NumberSlider : LockedContainer
 			else if(ui.mouse.primary_press && hovered)
 			{
 				// Check the hovered button states here because at this point pressed may not be set yet
-				if((drag_sensitivity > 0 || drag_relative) && !_left_button.hovered && !_right_button.hovered)
+				if((drag_sensitivity > 0 || drag_normalised) && !_left_button.hovered && !_right_button.hovered)
 				{
 					busy_dragging = true;
-					drag_value = _value;
+					drag_value = drag_normalised
+						? value - get_mouse_normalised_value()
+						: _value;
 					children_mouse_enabled = false;
 					@ui._active_mouse_element = @this;
 				}
@@ -258,11 +261,11 @@ class NumberSlider : LockedContainer
 				{
 					@ui._active_mouse_element = @this;
 					
-					if(drag_relative && !is_nan(min_value) && !is_nan(max_value))
+					if(drag_normalised && !is_nan(min_value) && !is_nan(max_value))
 					{
-						value = min_value + (is_horizontal
-							? ( ui.mouse.x - x1) / max(0.001, x2 - x1)
-							: (-ui.mouse.y + y2) / max(0.001, y2 - y1)) * (max_value - min_value);
+						value = drag_relative
+							? get_mouse_normalised_value() + drag_value
+							: get_mouse_normalised_value();
 					}
 					else
 					{
@@ -412,6 +415,13 @@ class NumberSlider : LockedContainer
 		}
 		
 		return value;
+	}
+	
+	protected float get_mouse_normalised_value()
+	{
+		return min_value + (orientation == Orientation::Horizontal
+			? (x2 - x1 > 0 ? ( ui.mouse.x - x1) / (x2 - x1) : 0)
+			: (y2 - y1 > 0 ? (-ui.mouse.y + y2) / (y2 - y1) : 0)) * (max_value - min_value);
 	}
 	
 	protected void update_label()

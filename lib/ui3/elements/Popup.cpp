@@ -362,7 +362,7 @@ class Popup : SingleContainer
 			case PopupPosition::Below:
 				if(y2 > view_y2 && max(0, target_y1 - view_y1) > max(0, view_y2 - target_y2))
 				{
-					calculatedPosition = PopupPosition::Below;
+					calculatedPosition = PopupPosition::Above;
 					reposition_y = true;
 				}
 				break;

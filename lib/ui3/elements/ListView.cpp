@@ -7,7 +7,7 @@
 class ListView : ScrollView
 {
 	
-	bool drag_select = true;
+	bool drag_select = false;
 	
 	Event select;
 	
