@@ -1221,23 +1221,23 @@ class UI
 		
 		if(@gr != null)
 		{
-			debug.print(indent + '  draw_scale: ' + gr.debug_draw_scale_x + ', ' + gr.debug_draw_scale_y, txt_clr, print_id + id++, 1);
-			debug.print(indent + '  draw_pos:   ' + gr.debug_draw_x + ', ' + gr.debug_draw_y, txt_clr, print_id + id++, 1);
+			debug.print(indent + '  draw_scale: ' + gr.debug_draw_scale_x + ', ' + gr.debug_draw_scale_y, txt_clr, print_id + id++, 0);
+			debug.print(indent + '  draw_pos:   ' + gr.debug_draw_x + ', ' + gr.debug_draw_y, txt_clr, print_id + id++, 0);
 			if(gr.graphic_offset_x != 0 || gr.graphic_offset_y != 0)
-				debug.print(indent + '  offset:     ' + gr.graphic_offset_x + ', ' + gr.graphic_offset_y, txt_clr, print_id + id++, 1);
+				debug.print(indent + '  offset:     ' + gr.graphic_offset_x + ', ' + gr.graphic_offset_y, txt_clr, print_id + id++, 0);
 			if(gr.origin_x != 0 || gr.origin_y != 0)
-				debug.print(indent + '  origin:     ' + gr.origin_x + ', ' + gr.origin_y, txt_clr, print_id + id++, 1);
-			debug.print(indent + '  align:      ' + gr.align_h + ', ' + gr.align_v, txt_clr, print_id + id++, 1);
-			debug.print(indent + '  scale:      ' + gr.scale_x + ', ' + gr.scale_y, txt_clr, print_id + id++, 1);
-			debug.print(indent + '  size:       ' + gr.graphic_width + ' x ' + gr.graphic_height, txt_clr, print_id + id++, 1);
-			debug.print(indent + '[graphic]', txt_clr, print_id + id++, 1);
+				debug.print(indent + '  origin:     ' + gr.origin_x + ', ' + gr.origin_y, txt_clr, print_id + id++, 0);
+			debug.print(indent + '  align:      ' + gr.align_h + ', ' + gr.align_v, txt_clr, print_id + id++, 0);
+			debug.print(indent + '  scale:      ' + gr.scale_x + ', ' + gr.scale_y, txt_clr, print_id + id++, 0);
+			debug.print(indent + '  size:       ' + gr.graphic_width + ' x ' + gr.graphic_height, txt_clr, print_id + id++, 0);
+			debug.print(indent + '[graphic]', txt_clr, print_id + id++, 0);
 		}
 		
 		Image@ img = cast<Image@>(debug_el);
 		
 		if(@img != null)
 		{
-			debug.print(indent + 'src:    ' + img._sprite_set + '/' + img._sprite_name, txt_clr, print_id + id++, 1);
+			debug.print(indent + 'src:    ' + img._sprite_set + '/' + img._sprite_name, txt_clr, print_id + id++, 0);
 		}
 		
 		if(
@@ -1248,22 +1248,31 @@ class UI
 			debug.print(
 				indent + '      <' + debug_mouse_over_clipping_ctx.x1 + ', ' + debug_mouse_over_clipping_ctx.y1 +
 					'> <' + debug_mouse_over_clipping_ctx.x2 + ', ' + debug_mouse_over_clipping_ctx.y2 + '>',
-				txt_clr, print_id + id++, 1);
+				txt_clr, print_id + id++, 0);
 			const string type = debug_mouse_over_clipping_ctx.clipping_mode == ClippingMode::Inside ? 'inside' : 'outside';
 			debug.print(
-				indent + 'clip: ' + debug_mouse_over_clipping_ctx.root._id + '.' + type, txt_clr, print_id + id++, 1);
+				indent + 'clip: ' + debug_mouse_over_clipping_ctx.root._id + '.' + type, txt_clr, print_id + id++, 0);
 		}
 		
 		string size_data = indent +     'size: ' + debug_el._width + ' x ' + debug_el._height;
 		if(debug_el._width != debug_el._set_width || debug_el._height != debug_el._set_height)
 			size_data += ' (' + debug_el._set_width + ' x ' + debug_el._set_height + ')';
-		debug.print(size_data, txt_clr, print_id + id++, 1);
+		debug.print(size_data, txt_clr, print_id + id++, 0);
+		
+		Container@ container = cast<Container@>(debug_el);
+		
+		if(@container != null)
+		{
+			debug.print(indent +     'scroll: ' +
+				container.scroll_min_x + ', ' + container.scroll_min_y + '  ' +
+				container.scroll_max_x + ', ' + container.scroll_max_y, txt_clr, print_id + id++, 0);
+		}
 		
 		if(debug_el.x1 != debug_el._x || debug_el.y1 != debug_el._y)
-			debug.print(indent +     'global: ' + debug_el.x1 + ', ' + debug_el.y1, txt_clr, print_id + id++, 1);
-			debug.print(indent +     'local:  ' + debug_el._x + ', ' + debug_el._y, txt_clr, print_id + id++, 1);
+			debug.print(indent +     'global: ' + debug_el.x1 + ', ' + debug_el.y1, txt_clr, print_id + id++, 0);
+			debug.print(indent +     'local:  ' + debug_el._x + ', ' + debug_el._y, txt_clr, print_id + id++, 0);
 		
-		debug.print('[' + debug_el.id + (debug_el.name != '' ? '.' + debug_el.name : '') + ']', id_clr, print_id + id++, 1);
+		debug.print('[' + debug_el.id + (debug_el.name != '' ? '.' + debug_el.name : '') + ']', id_clr, print_id + id++, 0);
 	}
 	
 	void debug_print_mouse_stack()
@@ -1298,11 +1307,11 @@ class UI
 			if(!element.hovered)
 				data =  '{' + data + '}';
 			
-			debug.print(string::repeat('-', (element_count - index++)) + ' ' + data, set_alpha(get_element_id_colour(element), element.hovered ? 1.0 : 0.6), element._id + 'a', 1);
+			debug.print(string::repeat('-', (element_count - index++)) + ' ' + data, set_alpha(get_element_id_colour(element), element.hovered ? 1.0 : 0.6), element._id + 'a', 0);
 			@element = @element.parent;
 		}
 		
-		debug.print('[mouse path]', 0x99ffffff, '[mouse path]', 1);
+		debug.print('[mouse path]', 0x99ffffff, '[mouse path]', 0);
 	}
 	
 	/* internal */ void _queue_event(Event@ event, EventInfo@ event_info)

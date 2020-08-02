@@ -438,13 +438,13 @@ class Popup : SingleContainer
 		}
 	}
 	
-	protected float default_left_padding {
-		get const { return is_nan(_options.padding_left)   ? ui.style.tooltip_padding : _options.padding_left; } }
-	protected float default_right_padding {
-		get const { return is_nan(_options.padding_right)  ? ui.style.tooltip_padding : _options.padding_right; } }
-	protected float default_top_padding {
-		get const { return is_nan(_options.padding_top)    ? ui.style.tooltip_padding : _options.padding_top; } }
-	protected float default_bottom_padding {
-		get const { return is_nan(_options.padding_bottom) ? ui.style.tooltip_padding : _options.padding_bottom; } }
+	protected float layout_padding_left {
+		get const override { return is_nan(_options.padding_left)   ? ui.style.tooltip_padding : _options.padding_left; } }
+	protected float layout_padding_right {
+		get const override { return is_nan(_options.padding_right)  ? ui.style.tooltip_padding : _options.padding_right; } }
+	protected float layout_padding_top {
+		get const override { return is_nan(_options.padding_top)    ? ui.style.tooltip_padding : _options.padding_top; } }
+	protected float layout_padding_bottom {
+		get const override { return is_nan(_options.padding_bottom) ? ui.style.tooltip_padding : _options.padding_bottom; } }
 	
 }

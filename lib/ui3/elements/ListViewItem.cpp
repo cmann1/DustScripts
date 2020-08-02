@@ -26,25 +26,25 @@ class ListViewItem : Container
 	ListViewItem(UI@ ui, const string value, Element@ content)
 	{
 		super(@ui);
-		init(value);
 		
 		set(@content);
+		init(value);
 	}
 	
 	ListViewItem(UI@ ui, const string value, const string text, const TextAlign text_align_h=TextAlign::Left)
 	{
 		super(@ui);
-		init(value);
 		
 		set(text, text_align_h);
+		init(value);
 	}
 	
 	ListViewItem(UI@ ui, const string value, const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
 		super(@ui);
-		init(value);
 		
 		set(sprite_set, sprite_name, width, height, offset_x, offset_y);
+		init(value);
 	}
 	
 	ListViewItem(UI@ ui, const string value,
@@ -54,17 +54,34 @@ class ListViewItem : Container
 		const TextAlign text_align_h=TextAlign::Left)
 	{
 		super(@ui);
-		init(value);
 		
-		this.value = value;
 		set(sprite_set, sprite_name, text, width, height, offset_x, offset_y, text_align_h);
+		init(value);
 	}
 	
 	private void init(const string value)
 	{
 		this.value = value;
 		
-		_width  = _set_width  = ui.style.default_list_view_item_width;
+		if(_has_custom_content)
+		{
+			fit_to_contents();
+		}
+		else if(@_icon != null || @_label != null)
+		{
+			_width = 0;
+			
+			if(@_icon != null)
+				_width += _icon._set_width;
+			if(@_label != null)
+				_width += _label._set_width;
+		}
+		else
+		{
+			_width = _set_width = ui.style.default_list_view_item_width;
+		}
+		
+		_set_width = _width;
 		_height = _set_height = ui.style.default_list_view_item_height;
 		
 		children_mouse_enabled = false;
@@ -91,7 +108,7 @@ class ListViewItem : Container
 		{
 			Container::add_child(content);
 			_has_custom_content = true;
-			// TODO: Fit
+			fit_to_contents();
 		}
 		else
 		{
@@ -125,6 +142,9 @@ class ListViewItem : Container
 		if(@_icon == null)
 		{
 			@_icon = Image(ui, sprite_set, sprite_name, width, height, offset_x, offset_y);
+			_icon.padding = ui.style.spacing;
+			_icon.width  = ui.style.default_list_view_item_height;
+			_icon.height = ui.style.default_list_view_item_height;
 			Container::add_child(_icon, 0);
 		}
 		else

@@ -33,7 +33,7 @@ class ListView : ScrollView
 		_width  = _set_width  = 200;
 		_height = _set_height = 200;
 		
-		@grid_layout = GridLayout(ui, 1, 0.01, 0, FlowDirection::Row, FlowAlign::Stretch, FlowAlign::Stretch, FlowFit::MainAxis);
+		@grid_layout = GridLayout(ui, 1, 0, 0, FlowDirection::Row, FlowAlign::Stretch, FlowAlign::Stretch, FlowFit::MainAxis);
 		grid_layout.row_spacing = 0;
 		@_content.layout = @grid_layout;
 	}

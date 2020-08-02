@@ -132,6 +132,14 @@ class Button : SingleContainer
 		}
 	}
 	
-	protected float border_size { get const override { return ui.style.border_size; } }
+	protected float layout_padding_left		{ get const override { return ui.style.spacing; } }
+	
+	protected float layout_padding_right	{ get const override { return ui.style.spacing; } }
+	
+	protected float layout_padding_top		{ get const override { return ui.style.spacing; } }
+	
+	protected float layout_padding_bottom	{ get const override { return ui.style.spacing; } }
+	
+	protected float layout_border_size		{ get const override { return ui.style.border_size; } }
 	
 }

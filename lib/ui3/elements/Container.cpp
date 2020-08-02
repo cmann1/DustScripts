@@ -227,6 +227,32 @@ class Container : Element
 	
 	int child_count { get const { return num_children; } }
 	
+	void fit_to_contents(const bool allow_shrink=false)
+	{
+		const float padding_left	= layout_padding_left;
+		const float padding_top		= layout_padding_top;
+		const float padding_right	= layout_padding_right;
+		const float padding_bottom	= layout_padding_bottom;
+		const float border_size		= layout_border_size;
+		
+		if(_validate_layout || allow_shrink)
+		{
+			do_fit_contents(allow_shrink);
+		}
+		
+		float width  = padding_left + (scroll_max_x - scroll_min_x) + padding_right;
+		float height = padding_top  + (scroll_max_y - scroll_min_y) + padding_bottom;
+		
+		if(border_size > 0)
+		{
+			width  += border_size * 2;
+			height += border_size * 2;
+		}
+		
+		this.width  = width;
+		this.height = height;
+	}
+	
 	/**
 	 * @brief Required call after modifying layout properties
 	 */
@@ -297,38 +323,78 @@ class Container : Element
 				0, 0, _width, _height,
 				scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
 		}
-		else if(num_children > 0)
-		{
-			Element@ element = children[0];
-			
-			scroll_min_x = element._x;
-			scroll_min_y = element._y;
-			scroll_max_x = element._x + element._width;
-			scroll_max_y = element._y + element._height;
-			
-			for(int i = 1; i < num_children; i++)
-			{
-				@element = children[i];
-				
-				if(element._x < scroll_min_x)
-					scroll_min_x = element._x;
-				if(element._y < scroll_min_y)
-					scroll_min_y = element._y;
-				if(element._x + element._width > scroll_max_x)
-					scroll_max_x = element._x + element._width;
-				if(element._y + element._height> scroll_max_y)
-					scroll_max_y = element._y + element._height;
-			}
-		}
 		else
+		{
+			calculate_scroll_rect(false);
+		}
+		
+		_validate_layout = false;
+	}
+	
+	protected void calculate_scroll_rect(const bool allow_shrink)
+	{
+		if(num_children == 0)
 		{
 			scroll_min_x = 0;
 			scroll_min_y = 0;
 			scroll_max_x = 0;
 			scroll_max_y = 0;
+			
+			return;
 		}
 		
-		_validate_layout = false;
+		Element@ element = children[0];
+		
+		scroll_min_x = element._x;
+		scroll_min_y = element._y;
+		scroll_max_x = element._x + (allow_shrink ? element._set_width  : element._width);
+		scroll_max_y = element._y + (allow_shrink ? element._set_height : element._height);
+		
+		for(int i = 1; i < num_children; i++)
+		{
+			@element = children[i];
+			
+			if(!element.visible)
+				continue;
+			
+			const float width  = allow_shrink ? element._set_width  : element._width;
+			const float height = allow_shrink ? element._set_height : element._height;
+			
+			if(element._x < scroll_min_x)
+				scroll_min_x = element._x;
+			if(element._y < scroll_min_y)
+				scroll_min_y = element._y;
+			if(element._x + width > scroll_max_x)
+				scroll_max_x = element._x + width;
+			if(element._y + height > scroll_max_y)
+				scroll_max_y = element._y + height;
+		}
 	}
+	
+	protected void do_fit_contents(const bool allow_shrink)
+	{
+		if(@_layout != null)
+		{
+			_layout.do_layout(@children,
+				0, 0,
+				allow_shrink ? 0 : _width,
+				allow_shrink ? 0 : _height,
+				scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
+		}
+		else
+		{
+			calculate_scroll_rect(allow_shrink);
+		}
+	}
+	
+	protected float layout_padding_left		{ get const { return 0; } }
+	
+	protected float layout_padding_right	{ get const { return 0; } }
+	
+	protected float layout_padding_top		{ get const { return 0; } }
+	
+	protected float layout_padding_bottom	{ get const { return 0; } }
+	
+	protected float layout_border_size		{ get const { return 0; } }
 	
 }

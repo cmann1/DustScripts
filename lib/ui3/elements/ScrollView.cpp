@@ -126,7 +126,6 @@ class ScrollView : LockedContainer
 		if(_validate_layout)
 		{
 			_content._validate_layout = true;
-			_validate_layout = false;
 		}
 		
 		content.width = content_width;
@@ -235,9 +234,37 @@ class ScrollView : LockedContainer
 			previous_scroll_y = _content._scroll_y;
 		}
 		
+		if(_validate_layout)
+		{
+			calculate_scroll_rect(false);
+			_validate_layout = false;
+		}
+		
 //		ui.debug.rect(22, 22,
 //			_content.x1 + _content.scroll_min_x, _content.y1 + _content.scroll_min_y,
 //			_content.x1 + _content.scroll_max_x, _content.y1 + _content.scroll_max_y, 0, 1, 0xaa0000ff, true, 1);
+	}
+	
+	protected void do_fit_contents(const bool allow_shrink) override
+	{
+		if(@scrollbar_vertical != null && scrollbar_vertical.visible)
+		{
+			scrollbar_vertical.visible = false;
+		}
+		
+		if(@scrollbar_horizontal != null && scrollbar_horizontal.visible)
+		{
+			scrollbar_horizontal.visible = false;
+		}
+		
+		_content._layout.padding_left	= EPSILON;
+		_content._layout.padding_top	= EPSILON;
+		_content._layout.padding_right	= EPSILON;
+		_content._layout.padding_bottom	= EPSILON;
+		
+		_content.fit_to_contents(allow_shrink);
+		
+		Container::do_fit_contents(allow_shrink);
 	}
 	
 	protected void update_vertical_scrollbar(const bool scroll)
@@ -279,5 +306,13 @@ class ScrollView : LockedContainer
 			scrollbar_horizontal.position = 0;
 		}
 	}
+	
+	protected float layout_padding_left		{ get const override { return is_nan(this.content_padding_left)		? ui.style.spacing : this.content_padding_left; } }
+	
+	protected float layout_padding_right	{ get const override { return is_nan(this.content_padding_right)	? ui.style.spacing : this.content_padding_right; } }
+	
+	protected float layout_padding_top		{ get const override { return is_nan(this.content_padding_top)		? ui.style.spacing : this.content_padding_top; } }
+	
+	protected float layout_padding_bottom	{ get const override { return is_nan(this.content_padding_bottom)	? ui.style.spacing : this.content_padding_bottom; } }
 	
 }
