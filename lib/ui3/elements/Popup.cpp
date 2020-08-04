@@ -201,11 +201,11 @@ class Popup : SingleContainer
 			{
 				if(new_width == prev_content_width)
 				{
-					new_width  = _content._get_preferred_width(new_height);
+					new_width  = _content._get_max_width(new_height);
 				}
 				else if(new_height == prev_content_height)
 				{
-					new_height = _content._get_preferred_height(new_width);
+					new_height = _content._get_max_height(new_width);
 				}
 				
 				prev_content_width  = new_width;

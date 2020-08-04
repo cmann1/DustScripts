@@ -214,12 +214,12 @@ abstract class Element
 		}
 	}
 	
-	float _get_preferred_width(const float max_height=-1)
+	float _get_max_width(const float max_height=-1)
 	{
 		return _set_width;
 	}
 	
-	float _get_preferred_height(const float max_width=-1)
+	float _get_max_height(const float max_width=-1)
 	{
 		return _set_height;
 	}

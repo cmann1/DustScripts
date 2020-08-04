@@ -66,7 +66,7 @@ class ScrollView : LockedContainer
 		}
 	}
 	
-	float _get_preferred_width(const float max_height=-1) override
+	float _get_max_width(const float max_height=-1) override
 	{
 		do_fit_contents(true);
 		
@@ -84,7 +84,7 @@ class ScrollView : LockedContainer
 		return width;
 	}
 	
-	float _get_preferred_height(const float max_width=-1) override
+	float _get_max_height(const float max_width=-1) override
 	{
 		do_fit_contents(true);
 		
