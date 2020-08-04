@@ -62,7 +62,11 @@ class ListViewItem : Container
 	private void init(const string value)
 	{
 		this.value = value;
-		
+		children_mouse_enabled = false;
+	}
+	
+	private void calculate_size()
+	{
 		if(_has_custom_content)
 		{
 			fit_to_contents();
@@ -83,8 +87,6 @@ class ListViewItem : Container
 		
 		_set_width = _width;
 		_height = _set_height = ui.style.default_list_view_item_height;
-		
-		children_mouse_enabled = false;
 	}
 	
 	void set(Element@ content)
@@ -123,7 +125,7 @@ class ListViewItem : Container
 		if(@_label == null)
 		{
 			@_label = Label(ui, text);
-			_label.padding = ui.style.spacing;
+			_label.padding = NAN;
 			_label.align_h = GraphicAlign::Left;
 			_label.align_v = GraphicAlign::Middle;
 			_label.sizing = ImageSize::ConstrainInside;
@@ -133,6 +135,8 @@ class ListViewItem : Container
 		_label.text_align_h = text_align_h;
 		_label.text = text;
 		_label.fit_to_contents();
+		
+		calculate_size();
 	}
 	
 	void set(const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
@@ -142,7 +146,7 @@ class ListViewItem : Container
 		if(@_icon == null)
 		{
 			@_icon = Image(ui, sprite_set, sprite_name, width, height, offset_x, offset_y);
-			_icon.padding = ui.style.spacing;
+			_icon.padding = NAN;
 			_icon.width  = ui.style.default_list_view_item_height;
 			_icon.height = ui.style.default_list_view_item_height;
 			Container::add_child(_icon, 0);
@@ -151,6 +155,8 @@ class ListViewItem : Container
 		{
 			_icon.set_sprite(sprite_set, sprite_name, width, height, offset_x, offset_y);
 		}
+		
+		calculate_size();
 	}
 	
 	void set(
@@ -247,7 +253,7 @@ class ListViewItem : Container
 				_label._width  = _width - _label._x;
 				_label._height = _height;
 				
-				_label.visible = _label._width - _label.padding * 2 > 0;
+				_label.visible = _label._width - (is_nan(_label.padding) ? ui.style.spacing : _label.padding) * 2 > 0;
 			}
 		}
 	}

@@ -32,6 +32,8 @@ class Label : Graphic
 		this.text = text;
 		align_h = GraphicAlign::Left;
 		align_v = GraphicAlign::Top;
+		
+		fit_to_contents();
 	}
 	
 	string element_type { get const override { return 'Label'; } }
@@ -100,8 +102,8 @@ class Label : Graphic
 		float w, h;
 		ui.style.measure_text(_text, _font, _size, 1, 1, _graphic_width, _graphic_height);
 		
-		width  = _graphic_width  * scale_x + padding * 2;
-		height = _graphic_height * scale_y + padding * 2;
+		width  = _graphic_width  * scale_x + (is_nan(padding) ? ui.style.spacing : padding) * 2;
+		height = _graphic_height * scale_y + (is_nan(padding) ? ui.style.spacing : padding) * 2;
 		
 		return @this;
 	}

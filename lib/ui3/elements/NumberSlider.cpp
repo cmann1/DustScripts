@@ -3,11 +3,11 @@
 #include '../TextAlign.cpp';
 #include '../../math/math.cpp';
 #include '../../utils/colour.cpp';
-#include '../elements/Button.cpp';
-#include '../elements/Label.cpp';
-#include '../elements/shapes/Arrow.cpp';
 #include '../events/Event.cpp';
 #include '../utils/Orientation.cpp';
+#include 'Button.cpp';
+#include 'Label.cpp';
+#include 'shapes/Arrow.cpp';
 #include 'LockedContainer.cpp';
 
 class NumberSlider : LockedContainer
@@ -207,25 +207,25 @@ class NumberSlider : LockedContainer
 			{
 				_left_button._x = border_size;
 				_left_button._y = border_size;
-				_left_button.width  = button_size;
-				_left_button.height = _height - border_size * 2;
+				_left_button._width  = button_size;
+				_left_button._height = _height - border_size * 2;
 				
 				_right_button._x = _width - border_size - button_size;
 				_right_button._y = border_size;
-				_right_button.width  = _left_button._width;
-				_right_button.height = _left_button._height;
+				_right_button._width  = _left_button._width;
+				_right_button._height = _left_button._height;
 			}
 			else
 			{
 				_right_button._x = border_size;
 				_right_button._y = border_size;
-				_right_button.width  = _width - border_size * 2;
-				_right_button.height = button_size;
+				_right_button._width  = _width - border_size * 2;
+				_right_button._height = button_size;
 				
 				_left_button._x = border_size;
 				_left_button._y = _height - border_size - button_size;
-				_left_button.width  = _right_button._width;
-				_left_button.height = _right_button._height;
+				_left_button._width  = _right_button._width;
+				_left_button._height = _right_button._height;
 			}
 			
 			if(_left_button.pressed || _right_button.pressed)
@@ -317,32 +317,32 @@ class NumberSlider : LockedContainer
 				if(_show_buttons && _left_button.visible)
 				{
 					_label._x = border_size + button_size;
-					_label.width = _width - button_size * 2 - border_size * 2;
+					_label._width = _width - button_size * 2 - border_size * 2;
 				}
 				else
 				{
 					_label._x = border_size;
-					_label.width = _width - border_size * 2;
+					_label._width = _width - border_size * 2;
 				}
 				
 				_label._y = border_size;
-				_label.height = _height - border_size * 2;
+				_label._height = _height - border_size * 2;
 			}
 			else
 			{
 				if(_show_buttons && _left_button.visible)
 				{
 					_label._y = border_size + button_size;
-					_label.height = _height - button_size * 2 - border_size * 2;
+					_label._height = _height - button_size * 2 - border_size * 2;
 				}
 				else
 				{
 					_label._y = border_size;
-					_label.height = _height - border_size * 2;
+					_label._height = _height - border_size * 2;
 				}
 				
 				_label._x = border_size;
-				_label.width = _width - border_size * 2;
+				_label._width = _width - border_size * 2;
 			}
 		}
 	}

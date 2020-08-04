@@ -42,9 +42,29 @@ class ScrollView : LockedContainer
 	
 	string element_type { get const override { return 'ScrollView'; } }
 	
-	float scroll_x { get const { return -_content._scroll_x; } }
+	float scroll_x
+	{
+		get const { return -_content._scroll_x; }
+		set
+		{
+			_content._scroll_x = value;
+			
+			if(@scrollbar_horizontal != null)
+				scrollbar_horizontal.position = value;
+		}
+	}
 	
-	float scroll_y { get const { return -_content._scroll_y; } }
+	float scroll_y
+	{
+		get const { return -_content._scroll_y; }
+		set
+		{
+			_content._scroll_y = value;
+			
+			if(@scrollbar_vertical != null)
+				scrollbar_vertical.position = value;
+		}
+	}
 	
 	float _get_preferred_width(const float max_height=-1) override
 	{

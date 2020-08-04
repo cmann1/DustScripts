@@ -68,6 +68,8 @@ abstract class Graphic : Element
 			y2 -= border_size;
 		}
 		
+		const float padding = is_nan(this.padding) ? ui.style.spacing : this.padding;
+		
 		if(padding > 0)
 		{
 			x1 += padding;

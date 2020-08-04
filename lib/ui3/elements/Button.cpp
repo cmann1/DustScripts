@@ -52,8 +52,8 @@ class Button : SingleContainer
 	protected void init()
 	{
 		children_mouse_enabled = false;
-		_set_width  = _width  = 40;
-		_set_height = _height = 40;
+		_set_width  = _width  = 50;
+		_set_height = _height = 30;
 	}
 	
 	string element_type { get const override { return 'Button'; } }

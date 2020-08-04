@@ -100,8 +100,8 @@ class FlowLayout : Layout
 			
 			num_visible_elements++;
 			
-			const float el_main_size  = is_horizontal ? element._width  : element._height;
-			const float el_cross_size = is_horizontal ? element._height : element._width;
+			const float el_main_size  = is_horizontal ? element._set_width  : element._set_height;
+			const float el_cross_size = is_horizontal ? element._set_height : element._set_width;
 			
 			if(wrap && main_x + el_main_size > main_axis_end)
 			{
@@ -259,8 +259,8 @@ class FlowLayout : Layout
 				}
 			}
 			
-			const float el_main_size  = is_horizontal ? element._width  : element._height;
-			const float el_cross_size = is_horizontal ? element._height : element._width;
+			const float el_main_size  = is_horizontal ? element._set_width  : element._set_height;
+			const float el_cross_size = is_horizontal ? element._set_height : element._set_width;
 			const float main_x_final = is_reversed ? (main_axis_end - main_x + main_axis_start - el_main_size) : main_x;
 			float cross_x_final = cross_x;
 			

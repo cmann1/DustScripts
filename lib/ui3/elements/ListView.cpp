@@ -198,6 +198,27 @@ class ListView : ScrollView
 	
 	// Order
 	
+	ListViewItem@ set_item_index(int old_index, int index)
+	{
+		if(old_index < 0 || old_index >= _num_items)
+			return null;
+		
+		if(index < 0)
+			index = 0;
+		else if(index >= _num_items)
+			index = _num_items - 1;
+		
+		if(old_index == index)
+			return _items[old_index];
+		
+		ListViewItem@ item = _items[old_index];
+		_items.removeAt(old_index);
+		_items.insertAt(index > old_index ? index - 1 : index, item);
+		
+		_content.set_child_index(item, index);
+		return @item;
+	}
+	
 	ListViewItem@ set_item_index(ListViewItem@ item, int index)
 	{
 		if(@item == null || @item._list_view != @this)
@@ -208,29 +229,7 @@ class ListView : ScrollView
 		if(old_index == -1)
 			return @item;
 		
-		if(index >= _num_items)
-		{
-			if(old_index == _num_items - 1)
-				return @item;
-			
-			_items.removeAt(old_index);
-			_items.insertLast(@item);
-			return @item;
-		}
-		
-		if(index < 0)
-		{
-			index = 0;
-		}
-		
-		if(index == old_index)
-			return @item;
-		
-		_items.removeAt(old_index);
-		_items.insertAt(index > old_index ? index - 1 : index, item);
-		
-		_content.set_child_index(item, index);
-		return @item;
+		return set_item_index(old_index, index);
 	}
 	
 	ListViewItem@ move_item_to_front(ListViewItem@ item)
@@ -324,6 +323,11 @@ class ListView : ScrollView
 		}
 		
 		return @item;
+	}
+	
+	int get_item_index(ListViewItem@ item)
+	{
+		return _items.findByRef(item);
 	}
 	
 	// Selection
@@ -446,7 +450,15 @@ class ListView : ScrollView
 	
 	ListViewItem@ selected_item
 	{
-		get { return _num_selected_items > 0 ? _selected_items[0] : null; }
+		get const { return _num_selected_items > 0 ? _selected_items[0] : null; }
+	}
+	
+	int selected_index
+	{
+		get const
+		{
+			return _num_selected_items > 0 ? _items.findByRef(_selected_items[0]) : -1;
+		}
 	}
 	
 	int get_selected_items(array<ListViewItem@>@ list, const bool ordered=true)
