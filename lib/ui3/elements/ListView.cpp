@@ -127,33 +127,35 @@ class ListView : ScrollView
 		return @item;
 	}
 	
-	ListViewItem@ add_item(const string value)
+	ListViewItem@ add_item(const string value, const int index=-1)
 	{
-		return add_item(ListViewItem(ui, value));
+		return add_item(ListViewItem(ui, value), index);
 	}
 	
-	ListViewItem@ add_item(const string value, Element@ content)
+	ListViewItem@ add_item(const string value, Element@ content, const int index=-1)
 	{
-		return add_item(ListViewItem(ui, value, content));
+		return add_item(ListViewItem(ui, value, content), index);
 	}
 	
-	ListViewItem@ add_item(const string value, const string text, const TextAlign text_align_h=TextAlign::Left)
+	ListViewItem@ add_item(const string value, const string text, const TextAlign text_align_h=TextAlign::Left, const int index=-1)
 	{
-		return add_item(ListViewItem(ui, value, text, text_align_h));
+		return add_item(ListViewItem(ui, value, text, text_align_h), index);
 	}
 	
-	ListViewItem@ add_item(const string value, const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
+	ListViewItem@ add_item(const string value,
+		const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0,
+		const int index=-1)
 	{
-		return add_item(ListViewItem(ui, value, sprite_set, sprite_name, width, height, offset_x, offset_y));
+		return add_item(ListViewItem(ui, value, sprite_set, sprite_name, width, height, offset_x, offset_y), index);
 	}
 	
 	ListViewItem@ add_item(const string value,
 		const string sprite_set, const string sprite_name,
 		const string text,
 		const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0,
-		const TextAlign text_align_h=TextAlign::Left)
+		const TextAlign text_align_h=TextAlign::Left, const int index=-1)
 	{
-		return add_item(ListViewItem(ui, value, sprite_set, sprite_name, text, width, height, offset_x, offset_y, text_align_h));
+		return add_item(ListViewItem(ui, value, sprite_set, sprite_name, text, width, height, offset_x, offset_y, text_align_h), index);
 	}
 	
 	

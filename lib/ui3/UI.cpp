@@ -1249,6 +1249,11 @@ class UI
 			debug.print(indent + 'src:    ' + img._sprite_set + '/' + img._sprite_name, txt_clr, print_id + id++, 0);
 		}
 		
+		if(debug_el.alpha != 1)
+		{
+			debug.print(indent + 'alpha:    ' + debug_el.alpha, txt_clr, print_id + id++, 0);
+		}
+		
 		if(
 			debug_mouse_over_clipping_ctx.clipping_mode != ClippingMode::None &&
 			@debug_mouse_over_clipping_ctx.root != @contents &&
