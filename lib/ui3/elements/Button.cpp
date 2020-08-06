@@ -115,7 +115,8 @@ class Button : SingleContainer
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		style.draw_interactive_element(this,
+		style.draw_interactive_element(
+			x1, y1, x2, y2,
 			hovered || pressed,
 			selectable && selected,
 			pressed,

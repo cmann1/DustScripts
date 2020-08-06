@@ -264,7 +264,8 @@ class ListViewItem : Container
 		
 		if(hovered || _selected || pressed)
 		{
-			style.draw_interactive_element(this,
+			style.draw_interactive_element(
+				x1, y1, x2, y2,
 				hovered, _selected, pressed, disabled,
 				true, true, true);
 		}

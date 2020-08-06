@@ -154,7 +154,9 @@ class Spinner : SelectBase
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		style.draw_interactive_element(this, false, false, false, disabled);
+		style.draw_interactive_element(
+			x1, y1, x2, y2,
+			false, false, false, disabled);
 	}
 	
 }

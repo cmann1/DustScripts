@@ -351,7 +351,9 @@ class NumberSlider : LockedContainer
 	{
 		const bool is_horizontal = orientation == Orientation::Horizontal;
 		
-		style.draw_interactive_element(this, false, false, false, disabled);
+		style.draw_interactive_element(
+			x1, y1, x2, y2,
+			false, false, false, disabled);
 		
 		if(show_fill && !is_nan(min_value) && !is_nan(max_value))
 		{

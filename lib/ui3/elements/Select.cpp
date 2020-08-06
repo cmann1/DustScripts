@@ -146,7 +146,8 @@ class Select : SelectBase
 	
 	void _draw(Style@ style, DrawingContext@ ctx)
 	{
-		style.draw_interactive_element(this,
+		style.draw_interactive_element(
+			x1, y1, x2, y2,
 			hovered || pressed,
 			open,
 			pressed, disabled);

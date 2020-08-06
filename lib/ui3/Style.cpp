@@ -389,7 +389,7 @@ class Style
 	// -----------------------------------------------------------------
 	
 	void draw_interactive_element(
-		const Element@ element,
+		const float x1, const float y1, const float x2, const float y2,
 		const bool highlighted, const bool selected, const bool active, const bool disabled,
 		bool draw_background=true, bool draw_border=true, bool draw_border_selected_only=false)
 	{
@@ -406,14 +406,18 @@ class Style
 			const float inset = border_clr != 0 ? max(0, border_size) : 0;
 			
 			draw_rectangle(
-				element.x1 + inset, element.y1 + inset, element.x2 - inset, element.y2 - inset,
+				x1 + inset, y1 + inset,
+				x2 - inset, y2 - inset,
 				0, bg_clr);
 		}
 		
 		// Border
 		if(border_clr != 0 && border_size > 0)
 		{
-			outline(element.x1, element.y1, element.x2, element.y2, border_size, border_clr);
+			outline(
+				x1, y1,
+				x2, y2,
+				border_size, border_clr);
 		}
 	}
 	
