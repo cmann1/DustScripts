@@ -24,6 +24,9 @@ abstract class MoveableDialog : Container
 	
 	protected void do_drag(LayoutContext@ ctx)
 	{
+		if(!mouse_enabled)
+			return;
+		
 		if(hovered && ui.mouse.primary_press)
 		{
 			parent.move_to_front(this);

@@ -21,7 +21,7 @@ class Divider : Element
 		mouse_enabled = false;
 	}
 	
-	Divider(UI@ ui, IOrientationParent@ orientation_parent=null)
+	Divider(UI@ ui, IOrientationParent@ orientation_parent)
 	{
 		super(ui);
 		
@@ -39,13 +39,13 @@ class Divider : Element
 		
 		if(orientation == Orientation::Horizontal)
 		{
-			width = 20;
-			height = size;
+			width = size;
+			height = 20;
 		}
 		else
 		{
-			width = size;
-			height = 20;
+			width = 20;
+			height = size;
 		}
 		
 		this.size = size;

@@ -19,11 +19,6 @@ abstract class Layout
 		
 	}
 	
-	float padding
-	{
-		set { padding_left = padding_right = padding_top = padding_bottom = value; }
-	}
-	
 	void set_padding(const float padding)
 	{
 		padding_left = padding_right = padding_top = padding_bottom = padding;

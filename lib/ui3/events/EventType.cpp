@@ -16,5 +16,6 @@ namespace EventType
 	
 	const string MOVE			= 'move';
 	const string MOVE_COMPLETED	= 'move_completed';
+	const string CLOSE			= 'close';
 	
 }
