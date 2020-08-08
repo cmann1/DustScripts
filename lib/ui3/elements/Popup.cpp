@@ -1,3 +1,4 @@
+#include '../../math/math.cpp';
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../popups/PopupOptions.cpp';
@@ -197,7 +198,7 @@ class Popup : SingleContainer
 			
 			// Try expanding again to allow for scrollbars etc.
 			
-			if(new_width != prev_content_width || new_height != prev_content_height)
+			if(!approximately(new_width, prev_content_width) || !approximately(new_height, prev_content_height))
 			{
 				if(new_width == prev_content_width)
 				{
