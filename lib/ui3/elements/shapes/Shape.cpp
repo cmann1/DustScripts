@@ -5,6 +5,9 @@
 abstract class Shape : Graphic
 {
 	
+	bool use_highlight_colour = false;
+	bool use_parent_hover = false;
+	
 	protected bool _use_custom_colour;
 	protected uint _colour;
 	
@@ -32,6 +35,20 @@ abstract class Shape : Graphic
 	protected void init()
 	{
 		
+	}
+	
+	protected uint get_colour()
+	{
+		if(use_highlight_colour)
+		{
+			if((pressed || use_parent_hover && @parent != null && parent.pressed))
+				return ui.style.selected_highlight_border_clr;
+			
+			if(hovered || use_parent_hover && @parent != null && parent.hovered)
+				return ui.style.highlight_border_clr;
+		}
+		
+		return _use_custom_colour ? _colour : ui.style.text_clr;
 	}
 	
 }

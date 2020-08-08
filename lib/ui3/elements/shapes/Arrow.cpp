@@ -26,7 +26,7 @@ class Arrow : Shape
 	
 	void _draw(Style@ style, DrawingContext@ ctx)
 	{
-		const uint clr = _use_custom_colour ? _colour : style.text_clr;
+		const uint clr = get_colour();
 		const float x = draw_x;
 		const float y = draw_y;
 		const float angle = rotation * DEG2RAD;

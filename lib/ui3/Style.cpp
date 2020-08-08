@@ -80,6 +80,8 @@ class Style
 	float default_list_view_item_width  = 100;
 	float default_list_view_item_height = 30;
 	
+	float titlebar_height  = 30;
+	
 	private string current_font = default_font;
 	private uint current_text_size = default_text_size;
 	private TextAlign current_align_v = TextAlign::Left;

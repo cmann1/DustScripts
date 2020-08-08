@@ -7,17 +7,18 @@
 class Divider : Element
 {
 	
-	Orientation orientation = Orientation::Horizontal;
+	Orientation orientation;
 	IOrientationParent@ orientation_parent;
 	
 	private float size;
 	
-	Divider(UI@ ui, Orientation orientation)
+	Divider(UI@ ui, Orientation orientation=Orientation::Horizontal)
 	{
 		super(ui);
 		
 		this.orientation = orientation;
 		fit();
+		mouse_enabled = false;
 	}
 	
 	Divider(UI@ ui, IOrientationParent@ orientation_parent=null)
@@ -26,6 +27,7 @@ class Divider : Element
 		
 		@this.orientation_parent = orientation_parent;
 		fit();
+		mouse_enabled = false;
 	}
 	
 	string element_type { get const override { return 'Divider'; } }
@@ -37,13 +39,13 @@ class Divider : Element
 		
 		if(orientation == Orientation::Horizontal)
 		{
-			width = size;
-			height = 20;
+			width = 20;
+			height = size;
 		}
 		else
 		{
-			width = 20;
-			height = size;
+			width = size;
+			height = 20;
 		}
 		
 		this.size = size;

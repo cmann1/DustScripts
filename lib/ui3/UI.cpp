@@ -262,7 +262,8 @@ class UI
 		 */
 		
 		@_active_mouse_element = null;
-		@_mouse_over_element = null;
+		// Don't clear _mouse_over_element
+		// @_mouse_over_element = null;
 		
 		if(debug_draw_active)
 		{
