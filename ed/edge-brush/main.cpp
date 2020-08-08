@@ -59,7 +59,7 @@ class script
 	[text] bool always_render_edges = true;
 	
 	scene@ g;
-	Mouse@ mouse = Mouse();
+	Mouse@ mouse = Mouse(false);
 	camera@ cam;
 	float view_x;
 	float view_y;
@@ -261,7 +261,7 @@ class script
 		Line line;
 		array<bool>@ edges_flags = @this.edges_flags;
 		
-		const float layer_size = size * get_layer_scale(19, layer);
+		const float layer_size = size * get_layer_scale(g, 19, layer);
 		const float size_sqr = layer_size * layer_size;
 		int start_x = floor_int((mouse_x - layer_size) * PIXEL2TILE);
 		int start_y = floor_int((mouse_y - layer_size) * PIXEL2TILE);
@@ -639,7 +639,7 @@ class script
 		}
 		else
 		{
-			transform_layer_position(view_x, view_y, mouse.x, mouse.y, layer, 22, x, y);
+			transform_layer_position(g, view_x, view_y, mouse.x, mouse.y, layer, 22, x, y);
 		}
 		
 		/*
@@ -656,8 +656,8 @@ class script
 				float y2 = draw_edges[i + 3];
 				bool has_collision = draw_edges[i + 4] == 1;
 				
-				transform_layer_position(view_x, view_y, x1, y1, layer, 22, x1, y1);
-				transform_layer_position(view_x, view_y, x2, y2, layer, 22, x2, y2);
+				transform_layer_position(g, view_x, view_y, x1, y1, layer, 22, x1, y1);
+				transform_layer_position(g, view_x, view_y, x2, y2, layer, 22, x2, y2);
 				
 				if(has_collision)
 				{
@@ -692,8 +692,8 @@ class script
 				float edge_marker_y1;
 				float edge_marker_x2;
 				float edge_marker_y2;
-				transform_layer_position(view_x, view_y, precision_edge_marker_x1, precision_edge_marker_y1, layer, 22, edge_marker_x1, edge_marker_y1);
-				transform_layer_position(view_x, view_y, precision_edge_marker_x2, precision_edge_marker_y2, layer, 22, edge_marker_x2, edge_marker_y2);
+				transform_layer_position(g, view_x, view_y, precision_edge_marker_x1, precision_edge_marker_y1, layer, 22, edge_marker_x1, edge_marker_y1);
+				transform_layer_position(g, view_x, view_y, precision_edge_marker_x2, precision_edge_marker_y2, layer, 22, edge_marker_x2, edge_marker_y2);
 				
 				draw_line(g, 22, 23,
 					edge_marker_x1, edge_marker_y1, edge_marker_x2, edge_marker_y2,
@@ -707,8 +707,8 @@ class script
 				float edge_y1;
 				float edge_x2;
 				float edge_y2;
-				transform_layer_position(view_x, view_y, precision_edge_x1, precision_edge_y1, layer, 22, edge_x1, edge_y1);
-				transform_layer_position(view_x, view_y, precision_edge_x2, precision_edge_y2, layer, 22, edge_x2, edge_y2);
+				transform_layer_position(g, view_x, view_y, precision_edge_x1, precision_edge_y1, layer, 22, edge_x1, edge_y1);
+				transform_layer_position(g, view_x, view_y, precision_edge_x2, precision_edge_y2, layer, 22, edge_x2, edge_y2);
 				
 				draw_line(g, 22, 22,
 					edge_x1, edge_y1, edge_x2, edge_y2,
@@ -718,7 +718,7 @@ class script
 		else
 		{
 			float layer_size, _lsy;
-			transform_layer_position(view_x, view_y, mouse.x, mouse.y, layer, 22, layer_size, _lsy);
+			transform_layer_position(g, view_x, view_y, mouse.x, mouse.y, layer, 22, layer_size, _lsy);
 			draw_circle(g, cursor_x, cursor_y, size, 64, 22, 24, 3, 0xaaffffff);
 		}
 		
