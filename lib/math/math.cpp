@@ -130,6 +130,11 @@ int sign(int x)
 	return x < 0 ? -1 : (x > 0 ? 1 : 0);
 }
 
+bool approximately(const float a, const float b)
+{
+	return abs(b - a) < EPSILON;
+}
+
 void vec2_limit(float x, float y, float limit, float &out out_x, float &out out_y)
 {
 	float length = x * x + y * y;
