@@ -43,7 +43,7 @@ abstract class SelectBase : LockedContainer
 		
 		children_mouse_enabled = false;
 		_set_width  = _width  = 120;
-		_set_height = _height = 30;
+		_set_height = _height = 34;
 		
 		_show_icons = placeholder_icon_set != '' || placeholder_icon_name != '';
 		set_placeholder_text(placeholder_text);

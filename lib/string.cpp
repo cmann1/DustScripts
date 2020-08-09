@@ -77,7 +77,7 @@ namespace string
 		return str;
 	}
 	
-	string nice(string str)
+	string nice(const string str)
 	{
 		bool pending_space = false;
 		bool prev_space = true;
@@ -121,6 +121,34 @@ namespace string
 		output.resize(output_size);
 		
 		return output;
+	}
+	
+	string nice_float(const float value, const uint precision=2, const bool trim_trailing_zeros=true)
+	{
+		string text = formatFloat(value, '', 0, precision);
+		
+		if(trim_trailing_zeros && precision > 0)
+		{
+			const int length = int(text.length());
+			int end_index = length - 1;
+			
+			while(text[end_index] == 48) // "0"
+				end_index--;
+			
+			while(text[end_index] == 46) // "."
+				end_index--;
+			
+			if(end_index == -1)
+			{
+				text = '';
+			}
+			else if(end_index < length - 1)
+			{
+				text = text.substr(0, end_index + 1);
+			}
+		}
+		
+		return text;
 	}
 	
 }

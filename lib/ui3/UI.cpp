@@ -1,6 +1,7 @@
 #include '../std.cpp';
 #include '../string.cpp';
 #include '../fonts.cpp';
+#include '../enums/GlobalVirtualButton.cpp';
 #include '../math/math.cpp';
 #include '../utils/colour.cpp';
 #include 'UIMouse.cpp';
@@ -27,12 +28,13 @@ class UI
 	
 	// Which mouse button is primarily used to interact with UI elements.
 	// Left might be more problematic since it will also interact with the editor ui.
-	MouseButton primary_button = MouseButton::Right;
-	MouseButton secondary_button = MouseButton::Left;
+	MouseButton primary_button = MouseButton::Left;
+	MouseButton secondary_button = MouseButton::Right;
 	
 	Style@ style;
 	UIMouse@ mouse;
 	bool is_mouse_over;
+	bool block_editor_input = true;
 	
 	bool _disable_clipping = false;
 	
@@ -112,19 +114,17 @@ class UI
 	editor_api@ _editor;
 	bool _has_editor;
 	
-	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
+	UI(bool hud=true, int layer=20, int sub_layer=10, int player=0)
 	{
 		@on_tooltip_hide_delegate = EventCallback(this.on_tooltip_hide);
+		
+		@g = get_scene();
+		@mouse = UIMouse(hud, layer, player);
 		
 		@contents = Container(this);
 		@overlays = Container(this);
 		contents.name = '_ROOT_';
 		overlays.name = '_OVERLAYS_';
-		
-		_hud = hud;
-		_layer = layer;
-		_sub_layer = sub_layer;
-		_player = player;
 		
 		if(hud)
 		{
@@ -133,9 +133,6 @@ class UI
 			x2 = SCREEN_RIGHT;
 			y2 = SCREEN_BOTTOM;
 		}
-		
-		@g = get_scene();
-		@mouse = UIMouse(hud, layer, player);
 		
 		@_event_info.mouse = mouse;
 		
@@ -150,6 +147,11 @@ class UI
 		
 		@_editor = get_editor_api();
 		_has_editor = @_editor != null;
+		
+		this.hud = hud;
+		this.layer = layer;
+		this.sub_layer = sub_layer;
+		_player = player;
 	}
 	
 	// The top most element the mouse is over
@@ -171,19 +173,19 @@ class UI
 	bool hud
 	{
 		get { return _hud; }
-		set { mouse.hud = style._hud = _hud = value; }
+		set { style.hud = mouse.hud = _hud = value; }
 	}
 	
 	uint layer
 	{
 		get { return _layer; }
-		set { mouse.layer = style._layer = _layer = value; }
+		set { style.layer = mouse.layer = _layer = value; }
 	}
 	
 	uint sub_layer
 	{
 		get { return _sub_layer; }
-		set { style._sub_layer = _sub_layer = value; }
+		set { style.sub_layer = _sub_layer = value; }
 	}
 	
 	bool add_child(Element@ child)
@@ -243,7 +245,7 @@ class UI
 			process_queued_events();
 		}
 		
-		mouse.step();
+		mouse.step(_has_editor && _editor.key_check_gvb(GlobalVirtualButton::Space));
 		
 		switch(primary_button)
 		{
@@ -314,13 +316,20 @@ class UI
 		// Wait for the next frame so that these changes will be reflected when the next layout pass happens.
 		
 		debug_draw_active = false;
+		
+		if(block_editor_input && _hud && _has_editor && @_mouse_over_element != null)
+		{
+			_editor.key_clear_gvb(GlobalVirtualButton::LeftClick);
+			_editor.key_clear_gvb(GlobalVirtualButton::RightClick);
+			_editor.key_clear_gvb(GlobalVirtualButton::MiddleClick);
+			_editor.key_clear_gvb(GlobalVirtualButton::WheelDown);
+			_editor.key_clear_gvb(GlobalVirtualButton::WheelUp);
+			_editor.key_clear_gvb(GlobalVirtualButton::Space);
+		}
 	}
 	
 	void draw()
 	{
-		style._layer = _layer;
-		style._sub_layer = _sub_layer;
-		
 		draw_root(contents);
 		draw_root(overlays);
 	}

@@ -40,7 +40,7 @@ class Style
 	
 	float border_size = 1;
 	float selected_border_size = 2;
-	float spacing = 4;
+	float spacing = 6;
 	float button_pressed_icon_offset = 1;
 	
 	float gripper_thickness = 2;
@@ -57,7 +57,7 @@ class Style
 	// The default text size used when creating labels, etc.
 	uint default_text_size = 26;
 	// The default scaling for text - should be set before creating any UI. Changing it after may not reflect correctly everywhere.
-	float default_text_scale = 0.75;
+	float default_text_scale = 0.9;
 	
 	// Text measurements don't seem to line up exactly always. Use these global values to offset
 	float text_offset_x = -1;
@@ -80,7 +80,7 @@ class Style
 	float default_list_view_item_width  = 100;
 	float default_list_view_item_height = 30;
 	
-	float titlebar_height  = 30;
+	float titlebar_height  = 38;
 	
 	private string current_font = default_font;
 	private uint current_text_size = default_text_size;
@@ -99,16 +99,19 @@ class Style
 	private array<DrawingContext@> drawing_context_pool(drawing_context_pool_size);
 	
 	private scene@ g;
+	private canvas@ c;
 	
-	uint _layer;
-	uint _sub_layer;
-	bool _hud;
+	private uint _layer;
+	private uint _sub_layer;
+	private bool _hud;
 	
 	Style(){}
 	
 	Style(bool hud)
 	{
-		_hud = hud;
+		@c = create_canvas(hud, _layer, _sub_layer);
+		c.scale_hud(false);
+		this.hud = hud;
 		
 		@g = get_scene();
 		
@@ -116,6 +119,24 @@ class Style
 		text_field.set_font(current_font, current_text_size);
 		text_field.align_horizontal(current_align_h);
 		text_field.align_vertical(current_align_v);
+	}
+	
+	bool hud
+	{
+		get const { return _hud; }
+		set { c.hud(_hud = value); }
+	}
+	
+	uint layer
+	{
+		get const { return _layer; }
+		set { c.layer(_layer = value); }
+	}
+	
+	uint sub_layer
+	{
+		get const { return _sub_layer; }
+		set { c.sub_layer(_sub_layer = value); }
 	}
 	
 	void measure_text(const string text, string font, uint size, float scale_x, float scale_y, float &out width, float &out height)
@@ -216,10 +237,7 @@ class Style
 		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
-		if(_hud)
-			g.draw_rectangle_hud(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
-		else
-			g.draw_rectangle_world(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
+		c.draw_rectangle(x1, y1, x2, y2, rotation, colour);
 	}
 	
 	void draw_glass(
@@ -229,10 +247,7 @@ class Style
 		if(ctx.alpha < 1)
 			return;
 		
-		if(_hud)
-			g.draw_glass_hud  (_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
-		else
-			g.draw_glass_world(_layer, _sub_layer, x1, y1, x2, y2, rotation, colour);
+		c.draw_glass(x1, y1, x2, y2, rotation, colour);
 	}
 
 	void draw_gradient(
@@ -247,10 +262,7 @@ class Style
 			c01 = set_alpha(c01);
 		}
 		
-		if(_hud)
-			g.draw_gradient_hud(_layer, _sub_layer, x1, y1, x2, y2, c00, c10, c11, c01);
-		else
-			g.draw_gradient_world(_layer, _sub_layer, x1, y1, x2, y2, c00, c10, c11, c01);
+		c.draw_gradient(x1, y1, x2, y2, c00, c10, c11, c01);
 	}
 
 	void draw_line(
@@ -267,14 +279,9 @@ class Style
 		const float mx = (x1 + x2) * 0.5;
 		const float my = (y1 + y2) * 0.5;
 		
-		if(_hud)
-			g.draw_rectangle_hud(_layer, _sub_layer,
-				mx - width, my - length * 0.5,
-				mx + width, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
-		else
-			g.draw_rectangle_world(_layer, _sub_layer,
-				mx - width, my - length * 0.5,
-				mx + width, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
+		c.draw_rectangle(
+			mx - width, my - length * 0.5,
+			mx + width, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
 	}
 
 	void draw_quad(
@@ -291,10 +298,7 @@ class Style
 			c4 = set_alpha(c4);
 		}
 		
-		if(_hud)
-			g.draw_quad_hud(_layer, _sub_layer, is_glass, x1, y1, x2, y2, x3, y3, x4, y4, c1, c2, c3, c4);
-		else
-			g.draw_quad_world(_layer, _sub_layer, is_glass, x1, y1, x2, y2, x3, y3, x4, y4, c1, c2, c3, c4);
+		c.draw_quad(is_glass, x1, y1, x2, y2, x3, y3, x4, y4, c1, c2, c3, c4);
 	}
 	
 	void draw_sprite(
@@ -307,10 +311,7 @@ class Style
 		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
-		if(_hud)
-			sprite.draw_hud  (_layer, _sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
-		else
-			sprite.draw_world(_layer, _sub_layer, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
+		c.draw_sprite(sprite, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
 	}
 	
 	void draw_text(
@@ -355,10 +356,7 @@ class Style
 		x += text_offset_x * scale_x;
 		y += text_offset_y * scale_y;
 		
-		if(_hud)
-			text_field.draw_hud(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
-		else
-			text_field.draw_world(_layer, _sub_layer, x, y, scale_x, scale_y, rotation);
+		c.draw_text(text_field, x, y, scale_x, scale_y, rotation);
 	}
 	
 	uint set_alpha(uint colour)

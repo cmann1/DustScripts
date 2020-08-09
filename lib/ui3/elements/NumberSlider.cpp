@@ -3,6 +3,7 @@
 #include '../TextAlign.cpp';
 #include '../../math/math.cpp';
 #include '../../utils/colour.cpp';
+#include '../../string.cpp';
 #include '../events/Event.cpp';
 #include '../utils/Orientation.cpp';
 #include 'Button.cpp';
@@ -26,7 +27,7 @@ class NumberSlider : LockedContainer
 	uint fill_active_colour = 0x00000000;
 	bool orient_label = true;
 	uint label_precision = 4;
-	bool trim_label_precision = true;
+	bool label_trim_trailing_zeros = true;
 	float button_size = 10;
 	float button_speed = 3;
 	float button_pause = button_speed * 5;
@@ -67,8 +68,8 @@ class NumberSlider : LockedContainer
 		this.show_text = show_text;
 		this.show_fill = show_fill;
 		
-		_set_width  = _width  = orientation == Orientation::Horizontal ? 60 : 30;
-		_set_height = _height = orientation == Orientation::Horizontal ? 30 : 60;
+		_set_width  = _width  = orientation == Orientation::Horizontal ? 60 : 34;
+		_set_height = _height = orientation == Orientation::Horizontal ? 34 : 60;
 	}
 	
 	string element_type { get const override { return 'NumberSlider'; } }
@@ -428,30 +429,7 @@ class NumberSlider : LockedContainer
 	
 	protected void update_label()
 	{
-		string text = formatFloat(_value, '', 0, label_precision);
-		
-		if(trim_label_precision && label_precision > 0)
-		{
-			const int length = int(text.length());
-			int end_index = length - 1;
-			
-			while(text[end_index] == 48) // "0"
-				end_index--;
-			
-			while(text[end_index] == 46) // "."
-				end_index--;
-			
-			if(end_index == -1)
-			{
-				text = '';
-			}
-			else if(end_index < length - 1)
-			{
-				text = text.substr(0, end_index + 1);
-			}
-		}
-		
-		_label.text = text;
+		_label.text = string::nice_float(_value, label_precision, label_trim_trailing_zeros);
 	}
 	
 }

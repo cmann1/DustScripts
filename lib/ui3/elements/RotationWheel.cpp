@@ -1,5 +1,6 @@
 #include '../../math/math.cpp';
 #include '../../enums/Key.cpp';
+#include '../../string.cpp';
 #include 'LockedContainer.cpp';
 #include 'Image.cpp';
 #include '../events/Event.cpp';
@@ -15,10 +16,12 @@ class RotationWheel : Image
 	float snap_small = PI / 8;
 	float snap_tiny  = PI / 36;
 	
-	bool auto_tooltip = true;
-	uint tooltip_precision = 4;
-	bool trim_tooltip_precision = true;
-	bool tooltip_degrees;
+	protected bool _auto_tooltip = false;
+	protected bool _auto_tooltip_range = true;
+	protected string _tooltip_prefix = '';
+	protected uint _tooltip_precision = 1;
+	protected bool _tooltip_trim_trailing_zeros = true;
+	protected bool _tooltip_degrees = true;
 	
 	Event change;
 	Event range_change;
@@ -42,6 +45,23 @@ class RotationWheel : Image
 		_height = _set_height = _width;
 	}
 	
+	//
+	
+	float start_angle
+	{
+		get const { return _start_angle; }
+		set
+		{
+			if(_start_angle == value)
+				return;
+			
+			_start_angle = value;
+			_end_angle = _start_angle + PI2;
+			
+			angle = _angle;
+		}
+	}
+	
 	float angle
 	{
 		get const { return _angle; }
@@ -49,7 +69,7 @@ class RotationWheel : Image
 		{
 			const float width		 = _end_angle - _start_angle;
 			const float offset_value = value - _start_angle;
-
+			
 			value = (offset_value - ( floor( offset_value / width ) * width )) + _start_angle;
 			value = snap(value);
 			
@@ -57,9 +77,17 @@ class RotationWheel : Image
 				return;
 			
 			_angle = value;
-			ui._event_info.reset(EventType::CHANGE, this);
-			change.dispatch(ui._event_info);
+			dispatch_change();
+			
+			if(auto_tooltip)
+				update_tooltip();
 		}
+	}
+	
+	float degrees
+	{
+		get const { return _angle * RAD2DEG; }
+		set { angle = value * DEG2RAD; }
 	}
 	
 	float range
@@ -74,15 +102,11 @@ class RotationWheel : Image
 				return;
 			
 			_range = value;
-			ui._event_info.reset(EventType::CHANGE_RANGE, this);
-			range_change.dispatch(ui._event_info);
+			dispatch_range_change();
+			
+			if(auto_tooltip)
+				update_tooltip();
 		}
-	}
-	
-	float degrees
-	{
-		get const { return _angle * RAD2DEG; }
-		set { angle = value * DEG2RAD; }
 	}
 	
 	float range_degrees
@@ -90,6 +114,75 @@ class RotationWheel : Image
 		get const { return _range * RAD2DEG; }
 		set { range = value * DEG2RAD; }
 	}
+	
+	// Auto tooltips
+	
+	bool auto_tooltip
+	{
+		get const { return _auto_tooltip; }
+		set
+		{
+			if(_auto_tooltip == value)
+				return;
+			
+			_auto_tooltip = value;
+			update_tooltip();
+		}
+	}
+	
+	string tooltip_prefix
+	{
+		get const { return _tooltip_prefix; }
+		set
+		{
+			if(_tooltip_prefix == value)
+				return;
+			
+			_tooltip_prefix = value;
+			update_tooltip();
+		}
+	}
+	
+	uint tooltip_precision
+	{
+		get const { return _tooltip_precision; }
+		set
+		{
+			if(_tooltip_precision == value)
+				return;
+			
+			_tooltip_precision = value;
+			update_tooltip();
+		}
+	}
+	
+	bool tooltip_trim_trailing_zeros
+	{
+		get const { return _tooltip_trim_trailing_zeros; }
+		set
+		{
+			if(_tooltip_trim_trailing_zeros == value)
+				return;
+			
+			_tooltip_trim_trailing_zeros = value;
+			update_tooltip();
+		}
+	}
+	
+	bool tooltip_degrees
+	{
+		get const { return _tooltip_degrees; }
+		set
+		{
+			if(_tooltip_degrees == value)
+				return;
+			
+			_tooltip_degrees = value;
+			update_tooltip();
+		}
+	}
+	
+	//
 	
 	bool overlaps_point(const float x, const float y) override
 	{
@@ -106,11 +199,16 @@ class RotationWheel : Image
 	{
 		Image::_do_layout(ctx);
 		
+		int scroll_dir;
+		
 		if(drag_angle)
 		{
 			if(ui.mouse.primary_down)
 			{
 				angle = get_mouse_angle() - drag_offset;
+				
+				if(_auto_tooltip)
+					tooltip.force_open = true;
 			}
 			else
 			{
@@ -122,6 +220,9 @@ class RotationWheel : Image
 			if(ui.mouse.secondary_down)
 			{
 				range = abs(shortest_angle(_angle, get_mouse_angle() - drag_offset));
+				
+				if(_auto_tooltip)
+					tooltip.force_open = true;
 			}
 			else
 			{
@@ -169,6 +270,10 @@ class RotationWheel : Image
 			{
 				drag_offset = 0;
 			}
+		}
+		else if(enable_mouse_wheel && ui.mouse.scrolled(scroll_dir))
+		{
+			angle = (round(_angle * RAD2DEG) - scroll_dir) * DEG2RAD;
 		}
 	}
 	
@@ -223,6 +328,57 @@ class RotationWheel : Image
 		const float dy = ui.mouse.y - mid_y;
 		
 		return atan2(dy, dx);
+	}
+	
+	protected void update_tooltip()
+	{
+		if(drag_range && !_auto_tooltip_range)
+			return;
+		
+		if(!_auto_tooltip)
+		{
+			if(@tooltip != null)
+			{
+				tooltip.enabled = false;
+			}
+			
+			return;
+		}
+		
+		if(@tooltip == null)
+		{
+			@tooltip = PopupOptions(ui, null);
+			tooltip.keep_open_while_pressed = true;
+		}
+		
+		tooltip.force_open = true;
+		tooltip.enabled = true;
+		
+		const float angle = drag_range ? _range : _angle;
+		
+		string str = string::nice_float(
+			_tooltip_degrees ? angle * RAD2DEG : angle,
+			_tooltip_precision, _tooltip_trim_trailing_zeros);
+		
+		if(drag_range)
+		{
+			str = '+/- ' + str;
+		}
+		
+		tooltip.content_string = _tooltip_prefix + str;
+		ui.update_tooltip(this);
+	}
+	
+	protected void dispatch_change()
+	{
+		ui._event_info.reset(EventType::CHANGE, this);
+		change.dispatch(ui._event_info);
+	}
+	
+	protected void dispatch_range_change()
+	{
+		ui._event_info.reset(EventType::CHANGE_RANGE, this);
+		range_change.dispatch(ui._event_info);
 	}
 	
 }

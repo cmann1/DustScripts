@@ -14,6 +14,9 @@ class PopupOptions : IGenericEventTarget
 	PopupPosition position;
 	PopupTriggerType trigger_type;
 	PopupHideType hide_type;
+	bool keep_open_while_pressed;
+	/// Will force the popup to stay open for a single frame
+	bool force_open;
 	/// Normally only the top most element element will trigger tooltips.
 	/// If this is set to true, this tooltip will trigger when the mouse is over
 	/// this element or any of its descendants

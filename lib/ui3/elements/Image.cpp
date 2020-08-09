@@ -69,8 +69,8 @@ class Image : Graphic
 		
 		style.draw_sprite(sprite,
 			_sprite_name, frame, palette,
-			draw_x - 0.5,
-			draw_y - 0.5, rotation,
+			round(draw_x) - 1,
+			round(draw_y) - 0.5, rotation,
 			is_transposed ? draw_scale_y : draw_scale_x,
 			is_transposed ? draw_scale_x : draw_scale_y,
 			colour);

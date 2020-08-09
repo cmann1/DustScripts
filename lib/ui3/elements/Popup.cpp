@@ -92,8 +92,9 @@ class Popup : SingleContainer
 		{
 			// Also check the pressed to allow interactive or active elements inside the tooltip to prevent the tooltip from disappearing
 			active = !_force_hide && (
-				@_target == null || @_target == @ui.mouse_over_element || pressed || hovered || waiting_for_mouse ||
-				_options.trigger_when_hovered && _target.hovered
+				@_target == null || @_target == @ui.mouse_over_element || pressed || hovered || waiting_for_mouse || _options.force_open ||
+				_options.trigger_when_hovered && _target.hovered ||
+				_options.keep_open_while_pressed && _target.pressed
 			);
 			
 			// Don't start fading if the mouse is in the space between the _target and the tooltip.
@@ -135,6 +136,11 @@ class Popup : SingleContainer
 			if(!_force_hide && !active && _options.interactable)
 			{
 				active = overlaps_point(ui.mouse.x, ui.mouse.y) || @_target == @ui.mouse_over_element;
+			}
+			
+			if(_options.force_open)
+			{
+				_options.force_open = false;
 			}
 		}
 		else if(_options.hide_type == PopupHideType::MouseDownOutside)
