@@ -69,11 +69,21 @@ float lerp(float a, float b, float x)
 	return a * (1.0 - x) + b * x;
 }
 
-// a0 and a1 in radians
-float shortest_angle(float a0, float a1)
+// current and target are in radians
+float shortest_angle(float current, float target)
 {
-	float da = (a1 - a0) % PI2;
-	return 2 * da % PI2 - da;
+	const float num = repeat(target - current, PI2);
+	return num > PI
+		? num - PI2
+		: num;
+	
+//	float da = (a1 - a0) % PI2;
+//	return 2 * da % PI2 - da;
+}
+
+float repeat(const float t, const float length)
+{
+	return clamp(t - floor(t / length) * length, 0.0f, length);
 }
 
 float lerp_angle(float a0, float a1, float t)
