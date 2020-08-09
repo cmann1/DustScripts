@@ -1,7 +1,7 @@
 #include '../std.cpp';
 #include '../fonts.cpp';
 #include '../Mouse.cpp';
-#include '../drawing/common.cpp';
+#include '../drawing/canvas.cpp';
 #include '../math/math.cpp';
 #include 'DebugItemList.cpp';
 #include 'DebugTextLineList.cpp';
@@ -20,7 +20,7 @@ class Debug
 	 
 	bool text_display_newset_first = true;
 	uint text_bg_colour = 0xaa000000;
-	bool text_bg_glass = false;
+	bool text_bg_glass = true;
 	uint text_shadow_colour = 0x00000000;
 	float text_shadow_ox = 2;
 	float text_shadow_oy = 2;
@@ -36,6 +36,7 @@ class Debug
 	
 	private textfield@ print_text_field;
 	private scene@ g;
+	private canvas@ text_canvas;
 	
 	private DebugTextLineList text_lines;
 	private float text_lines_x1, text_lines_y1;
@@ -43,6 +44,8 @@ class Debug
 	private bool recalculate_text_height;
 	private float text_lines_scroll;
 	private float single_line_height;
+	private uint text_layer = 22;
+	private uint text_sub_layer = 15;
 	
 	private DebugItemList items;
 	private DebugLinePool line_pool;
@@ -54,7 +57,11 @@ class Debug
 	
 	Debug()
 	{
+		mouse.scale_hud = false;
 		@g = get_scene();
+		@text_canvas = create_canvas(true, 22, 15);
+		text_canvas.scale_hud(false);
+		
 		@print_text_field = create_textfield();
 		print_text_field.set_font(_text_font, _text_size);
 		print_text_field.align_horizontal(_text_align_x);
@@ -155,6 +162,13 @@ class Debug
 	
 	void draw_text()
 	{
+		const float hud_width  = g.hud_screen_width(false);
+		const float hud_height = g.hud_screen_height(false);
+		const float SCREEN_LEFT   = -hud_width * 0.5;
+		const float SCREEN_RIGHT  = -SCREEN_LEFT;
+		const float SCREEN_TOP    = -hud_height * 0.5;
+		const float SCREEN_BOTTOM = -SCREEN_TOP;
+		
 		const float text_height = text_lines.text_height;
 		const float direction = text_display_newset_first ? -_text_align_y : _text_align_y;
 		const float text_x = _text_align_x == -1 ? SCREEN_LEFT + text_lines_padding : (_text_align_x == 1 ? SCREEN_RIGHT  - text_lines_padding : 0);
@@ -198,8 +212,8 @@ class Debug
 		uint current_colour = 0;
 		float text_width = 0;
 		
-		const float layer = 22;
-		const float sub_layer = 15;
+		text_canvas.layer(text_layer);
+		text_canvas.sub_layer(text_sub_layer);
 		
 		while(@line != null)
 		{
@@ -269,16 +283,16 @@ class Debug
 				{
 					if(text_outline)
 					{
-						outlined_text_hud(print_text_field, layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox);
+						draw::outlined_text(text_canvas, print_text_field, text_layer, text_sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox);
 					}
 					else
 					{
-						shadowed_text_hud(print_text_field, layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox, text_shadow_oy);
+						draw::shadowed_text(text_canvas, print_text_field, text_layer, text_sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0, text_shadow_colour, text_shadow_ox, text_shadow_oy);
 					}
 				}
 				else
 				{
-					print_text_field.draw_hud(layer, sub_layer, text_x, text_y, text_lines.scale, text_lines.scale, 0);
+					text_canvas.draw_text(print_text_field, text_x, text_y, text_lines.scale, text_lines.scale, 0);
 				}
 				
 				const float width = print_text_field.text_width() * text_lines.scale;
@@ -329,13 +343,16 @@ class Debug
 			
 			if(text_bg_colour != 0 && text_width > 0 && (y2 - y1 > 0))
 			{
-				g.draw_rectangle_hud(layer, sub_layer - 1,
+				text_canvas.layer(text_layer);
+				text_canvas.sub_layer(text_sub_layer - 1);
+				
+				text_canvas.draw_rectangle(
 					x1, y1, x2, y2,
 					0, text_bg_colour);
 					
 				if(text_bg_glass)
 				{
-					g.draw_glass_hud(layer, sub_layer - 1, x1, y1, x2, y2, 0, 0x00ffffff);
+					text_canvas.draw_glass(x1, y1, x2, y2, 0, 0x00ffffff);
 				}
 			}
 		//}
