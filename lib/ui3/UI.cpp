@@ -1,6 +1,7 @@
 #include '../std.cpp';
 #include '../string.cpp';
 #include '../fonts.cpp';
+#include '../editor/common.cpp';
 #include '../enums/GlobalVirtualButton.cpp';
 #include '../math/math.cpp';
 #include '../utils/colour.cpp';
@@ -391,12 +392,7 @@ class UI
 		
 		if(block_editor_input && _hud && _has_editor && @_mouse_over_element != null)
 		{
-			_editor.key_clear_gvb(GlobalVirtualButton::LeftClick);
-			_editor.key_clear_gvb(GlobalVirtualButton::RightClick);
-			_editor.key_clear_gvb(GlobalVirtualButton::MiddleClick);
-			_editor.key_clear_gvb(GlobalVirtualButton::WheelDown);
-			_editor.key_clear_gvb(GlobalVirtualButton::WheelUp);
-			_editor.key_clear_gvb(GlobalVirtualButton::Space);
+			editor_api::block_all_mouse(_editor);
 		}
 	}
 	

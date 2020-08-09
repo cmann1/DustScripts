@@ -122,8 +122,8 @@ abstract class Graphic : Element
 		const float x = x1 + (width  - gr_width  * draw_scale_x) * align_h + gr_width  * draw_scale_x * (is_transposed ? origin_y : origin_x);
 		const float y = y1 + (height - gr_height * draw_scale_y) * align_v + gr_height * draw_scale_y * (is_transposed ? origin_x : origin_y);
 		
-		draw_x = x + dx * draw_scale_x;
-		draw_y = y + dy * draw_scale_y;
+		draw_x = x + ui.pixel_ceil(dx * draw_scale_x);
+		draw_y = y + ui.pixel_ceil(dy * draw_scale_y);
 	}
 	
 }
