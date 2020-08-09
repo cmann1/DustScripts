@@ -123,35 +123,3 @@ int ceil_int(float x)
 {
 	return int(ceil(x));
 }
-
-// Can be removed if the values returned by mouse_hud are fixed
-float calibrated_mouse_hud(scene@ g, float &out mouse_x, float &out mouse_y, float mouse_scale, int player = 0)
-{
-	const float x = g.mouse_x_hud(player);
-	const float y = g.mouse_y_hud(player);
-	
-	mouse_x = x * mouse_scale;
-	mouse_y = y * mouse_scale;
-	
-	// If the mouse coordinates ever go outside of the bounds, reduce the scale until they're inside the bounds.
-	// Use a bound greater than the real bound in order to avoid floating point errors causing problems
-	if(abs(mouse_x) > SCREEN_RIGHT + 0.1)
-	{
-		mouse_scale = SCREEN_RIGHT / abs(x);
-		
-		// Readjust the scaled values, so that we can check the Y against the new scale, and use the correct values immediately
-		mouse_x = x * mouse_scale;
-		mouse_y = y * mouse_scale;
-	}
-	
-	if(abs(mouse_y) > SCREEN_BOTTOM + 0.1)
-	{
-		mouse_scale = SCREEN_BOTTOM / abs(y);
-		
-		// Readjust the scaled values, so that we can use the correct values immediately
-		mouse_x = x * mouse_scale;
-		mouse_y = y * mouse_scale;
-	}
-	
-	return mouse_scale;
-}
