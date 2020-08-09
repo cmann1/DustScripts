@@ -42,12 +42,12 @@ The main script has a utility for selecting and outputting code that can be used
     - **SetEmitterSubLayer** - allows setting emitter sub layers.
     - **SetEmitterRotation** - allows setting emitter rotation.
 - **emitters/main.cpp** - Direct editing of emitters using the mouse:
-    - **Move**: Right mouse in empty space inside emitter.
-    - **Resize**: Right mouse corner handles.
+    - **Move**: Left mouse
+    - **Resize**: Left mouse corner handles.
     - **Adjust sub layer**: Mouse wheel while dragging.
     - **Adjust layer**: Middle mouse while dragging to toggle between changing sub layers and layers.
     - **Rotate**: Middle mouse.
-    - **Delete**: Left mouse while dragging.
+    - **Delete**: Right mouse while dragging.
     - **Properties:**
         - **enabled:** Turn the script on and off.
         - **parallax_hitbox:** Renders the position of emitters on parallax layers - useful for finding emitters if you need to select it with the normal emitter tool. Can be turned on always or only when the mouse is over an emitter.

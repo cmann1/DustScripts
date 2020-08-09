@@ -1,4 +1,7 @@
 #include "../../lib/std.cpp";
+#include "../../lib/Mouse.cpp";
+#include '../../lib/editor/common.cpp';
+#include '../../lib/enums/GlobalVirtualButton.cpp';
 #include "../../lib/math/math.cpp";
 #include "../../lib/math/geom.cpp";
 #include "../../lib/enums/ColType.cpp";
@@ -43,27 +46,19 @@ class script
 	private EmitterData@ hovered_emitter;
 	private EmitterData@ active_emitter;
 	
-	private bool prev_left_mouse_down;
-	private bool prev_right_mouse_down;
-	private bool prev_middle_mouse_down;
+	private Mouse mouse(false);
 	
-	private bool left_mouse_down;
-	private bool right_mouse_down;
-	private bool middle_mouse_down;
-	
-	private bool left_mouse_press;
-	private bool right_mouse_press;
-	private bool middle_mouse_press;
-	
-	private float mouse_x;
-	private float mouse_y;
-	private int mouse_scroll;
-	private int mouse_state;
+	private editor_api@ editor;
+	private bool has_editor;
+	private bool editor_block_all_mouse;
 	
 	script()
 	{
 		@g = get_scene();
 		@cam = get_active_camera();
+		
+		@editor = get_editor_api();
+		has_editor = @editor != null;
 		
 		@layer_text = create_textfield();
         layer_text.align_horizontal(-1);
@@ -88,17 +83,18 @@ class script
 			@validate_emitter = null;
 		}
 		
-		float view_x = cam.x();
-		float view_y = cam.y();
+		const float view_x = cam.x();
+		const float view_y = cam.y();
+		const float editor_zoom = 1 / cam.editor_zoom();
 		
-		update_mouse();
-		find_emitters(view_x, view_y);
+		mouse.step(has_editor && editor.key_check_gvb(GlobalVirtualButton::Space));
+		find_emitters(view_x, view_y, editor_zoom);
 		
 		if(@active_emitter == null && @hovered_emitter != null)
 		{
-			if(right_mouse_press)
+			if(mouse.left_press)
 			{
-				ResizeMode mode = hovered_emitter.check_handles(handle_offset_x, handle_offset_y);
+				ResizeMode mode = hovered_emitter.check_handles(handle_offset_x, handle_offset_y, editor_zoom);
 				
 				if(mode != None)
 				{
@@ -120,7 +116,7 @@ class script
 					dragMode = Move;
 				}
 			}
-			else if(middle_mouse_press)
+			else if(mouse.middle_press)
 			{
 				float dx = hovered_emitter.mouse_x - hovered_emitter.x;
 				float dy = hovered_emitter.mouse_y - hovered_emitter.y;
@@ -129,7 +125,7 @@ class script
 			}
 			else
 			{
-				hovered_emitter.hovered_handle = hovered_emitter.check_handles(handle_offset_x, handle_offset_y);
+				hovered_emitter.hovered_handle = hovered_emitter.check_handles(handle_offset_x, handle_offset_y, editor_zoom);
 			}
 			
 			if(dragMode != None)
@@ -141,6 +137,7 @@ class script
 		if(@active_emitter != null)
 		{
 			@hovered_emitter = null;
+			active_emitter.is_active = true;
 			
 			bool requires_update = false;
 			bool mouse_button;
@@ -149,15 +146,15 @@ class script
 			{
 				case Rotation:
 					update_rotation();
-					mouse_button = middle_mouse_down;
+					mouse_button = mouse.middle_down;
 					break;
 				case Move:
 					update_position();
-					mouse_button = right_mouse_down;
+					mouse_button = mouse.left_down;
 					break;
 				case Resize:
 					update_size();
-					mouse_button = right_mouse_down;
+					mouse_button = mouse.left_down;
 					break;
 			}
 			
@@ -180,29 +177,15 @@ class script
 		{
 			g.remove_entity(validate_emitter.emitter);
 		}
+		
+		if(@hovered_emitter != null || @active_emitter != null)
+		{
+			editor_api::block_all_mouse(editor);
+			editor_block_all_mouse = false;
+		}
 	}
 	
-	void update_mouse()
-	{
-		mouse_x = g.mouse_x_world(0, 19);
-		mouse_y = g.mouse_y_world(0, 19);
-		mouse_state = g.mouse_state(0);
-		mouse_scroll = (mouse_state & 1 != 0) ? -1 : ((mouse_state & 2 != 0) ? 1 : 0);
-		
-		left_mouse_down = (mouse_state & 4) != 0;
-		right_mouse_down = (mouse_state & 8) != 0;
-		middle_mouse_down = (mouse_state & 16) != 0;
-		
-		left_mouse_press = left_mouse_down && !prev_left_mouse_down;
-		right_mouse_press = right_mouse_down && !prev_right_mouse_down;
-		middle_mouse_press = middle_mouse_down && !prev_middle_mouse_down;
-		
-		prev_left_mouse_down = left_mouse_down;
-		prev_right_mouse_down = right_mouse_down;
-		prev_middle_mouse_down = middle_mouse_down;
-	}
-	
-	void find_emitters(float view_x, float view_y)
+	void find_emitters(const float view_x, const float view_y, const float editor_zoom)
 	{
 		@hovered_emitter = null;
 		
@@ -235,14 +218,14 @@ class script
 				if(@active_emitter != null && emitter.is_same(@active_emitter.emitter))
 				{
 					active_emitter.update_view(view_x, view_y);
-					active_emitter.update_mouse(layer_mouse_x, layer_mouse_y, mouse_x, mouse_y);
+					active_emitter.update_mouse(layer_mouse_x, layer_mouse_y, mouse.x, mouse.y, editor_zoom);
 					continue;
 				}
 				
 				EmitterData@ data = EmitterData(g);
 				data.update_emitter(emitter);
 				data.update_view(view_x, view_y);
-				data.update_mouse(layer_mouse_x, layer_mouse_y, mouse_x, mouse_y);
+				data.update_mouse(layer_mouse_x, layer_mouse_y, mouse.x, mouse.y, editor_zoom);
 				highlighted_emitters.insertLast(@data);
 				
 				if(data.is_mouse_over)
@@ -278,7 +261,7 @@ class script
 		if(@active_emitter == null)
 			return;
 		
-		if(left_mouse_press)
+		if(mouse.right_press)
 		{
 			g.remove_entity(active_emitter.emitter);
 			@active_emitter = null;
@@ -287,12 +270,14 @@ class script
 			return;
 		}
 		
-		if(middle_mouse_press)
+		if(mouse.middle_press)
 		{
 			scroll_layer = !scroll_layer;
 		}
 		
-		if(mouse_scroll != 0)
+		int mouse_scroll;
+		
+		if(mouse.scrolled(mouse_scroll))
 		{
 			if(scroll_layer)
 			{
@@ -451,8 +436,9 @@ class script
 		if(!enabled)
 			return;
 		
-		float view_x = cam.x();
-		float view_y = cam.y();
+		const float view_x = cam.x();
+		const float view_y = cam.y();
+		const float editor_zoom = 1 / cam.editor_zoom();
 		
 		for(int i = int(highlighted_emitters.length()) - 1; i >= 0; i--)
 		{
@@ -462,7 +448,7 @@ class script
 				continue;
 			
 			data.update_view(view_x, view_y);
-			data.render_highlight(g, colours.normal_fill, colours.normal_outline, parallax_hitbox, parallax_lines);
+			data.render_highlight(g, colours.normal_fill, colours.normal_outline, parallax_hitbox, parallax_lines, editor_zoom);
 		}
 		
 		EmitterData@ active_data = @active_emitter != null ? @active_emitter : @hovered_emitter;
@@ -470,17 +456,17 @@ class script
 		if(@active_data != null)
 		{
 			active_data.update_view(view_x, view_y);
-			active_data.render_highlight(g, colours.selected_fill, colours.selected_outline, parallax_hitbox, parallax_lines);
-			active_data.render_rotation(g);
-			active_data.render_handles(g);
+			active_data.render_highlight(g, colours.selected_fill, colours.selected_outline, parallax_hitbox, parallax_lines, editor_zoom);
+			active_data.render_rotation(g, editor_zoom);
+			active_data.render_handles(g, editor_zoom);
 			
 			if(dragMode == Move)
 			{
-				active_data.render_active_layer_text(active_layer_text, mouse_x, mouse_y, scroll_layer);
+				active_data.render_active_layer_text(active_layer_text, mouse.x, mouse.y, scroll_layer, editor_zoom);
 			}
 			else
 			{
-				active_data.render_layer_text(layer_text, line);
+				active_data.render_layer_text(layer_text, line, editor_zoom);
 			}
 		}
 	}

@@ -114,7 +114,7 @@ void draw_arc(scene@ g, float x, float y, float size_x, float size_y, float star
 		float px = x + cos(angle) * size_x;
 		float py = y + sin(angle) * size_y;
 		
-		g.draw_line(
+		draw_line(g,
 			layer, sub_layer, 
 			prev_x, prev_y,
 			px, py,
