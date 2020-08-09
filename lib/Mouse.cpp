@@ -1,4 +1,5 @@
 #include 'std.cpp';
+#include 'enums/GlobalVirtualButton.cpp';
 
 class Mouse
 {
@@ -6,6 +7,7 @@ class Mouse
 	bool hud = false;
 	int layer = 19;
 	int player = 0;
+	bool scale_hud = false;
 	
 	bool moved;
 	
@@ -51,11 +53,12 @@ class Mouse
 		@g = get_scene();
 	}
 	
-	void step()
+	void step(bool block_mouse=false)
 	{
 		if(hud)
 		{
-			scale = calibrated_mouse_hud(g, x, y, scale, player);
+			x = g.mouse_x_hud(player, scale_hud);
+			y = g.mouse_y_hud(player, scale_hud);
 		}
 		else
 		{
@@ -63,7 +66,7 @@ class Mouse
 			y = g.mouse_y_world(player, layer);
 		}
 		
-		state = g.mouse_state(0);
+		state = block_mouse ? 0 : g.mouse_state(0);
 		scroll = (state & 1 != 0) ? -1 : ((state & 2 != 0) ? 1 : 0);
 		
 		left_down = (state & 4) != 0;
