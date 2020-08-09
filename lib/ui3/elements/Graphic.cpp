@@ -70,7 +70,6 @@ abstract class Graphic : Element
 		
 		const float padding = is_nan(this.padding) ? ui.style.spacing : this.padding;
 		
-		if(padding > 0)
 		{
 			x1 += padding;
 			y1 += padding;

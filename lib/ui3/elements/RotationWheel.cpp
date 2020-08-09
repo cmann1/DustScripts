@@ -16,6 +16,8 @@ class RotationWheel : Image
 	float snap_small = PI / 8;
 	float snap_tiny  = PI / 36;
 	
+	float image_radius_inset = 3;
+	
 	protected bool _auto_tooltip = false;
 	protected bool _auto_tooltip_range = true;
 	protected string _tooltip_prefix = '';
@@ -35,13 +37,13 @@ class RotationWheel : Image
 	protected bool drag_range;
 	protected float drag_offset;
 	
-	protected float image_radius_inset = 2;
-	
 	RotationWheel(UI@ ui)
 	{
 		super(ui, 'editor', 'circle');
+		sizing = ImageSize:: FitInside;
+		padding = 0;
 		
-		_width = _set_width = 36;
+		_width = _set_width = 46;
 		_height = _set_height = _width;
 	}
 	
@@ -289,7 +291,7 @@ class RotationWheel : Image
 		
 		float nx = cos(_angle);
 		float ny = sin(_angle);
-		style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 1, main_clr);
+		style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 1.5, main_clr);
 		
 		if(allow_range && _range != 0)
 		{
