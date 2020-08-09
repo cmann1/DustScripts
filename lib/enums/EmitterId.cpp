@@ -1,4 +1,4 @@
-enum EmitterId
+namespace EmitterId
 {
 	
 	// Main

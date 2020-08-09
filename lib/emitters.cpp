@@ -15,7 +15,7 @@ entity@ create_emitter(int id, float x, float y, int width, int height, int laye
 	return emitter;
 }
 
-EmitterId get_emitter_id_for_area(int area)
+int get_emitter_id_for_area(int area)
 {
 	switch(area)
 	{
