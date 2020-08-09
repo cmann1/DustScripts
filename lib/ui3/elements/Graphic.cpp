@@ -55,8 +55,8 @@ abstract class Graphic : Element
 		float y2 = y1 + this._height;
 		
 		is_transposed = abs(abs(rotation) - 90) <= EPSILON;
-		const float gr_width  = is_transposed ? _graphic_height : _graphic_width;
-		const float gr_height = is_transposed ? _graphic_width  : _graphic_height;
+		const float gr_width  = ceil(is_transposed ? _graphic_height : _graphic_width);
+		const float gr_height = ceil(is_transposed ? _graphic_width  : _graphic_height);
 		const float scale_x = is_transposed ? this.scale_y : this.scale_x;
 		const float scale_y = is_transposed ? this.scale_x : this.scale_y;
 		

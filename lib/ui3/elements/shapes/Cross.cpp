@@ -3,6 +3,8 @@
 class Cross : Shape
 {
 	
+	float thickness = 1.5;
+	
 	Cross(UI@ ui)
 	{
 		super(ui);
@@ -17,20 +19,29 @@ class Cross : Shape
 	
 	protected void init() override
 	{
-		_width  = _set_width  = 10;
-		_height = _set_height = 10;
-		_graphic_width  = 10;
-		_graphic_height = 10;
+		_width  = _set_width  = 12;
+		_height = _set_height = 12;
+		_graphic_width  = 12;
+		_graphic_height = 12;
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx)
 	{
 		const uint clr = get_colour();
-		const float x = draw_x;
-		const float y = draw_y;
 		
-		style.draw_rectangle(x - 1, y + 4, x + 11, y + 6, rotation + 45, clr);
-		style.draw_rectangle(x - 1, y + 4, x + 11, y + 6, rotation - 45, clr);
+		const float size_x = _graphic_width  * draw_scale_x * 0.5;
+		const float size_y = _graphic_height * draw_scale_y * 0.5;
+		const float x = ui.pixel_floor(draw_x + size_x);
+		const float y = ui.pixel_floor(draw_y + size_y);
+		
+		style.draw_rectangle(
+			x - size_x - 1, y - thickness * draw_scale_x,
+			x + size_x + 1, y + thickness * draw_scale_y,
+			rotation + 45, clr);
+		style.draw_rectangle(
+			x - size_x - 1, y - thickness * draw_scale_x,
+			x + size_x + 1, y + thickness * draw_scale_y,
+			rotation - 45, clr);
 	}
 	
 }

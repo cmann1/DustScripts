@@ -19,4 +19,6 @@ namespace EventType
 	const string MOVE_COMPLETED	= 'move_completed';
 	const string CLOSE			= 'close';
 	
+	const string SCREEN_RESIZE	= 'screen_resize';
+	
 }

@@ -18,10 +18,10 @@ class Arrow : Shape
 	
 	protected void init() override
 	{
-		_width  = _set_width  = 8;
-		_height = _set_height = 8;
-		_graphic_width  = 4;
-		_graphic_height = 8;
+		_width  = _set_width  = 10;
+		_height = _set_height = 10;
+		_graphic_width  = 5;
+		_graphic_height = 10;
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx)
@@ -32,18 +32,18 @@ class Arrow : Shape
 		const float angle = rotation * DEG2RAD;
 		
 		float
-			x2 = 4 * draw_scale_x,
-			y2 = 4 * draw_scale_y,
+			x2 = 5 * draw_scale_x,
+			y2 = 5 * draw_scale_y,
 			x4 = 0 * draw_scale_x,
-			y4 = 8 * draw_scale_y;
+			y4 = 10 * draw_scale_y;
 		rotate(x2, y2, angle, x2, y2);
 		rotate(x4, y4, angle, x4, y4);
 		
 		style.draw_quad(false,
-			x, y,
-			x + x2, y + y2,
-			x + x2, y + y2,
-			x + x4, y + y4, clr, clr, clr, clr);
+			ui.pixel_round(x), ui.pixel_round(y),
+			ui.pixel_round(x + x2), ui.pixel_round(y + y2),
+			ui.pixel_round(x + x2), ui.pixel_round(y + y2),
+			ui.pixel_round(x + x4), ui.pixel_round(y + y4), clr, clr, clr, clr);
 	}
 	
 }

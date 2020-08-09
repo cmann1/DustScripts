@@ -25,6 +25,11 @@ class EventInfo
 		@this.generic_target = null;
 	}
 	
+	void reset(const string type)
+	{
+		reset(type, null, null, '');
+	}
+	
 	void reset(const string type, Element@ target, const string value='')
 	{
 		reset(type, target, null, value);

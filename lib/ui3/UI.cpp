@@ -26,16 +26,30 @@ class UI
 	int NEXT_ID;
 	int CUSTOM_TOOLTIP_ID;
 	
-	// Which mouse button is primarily used to interact with UI elements.
-	// Left might be more problematic since it will also interact with the editor ui.
+	/// Which mouse button is primarily used to interact with UI elements.
+	/// (Left might be more problematic since it will also interact with the editor ui.)
+	/// Obsolete since the introduction of the editor api and the ability to consume mouse events
 	MouseButton primary_button = MouseButton::Left;
 	MouseButton secondary_button = MouseButton::Right;
 	
 	Style@ style;
 	UIMouse@ mouse;
-	bool is_mouse_over;
 	bool block_editor_input = true;
 	
+	/// Only relevant when hud = true. When true, certain drawing operations
+	/// will attempt to snap to whole pixels to give cleaner lines
+	bool pixel_perfect = true;
+	float screen_width;
+	float screen_height;
+	bool _even_screen_width;
+	bool _even_screen_height;
+	/// Mostly for testing. Adds padding around the screen when auto_fit_screen is true
+	float auto_fit_padding_x;
+	float auto_fit_padding_y;
+	
+	Event screen_resize;
+	
+	/// Debug only
 	bool _disable_clipping = false;
 	
 	// Uncomment and manually set during testing
@@ -48,6 +62,9 @@ class UI
 	private int _sub_layer;
 	private int _player;
 	
+	/// Only relevant when hud = true. Will automatically set the hud's region to match the screen
+	private bool _auto_fit_screen = true;
+	
 	private Container@ contents;
 	private Container@ overlays;
 	/// e.g. a drop down box that is open. There can only by one active element in a UI.
@@ -56,16 +73,18 @@ class UI
 	/*private*/ Element@ _active_mouse_element;
 	private bool active_mouse_element_processed;
 	
-	// Used for processing element layouts
+	private bool is_mouse_over;
+	
+	/// Used for processing element layouts
 	private ElementStack element_stack;
 	private int layout_context_pool_size = 16;
 	private int layout_context_pool_index = 0;
 	private array<LayoutContext@> layout_context_pool(layout_context_pool_size);
-	// The top most element the mouse is over
+	/// The top most element the mouse is over
 	private Element@ _mouse_over_element;
-	// Elements entered on this frame
+	/// Elements entered on this frame
 	private array<Element@> elements_mouse_enter();
-	// The hierarchy of elements the mouse is over, from the outermost to the inner
+	/// The hierarchy of elements the mouse is over, from the outermost to the inner
 	private array<Element@> elements_mouse_over();
 	
 	private Element@ debug_mouse_over_element;
@@ -152,28 +171,43 @@ class UI
 		this.layer = layer;
 		this.sub_layer = sub_layer;
 		_player = player;
+		
+		screen_width  = g.hud_screen_width(false);
+		screen_height = g.hud_screen_height(false);
+		
+		if(_hud && _auto_fit_screen)
+		{
+			fit_to_screen();
+		}
 	}
 	
-	// The top most element the mouse is over
+	/// The top most element the mouse is over
 	Element@ mouse_over_element { get { return @_mouse_over_element; } }
 	
-	// The top most element the mouse is over
+	/// The top most element the mouse is over
 	bool is_mouse_over_ui { get { return @_mouse_over_element != null; } }
 	
-	/**
-	 * @brief Returns mouse x relative to this element
-	 */
+	/// Returns mouse x relative to the UI
 	float mouse_x { get { return mouse.x - contents.x1; } }
 	
-	/**
-	 * @brief Returns mouse y relative to this element
-	 */
+	/// Returns mouse y relative to the UI
 	float mouse_y { get { return mouse.y - contents.y1; } }
 	
 	bool hud
 	{
 		get { return _hud; }
-		set { style.hud = mouse.hud = _hud = value; }
+		set
+		{
+			if(_hud == value)
+				return;
+			
+			style.hud = mouse.hud = _hud = value;
+			
+			if(_hud && _auto_fit_screen)
+			{
+				fit_to_screen(true);
+			}
+		}
 	}
 	
 	uint layer
@@ -186,6 +220,24 @@ class UI
 	{
 		get { return _sub_layer; }
 		set { style.sub_layer = _sub_layer = value; }
+	}
+	
+	/// Only relevant when hud = true. Will automatically set the hud's region to match the screen
+	bool auto_fit_screen
+	{
+		get const { return _auto_fit_screen; }
+		set
+		{
+			if(_auto_fit_screen == value)
+				return;
+			
+			_auto_fit_screen = value;
+			
+			if(_hud && _auto_fit_screen)
+			{
+				fit_to_screen(true);
+			}
+		}
 	}
 	
 	bool add_child(Element@ child)
@@ -225,6 +277,26 @@ class UI
 	
 	void step()
 	{
+		if(_hud)
+		{
+			const float new_screen_width  = g.hud_screen_width(false);
+			const float new_screen_height = g.hud_screen_height(false);
+			
+			if(!approximately(screen_width, new_screen_width) || !approximately(screen_height, new_screen_height))
+			{
+				screen_width  = new_screen_width;
+				screen_height = new_screen_height;
+				
+				if(_auto_fit_screen)
+				{
+					fit_to_screen();
+				}
+				
+				_event_info.reset(EventType::SCREEN_RESIZE);
+				screen_resize.dispatch(_event_info);
+			}
+		}
+		
 		// Don't clear on the firt frame so that pressed elements will still update once
 		if(@_active_mouse_element != null && mouse.primary_down)
 		{
@@ -334,6 +406,7 @@ class UI
 		draw_root(overlays);
 	}
 	
+	/// Make sure to setup a Debug instance before calling this
 	void debug_draw(bool just_outline=false, bool show_ids=false, bool show_element_data=true, const float id_scale=0.4)
 	{
 		style.reset_drawing_context(null);
@@ -390,6 +463,27 @@ class UI
 	float region_y2 { get const{ return y2; } }
 	float region_width  { get const{ return x2 - x1; } }
 	float region_height { get const{ return y2 - y1; } }
+	
+	void fit_to_screen(bool update_screen_values=false)
+	{
+		if(!_hud)
+			return;
+		
+		const float new_screen_width  = g.hud_screen_width(false);
+		const float new_screen_height = g.hud_screen_height(false);
+		
+		set_region(
+			-new_screen_width * 0.5 + auto_fit_padding_x, -new_screen_height * 0.5 + auto_fit_padding_y,
+			 new_screen_width * 0.5 - auto_fit_padding_x,  new_screen_height * 0.5 - auto_fit_padding_y);
+		 
+		 if(update_screen_values)
+		 {
+			screen_width  = new_screen_width;
+			screen_height = new_screen_height;
+			_even_screen_width = (screen_width % 2) == 0;
+			_even_screen_height = (screen_height % 2) == 0;
+		 }
+	}
 	
 	/**
 	 * @brief Shows the tooltip for the given element if it has one.
@@ -478,6 +572,10 @@ class UI
 	{
 		return overlays.contains(element);
 	}
+	
+	/* internal */ float pixel_floor(const float value) { return _hud && pixel_perfect ? floor(value) : value; }
+	/* internal */ float pixel_round(const float value) { return _hud && pixel_perfect ? round(value) : value; }
+	/* internal */ float pixel_ceil(const float value) { return _hud && pixel_perfect ? ceil(value) : value; }
 	
 	// Private
 	// ---------------------------------------------------------
@@ -1268,6 +1366,8 @@ class UI
 		{
 			debug.print(indent + '  draw_scale: ' + gr.debug_draw_scale_x + ', ' + gr.debug_draw_scale_y, txt_clr, print_id + id++, 0);
 			debug.print(indent + '  draw_pos:   ' + gr.debug_draw_x + ', ' + gr.debug_draw_y, txt_clr, print_id + id++, 0);
+			if(gr.padding != 0)
+				debug.print(indent + '  padding:    ' + gr.padding, txt_clr, print_id + id++, 0);
 			if(gr.graphic_offset_x != 0 || gr.graphic_offset_y != 0)
 				debug.print(indent + '  offset:     ' + gr.graphic_offset_x + ', ' + gr.graphic_offset_y, txt_clr, print_id + id++, 0);
 			if(gr.origin_x != 0 || gr.origin_y != 0)

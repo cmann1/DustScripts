@@ -6,7 +6,7 @@
 class Select : SelectBase
 {
 	
-	float button_size = 16;
+	float button_size = 20;
 	
 	protected Arrow@ _arrow;
 	protected ListView@ list_view;

@@ -28,7 +28,7 @@ class NumberSlider : LockedContainer
 	bool orient_label = true;
 	uint label_precision = 4;
 	bool label_trim_trailing_zeros = true;
-	float button_size = 10;
+	float button_size = 14;
 	float button_speed = 3;
 	float button_pause = button_speed * 5;
 	float fade_buttons = 0;
@@ -68,8 +68,8 @@ class NumberSlider : LockedContainer
 		this.show_text = show_text;
 		this.show_fill = show_fill;
 		
-		_set_width  = _width  = orientation == Orientation::Horizontal ? 60 : 34;
-		_set_height = _height = orientation == Orientation::Horizontal ? 34 : 60;
+		_set_width  = _width  = orientation == Orientation::Horizontal ? 70 : 34;
+		_set_height = _height = orientation == Orientation::Horizontal ? 34 : 70;
 	}
 	
 	string element_type { get const override { return 'NumberSlider'; } }

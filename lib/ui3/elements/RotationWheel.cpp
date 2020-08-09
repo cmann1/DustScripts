@@ -47,6 +47,8 @@ class RotationWheel : Image
 		_height = _set_height = _width;
 	}
 	
+	string element_type { get const override { return 'RotationWheel'; } }
+	
 	//
 	
 	float start_angle

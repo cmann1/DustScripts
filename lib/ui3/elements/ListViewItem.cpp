@@ -146,7 +146,6 @@ class ListViewItem : Container
 		if(@_icon == null)
 		{
 			@_icon = Image(ui, sprite_set, sprite_name, width, height, offset_x, offset_y);
-			_icon.padding = NAN;
 			_icon.width  = ui.style.default_list_view_item_height;
 			_icon.height = ui.style.default_list_view_item_height;
 			Container::add_child(_icon, 0);

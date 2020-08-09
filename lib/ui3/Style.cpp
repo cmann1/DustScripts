@@ -40,7 +40,7 @@ class Style
 	
 	float border_size = 1;
 	float selected_border_size = 2;
-	float spacing = 6;
+	float spacing = 5;
 	float button_pressed_icon_offset = 1;
 	
 	float gripper_thickness = 2;
