@@ -15,19 +15,21 @@ class FlowLayout : Layout
 	FlowAlign align;
 	FlowWrap wrap;
 	FlowFit fit;
+	bool expand_cross_axis;
 	float spacing = NAN;
 	
 	FlowLayout(UI@ ui,
 		const FlowDirection direction, FlowAlign justify=FlowAlign::Start, FlowAlign align=FlowAlign::Start,
-		FlowWrap wrap=FlowWrap::Wrap, FlowFit fit=FlowFit::None)
+		FlowWrap wrap=FlowWrap::Wrap, FlowFit fit=FlowFit::None, bool expand_cross_axis=true)
 	{
-		@this.ui		= ui;
+		@this.ui				= ui;
 		
-		this.direction		= direction;
-		this.justify		= justify;
-		this.align			= align;
-		this.wrap			= wrap;
-		this.fit			= fit;
+		this.direction			= direction;
+		this.justify			= justify;
+		this.align				= align;
+		this.wrap				= wrap;
+		this.fit				= fit;
+		this.expand_cross_axis	= expand_cross_axis;
 	}
 	
 	void do_layout(const array<Element@>@ elements,
@@ -183,19 +185,11 @@ class FlowLayout : Layout
 		}
 		
 		// Add spacing
-		cross_axis_total_size += (num_cross_axis - 1) * spacing;
+		const float cross_axis_total_spacing = (num_cross_axis - 1) * spacing;
+		cross_axis_total_size += cross_axis_total_spacing;
 		
 		// //////////////////////////////////////////////////////
 		// Step 2. Position the elements
-		
-		int i = 0;
-		int prev_axis_index = 0;
-		int next_axis_index = 0;
-		current_main_axis_size = 0;
-		current_cross_axis_size = 0;
-		axis_sizes_index = 0;
-		axis_end_indices_index = 0;
-		cross_x = cross_axis_start;
 		
 		if(fit == FlowFit::MainAxis || fit == FlowFit::Both)
 		{
@@ -208,6 +202,22 @@ class FlowLayout : Layout
 			cross_axis_end = cross_axis_start + cross_axis_total_size;
 			cross_axis_size = cross_axis_total_size;
 		}
+		else if(expand_cross_axis && cross_axis_total_size < cross_axis_size)
+		{
+			for(int i = 0; i < axis_sizes_index; i += 2)
+			{
+				axis_sizes[i + 1] = axis_sizes[i + 1] / (cross_axis_total_size - cross_axis_total_spacing) * (cross_axis_size - cross_axis_total_spacing);
+			}
+		}
+		
+		int i = 0;
+		int prev_axis_index = 0;
+		int next_axis_index = 0;
+		current_main_axis_size = 0;
+		current_cross_axis_size = 0;
+		axis_sizes_index = 0;
+		axis_end_indices_index = 0;
+		cross_x = cross_axis_start;
 		
 		float main_spacing;
 		const float main_axis_mid = main_axis_start + main_axis_size * 0.5;

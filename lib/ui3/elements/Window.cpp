@@ -217,6 +217,7 @@ class Window : MoveableDialog
 			
 			@_title_before = Container(ui);
 			@_title_before.layout = @title_flow_layout;
+			_title_before.name = 'title_before';
 			Container::add_child(_title_before);
 		}
 		
@@ -275,6 +276,7 @@ class Window : MoveableDialog
 			
 			@_title_after = Container(ui);
 			@_title_after.layout = @title_flow_layout;
+			_title_after.name = 'title_after';
 			Container::add_child(_title_before);
 		}
 		
