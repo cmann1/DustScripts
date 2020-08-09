@@ -39,6 +39,8 @@ abstract class MoveableDialog : Container
 				drag_offset_y = ui.mouse.y - y1;
 				busy_dragging = true;
 				has_moved = false;
+				
+				@ui._active_mouse_element = @this;
 			}
 		}
 		
@@ -75,6 +77,10 @@ abstract class MoveableDialog : Container
 					ui._event_info.y = y;
 					move_complete.dispatch(ui._event_info);
 				}
+			}
+			else
+			{
+				@ui._active_mouse_element = @this;
 			}
 		}
 	}

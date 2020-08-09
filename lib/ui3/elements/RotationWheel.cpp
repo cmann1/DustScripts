@@ -213,6 +213,8 @@ class RotationWheel : Image
 				
 				if(_auto_tooltip)
 					tooltip.force_open = true;
+				
+				@ui._active_mouse_element = @this;
 			}
 			else
 			{
@@ -227,6 +229,8 @@ class RotationWheel : Image
 				
 				if(_auto_tooltip)
 					tooltip.force_open = true;
+					
+				@ui._active_mouse_element = @this;
 			}
 			else
 			{
@@ -243,6 +247,8 @@ class RotationWheel : Image
 			{
 				drag_range = true;
 			}
+			
+			@ui._active_mouse_element = @this;
 			
 			const float mid_x = (x1 + x2) * 0.5;
 			const float mid_y = (y1 + y2) * 0.5;
@@ -275,7 +281,7 @@ class RotationWheel : Image
 				drag_offset = 0;
 			}
 		}
-		else if(enable_mouse_wheel && ui.mouse.scrolled(scroll_dir))
+		else if(enable_mouse_wheel && hovered && ui.mouse.scrolled(scroll_dir))
 		{
 			angle = (round(_angle * RAD2DEG) - scroll_dir) * DEG2RAD;
 		}
