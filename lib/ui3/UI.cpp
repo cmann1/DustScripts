@@ -28,6 +28,7 @@ class UI
 	// Which mouse button is primarily used to interact with UI elements.
 	// Left might be more problematic since it will also interact with the editor ui.
 	MouseButton primary_button = MouseButton::Right;
+	MouseButton secondary_button = MouseButton::Left;
 	
 	Style@ style;
 	UIMouse@ mouse;
@@ -108,6 +109,9 @@ class UI
 	/*private*/ array<int> _int_array(16);
 	/*private*/ array<Element@> _element_array(16);
 	
+	editor_api@ _editor;
+	bool _has_editor;
+	
 	UI(bool hud=true, int layer=20, int sub_layer=19, int player=0)
 	{
 		@on_tooltip_hide_delegate = EventCallback(this.on_tooltip_hide);
@@ -143,6 +147,9 @@ class UI
 		set_region(x1, y1, x2, y2);
 		
 		@_toolbar_flow_layout = FlowLayout(this, FlowDirection::Row, FlowAlign::Start, FlowAlign::Centre, FlowWrap::Wrap);
+		
+		@_editor = get_editor_api();
+		_has_editor = @_editor != null;
 	}
 	
 	// The top most element the mouse is over
@@ -254,6 +261,25 @@ class UI
 				mouse.primary_down = mouse.right_down;
 				mouse.primary_press = mouse.right_press;
 				mouse.primary_release = mouse.right_release;
+				break;
+		}
+		
+		switch(secondary_button)
+		{
+			case MouseButton::Left:
+				mouse.secondary_down = mouse.left_down;
+				mouse.secondary_press = mouse.left_press;
+				mouse.secondary_release = mouse.left_release;
+				break;
+			case MouseButton::Middle:
+				mouse.secondary_down = mouse.middle_down;
+				mouse.secondary_press = mouse.middle_press;
+				mouse.secondary_release = mouse.middle_release;
+				break;
+			case MouseButton::Right:
+				mouse.secondary_down = mouse.right_down;
+				mouse.secondary_press = mouse.right_press;
+				mouse.secondary_release = mouse.right_release;
 				break;
 		}
 		
@@ -1208,7 +1234,7 @@ class UI
 		}
 	}
 	
-	void debug_draw_element_data()
+	private void debug_draw_element_data()
 	{
 		if(@debug == null)
 			return;
@@ -1290,7 +1316,7 @@ class UI
 		debug.print('[' + debug_el.id + (debug_el.name != '' ? '.' + debug_el.name : '') + ']', id_clr, print_id + id++, 0);
 	}
 	
-	void debug_print_mouse_stack()
+	private void debug_print_mouse_stack()
 	{
 		if(@debug == null)
 			return;

@@ -13,6 +13,7 @@ namespace EventType
 	const string SCROLL			= 'scroll';
 	const string SELECT 		= 'select';
 	const string CHANGE 		= 'change';
+	const string CHANGE_RANGE	= 'change_range';
 	
 	const string MOVE			= 'move';
 	const string MOVE_COMPLETED	= 'move_completed';
