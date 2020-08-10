@@ -188,8 +188,10 @@ class script
 	void find_emitters(const float view_x, const float view_y, const float editor_zoom)
 	{
 		@hovered_emitter = null;
-		
 		highlighted_emitters.resize(0);
+		
+		if(editor.mouse_in_gui())
+			return;
 		
 		const float closest_radius = 400;
 		
