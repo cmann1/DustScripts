@@ -1,5 +1,4 @@
 /** Empty script with all callbacks. */
-
 class script {
   script() {
     /** Initialize any state variables here. */
@@ -288,7 +287,7 @@ class myenemy : enemy_base {
 }
 
 /** API methods included here are globally accessible within a script. */
-//class user_script : linked_script_object, var_callback {
+//class user_script, var_callback {
 //{
   /** Returns the name of this script. Script names are used as a way of
    * identifiying scripts for use when working with script triggers/enemies. */
@@ -451,9 +450,12 @@ class myenemy : enemy_base {
 
   /** Get editor api object if currently in editor mode. */
   editor_api@ get_editor_api();
+
+  /** Get nexus api object if currently in nexus. */
+  nexus_api@ get_nexus_api();
 //}
 
-class scene : linked_script_object {
+class scene {
   /** Get the current level name. */
   string map_name();
 
@@ -884,7 +886,7 @@ class scene : linked_script_object {
   void time_warp(float time_warp);
 }
 
-class rectangle : linked_script_object {
+class rectangle {
   float top();
   void top(float _top);
 
@@ -902,7 +904,7 @@ class rectangle : linked_script_object {
 }
 
 /** Represents a ray cast result. */
-class raycast : linked_script_object {
+class raycast {
   /** Returns true if the ray cast hit a tile. */
   bool hit();
 
@@ -923,7 +925,7 @@ class raycast : linked_script_object {
   int angle();
 }
 
-class tilecollision : linked_script_object {
+class tilecollision {
   bool hit();
   float hit_x();
   float hit_y();
@@ -932,7 +934,7 @@ class tilecollision : linked_script_object {
 
 /** Represents what tile shape and sprite is present at a tile and which edges
  * have collisions. Does not include filth information. */
-class tileinfo : linked_script_object {
+class tileinfo {
   /** See the notes in the TileShape class at
    * https://github.com/msg555/dustmaker/blob/master/dustmaker/Tile.py
    * for how the `type` parameter maps to the shape of the tile.
@@ -997,7 +999,7 @@ class tileinfo : linked_script_object {
 }
 
 /** Describes the filth or spikes on a tile. */
-class tilefilth : linked_script_object {
+class tilefilth {
   /** Each tile filth value indicates if and what type of filth or spikes are
    * present on a given face of a tile.  These values should be:
    * 
@@ -1018,7 +1020,7 @@ class tilefilth : linked_script_object {
   void right(uint8 _right);
 }
 
-class camera : linked_script_object {
+class camera {
   string camera_type();
 
   /** A flag to disable the normal camera behavior. Set this to true if you wish
@@ -1123,7 +1125,7 @@ class camera : linked_script_object {
  * Most enemies have two collisions associated with them. The base collision is
  * used to detect tile collisions and when the entity is clicked in the editor.
  * The hit collision is used to detect when an enemy is attacked. */
-class collision : linked_script_object {
+class collision {
   /** Access the hitbox of the collisio. */
   void rectangle(float top, float bottom, float left, float right);
   void rectangle(rectangle@ rect,
@@ -1144,7 +1146,7 @@ class collision : linked_script_object {
   entity@ entity();
 }
 
-class audio : linked_script_object {
+class audio {
   void stop();
   bool is_playing();
 
@@ -1160,7 +1162,7 @@ class audio : linked_script_object {
   void positional(bool positional);
 }
 
-class entity : linked_script_object {
+class entity {
   /** Returns true if the underlying entity objects point to the same object.
    * This is to help deal with the issue of different entity handles pointing to
    * the same entity object in the scene. */
@@ -1743,7 +1745,7 @@ class scriptenemy : controllable {
  * https://www.dropbox.com/s/11pa1cdqhv68etv/sprites.rar?dl=0 although the
  * folder structure doesn't always match the sprite set structure used in game.
  */
-class sprites : linked_script_object {
+class sprites {
   /** Add a sprite set's sprites into this sprites object. After this call we can
    * refer to any contained sprites with
    * draw/get_palette_count/get_animation_length.  Any duplicate sprite
@@ -1788,7 +1790,7 @@ class sprites : linked_script_object {
       float scale_x, float scale_y, uint32 colour);
 }
 
-class prop : linked_script_object {
+class prop {
   /** Return the ID associated with this prop that can be used with the
    * prop_by_id() function. All props that have been added to the scene should
    * have an ID. */
@@ -1837,7 +1839,7 @@ class prop : linked_script_object {
 }
 
 /** Represents a text field used to render text to the screen. */
-class textfield : linked_script_object {
+class textfield {
   /** Access the text to be rendered or measured. */
   string text();
   void text(string text);
@@ -1880,7 +1882,7 @@ class textfield : linked_script_object {
 }
 
 /** A common interface used to represent a variable of any type. */
-class varvalue : linked_script_object {
+class varvalue {
   /** Returns the type of the variable.  See 'var_types' at the end of this
    * documentation for details on the different types. */
   int type_id();
@@ -1913,7 +1915,7 @@ class varvalue : linked_script_object {
 }
 
 /** Represents an array of variables. */
-class vararray : linked_script_object {
+class vararray {
   /** Get the i-th value in this array. Returns null for indicies outside the
    * bounds of the array. */
   varvalue@ at(uint32 index);
@@ -1930,7 +1932,7 @@ class vararray : linked_script_object {
 }
 
 /** Represents a dictionary of string keys to vars. */
-class varstruct : linked_script_object {
+class varstruct {
   /** Retrieves a var based on its name. */
   varvalue@ get_var(string var);
 
@@ -1944,7 +1946,7 @@ class varstruct : linked_script_object {
   string var_name(uint32 index);
 }
 
-class message : linked_script_object {
+class message {
   int get_int(string key);
   int get_int(string key, int def);
   void set_int(string key, int val);
@@ -1980,7 +1982,7 @@ class message : linked_script_object {
  * [y'] = [m10 m11 oy] [y]
  * [1 ]   [0   0   1 ] [1]
  */
-class canvas : linked_script_object {
+class canvas {
   /** Access whether this canvas draws to the hud or world. */
   bool hud();
   void hud(bool hud);
@@ -2068,7 +2070,7 @@ class canvas : linked_script_object {
 /** Definitions match those described in
  * http://www.cplusplus.com/reference/ctime/tm/
  */
-class timedate : linked_script_object {
+class timedate {
   int sec();
   int min();
   int hour();
@@ -2080,7 +2082,7 @@ class timedate : linked_script_object {
   int isdst();
 }
 
-class fog_setting : linked_script_object {
+class fog_setting {
   uint layer_index(uint layer, uint sublayer);
 
   /** Access the layer and sublayer fog colours. */
@@ -2128,7 +2130,7 @@ class fog_setting : linked_script_object {
   void stars_bot(float s_bot);
 };
 
-class editor_api : linked_script_object {
+class editor_api {
   /** Returns true if the key is currently pressed. vk should be a 
    * virtual key keycode. See
    * https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes.
@@ -2171,8 +2173,52 @@ class editor_api : linked_script_object {
   bool hide_gui();
   void hide_gui(bool hide);
 
-  // Access select rect
-  // Access selected entity
+  /** Returns true if the mouse is within the editor GUI menus */
+  bool mouse_in_gui();
+  /** Returns the width of the left menu panel. */
+  int menu_left_panel_width();
+  /** Returns the width of the right menu panel. */
+  int menu_right_panel_width();
+
+  rectangle@ select_rectangle();
+
+  /** Return the number of selected entities. */
+  uint selected_entity_count();
+  /** Return the index-th selected entity or null if no entity exists at that index. */
+  entity@ selected_entity(uint index);
+
+  /** Return the number of selected props. */
+  uint selected_prop_count();
+  /** Return the index-th selected prop or null if no prop exists at that index. */
+  prop@ selected_prop(uint index);
+};
+
+class nexus_api {
+  /** Get the number of keys that have been used of each time. This reflects
+   * directly what is persisted to disk. ngplus controls whether all doors
+   * are automatically in an open state.
+   */
+  void get_keys_used(int &out wood, int &out silver, int &out gold,
+                         int &out red, bool &out ngplus);
+  /** Update key usage and save to disk. */
+  void set_keys_used(int wood, int silver, int gold, int red, bool ngplus);
+
+  /** Convenience function to calculate number of keys that have been earned
+   * of each type. Subtract out the used key counts to get the number of
+   * available keys. */
+  void get_keys_earned(int &out wood, int &out silver, int &out gold, int &out red);
+
+  /** Get count of levels that have score data in this nexus root */
+  uint score_count();
+
+  /** Get the name of the i-th level in this nexus root */
+  string score_level(uint index);
+
+  /** Lookup the score data for a given level */
+  bool score_lookup(string level, int &out thorough, int &out finesse,
+                        float &out time, int &out key_type);
+  /** Set the score data for a given level */
+  void score_set(string level, int thorough, int finesse, float time, int key_type);
 };
 
 /** For reference, here is the state_types enum used in DF
@@ -2316,7 +2362,7 @@ enum GLOBAL_VIRTUAL_BUTTON {
   GVB_RETURN = 6,
   GVB_QUICKRESTART = 7,
   GVB_SPACE = 8,
-  GVB_TAB = 9,
+  GVB_LEVEL_EDITOR = 9,
   GVB_SHIFT = 10,
   GVB_CONTROL = 11,
   GVB_ALT = 12,
