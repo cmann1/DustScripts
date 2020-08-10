@@ -11,7 +11,9 @@ class Checkbox : Element
 	
 	protected CheckboxState _state = CheckboxState::Off;
 	protected Element@ _label;
+	protected EventCallback@ label_press_delegate;
 	protected EventCallback@ label_click_delegate;
+	protected bool _toggle_on_press;
 	
 	Checkbox(UI@ ui)
 	{
@@ -34,7 +36,7 @@ class Checkbox : Element
 				return;
 			
 			_state = value;
-			dispatch_change_event();
+			ui._dispatch_event(@change, EventType::CHANGE, this);
 		}
 	}
 	
@@ -44,20 +46,22 @@ class Checkbox : Element
 		set
 		{
 			_state = value ? CheckboxState::On : CheckboxState::Off;
-			dispatch_change_event();
+			ui._dispatch_event(@change, EventType::CHANGE, this);
 		}
 	}
 	
+	/// A third state, neither on nor off.
 	bool indeterminate
 	{
 		get const { return _state == CheckboxState::Indeterminate; }
 		set
 		{
 			_state = value ? CheckboxState::Indeterminate : CheckboxState::Off;
-			dispatch_change_event();
+			ui._dispatch_event(@change, EventType::CHANGE, this);
 		}
 	}
 	
+	/// An element associated with this checkbox. Clicking the element will also toggle this checkbox.
 	Element@ label
 	{
 		get { return _label; }
@@ -66,17 +70,44 @@ class Checkbox : Element
 			if(@_label == @value)
 				return;
 			
-			if(@_label != null)
-			{
-				_label.mouse_click.off(label_click_delegate);
-			}
-			
+			clear_label_events();
 			@_label = value;
+			set_label_events();
+		}
+	}
+	
+	/// If true the checkbox will be toggled when pressed instead of when clicked.
+	bool toggle_on_press
+	{
+		get const { return _toggle_on_press; }
+		set
+		{
+			if(_toggle_on_press == value)
+				return;
 			
-			if(@_label != null)
-			{
-				_label.mouse_click.on(label_click_delegate);
-			}
+			_toggle_on_press = value;
+			clear_label_events();
+			set_label_events();
+		}
+	}
+	
+	/// Sets this checkbox's state without triggering the change event.
+	void initialise_state(const CheckboxState state)
+	{
+		_state = state;
+	}
+	
+	/// Sets this checkbox's checked state without triggering the change event.
+	void initialise_state(const bool checked)
+	{
+		_state = checked ? CheckboxState::On : CheckboxState::Off;
+	}
+	
+	void _do_layout(LayoutContext@ ctx) override
+	{
+		if(!_toggle_on_press && (pressed || @_label != null && _label.pressed) || (hovered || @_label != null && _label.hovered) && ui.mouse.primary_press )
+		{
+			@ui._active_mouse_element = @this;
 		}
 	}
 	
@@ -84,7 +115,7 @@ class Checkbox : Element
 	{
 		float x = x1 + (_width  - _size) * 0.5;
 		float y = y1 + (_height - _size) * 0.5;
-		const bool pressed = this.pressed || (@_label != null && _label.pressed);
+		const bool pressed = !_toggle_on_press && (this.pressed || (@_label != null && _label.pressed));
 		
 		style.draw_interactive_element(
 			x, y, x + _size, y + _size,
@@ -107,15 +138,65 @@ class Checkbox : Element
 		}
 	}
 	
-	protected void dispatch_change_event()
+	void _mouse_press(const MouseButton button)
 	{
-		ui._event_info.reset(EventType::CHANGE, this);
-		change.dispatch(ui._event_info);
+		if(!toggle_on_press || button != ui.primary_button)
+			return;
+		
+		checked = _state != CheckboxState::On;
 	}
 	
 	void _mouse_click() override
 	{
-		checked = _state != CheckboxState::On;
+		if(!toggle_on_press)
+		{
+			checked = _state != CheckboxState::On;
+		}
+	}
+	
+	protected void clear_label_events()
+	{
+		if(@_label == null)
+			return;
+		
+		if(@label_click_delegate != null)
+		{
+			_label.mouse_click.off(label_click_delegate);
+		}
+		
+		if(@label_press_delegate != null)
+		{
+			_label.mouse_press.off(label_press_delegate);
+		}
+	}
+	
+	protected void set_label_events()
+	{
+		if(@_label == null)
+			return;
+		
+		if(_toggle_on_press)
+		{
+			if(@label_press_delegate == null)
+				@label_press_delegate = EventCallback(on_label_press);
+			
+			_label.mouse_press.on(label_press_delegate);
+		}
+		else
+		{
+			if(@label_click_delegate == null)
+				@label_click_delegate = EventCallback(on_label_click);
+			
+			_label.mouse_click.on(label_click_delegate);
+		}
+	}
+	
+	protected void on_label_press(EventInfo@ event)
+	{
+		if(event.button == ui.primary_button)
+		{
+			checked = _state != CheckboxState::On;
+		}
 	}
 	
 	protected void on_label_click(EventInfo@ event)

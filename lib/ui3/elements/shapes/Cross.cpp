@@ -31,8 +31,8 @@ class Cross : Shape
 		
 		const float size_x = _graphic_width  * draw_scale_x * 0.5;
 		const float size_y = _graphic_height * draw_scale_y * 0.5;
-		const float x = ui.pixel_floor(draw_x + size_x);
-		const float y = ui.pixel_floor(draw_y + size_y);
+		const float x = ui._pixel_floor(draw_x + size_x);
+		const float y = ui._pixel_floor(draw_y + size_y);
 		
 		style.draw_rectangle(
 			x - size_x - 1, y - thickness * draw_scale_x,

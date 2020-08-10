@@ -122,7 +122,7 @@ abstract class SelectBase : LockedContainer
 			
 			update_label();
 			update_icon();
-			dispatch_change_event();
+			ui._dispatch_event(@change, EventType::CHANGE, this);
 		}
 	}
 	
@@ -152,7 +152,7 @@ abstract class SelectBase : LockedContainer
 		
 		if(index == _selected_index)
 		{
-			dispatch_change_event();
+			ui._dispatch_event(@change, EventType::CHANGE, this);
 		}
 	}
 	
@@ -405,12 +405,6 @@ abstract class SelectBase : LockedContainer
 		
 		_icon.visible = true;
 		_icon.set_sprite(set, name, width, height, x, y);
-	}
-	
-	protected void dispatch_change_event()
-	{
-		ui._event_info.reset(EventType::CHANGE, this);
-		change.dispatch(ui._event_info);
 	}
 	
 }

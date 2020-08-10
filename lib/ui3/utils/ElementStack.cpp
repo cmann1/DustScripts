@@ -30,7 +30,10 @@ class ElementStack
 		
 		for(int i = 0; i < count; i++)
 		{
-			@stack[index++] = elements[i];
+			if(elements[i].visible)
+			{
+				@stack[index++] = elements[i];
+			}
 		}
 	}
 	
@@ -46,7 +49,10 @@ class ElementStack
 		
 		for(int i = count - 1; i >= 0; i--)
 		{
-			@stack[index++] = elements[i];
+			if(elements[i].visible)
+			{
+				@stack[index++] = elements[i];
+			}
 		}
 	}
 	

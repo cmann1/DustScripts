@@ -1,0 +1,361 @@
+#include '../../../fonts.cpp';
+#include '../../../math/math.cpp';
+#include '../../utils/GraphicAlign.cpp';
+#include '../../events/Event.cpp';
+#include '../Checkbox.cpp';
+#include '../Label.cpp';
+#include '../LockedContainer.cpp';
+#include 'LayerSelectorSet.cpp';
+#include 'LayerSelectorType.cpp';
+
+class LayerSelector : LockedContainer
+{
+	
+	Event layer_select;
+	Event sub_layer_select;
+	
+	// Properties
+	
+	protected LayerSelectorType _type = LayerSelectorType(-1);
+	// TODO: Turn this off by default
+	protected bool _multi_select = true;
+	/*DONE*/ protected bool _allow_deselect = true;
+	// TODO: Turn this off by default
+	/*DONE*/ protected bool _drag_select = true;
+	protected int _align_v = GraphicAlign::Top;
+	/*DONE*/ protected float _label_spacing = NAN;
+	/*DONE*/ protected bool _toggle_on_press = true;
+	
+	protected bool _show_backdrop_layers = true;
+	protected bool _show_parallax_layers = true;
+	protected bool _show_background_layers = true;
+	protected bool _show_entities_layer = true;
+	protected bool _show_collision_layer = true;
+	protected bool _show_foreground_layer = true;
+	protected bool _show_ui_layers = true;
+	
+	protected int _min_sublayer = 0;
+	protected int _max_sublayer = 24;
+	
+	// TODO: Turn these off by default
+	protected bool _show_all_layers_toggle = true;
+	protected bool _show_all_sub_layers_toggle = true;
+	
+	/*DONE*/ protected string _font = font::ENVY_BOLD;
+	/*DONE*/ protected uint _font_size = 20;
+	
+	//
+	
+	protected bool validate_layout;
+	
+	protected LayerSelectorSet@ layers;
+	protected LayerSelectorSet@ sub_layers;
+	protected bool has_layers;
+	protected bool has_sub_layers;
+	
+	LayerSelector(UI@ ui, const LayerSelectorType type=LayerSelectorType::Layers)
+	{
+		super(ui);
+		
+		this.type = type;
+		
+		validate_layout = true;
+	}
+	
+	string element_type { get const override { return 'LayerSelector'; } }
+	
+	/// Whether the layer list, the sub layer list, or both are shown.
+	LayerSelectorType type
+	{
+		get const { return _type; }
+		set
+		{
+			if(_type == value)
+				return;
+			
+			_type = value;
+			
+			has_layers = false;
+			has_sub_layers = false;
+			validate_layout = true;
+			
+			if(_type == LayerSelectorType::Layers || _type == LayerSelectorType::Both)
+			{
+				has_layers = true;
+				initialise_layers_set();
+				layers.visible = true;
+			}
+			else if(@layers != null)
+			{
+				layers.visible = false;
+			}
+			
+			if(_type == LayerSelectorType::SubLayers || _type == LayerSelectorType::Both)
+			{
+				has_sub_layers = true;
+				initialise_sub_layers_set();
+				sub_layers.visible = true;
+			}
+			else if(@sub_layers != null)
+			{
+				sub_layers.visible = false;
+			}
+		}
+	}
+	
+	/// If this and multi_select is set, multiple layers can be selected or deselected by clicking and dragging the mouse.
+	bool drag_select
+	{
+		get const { return _drag_select; }
+		set
+		{
+			if(_drag_select == value)
+				return;
+			
+			if(has_layers)
+				layers.drag_select = _drag_select;
+			if(has_sub_layers)
+				sub_layers.drag_select = _drag_select;
+		}
+	}
+	
+	/// Only relevant when both the layer and sublayer lists are shown.
+	/// Controls how they are aligned vertically.
+	int align_v
+	{
+		get const { return _align_v; }
+		set
+		{
+			if(_align_v == value)
+				return;
+			
+			_align_v = value;
+			validate_layout = true;
+		}
+	}
+	
+	/// Controls the spacing between the layer labels and the checkboxes
+	float label_spacing
+	{
+		get const { return _label_spacing; }
+		set
+		{
+			if(_label_spacing == value)
+				return;
+			
+			_label_spacing = value;
+			
+			if(has_layers)
+				layers.update_label_spacing(_label_spacing);
+			if(has_sub_layers)
+				sub_layers.update_label_spacing(_label_spacing);
+			
+			invalidate();
+		}
+	}
+	
+	/// If true, layers will be toggled when pressed instead of when clicked
+	bool toggle_on_press
+	{
+		get const { return _toggle_on_press; }
+		set
+		{
+			if(_toggle_on_press == value)
+				return;
+			
+			_toggle_on_press = value;
+			
+			if(has_layers)
+				layers.update_toggle_on_press(_toggle_on_press);
+			if(has_sub_layers)
+				sub_layers.update_toggle_on_press(_toggle_on_press);
+		}
+	}
+	
+	/// If false, will prevent layers from being selected.
+	/// Only has an effect when multi select is off.
+	bool allow_deselect
+	{
+		get const { return _allow_deselect; }
+		set
+		{
+			_allow_deselect = value;
+			
+			if(has_layers)
+				layers.allow_deselect = _allow_deselect;
+			if(has_sub_layers)
+				sub_layers.allow_deselect = _allow_deselect;
+		}
+	}
+	
+	/// Sets the font used for all layer labels
+	void set_font(const string font, const uint size)
+	{
+		if(_font == font && _font_size == size)
+			return;
+		
+		_font = font;
+		_font_size = size;
+		
+		if(has_layers)
+			layers.set_font(font, size);
+		if(has_sub_layers)
+			sub_layers.set_font(font, size);
+		
+		invalidate();
+	}
+	
+	void set_selectable_sub_layers(int min, int max)
+	{
+		if(min < 0)
+			min = 0;
+		if(max > 24)
+			max = 24;
+		
+		if(max < min)
+		{
+			const int tmin = min;
+			min = max;
+			max = tmin;
+		}
+		
+		if(min == _min_sublayer && max == _max_sublayer)
+			return;
+		
+		_min_sublayer = min;
+		_max_sublayer = max;
+		
+		if(has_sub_layers)
+		{
+			rebuild_sub_layers();
+		}
+	}
+	
+	/// Deselects all layers and returns the number that were changed
+	int select_layers_none()
+	{
+		if(!has_layers)
+			return 0;
+		
+		return layers.select_all();
+	}
+	
+	/// Selects all layers and returns the number that were changed
+	int select_layers_all()
+	{
+		if(!_multi_select || !has_layers)
+			return 0;
+		
+		return layers.select_all();
+	}
+	
+	// TODO: select all/none sublayers
+	// TODO: Get number of selected layers and sub layers
+	
+	void _do_layout(LayoutContext@ ctx) override
+	{
+		if(validate_layout)
+		{
+			float width = 0;
+			float height = 0;
+			
+			if(has_layers && layers.validate_layout)
+			{
+				layers.do_layout();
+				width = max(layers._width, width);
+				height = max(layers._height, height);
+			}
+			
+			if(has_sub_layers && sub_layers.validate_layout)
+			{
+				sub_layers.do_layout();
+				width = max(sub_layers._width, width);
+				height = max(sub_layers._height, height);
+			}
+			
+			this.width = width;
+			this.height = height;
+			
+			validate_layout = false;
+		}
+	}
+	
+	protected void invalidate()
+	{
+		validate_layout = true;
+		
+		if(has_layers)
+			layers.validate_layout = true;
+		if(has_sub_layers)
+			layers.validate_layout = true;
+	}
+	
+	protected void initialise_layers_set()
+	{
+		if(@layers != null)
+			return;
+		
+		// 24 = 21 layers (0-20) + 2 ui layers + toggle all
+		@layers = LayerSelectorSet(ui, this, 24, @layer_select, EventType::LAYER_SELECT);
+		
+		initialise_layers_set_generic(layers);
+		rebuild_layers();
+		
+		Container::add_child(layers);
+	}
+	
+	protected void initialise_sub_layers_set()
+	{
+		if(@sub_layers != null)
+			return;
+		
+		// 26 = 25 sub layers (0-24) + toggle all
+		@sub_layers = LayerSelectorSet(ui, this, 26, @sub_layer_select, EventType::SUB_LAYER_SELECT);
+		
+		initialise_layers_set_generic(sub_layers);
+		rebuild_sub_layers();
+		
+		Container::add_child(sub_layers);
+	}
+	
+	protected void initialise_layers_set_generic(LayerSelectorSet@ layers)
+	{
+		layers.allow_deselect = _allow_deselect;
+		layers.multi_select = _multi_select;
+		layers.drag_select = _drag_select;
+		layers.toggle_on_press = _toggle_on_press;
+		layers.label_spacing = _label_spacing;
+		layers.font = _font;
+		layers.font_size = _font_size;
+	}
+	
+	protected void rebuild_layers()
+	{
+		layers.rebuild();
+		
+		layers.rebuild_checkboxes(0, 5,   _show_backdrop_layers);
+		layers.rebuild_checkboxes(6, 11,  _show_parallax_layers);
+		layers.rebuild_checkboxes(12, 17, _show_background_layers);
+		layers.rebuild_checkboxes(18, 18, _show_entities_layer);
+		layers.rebuild_checkboxes(19, 19, _show_collision_layer);
+		layers.rebuild_checkboxes(20, 20, _show_foreground_layer);
+		layers.rebuild_checkboxes(21, 22, _show_ui_layers);
+		layers.rebuild_checkboxes(23, 23, _show_all_layers_toggle && _multi_select);
+		
+		layers.rebuild_complete();
+		validate_layout = true;
+	}
+	
+	protected void rebuild_sub_layers()
+	{
+		sub_layers.rebuild();
+		
+		layers.rebuild_checkboxes(_min_sublayer, _max_sublayer, true);
+		sub_layers.rebuild_hide_other(_min_sublayer, _max_sublayer);
+		layers.rebuild_checkboxes(24, 24, _show_all_sub_layers_toggle && _multi_select);
+		
+		sub_layers.rebuild_complete();
+		validate_layout = true;
+	}
+	
+}

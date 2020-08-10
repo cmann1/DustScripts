@@ -497,8 +497,7 @@ class ListView : ScrollView
 	
 	protected void dispatch_select_event(ListViewItem@ item=null)
 	{
-		ui._event_info.reset(EventType::SELECT, this, @item != null ? item.value : '');
-		select.dispatch(ui._event_info);
+		ui._dispatch_event(@select, EventType::SELECT, this, @item != null ? item.value : '');
 	}
 	
 	// Events

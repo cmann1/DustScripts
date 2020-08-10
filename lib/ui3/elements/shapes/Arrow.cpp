@@ -40,10 +40,10 @@ class Arrow : Shape
 		rotate(x4, y4, angle, x4, y4);
 		
 		style.draw_quad(false,
-			ui.pixel_round(x), ui.pixel_round(y),
-			ui.pixel_round(x + x2), ui.pixel_round(y + y2),
-			ui.pixel_round(x + x2), ui.pixel_round(y + y2),
-			ui.pixel_round(x + x4), ui.pixel_round(y + y4), clr, clr, clr, clr);
+			ui._pixel_round(x),      ui._pixel_round(y),
+			ui._pixel_round(x + x2), ui._pixel_round(y + y2),
+			ui._pixel_round(x + x2), ui._pixel_round(y + y2),
+			ui._pixel_round(x + x4), ui._pixel_round(y + y4), clr, clr, clr, clr);
 	}
 	
 }

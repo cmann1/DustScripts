@@ -22,8 +22,8 @@ abstract class MoveableDialog : Container
 		super(ui);
 	}
 	
-	float x { set override { Element::set_x(ui.pixel_round(value)); } }
-	float y { set override { Element::set_y(ui.pixel_round(value)); } }
+	float x { set override { Element::set_x(ui._pixel_round(value)); } }
+	float y { set override { Element::set_y(ui._pixel_round(value)); } }
 	
 	protected void do_drag(LayoutContext@ ctx)
 	{
@@ -54,8 +54,8 @@ abstract class MoveableDialog : Container
 			
 			if(prev_drag_x != mouse_x || prev_drag_y != mouse_y)
 			{
-				x = ui.pixel_round(mouse_x - drag_offset_x);
-				y = ui.pixel_round(mouse_y - drag_offset_y);
+				x = ui._pixel_round(mouse_x - drag_offset_x);
+				y = ui._pixel_round(mouse_y - drag_offset_y);
 				prev_drag_x = mouse_x;
 				prev_drag_y = mouse_y;
 				

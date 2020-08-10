@@ -167,7 +167,7 @@ namespace Key
 	const int Oem102 = 0xE2; // Either the angle bracket key or the backslash key on the RT 102-key keyboard
 	const int Processkey = 0xE5; // IME PROCESS key
 	const int Packet = 0xE7; // Used to pass Unicode characters as if they were keystrokes. The PACKET key is the low word of a 32-bit Virtual Key value used for non-keyboard input methods. For more information, see Remark in KEYBDINPUT, SendInput, WMKEYDOWN, and WMKEYUP
-	const int Attn = 0xF6; // Attn key
+	const int Attn = 0xF6; // A ttn key
 	const int Crsel = 0xF7; // CrSel key
 	const int Exsel = 0xF8; // ExSel key
 	const int Ereof = 0xF9; // Erase EOF key

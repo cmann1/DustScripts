@@ -79,7 +79,7 @@ class Spinner : SelectBase
 			
 			update_label();
 			update_icon();
-			dispatch_change_event();
+			ui._dispatch_event(@change, EventType::CHANGE, this);
 		}
 	}
 	

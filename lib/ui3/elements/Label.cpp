@@ -102,10 +102,17 @@ class Label : Graphic
 		float w, h;
 		ui.style.measure_text(_text, _font, _size, 1, 1, _graphic_width, _graphic_height);
 		
-		width  = _graphic_width  * scale_x + (is_nan(padding) ? ui.style.spacing : padding) * 2;
-		height = _graphic_height * scale_y + (is_nan(padding) ? ui.style.spacing : padding) * 2;
+		width  = _graphic_width  * scale_x + real_padding_left + real_padding_right;
+		height = _graphic_height * scale_y + real_padding_top + real_padding_bottom;
 		
 		return @this;
+	}
+	
+	void set_font(const string font, const uint size)
+	{
+		_font = font;
+		_size = size;
+		update_size();
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override

@@ -252,7 +252,8 @@ class ListViewItem : Container
 				_label._width  = _width - _label._x;
 				_label._height = _height;
 				
-				_label.visible = _label._width - (is_nan(_label.padding) ? ui.style.spacing : _label.padding) * 2 > 0;
+				
+				_label.visible = (_label._width - _label.real_padding_left - _label.real_padding_right) > 0;
 			}
 		}
 	}

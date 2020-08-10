@@ -16,7 +16,10 @@ abstract class Graphic : Element
 	float align_h = GraphicAlign::Centre;
 	float align_v = GraphicAlign::Middle;
 	ImageSize sizing = ImageSize:: ConstrainInside;
-	float padding;
+	float padding_left;
+	float padding_right;
+	float padding_top;
+	float padding_bottom;
 	
 	protected float _graphic_offset_x = 0;
 	protected float _graphic_offset_y = 0;
@@ -47,6 +50,32 @@ abstract class Graphic : Element
 	
 	string element_type { get const override { return 'Graphic'; } }
 	
+	void set_padding(const float padding)
+	{
+		padding_left = padding_right = padding_top = padding_bottom = padding;
+	}
+	
+	void set_padding(const float padding_left_right, const float padding_top_bottom)
+	{
+		padding_left	= padding_left_right;
+		padding_right	= padding_left_right;
+		padding_top		= padding_top_bottom;
+		padding_bottom	= padding_top_bottom;
+	}
+	
+	void set_padding(const float padding_left, const float padding_right, const float padding_top, const float padding_bottom)
+	{
+		this.padding_left	= padding_left;
+		this.padding_right	= padding_right;
+		this.padding_top	= padding_top;
+		this.padding_bottom	= padding_bottom;
+	}
+	
+	float real_padding_left		{ get const { return is_nan(this.padding_left)		? ui.style.spacing : this.padding_left; } }
+	float real_padding_right	{ get const { return is_nan(this.padding_right)		? ui.style.spacing : this.padding_right; } }
+	float real_padding_top		{ get const { return is_nan(this.padding_top)		? ui.style.spacing : this.padding_top; } }
+	float real_padding_bottom	{ get const { return is_nan(this.padding_bottom)	? ui.style.spacing : this.padding_bottom; } }
+	
 	void _do_layout(LayoutContext@ ctx)
 	{
 		float x1 = ctx.scroll_x + this.x + (@parent != null ? parent.x1 : 0);
@@ -68,13 +97,16 @@ abstract class Graphic : Element
 			y2 -= border_size;
 		}
 		
-		const float padding = is_nan(this.padding) ? ui.style.spacing : this.padding;
+		const float padding_left	= is_nan(this.padding_left)		? ui.style.spacing : this.padding_left;
+		const float padding_right	= is_nan(this.padding_right)	? ui.style.spacing : this.padding_right;
+		const float padding_top		= is_nan(this.padding_top)		? ui.style.spacing : this.padding_top;
+		const float padding_bottom	= is_nan(this.padding_bottom)	? ui.style.spacing : this.padding_bottom;
 		
 		{
-			x1 += padding;
-			y1 += padding;
-			x2 -= padding;
-			y2 -= padding;
+			x1 += padding_left;
+			y1 += padding_top;
+			x2 -= padding_right;
+			y2 -= padding_bottom;
 		}
 		
 		const float width  = x2 - x1;
@@ -122,8 +154,8 @@ abstract class Graphic : Element
 		const float x = x1 + (width  - gr_width  * draw_scale_x) * align_h + gr_width  * draw_scale_x * (is_transposed ? origin_y : origin_x);
 		const float y = y1 + (height - gr_height * draw_scale_y) * align_v + gr_height * draw_scale_y * (is_transposed ? origin_x : origin_y);
 		
-		draw_x = x + ui.pixel_ceil(dx * draw_scale_x);
-		draw_y = y + ui.pixel_ceil(dy * draw_scale_y);
+		draw_x = x + ui._pixel_ceil(dx * draw_scale_x);
+		draw_y = y + ui._pixel_ceil(dy * draw_scale_y);
 	}
 	
 }

@@ -81,7 +81,7 @@ class RotationWheel : Image
 				return;
 			
 			_angle = value;
-			dispatch_change();
+			ui._dispatch_event(@change, EventType::CHANGE, this);
 			
 			if(auto_tooltip)
 				update_tooltip();
@@ -106,7 +106,7 @@ class RotationWheel : Image
 				return;
 			
 			_range = value;
-			dispatch_range_change();
+			ui._dispatch_event(@range_change, EventType::CHANGE_RANGE, this);
 			
 			if(auto_tooltip)
 				update_tooltip();
@@ -377,18 +377,6 @@ class RotationWheel : Image
 		
 		tooltip.content_string = _tooltip_prefix + str;
 		ui.update_tooltip(this);
-	}
-	
-	protected void dispatch_change()
-	{
-		ui._event_info.reset(EventType::CHANGE, this);
-		change.dispatch(ui._event_info);
-	}
-	
-	protected void dispatch_range_change()
-	{
-		ui._event_info.reset(EventType::CHANGE_RANGE, this);
-		range_change.dispatch(ui._event_info);
 	}
 	
 }

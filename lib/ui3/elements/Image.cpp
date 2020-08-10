@@ -69,8 +69,8 @@ class Image : Graphic
 		
 		style.draw_sprite(sprite,
 			_sprite_name, frame, palette,
-			ui.pixel_round(draw_x) - (ui._even_screen_width  ? 0.0 : 0.5),
-			ui.pixel_round(draw_y) - (ui._even_screen_height ? 0.0 : 0.5),
+			ui._pixel_round(draw_x) - (ui._even_screen_width  ? 0.0 : 0.5),
+			ui._pixel_round(draw_y) - (ui._even_screen_height ? 0.0 : 0.5),
 			rotation,
 			is_transposed ? draw_scale_y : draw_scale_x,
 			is_transposed ? draw_scale_x : draw_scale_y,

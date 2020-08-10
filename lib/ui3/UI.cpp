@@ -569,9 +569,26 @@ class UI
 		return overlays.contains(element);
 	}
 	
-	/* internal */ float pixel_floor(const float value) { return _hud && pixel_perfect ? floor(value) : value; }
-	/* internal */ float pixel_round(const float value) { return _hud && pixel_perfect ? round(value) : value; }
-	/* internal */ float pixel_ceil(const float value) { return _hud && pixel_perfect ? ceil(value) : value; }
+	// Internal
+	// ---------------------------------------------------------
+	
+	float _pixel_floor(const float value) { return _hud && pixel_perfect ? floor(value) : value; }
+	
+	float _pixel_round(const float value) { return _hud && pixel_perfect ? round(value) : value; }
+	
+	float _pixel_ceil(const float value) { return _hud && pixel_perfect ? ceil(value) : value; }
+	
+	void _dispatch_event(Event@ event, const string type, Element@ target, const string value='')
+	{
+		_event_info.reset(type, target, value);
+		event.dispatch(_event_info);
+	}
+	
+	void _dispatch_event(Event@ event, const string type, IGenericEventTarget@ generic_target, const string value='')
+	{
+		_event_info.reset(type, null, generic_target, value);
+		event.dispatch(_event_info);
+	}
 	
 	// Private
 	// ---------------------------------------------------------
@@ -1362,8 +1379,8 @@ class UI
 		{
 			debug.print(indent + '  draw_scale: ' + gr.debug_draw_scale_x + ', ' + gr.debug_draw_scale_y, txt_clr, print_id + id++, 0);
 			debug.print(indent + '  draw_pos:   ' + gr.debug_draw_x + ', ' + gr.debug_draw_y, txt_clr, print_id + id++, 0);
-			if(gr.padding != 0)
-				debug.print(indent + '  padding:    ' + gr.padding, txt_clr, print_id + id++, 0);
+			if(gr.padding_left != 0 || gr.padding_right != 0 || gr.padding_top != 0 || gr.padding_bottom != 0)
+				debug.print(indent + '  padding:    ' + gr.padding_left + ' ' + gr.padding_right + ' ' + gr.padding_top + ' ' + gr.padding_bottom, txt_clr, print_id + id++, 0);
 			if(gr.graphic_offset_x != 0 || gr.graphic_offset_y != 0)
 				debug.print(indent + '  offset:     ' + gr.graphic_offset_x + ', ' + gr.graphic_offset_y, txt_clr, print_id + id++, 0);
 			if(gr.origin_x != 0 || gr.origin_y != 0)
