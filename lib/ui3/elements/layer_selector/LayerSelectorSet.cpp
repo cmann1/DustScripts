@@ -54,6 +54,45 @@ class LayerSelectorSet : Container
 	
 	string element_type { get const override { return 'LayerSelectorSet'; } }
 	
+	void update_multi_select(const bool multi_select, const bool trigger_event=true)
+	{
+		this.multi_select = multi_select;
+		
+		if(multi_select)
+			return;
+		
+		// Make sure only one is selected >>
+		
+		bool found_selected = false;
+		int result = 0;
+		
+		for(int i = active_count - 1; i >= 0; i--)
+		{
+			Checkbox@ checkbox = checkboxes[active_indices[i]];
+			
+			if(@checkbox == @all_checkbox)
+				continue;
+			
+			if(checkbox.checked)
+			{
+				if(found_selected)
+				{
+					checkbox.initialise_state(false);
+					result++;
+				}
+				else
+				{
+					found_selected = true;
+				}
+			}
+		}
+		
+		if(result > 0 && trigger_event)
+		{
+			ui._dispatch_event(@select_event, select_event_type, layer_selector);
+		}
+	}
+	
 	void update_toggle_on_press(const bool toggle_on_press)
 	{
 		this.toggle_on_press = toggle_on_press;
@@ -453,6 +492,19 @@ class LayerSelectorSet : Container
 		validate_layout = false;
 	}
 	
+	protected void force_single_select(Checkbox@ checkbox)
+	{
+		for(int i = 0; i < active_count; i++)
+		{
+			Checkbox@ other_checkbox = checkboxes[active_indices[i]];
+			
+			if(@other_checkbox == @checkbox)
+				continue;
+			
+			other_checkbox.initialise_state(false);
+		}
+	}
+	
 	protected bool validate_layer_range(const int in_layer, const int in_end_layer, int &out layer, int &out end_layer)
 	{
 		layer = in_layer;
@@ -526,27 +578,37 @@ class LayerSelectorSet : Container
 			return;
 		}
 		
-		if(!allow_deselect && !multi_select && !checkbox.checked)
+		// Prevent deselect
+		if(!allow_deselect && !checkbox.checked)
 		{
 			checkbox.initialise_state(true);
+			return;
 		}
-		else
+		
+		// Single select - deselect all others
+		if(!multi_select && checkbox.checked)
 		{
-			if(select_layer_group_modifier >= 0 && ui._has_editor && ui._editor.key_check_gvb(select_layer_group_modifier))
-			{
-				const int group = groups[checkboxes.findByRef(@checkbox)];
-				
-				if(initialise_all_group_states(group, checkbox.state) == 0)
-				{
-					update_toggle_all_checkbox();
-					ui._dispatch_event(@select_event, select_event_type, layer_selector);
-				}
-			}
-			else
+			force_single_select(checkbox);
+			update_toggle_all_checkbox();
+			ui._dispatch_event(@select_event, select_event_type, layer_selector);
+		}
+		
+		if(
+			select_layer_group_modifier >= 0 && multi_select && (allow_deselect || checkbox.checked) &&
+			ui._has_editor && ui._editor.key_check_gvb(select_layer_group_modifier))
+		{
+			const int group = groups[checkboxes.findByRef(@checkbox)];
+			
+			if(initialise_all_group_states(group, checkbox.state) == 0)
 			{
 				update_toggle_all_checkbox();
 				ui._dispatch_event(@select_event, select_event_type, layer_selector);
 			}
+		}
+		else
+		{
+			update_toggle_all_checkbox();
+			ui._dispatch_event(@select_event, select_event_type, layer_selector);
 		}
 	}
 	

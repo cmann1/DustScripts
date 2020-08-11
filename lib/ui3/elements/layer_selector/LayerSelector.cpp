@@ -18,8 +18,8 @@ class LayerSelector : LockedContainer
 	// Properties
 	
 	protected LayerSelectorType _type = LayerSelectorType(-1);
+	/*DONE*/ protected bool _multi_select = false;
 	// TODO: Turn this off by default
-	protected bool _multi_select = true;
 	/*DONE*/ protected bool _allow_deselect = true;
 	// TODO: Turn this off by default
 	/*DONE*/ protected bool _drag_select = true;
@@ -110,6 +110,39 @@ class LayerSelector : LockedContainer
 		}
 	}
 	
+	/// Sets whether or not multiple layers can be selected at once
+	/// If mutliple layers are selected and this is disabled, only the highest selected layer will remain selected.
+	bool multi_select
+	{
+		get const { return _multi_select; }
+		set
+		{
+			if(_multi_select == value)
+				return;
+			
+			if(has_layers)
+				layers.update_multi_select(_multi_select);
+			if(has_sub_layers)
+				sub_layers.update_multi_select(_multi_select);
+		}
+	}
+	
+	/// Prevents layers from being deselected
+	bool allow_deselect
+	{
+		get const { return _allow_deselect; }
+		set
+		{
+			if(_allow_deselect == value)
+				return;
+			
+			if(has_layers)
+				layers.allow_deselect = _allow_deselect;
+			if(has_sub_layers)
+				sub_layers.allow_deselect = _allow_deselect;
+		}
+	}
+	
 	/// If this and multi_select is set, multiple layers can be selected or deselected by clicking and dragging the mouse.
 	bool drag_select
 	{
@@ -175,22 +208,6 @@ class LayerSelector : LockedContainer
 				layers.select_layer_group_modifier = _select_layer_group_modifier;
 			if(has_sub_layers)
 				sub_layers.select_layer_group_modifier = _select_layer_group_modifier;
-		}
-	}
-	
-	/// If false, will prevent layers from being selected.
-	/// Only has an effect when multi select is off.
-	bool allow_deselect
-	{
-		get const { return _allow_deselect; }
-		set
-		{
-			_allow_deselect = value;
-			
-			if(has_layers)
-				layers.allow_deselect = _allow_deselect;
-			if(has_sub_layers)
-				sub_layers.allow_deselect = _allow_deselect;
 		}
 	}
 	
