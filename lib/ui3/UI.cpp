@@ -131,6 +131,7 @@ class UI
 	/*private*/ array<int> _int_array(16);
 	/*private*/ array<Element@> _element_array(16);
 	
+	camera@ _camera;
 	editor_api@ _editor;
 	bool _has_editor;
 	
@@ -167,6 +168,8 @@ class UI
 		
 		@_editor = get_editor_api();
 		_has_editor = @_editor != null;
+		
+		@_camera = get_active_camera();
 		
 		this.hud = hud;
 		this.layer = layer;
@@ -403,7 +406,7 @@ class UI
 	}
 	
 	/// Make sure to setup a Debug instance before calling this
-	void debug_draw(bool just_outline=false, bool show_ids=false, bool show_element_data=true, const float id_scale=0.4)
+	void debug_draw(bool just_outline=false, bool show_ids=false, bool show_element_data=true, const float id_scale=1)
 	{
 		style.reset_drawing_context(null);
 		style.outline(contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
@@ -1221,6 +1224,8 @@ class UI
 		debug_text_field.align_vertical(-1);
 		uint clr;
 		
+		const float zoom = _hud ? 1.0 : 1.0 / _camera.editor_zoom();
+		
 		bool mouse_over_clipped = false;
 		float mouse_over_clipping_x1;
 		float mouse_over_clipping_y1;
@@ -1265,7 +1270,7 @@ class UI
 					{
 						style.outline_dotted(
 							element.subtree_x1, element.subtree_y1, element.subtree_x2, element.subtree_y2,
-							@element == @mouse_over_element ? -2 : 1,
+							(@element == @mouse_over_element ? -2 : 1) * zoom,
 							clr | el_alpha);
 					}
 					
@@ -1275,11 +1280,11 @@ class UI
 						{
 							style.outline(
 								element.x1, element.y1, element.x2, element.y2,
-								1, (element.hovered ? 0xff0000 : clr) | el_alpha);
+								1 * zoom, (element.hovered ? 0xff0000 : clr) | el_alpha);
 						}
 						else
 						{
-							style.outline_dotted(element.x1, element.y1, element.x2, element.y2, 1, clr | el_alpha);
+							style.outline_dotted(element.x1, element.y1, element.x2, element.y2, 1 * zoom, clr | el_alpha);
 						}
 						
 						clr = scale_lightness(clr, 0.1) | el_alpha;
@@ -1289,8 +1294,8 @@ class UI
 							style.draw_text(
 								element.name != '' ? element.name : element.id,
 								element.x1, element.y1,
-								clr | (uint((el_alpha>>24) * 1.75)<<24),
-								id_scale, id_scale);
+								clr | (uint((el_alpha>>24) * 1.75) << 24),
+								id_scale * zoom, id_scale * zoom);
 						}
 					}
 					else
@@ -1336,20 +1341,20 @@ class UI
 			
 			style.outline(
 				mouse_over_element.x1, mouse_over_element.y1, mouse_over_element.x2, mouse_over_element.y2,
-				-2, clr);
+				-2 * zoom, clr);
 			
 			style.outline_text(
 				mouse_over_element.name != '' ? mouse_over_element.name : mouse_over_element.id,
-				mouse_over_element.x1, mouse_over_element.y1,
-				0xffffffff, 0xff000000, 2 * id_scale,
-				id_scale, id_scale);
+				mouse_over_element.x1, mouse_over_element.y1 - 5 * zoom,
+				0xffffffff, 0xff000000, 2 * id_scale * zoom,
+				id_scale * zoom, id_scale * zoom, 0, TextAlign::Left, TextAlign::Bottom);
 			
 			if(debug_mouse_over_clipping_ctx.clipping_mode != ClippingMode::None)
 			{
 				style.outline_dotted(
 					debug_mouse_over_clipping_ctx.x1, debug_mouse_over_clipping_ctx.y1,
 					debug_mouse_over_clipping_ctx.x2, debug_mouse_over_clipping_ctx.y2,
-					-2, 0x99ffffff);
+					-2 * zoom, 0x99ffffff);
 			}
 		}
 	}
