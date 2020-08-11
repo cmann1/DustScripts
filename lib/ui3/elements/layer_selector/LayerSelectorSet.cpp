@@ -10,6 +10,7 @@ class LayerSelectorSet : Container
 	array<Checkbox@> checkboxes;
 	array<Label@> labels;
 	array<int> groups;
+	array<bool> visibility;
 	
 	array<int> active_indices;
 	int active_count;
@@ -52,6 +53,12 @@ class LayerSelectorSet : Container
 		this.select_event_type = select_event_type;
 		
 		@layer_select_delegate = EventCallback(on_layer_select);
+		
+		checkboxes.resize(num_layers);
+		labels.resize(num_layers);
+		groups.resize(num_layers);
+		visibility.resize(num_layers);
+		active_indices.resize(num_layers);
 	}
 	
 	string element_type { get const override { return 'LayerSelectorSet'; } }
@@ -147,7 +154,7 @@ class LayerSelectorSet : Container
 			
 			if(label.visible)
 			{
-				active_width = max(active_width, checkbox._width + label._width + label_spacing);
+				active_width = max(active_width, checkbox._width + label._width - label.real_padding_left - label.real_padding_right + label_spacing);
 			}
 		}
 		
@@ -183,20 +190,33 @@ class LayerSelectorSet : Container
 		validate_layout = true;
 	}
 	
-	int initialise_all_states(const CheckboxState state, const bool trigger_event=true)
+	int initialise_all_states(const bool checked, const bool trigger_event=true)
 	{
+		return initialise_all_states(checked, -1, trigger_event);
+	}
+	
+	int initialise_all_states(const bool checked, const int group, const bool trigger_event=true)
+	{
+		return initialise_states(0, num_layers - 1, checked, group, trigger_event);
+	}
+	
+	int initialise_states(int start_layer, int end_layer, const bool checked, const int group=-1, const bool trigger_event=true)
+	{
+		if(!validate_layer_range(start_layer, end_layer, start_layer, end_layer))
+			return 0;
+		
 		int result = 0;
 		
-		for(int i = 0; i < active_count; i++)
+		for(int i = start_layer; i <= end_layer; i++)
 		{
-			Checkbox@ checkbox = checkboxes[active_indices[i]];
+			Checkbox@ checkbox = checkboxes[i];
 			
-			if(@checkbox == @all_checkbox)
+			if(!checkbox.visible || @checkbox == @all_checkbox || (group != -1 && groups[i] != group))
 				continue;
 			
-			if(checkbox.state != state)
+			if(checkbox.checked != checked)
 			{
-				checkbox.initialise_state(state);
+				checkbox.initialise_state(checked);
 				result++;
 			}
 		}
@@ -214,32 +234,23 @@ class LayerSelectorSet : Container
 		return result;
 	}
 	
-	int initialise_all_group_states(const int group, const CheckboxState state, const bool trigger_event=true)
+	int count_selected(int start_layer, int end_layer)
 	{
+		if(!validate_layer_range(start_layer, end_layer, start_layer, end_layer))
+			return 0;
+		
 		int result = 0;
 		
-		for(int i = 0; i < active_count; i++)
+		for(int i = start_layer; i <= end_layer; i++)
 		{
-			const int index = active_indices[i];
-			Checkbox@ checkbox = checkboxes[index];
+			Checkbox@ checkbox = checkboxes[i];
 			
-			if(@checkbox == @all_checkbox || groups[index] != group)
+			if(!checkbox.visible || @checkbox == @all_checkbox)
 				continue;
 			
-			if(checkbox.state != state)
+			if(checkbox.checked)
 			{
-				checkbox.initialise_state(state);
 				result++;
-			}
-		}
-		
-		if(result > 0)
-		{
-			update_toggle_all_checkbox();
-			
-			if(trigger_event)
-			{
-				ui._dispatch_event(@select_event, select_event_type, layer_selector);
 			}
 		}
 		
@@ -279,12 +290,12 @@ class LayerSelectorSet : Container
 	
 	int select_all()
 	{
-		return initialise_all_states(CheckboxState::On);
+		return initialise_all_states(true);
 	}
 	
 	int select_none()
 	{
-		return initialise_all_states(CheckboxState::Off);
+		return initialise_all_states(false);
 	}
 	
 	bool get_layer_colour(const int layer, uint &out colour)
@@ -343,28 +354,73 @@ class LayerSelectorSet : Container
 		return result > 0;
 	}
 	
-	void rebuild()
+	int update_visibility(int start_layer, int end_layer, const bool visible)
 	{
-		if(checkboxes.length() != uint(num_layers))
+		if(!validate_layer_range(start_layer, end_layer, start_layer, end_layer))
+			return 0;
+		
+		int result = 0;
+		
+		for(int i = start_layer; i <= end_layer; i++)
 		{
-			checkboxes.resize(num_layers);
-			labels.resize(num_layers);
-			groups.resize(num_layers);
-			active_indices.resize(num_layers);
+			if(visibility[i] != visible)
+			{
+				visibility[i] = visible;
+				result++;
+			}
 		}
 		
+		return result;
+	}
+	
+	bool update_toggle_all_visibility(const bool visible)
+	{
+		return update_visibility(num_layers - 1, num_layers - 1, visible) > 0;
+	}
+	
+	int get_visible_count(int start_layer, int end_layer)
+	{
+		if(!validate_layer_range(start_layer, end_layer, start_layer, end_layer))
+			return 0;
+		
+		int result = 0;
+		
+		for(int i = start_layer; i <= end_layer; i++)
+		{
+			if(visibility[i])
+			{
+				result++;
+			}
+		}
+		
+		return result;
+	}
+	
+	void initialise_layer_values(const int start_layer, const int end_layer, const int group, const bool visible)
+	{
+		for(int i = start_layer; i <= end_layer; i++)
+		{
+			visibility[i] = visible;
+			groups[i] = group;
+		}
+	}
+	
+	void rebuild()
+	{
 		active_count = 0;
 		active_width = 0;
 		active_height = 0;
 	}
 	
-	void rebuild_checkboxes(const int group, const int start_layer, const int end_layer, const bool visible, const bool has_default_colour=false, const uint default_colour=0)
+	void rebuild_checkboxes(const bool use_default_layer_colours)
 	{
 		const float label_spacing		= is_nan(this.label_spacing)	? ui.style.spacing : this.label_spacing;
 		const float layer_spacing		= is_nan(this.layer_spacing)	? ui.style.spacing : this.layer_spacing;
 		
-		for(int i = start_layer; i <= end_layer; i++)
+		for(int i = 0; i < num_layers; i++)
 		{
+			const bool visible = visibility[i];
+			
 			Checkbox@ checkbox = @checkboxes[i];
 			Label@ label = @labels[i];
 			
@@ -385,9 +441,14 @@ class LayerSelectorSet : Container
 					label.align_v = GraphicAlign::Middle;
 					label.fit_to_contents();
 					
-					if(has_default_colour)
+					if(use_default_layer_colours)
 					{
-						label.colour = default_colour;
+						const uint default_clr = get_default_layer_colour(i);
+						
+						if(default_clr != 0)
+						{
+							label.colour = default_clr;
+						}
 					}
 					
 					const float layer_height = max(checkbox._set_height + layer_spacing, label._set_height + layer_spacing);
@@ -396,7 +457,6 @@ class LayerSelectorSet : Container
 					
 					@checkboxes[i] = @checkbox;
 					@labels[i] = @label;
-					groups[i] = group;
 					add_child(checkbox);
 					add_child(label);
 				}
@@ -408,7 +468,7 @@ class LayerSelectorSet : Container
 				}
 				
 				active_indices[active_count++] = i;
-				active_width = max(active_width, checkbox._width + label._width + label_spacing);
+				active_width = max(active_width, checkbox._width + label._width - label.real_padding_left - label.real_padding_right + label_spacing);
 				active_height += max(checkbox._height, label._height);
 			}
 			else if(@checkbox != null)
@@ -571,6 +631,26 @@ class LayerSelectorSet : Container
 			: null;
 	}
 	
+	protected uint get_default_layer_colour(const int layer)
+	{
+		if(layer <= 5)
+			return 0xffe7e6a7;
+		if(layer <= 11)
+			return 0xffbea7e7;
+		if(layer <= 17)
+			return 0;
+		if(layer == 18)
+			return 0xff7bc4d9;
+		if(layer == 19)
+			return 0xff7bd98f;
+		if(layer == 21 || layer == 22)
+			return 0xff818181;
+		
+		return 0;
+	}
+	
+	// Events
+	
 	protected void on_layer_select(EventInfo@ event)
 	{
 		Checkbox@ checkbox = cast<Checkbox@>(event.target);
@@ -610,7 +690,7 @@ class LayerSelectorSet : Container
 		{
 			const int group = groups[checkboxes.findByRef(@checkbox)];
 			
-			if(initialise_all_group_states(group, checkbox.state) == 0)
+			if(initialise_all_states(checkbox.checked, group) == 0)
 			{
 				update_toggle_all_checkbox();
 				ui._dispatch_event(@select_event, select_event_type, layer_selector);

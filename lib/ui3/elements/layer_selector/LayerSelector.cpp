@@ -29,19 +29,8 @@ class LayerSelector : LockedContainer
 	/*DONE*/ protected bool _toggle_on_press = true;
 	/*DONE*/ protected int _select_layer_group_modifier = GlobalVirtualButton::Shift;
 	
-	protected bool _show_backdrop_layers = true;
-	protected bool _show_parallax_layers = true;
-	protected bool _show_background_layers = true;
-	protected bool _show_entities_layer = true;
-	protected bool _show_collision_layer = true;
-	protected bool _show_foreground_layer = true;
-	protected bool _show_ui_layers = true;
-	
-	protected int _min_sublayer = 0;
-	protected int _max_sublayer = 24;
-	
-	protected bool _show_all_layers_toggle = true;
-	protected bool _show_all_sub_layers_toggle = true;
+	/*DONE*/ protected bool _show_all_layers_toggle = true;
+	/*DONE*/ protected bool _show_all_sub_layers_toggle = true;
 	/*DONE*/ protected bool _toggle_all_top = true;
 	
 	/*DONE*/ protected string _font = font::ENVY_BOLD;
@@ -69,6 +58,10 @@ class LayerSelector : LockedContainer
 	}
 	
 	string element_type { get const override { return 'LayerSelector'; } }
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Bisax properties
+	// ///////////////////////////////////////////////////////////////////
 	
 	/// Whether the layer list, the sub layer list, or both are shown.
 	LayerSelectorType type
@@ -275,6 +268,42 @@ class LayerSelector : LockedContainer
 		}
 	}
 	
+	/// Whether not to show the toggle all layers checkbox
+	bool show_all_layers_toggle
+	{
+		get const { return _show_all_layers_toggle; }
+		set
+		{
+			if(_show_all_layers_toggle == value)
+				return;
+			
+			_show_all_layers_toggle = value;
+			
+			if(has_layers && layers.update_toggle_all_visibility(_show_all_layers_toggle))
+			{
+				rebuild_layers();
+			}
+		}
+	}
+	
+	/// Whether not to show the toggle all sublayers checkbox
+	bool show_all_sub_layers_toggle
+	{
+		get const { return _show_all_sub_layers_toggle; }
+		set
+		{
+			if(_show_all_sub_layers_toggle == value)
+				return;
+			
+			_show_all_sub_layers_toggle = value;
+			
+			if(has_sub_layers && sub_layers.update_toggle_all_visibility(_show_all_sub_layers_toggle))
+			{
+				rebuild_sub_layers();
+			}
+		}
+	}
+	
 	/// The toggle all checkboxes can be displayed at the bottom or the top
 	bool toggle_all_top
 	{
@@ -311,6 +340,10 @@ class LayerSelector : LockedContainer
 		
 		invalidate();
 	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Colours
+	// ///////////////////////////////////////////////////////////////////
 	
 	/// Returns true and sets colour if the specified layer has custom colour set
 	bool get_layer_colour(const int layer, uint &out colour)
@@ -352,6 +385,88 @@ class LayerSelector : LockedContainer
 		return layers.clear_layer_colour(sub_layer, end_sub_layer);
 	}
 	
+	// ///////////////////////////////////////////////////////////////////
+	// Layers
+	// ///////////////////////////////////////////////////////////////////
+	
+	// Get
+	
+	/// Returns true if the given layer is visible
+	bool get_layer_visibility(const int layer)
+	{
+		return layers.get_visible_count(layer, layer) > 0;
+	}
+	
+	/// Returns true if the given sub layer is visible
+	bool get_sub_layer_visibility(const int layer)
+	{
+		return sub_layers.get_visible_count(layer, layer) > 0;
+	}
+	
+	/// Returns the number of visible layers in the given range
+	int get_layer_visibility(const int start_layer, const int end_layer)
+	{
+		return layers.get_visible_count(start_layer, end_layer);
+	}
+	
+	/// Returns the number of visible sublayers in the given range
+	int get_sub_layer_visibility(const int start_layer, const int end_layer)
+	{
+		return sub_layers.get_visible_count(start_layer, end_layer);
+	}
+	
+	// Set
+	
+	/// Sets the visibility of the given layer. Returns true if anything changed.
+	bool set_layer_visibility(const int layer, const bool visible)
+	{
+		return update_layers_visiblity(layers, layer, layer, visible) != 0;
+	}
+	
+	/// Sets the visibility of the given layer. Returns true if anything changed.
+	bool set_sub_layer_visibility(const int sub_layer, const bool visible)
+	{
+		return update_layers_visiblity(sub_layers, sub_layer, sub_layer, visible) != 0;
+	}
+	
+	/// Sets the visibility of the layers between start_layer and end_layer inclusive.
+	/// Returns the number of changed layers.
+	int set_layer_visibility(const int start_layer, const int end_layer, const bool visible)
+	{
+		return update_layers_visiblity(layers, start_layer, end_layer, visible);
+	}
+	
+	/// Sets the visibility of the sublayers between start_layer and end_layer inclusive.
+	/// Returns the number of changed layers.
+	int set_sub_layer_visibility(const int start_layer, const int end_layer, const bool visible)
+	{
+		return update_layers_visiblity(sub_layers, start_layer, end_layer, visible);
+	}
+	
+	// Groups get
+	
+ 	int get_backdrop_layers_visibility()	{ return layers.get_visible_count(0, 5 ); }
+	int get_parallax_layers_visibility()	{ return layers.get_visible_count(6, 11); }
+	int get_background_layers_visibility()	{ return layers.get_visible_count(12, 17); }
+	int get_entities_layer_visibility()		{ return layers.get_visible_count(18, 18); }
+	int get_collision_layer_visibility()	{ return layers.get_visible_count(19, 19); }
+	int get_foreground_layer_visibility()	{ return layers.get_visible_count(20, 20); }
+	int get_ui_layers_visibility()			{ return layers.get_visible_count(21, 22); }
+	
+	// Groups set
+	
+ 	bool set_backdrop_layers_visibility(const bool visible)		{ return update_layers_visiblity(layers, 0, 5,   visible) > 0; }
+	bool set_parallax_layers_visibility(const bool visible)		{ return update_layers_visiblity(layers, 6, 11,  visible) > 0; }
+	bool set_background_layers_visibility(const bool visible)	{ return update_layers_visiblity(layers, 12, 17, visible) > 0; }
+	bool set_entities_layer_visibility(const bool visible)		{ return update_layers_visiblity(layers, 18, 18, visible) > 0; }
+	bool set_collision_layer_visibility(const bool visible)		{ return update_layers_visiblity(layers, 19, 19, visible) > 0; }
+	bool set_foreground_layer_visibility(const bool visible)	{ return update_layers_visiblity(layers, 20, 20, visible) > 0; }
+	bool set_ui_layers_visibility(const bool visible)			{ return update_layers_visiblity(layers, 21, 22, visible) > 0; }
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Selection
+	// ///////////////////////////////////////////////////////////////////
+	
 	/// Deselects all layers and returns the number that were changed
 	int select_layers_none()
 	{
@@ -388,32 +503,51 @@ class LayerSelector : LockedContainer
 		return sub_layers.select_all();
 	}
 	
-	// TODO: Get number of selected layers and sub layers
+	// Layer groups set
 	
-	void set_selectable_sub_layers(int min, int max)
+	bool set_backdrop_layers_selected(const bool selected)		{ return layers.initialise_states(0, 5,   selected) > 0; }
+	bool set_parallax_layers_selected(const bool selected)		{ return layers.initialise_states(6, 11,  selected) > 0; }
+	bool set_background_layers_selected(const bool selected)	{ return layers.initialise_states(12, 17, selected) > 0; }
+	bool set_entities_layer_selected(const bool selected)		{ return layers.initialise_states(18, 18, selected) > 0; }
+	bool set_collision_layer_selected(const bool selected)		{ return layers.initialise_states(19, 19, selected) > 0; }
+	bool set_foreground_layer_selected(const bool selected)		{ return layers.initialise_states(20, 20, selected) > 0; }
+	bool set_ui_layers_selected(const bool selected)			{ return layers.initialise_states(21, 22, selected) > 0; }
+	
+	// Layer groups get
+	
+	int num_backdrop_layers_selected()		{ return layers.count_selected(0, 5); }
+	int num_parallax_layers_selected()		{ return layers.count_selected(6, 11); }
+	int num_background_layers_selected()	{ return layers.count_selected(12, 17); }
+	int num_entities_layer_selected()		{ return layers.count_selected(18, 18); }
+	int num_collision_layer_selected()		{ return layers.count_selected(19, 19); }
+	int num_foreground_layer_selected()		{ return layers.count_selected(20, 20); }
+	int num_ui_layers_selected()			{ return layers.count_selected(21, 22); }
+	
+	// TODO: Get number of selected layers and sub layers
+	// TODO: Get number of selected layers and sub layers in range
+	// TODO: Is layer/sublayer selected
+	// TODO: Get list of all selected [sub]layers
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Protected/Internal
+	// ///////////////////////////////////////////////////////////////////
+	
+	protected int update_layers_visiblity(LayerSelectorSet@ layers, const int start_layer, const int end_layer, const bool visible)
 	{
-		if(min < 0)
-			min = 0;
-		if(max > 24)
-			max = 24;
+		if(@layers == null)
+			return 0;
 		
-		if(max < min)
+		const int result = layers.update_visibility(start_layer, end_layer, visible);
+		
+		if(result > 0)
 		{
-			const int tmin = min;
-			min = max;
-			max = tmin;
+			if(@layers == @this.layers)
+				rebuild_layers();
+			else
+				rebuild_sub_layers();
 		}
 		
-		if(min == _min_sublayer && max == _max_sublayer)
-			return;
-		
-		_min_sublayer = min;
-		_max_sublayer = max;
-		
-		if(has_sub_layers)
-		{
-			rebuild_sub_layers();
-		}
+		return result;
 	}
 	
 	void _do_layout(LayoutContext@ ctx) override
@@ -485,6 +619,16 @@ class LayerSelector : LockedContainer
 		// 24 = 21 layers (0-20) + 2 ui layers + toggle all
 		@layers = LayerSelectorSet(ui, this, 24, @layer_select, EventType::LAYER_SELECT);
 		
+		layers.initialise_layer_values(0, 5,   0, true);
+		layers.initialise_layer_values(6, 11,  1, true);
+		layers.initialise_layer_values(12, 17, 2, true);
+		layers.initialise_layer_values(18, 18, 3, true);
+		layers.initialise_layer_values(19, 19, 4, true);
+		layers.initialise_layer_values(20, 20, 5, true);
+		layers.initialise_layer_values(21, 22, 6, true);
+		layers.initialise_layer_values(23, 23, 7, _show_all_layers_toggle && _multi_select);
+
+		
 		initialise_layers_set_generic(layers);
 		rebuild_layers();
 		
@@ -498,6 +642,9 @@ class LayerSelector : LockedContainer
 		
 		// 26 = 25 sub layers (0-24) + toggle all
 		@sub_layers = LayerSelectorSet(ui, this, 26, @sub_layer_select, EventType::SUB_LAYER_SELECT);
+		
+		sub_layers.initialise_layer_values(0, 24, 0, true);
+		sub_layers.initialise_layer_values(25, 25, 1, _show_all_sub_layers_toggle && _multi_select);
 		
 		initialise_layers_set_generic(sub_layers);
 		rebuild_sub_layers();
@@ -527,14 +674,7 @@ class LayerSelector : LockedContainer
 	{
 		layers.rebuild();
 		
-		layers.rebuild_checkboxes(0, 0, 5,   _show_backdrop_layers, true, 0xffe7e6a7);
-		layers.rebuild_checkboxes(1, 6, 11,  _show_parallax_layers, true, 0xffbea7e7);
-		layers.rebuild_checkboxes(2, 12, 17, _show_background_layers);
-		layers.rebuild_checkboxes(3, 18, 18, _show_entities_layer, true, 0xff7bc4d9);
-		layers.rebuild_checkboxes(4, 19, 19, _show_collision_layer, true, 0xff7bd98f);
-		layers.rebuild_checkboxes(5, 20, 20, _show_foreground_layer);
-		layers.rebuild_checkboxes(6, 21, 22, _show_ui_layers, true, 0xff818181);
-		layers.rebuild_checkboxes(7, 23, 23, _show_all_layers_toggle && _multi_select);
+		layers.rebuild_checkboxes(true);
 		
 		layers.rebuild_complete();
 		validate_layout = true;
@@ -544,9 +684,7 @@ class LayerSelector : LockedContainer
 	{
 		sub_layers.rebuild();
 		
-		sub_layers.rebuild_checkboxes(0, _min_sublayer, _max_sublayer, true);
-		sub_layers.rebuild_hide_other(_min_sublayer, _max_sublayer);
-		sub_layers.rebuild_checkboxes(1, 25, 25, _show_all_sub_layers_toggle && _multi_select);
+		sub_layers.rebuild_checkboxes(false);
 		
 		sub_layers.rebuild_complete();
 		validate_layout = true;
