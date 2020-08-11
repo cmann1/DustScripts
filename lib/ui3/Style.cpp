@@ -26,7 +26,7 @@ class Style
 	uint popup_border_clr				= 0;
 	uint popup_shadow_clr				= 0x30000000;
 	bool blur_popup_bg					= true;
-	float popup_blur_inset				= 1;
+	float popup_blur_inset				= 0;
 	
 	uint dialog_bg_clr					= normal_bg_clr;
 	uint dialog_border_clr				= 0;
