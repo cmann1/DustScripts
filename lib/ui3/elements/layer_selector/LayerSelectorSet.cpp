@@ -25,10 +25,13 @@ class LayerSelectorSet : Container
 	bool toggle_on_press;
 	int select_layer_group_modifier;
 	bool labels_first;
+	float padding;
 	float label_spacing;
 	float layer_spacing;
 	
 	bool toggle_all_top;
+	
+	uint shadow_colour;
 	
 	bool validate_layout = true;
 	EventCallback@ layer_select_delegate;
@@ -62,6 +65,10 @@ class LayerSelectorSet : Container
 	}
 	
 	string element_type { get const override { return 'LayerSelectorSet'; } }
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Basic Properties
+	// ///////////////////////////////////////////////////////////////////
 	
 	void update_multi_select(const bool multi_select, const bool trigger_event=true)
 	{
@@ -189,6 +196,19 @@ class LayerSelectorSet : Container
 		
 		validate_layout = true;
 	}
+	
+	void clear_drawing_options()
+	{
+		background_colour = 0;
+		background_blur = false;
+		border_colour = 0;
+		border_size = 0;
+		shadow_colour = 0;
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Getting/Setting state
+	// ///////////////////////////////////////////////////////////////////
 	
 	int initialise_all_states(const bool checked, const bool trigger_event=true)
 	{
@@ -538,6 +558,10 @@ class LayerSelectorSet : Container
 		return result;
 	}
 	
+	// ///////////////////////////////////////////////////////////////////
+	// Initialise, rebuild, layout
+	// ///////////////////////////////////////////////////////////////////
+	
 	void initialise_layer_values(const int start_layer, const int end_layer, const int group, const bool visible)
 	{
 		for(int i = start_layer; i <= end_layer; i++)
@@ -658,7 +682,10 @@ class LayerSelectorSet : Container
 	
 	void do_layout()
 	{
-		float y = 0;
+		const float padding = is_nan(this.padding) ? ui.style.spacing : this.padding;
+		const float layer_spacing = is_nan(this.layer_spacing) ? ui.style.spacing : this.layer_spacing;
+		
+		float y = padding - layer_spacing * 0.5;
 		
 		int start_index = 0;
 		int end_index = active_count;
@@ -682,16 +709,16 @@ class LayerSelectorSet : Container
 			if(labels_first)
 			{
 				label.align_h = GraphicAlign::Right;
-				checkbox._x = label._width;
-				label._x = 0;
+				checkbox._x = padding + label._width;
+				label._x = padding;
 				label.padding_left = 0;
 				label.padding_right = label_spacing;
 			}
 			else
 			{
 				label.align_h = GraphicAlign::Left;
-				checkbox._x = 0;
-				label._x = checkbox._width;
+				checkbox._x = padding;
+				label._x = padding + checkbox._width;
 				label.padding_left = label_spacing;
 				label.padding_right = 0;
 			}
@@ -699,11 +726,28 @@ class LayerSelectorSet : Container
 			y += checkbox._height;
 		}
 		
-		width = active_width;
-		height = active_height;
+		width = active_width + padding * 2;
+		height = active_height + padding * 2 - layer_spacing;
 		
 		validate_layout = false;
 	}
+	
+	void _draw(Style@ style, DrawingContext@ ctx) override
+	{
+		if(shadow_colour != 0)
+		{
+			style.draw_rectangle(
+				x1 + ui.style.shadow_offset_x, y1 + ui.style.shadow_offset_y,
+				x2 + ui.style.shadow_offset_x, y2 + ui.style.shadow_offset_y,
+				0, shadow_colour);
+		}
+		
+		Element::_draw(style, ctx);
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Protected/Internal
+	// ///////////////////////////////////////////////////////////////////
 	
 	protected void force_single_select(Checkbox@ checkbox)
 	{
@@ -791,7 +835,9 @@ class LayerSelectorSet : Container
 		return 0;
 	}
 	
+	// ///////////////////////////////////////////////////////////////////
 	// Events
+	// ///////////////////////////////////////////////////////////////////
 	
 	protected void on_layer_select(EventInfo@ event)
 	{

@@ -3,6 +3,7 @@
 #include '../../../math/math.cpp';
 #include '../../utils/GraphicAlign.cpp';
 #include '../../events/Event.cpp';
+#include '../Element.cpp';
 #include '../Checkbox.cpp';
 #include '../Label.cpp';
 #include '../LockedContainer.cpp';
@@ -25,7 +26,7 @@ class LayerSelector : LockedContainer
 	protected bool  _labels_first = true;
 	protected float _label_spacing = NAN;
 	protected float _layer_spacing = NAN;
-	protected float _spacing = NAN;
+	protected float _padding = NAN;
 	protected bool _toggle_on_press = true;
 	protected int _select_layer_group_modifier = GlobalVirtualButton::Shift;
 	
@@ -35,6 +36,9 @@ class LayerSelector : LockedContainer
 	
 	protected string _font = font::ENVY_BOLD;
 	protected uint _font_size = 20;
+	
+	protected bool _individual_backgrounds = true;
+	protected uint _shadow_colour;
 	
 	//
 	
@@ -49,10 +53,9 @@ class LayerSelector : LockedContainer
 	{
 		super(ui);
 		
-		background_colour = ui.style.normal_bg_clr;
-		background_blur = true;
-		
 		this.type = type;
+		
+		mouse_self = !_individual_backgrounds;
 		
 		validate_layout = true;
 	}
@@ -60,7 +63,164 @@ class LayerSelector : LockedContainer
 	string element_type { get const override { return 'LayerSelector'; } }
 	
 	// ///////////////////////////////////////////////////////////////////
-	// Bisax properties
+	// Background
+	// ///////////////////////////////////////////////////////////////////
+	
+	uint background_colour
+	{
+		get { return _individual_backgrounds ? (has_layers ? layers.background_colour : sub_layers.background_colour) : cast<Element@>(this).background_colour; }
+		set
+		{
+			if(_individual_backgrounds)
+			{
+				if(has_layers)
+					layers.background_colour = value;
+				if(has_sub_layers)
+					sub_layers.background_colour = value;
+			}
+			else
+			{
+				cast<Element@>(this).background_colour = value;
+			}
+		}
+	}
+	
+	bool background_blur
+	{
+		get { return _individual_backgrounds ? (has_layers ? layers.background_blur : sub_layers.background_blur) : cast<Element@>(this).background_blur; }
+		set
+		{
+			if(_individual_backgrounds)
+			{
+				if(has_layers)
+					layers.background_blur = value;
+				if(has_sub_layers)
+					sub_layers.background_blur = value;
+			}
+			else
+			{
+				cast<Element@>(this).background_blur = value;
+			}
+		}
+	}
+	
+	uint border_colour
+	{
+		get { return _individual_backgrounds ? (has_layers ? layers.border_colour : sub_layers.border_colour) : cast<Element@>(this).border_colour; }
+		set
+		{
+			if(_individual_backgrounds)
+			{
+				if(has_layers)
+					layers.border_colour = value;
+				if(has_sub_layers)
+					sub_layers.border_colour = value;
+			}
+			else
+			{
+				cast<Element@>(this).border_colour = value;
+			}
+		}
+	}
+	
+	float border_size
+	{
+		get { return _individual_backgrounds ? (has_layers ? layers.border_size : sub_layers.border_size) : cast<Element@>(this).border_size; }
+		set
+		{
+			if(_individual_backgrounds)
+			{
+				if(has_layers)
+					layers.border_size = value;
+				if(has_sub_layers)
+					sub_layers.border_size = value;
+			}
+			else
+			{
+				cast<Element@>(this).border_size = value;
+			}
+		}
+	}
+	
+	uint shadow_colour
+	{
+		get { return _individual_backgrounds ? (has_layers ? layers.shadow_colour : sub_layers.shadow_colour) : _shadow_colour; }
+		set
+		{
+			if(_individual_backgrounds)
+			{
+				if(has_layers)
+					layers.shadow_colour = value;
+				if(has_sub_layers)
+					sub_layers.shadow_colour = value;
+			}
+			else
+			{
+				_shadow_colour = value;
+			}
+		}
+	}
+	
+	/// Controls whether the background, border, and shadow are drawn around the entire LayerSelector,
+	/// or separately around the layers and sublayers.
+	bool individual_backgrounds
+	{
+		get const { return _individual_backgrounds; }
+		set
+		{
+			if(_individual_backgrounds == value)
+				return;
+			
+			_individual_backgrounds = value;
+			mouse_self = !_individual_backgrounds;
+			
+			Element@ base = cast<Element@>(this);
+			
+			if(_individual_backgrounds)
+			{
+				if(has_layers)
+				{
+					layers.background_colour = base.background_colour;
+					layers.background_blur = base.background_blur;
+					layers.border_colour = base.border_colour;
+					layers.border_size = base.border_size;
+					layers.shadow_colour = _shadow_colour;
+				}
+				
+				if(has_sub_layers)
+				{
+					sub_layers.background_colour = base.background_colour;
+					sub_layers.background_blur = base.background_blur;
+					sub_layers.border_colour = base.border_colour;
+					sub_layers.border_size = base.border_size;
+					sub_layers.shadow_colour = _shadow_colour;
+				}
+				
+				base.background_colour = 0;
+				base.background_blur = false;
+				base.border_colour = 0;
+				base.border_size = 0;
+				_shadow_colour = 0;
+			}
+			else
+			{
+				background_colour	= has_layers ? layers.background_colour : sub_layers.background_colour;
+				background_blur		= has_layers ? layers.background_blur : sub_layers.background_blur;
+				border_colour		= has_layers ? layers.border_colour : sub_layers.border_colour;
+				border_size			= has_layers ? layers.border_size : sub_layers.border_size;
+				_shadow_colour		= has_layers ? layers.shadow_colour : sub_layers.shadow_colour;
+				
+				if(has_layers)
+					layers.clear_drawing_options();
+				
+				if(has_sub_layers)
+					sub_layers.clear_drawing_options();
+			}
+		}
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Basic properties
 	// ///////////////////////////////////////////////////////////////////
 	
 	/// Whether the layer list, the sub layer list, or both are shown.
@@ -254,17 +414,23 @@ class LayerSelector : LockedContainer
 		}
 	}
 	
-	/// The spacing between layers and sublayers
-	float spacing
+	/// The spacing around layers and sublayers
+	float padding
 	{
-		get const { return _spacing; }
+		get const { return _padding; }
 		set
 		{
-			if(_spacing == value)
+			if(_padding == value)
 				return;
 			
-			_spacing = value;
-			validate_layout = true;
+			_padding = value;
+			
+			if(has_layers)
+				layers.padding = _padding;
+			if(has_sub_layers)
+				sub_layers.padding = _padding;
+			
+			invalidate();
 		}
 	}
 	
@@ -699,7 +865,7 @@ class LayerSelector : LockedContainer
 			float height = 0;
 			
 			const float layer_spacing = is_nan(_layer_spacing) ? ui.style.spacing : _layer_spacing;
-			const float spacing = is_nan(_spacing) ? ui.style.spacing : _spacing;
+//			const float spacing = is_nan(_spacing) ? ui.style.spacing : _spacing;
 			
 			if(has_layers)
 			{
@@ -709,7 +875,7 @@ class LayerSelector : LockedContainer
 				}
 				
 				height = max(layers._height, height);
-				layers.x = ui.style.spacing;
+				layers.x = 0;
 				width += layers._width;
 			}
 			
@@ -721,25 +887,38 @@ class LayerSelector : LockedContainer
 				}
 				
 				height = max(sub_layers._height, height);
-				sub_layers.x = ui.style.spacing + width + (has_layers ? spacing : 0);
+				sub_layers.x = width;
 				width += sub_layers._width;
 			}
 			
 			if(has_layers)
 			{
-				layers.y = ui.style.spacing - layer_spacing * 0.5 + (height - layers._height) * align_v;;
+				layers.y = (height - layers._height) * align_v;
 			}
 			
 			if(has_sub_layers)
 			{
-				sub_layers.y = ui.style.spacing - layer_spacing * 0.5 + (height - sub_layers._height) * align_v;;
+				sub_layers.y = (height - sub_layers._height) * align_v;
 			}
 			
-			this.width = width + ui.style.spacing * 2 + (has_layers && has_sub_layers ? spacing : 0);
-			this.height = height + ui.style.spacing * 2 - layer_spacing;
+			this.width = width;
+			this.height = height;
 			
 			validate_layout = false;
 		}
+	}
+	
+	void _draw(Style@ style, DrawingContext@ ctx) override
+	{
+		if(_shadow_colour != 0)
+		{
+			style.draw_rectangle(
+				x1 + ui.style.shadow_offset_x, y1 + ui.style.shadow_offset_y,
+				x2 + ui.style.shadow_offset_x, y2 + ui.style.shadow_offset_y,
+				0, _shadow_colour);
+		}
+		
+		Element::_draw(style, ctx);
 	}
 	
 	protected void invalidate()
@@ -804,6 +983,7 @@ class LayerSelector : LockedContainer
 		layers.labels_first		= _labels_first;
 		layers.label_spacing	= _label_spacing;
 		layers.layer_spacing	= _layer_spacing;
+		layers.padding			= _padding;
 		
 		layers.toggle_all_top	= _toggle_all_top;
 		

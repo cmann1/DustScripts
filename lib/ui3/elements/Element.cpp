@@ -8,33 +8,32 @@
 #include '../events/Event.cpp';
 #include 'Container.cpp';
 
+/// The base class for all display objects in a UI
 abstract class Element
 {
-	/**
-	 * @class Element
-	 * @brief The base class for all display objects in a UI
-	 */
 	
 	UI@ ui;
 	Container@ parent;
 	
-	// Changing this MIGHT cause problems, especially if it conflicts with another element. Rather use name if you need to identify an element.
+	/// Changing this MIGHT cause problems, especially if it conflicts with another element. Rather use name if you need to identify an element.
 	string _id;
-	// A way to identify this element, e.g. during even callbacks - can be anything.
+	/// A way to identify this element, e.g. during even callbacks - can be anything.
 	string name = '';
 	
 	PopupOptions@ tooltip = null;
 	
 	bool visible = true;
-	// Can this element interact with the mouse
+	/// Can this element and all descendants interact with the mouse
 	bool mouse_enabled = true;
-	// Can this element's children interact with the mouse
+	/// Prevents this element from recieving/capturing mouse events, but stills allows descendants
+	bool mouse_self = true;
+	/// Can this element's children interact with the mouse
 	bool children_mouse_enabled = true;
-	// Is the mouse within/over this element, or any of its descendants
+	/// Is the mouse within/over this element, or any of its descendants
 	bool hovered;
-	// The mouse is down and was pressed over this element
+	/// The mouse is down and was pressed over this element
 	bool pressed;
-	// Disabled this element. Only relevant for interactive elements
+	/// Disabled this element. Only relevant for interactive elements
 	bool disabled;
 	
 	uint background_colour = 0;
@@ -59,10 +58,10 @@ abstract class Element
 	float _scroll_x;
 	float _scroll_y;
 	
-	// After do_layout, these will be the element's position in world/ui space
+	/// After do_layout, these will be the element's position in world/ui space
 	float x1, y1;
 	float x2, y2;
-	// This element bounds including children
+	/// This element bounds including children
 	float subtree_x1, subtree_y1;
 	float subtree_x2, subtree_y2;
 	
@@ -71,9 +70,9 @@ abstract class Element
 	Event mouse_press;
 	Event mouse_move;
 	Event mouse_release;
-	// Triggered when the primary ui button is clicked
+	/// Triggered when the primary ui button is clicked
 	Event mouse_click;
-	// Called when any mouse button is clicked
+	/// Called when any mouse button is clicked
 	Event mouse_button_click;
 	
 	Element(UI@ ui)

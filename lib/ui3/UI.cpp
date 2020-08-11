@@ -716,7 +716,7 @@ class UI
 				ctx.subtree_y2 = element.y2;
 				
 				if(
-					ctx.mouse_active && (
+					element.mouse_self && ctx.mouse_active && (
 						ctx.clipping_mode == ClippingMode::None ||
 						mouse_x >= ctx.x1 && mouse_x <= ctx.x2 &&
 						mouse_y >= ctx.y1 && mouse_y <= ctx.y2 && (
