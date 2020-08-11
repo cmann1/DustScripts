@@ -60,7 +60,7 @@ class Style
 	float default_text_scale = 0.9;
 	
 	// Text measurements don't seem to line up exactly always. Use these global values to offset
-	float text_offset_x = -1;
+	float text_offset_x = -0;
 	float text_offset_y = -2;
 	
 	string tooltip_font = default_font;

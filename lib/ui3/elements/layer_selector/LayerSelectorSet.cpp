@@ -21,7 +21,9 @@ class LayerSelectorSet : Container
 	string font;
 	uint font_size;
 	bool toggle_on_press;
+	bool labels_first;
 	float label_spacing;
+	float layer_spacing;
 	
 	bool validate_layout = true;
 	EventCallback@ layer_select_delegate;
@@ -78,27 +80,60 @@ class LayerSelectorSet : Container
 		}
 	}
 	
-	void update_label_spacing(const float label_spacing)
+	void update_labels_first(const bool labels_first)
+	{
+		this.labels_first = labels_first;
+		validate_layout = true;
+	}
+	
+	void update_label_spacing(float label_spacing)
 	{
 		this.label_spacing = label_spacing;
 		
+		label_spacing = is_nan(label_spacing) ? ui.style.spacing : label_spacing;
+		
 		active_width = 0;
-		active_height = 0;
 		
 		for(int i = 0; i < num_layers; i++)
 		{
+			Checkbox@ checkbox = @checkboxes[i];
 			Label@ label = @labels[i];
 			
-			if(@label == null)
-				return;
-			
-			label.padding_left = label_spacing;
+			checkbox.fit(0);
 			label.fit_to_contents();
 			
 			if(label.visible)
 			{
-				active_width = max(active_width, label._x + label._set_width);
-				active_height += label._height;
+				active_width = max(active_width, checkbox._width + label._width + label_spacing);
+			}
+		}
+		
+		validate_layout = true;
+	}
+	
+	void update_layer_spacing(float layer_spacing)
+	{
+		this.layer_spacing = layer_spacing;
+		
+		layer_spacing = is_nan(layer_spacing) ? ui.style.spacing : layer_spacing;
+		
+		active_height = 0;
+		
+		for(int i = 0; i < num_layers; i++)
+		{
+			Checkbox@ checkbox = @checkboxes[i];
+			Label@ label = @labels[i];
+			
+			checkbox.fit(0);
+			label.fit_to_contents();
+			
+			const float layer_height = max(checkbox._set_height + layer_spacing, label._set_height + layer_spacing);
+			label.height = layer_height;
+			checkbox.height = layer_height;
+			
+			if(label.visible)
+			{
+				active_height += max(checkbox._height, label._height);
 			}
 		}
 		
@@ -193,6 +228,9 @@ class LayerSelectorSet : Container
 	
 	void rebuild_checkboxes(const int start_layer, const int end_layer, const bool visible)
 	{
+		const float label_spacing		= is_nan(this.label_spacing)	? ui.style.spacing : this.label_spacing;
+		const float layer_spacing		= is_nan(this.layer_spacing)	? ui.style.spacing : this.layer_spacing;
+		
 		for(int i = start_layer; i <= end_layer; i++)
 		{
 			Checkbox@ checkbox = @checkboxes[i];
@@ -210,13 +248,14 @@ class LayerSelectorSet : Container
 					@checkbox.label = label;
 					checkbox.toggle_on_press = toggle_on_press;
 					checkbox.change.on(@layer_select_delegate);
+					checkbox.fit(0);
 					
 					label.align_v = GraphicAlign::Middle;
-					
-					label._x = checkbox._set_width;
-					label.padding_left = label_spacing;
 					label.fit_to_contents();
-					label.height = checkbox._set_height;
+					
+					const float layer_height = max(checkbox._set_height + layer_spacing, label._set_height + layer_spacing);
+					label.height = layer_height;
+					checkbox.height = layer_height;
 					
 					@checkboxes[i] = @checkbox;
 					@labels[i] = @label;
@@ -231,8 +270,8 @@ class LayerSelectorSet : Container
 				}
 				
 				active_indices[active_count++] = i;
-				active_width = max(active_width, label._x + label._width);
-				active_height += checkbox._height;
+				active_width = max(active_width, checkbox._width + label._width + label_spacing);
+				active_height += max(checkbox._height, label._height);
 			}
 			else if(@checkbox != null)
 			{
@@ -289,7 +328,24 @@ class LayerSelectorSet : Container
 			
 			checkbox._y = y;
 			label._y = y;
-			label._width = active_width - label._x;
+			label._width = active_width - checkbox._width;
+			
+			if(labels_first)
+			{
+				label.align_h = GraphicAlign::Right;
+				checkbox._x = label._width;
+				label._x = 0;
+				label.padding_left = 0;
+				label.padding_right = label_spacing;
+			}
+			else
+			{
+				label.align_h = GraphicAlign::Left;
+				checkbox._x = 0;
+				label._x = checkbox._width;
+				label.padding_left = label_spacing;
+				label.padding_right = 0;
+			}
 			
 			y += checkbox._height;
 		}

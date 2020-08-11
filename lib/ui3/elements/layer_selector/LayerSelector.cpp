@@ -23,7 +23,9 @@ class LayerSelector : LockedContainer
 	// TODO: Turn this off by default
 	/*DONE*/ protected bool _drag_select = true;
 	protected int _align_v = GraphicAlign::Top;
+	/*DONE*/ protected bool  _labels_first = true;
 	/*DONE*/ protected float _label_spacing = NAN;
+	/*DONE*/ protected float _layer_spacing = NAN;
 	/*DONE*/ protected bool _toggle_on_press = true;
 	
 	protected bool _show_backdrop_layers = true;
@@ -56,6 +58,9 @@ class LayerSelector : LockedContainer
 	LayerSelector(UI@ ui, const LayerSelectorType type=LayerSelectorType::Layers)
 	{
 		super(ui);
+		
+		background_colour = ui.style.normal_bg_clr;
+		background_blur = true;
 		
 		this.type = type;
 		
@@ -134,26 +139,6 @@ class LayerSelector : LockedContainer
 		}
 	}
 	
-	/// Controls the spacing between the layer labels and the checkboxes
-	float label_spacing
-	{
-		get const { return _label_spacing; }
-		set
-		{
-			if(_label_spacing == value)
-				return;
-			
-			_label_spacing = value;
-			
-			if(has_layers)
-				layers.update_label_spacing(_label_spacing);
-			if(has_sub_layers)
-				sub_layers.update_label_spacing(_label_spacing);
-			
-			invalidate();
-		}
-	}
-	
 	/// If true, layers will be toggled when pressed instead of when clicked
 	bool toggle_on_press
 	{
@@ -185,6 +170,57 @@ class LayerSelector : LockedContainer
 				layers.allow_deselect = _allow_deselect;
 			if(has_sub_layers)
 				sub_layers.allow_deselect = _allow_deselect;
+		}
+	}
+	
+	/// Controls whether the labels or checkboxes are displayed first on the left side
+	bool labels_first
+	{
+		get const { return _labels_first; }
+		set
+		{
+			_labels_first = value;
+			
+			if(has_layers)
+				layers.update_labels_first(_labels_first);
+			if(has_sub_layers)
+				sub_layers.update_labels_first(_labels_first);
+		}
+	}
+	
+	/// Controls the spacing between labels and checkboxes
+	float label_spacing
+	{
+		get const { return _label_spacing; }
+		set
+		{
+			if(_label_spacing == value)
+				return;
+			
+			_label_spacing = value;
+			
+			if(has_layers)
+				layers.update_label_spacing(_label_spacing);
+			if(has_sub_layers)
+				sub_layers.update_label_spacing(_label_spacing);
+		}
+	}
+	
+	/// Controls the spacing between labels and checkboxes
+	float layer_spacing
+	{
+		get const { return _layer_spacing; }
+		set
+		{
+			if(_layer_spacing == value)
+				return;
+			
+			_layer_spacing = value;
+			
+			if(has_layers)
+				layers.update_layer_spacing(_layer_spacing);
+			if(has_sub_layers)
+				sub_layers.update_layer_spacing(_layer_spacing);
 		}
 	}
 	
@@ -262,19 +298,23 @@ class LayerSelector : LockedContainer
 			if(has_layers && layers.validate_layout)
 			{
 				layers.do_layout();
-				width = max(layers._width, width);
+				width += layers._width;
 				height = max(layers._height, height);
+				layers.x = ui.style.spacing;
+				layers.y = ui.style.spacing;
 			}
 			
 			if(has_sub_layers && sub_layers.validate_layout)
 			{
 				sub_layers.do_layout();
-				width = max(sub_layers._width, width);
+				width += sub_layers._width;
 				height = max(sub_layers._height, height);
+				sub_layers.x = ui.style.spacing;
+				sub_layers.y = ui.style.spacing;
 			}
 			
-			this.width = width;
-			this.height = height;
+			this.width = width + ui.style.spacing * 2;
+			this.height = height + ui.style.spacing * 2;
 			
 			validate_layout = false;
 		}
@@ -320,13 +360,17 @@ class LayerSelector : LockedContainer
 	
 	protected void initialise_layers_set_generic(LayerSelectorSet@ layers)
 	{
-		layers.allow_deselect = _allow_deselect;
-		layers.multi_select = _multi_select;
-		layers.drag_select = _drag_select;
-		layers.toggle_on_press = _toggle_on_press;
-		layers.label_spacing = _label_spacing;
-		layers.font = _font;
-		layers.font_size = _font_size;
+		layers.allow_deselect	= _allow_deselect;
+		layers.multi_select		= _multi_select;
+		layers.drag_select		= _drag_select;
+		layers.toggle_on_press	= _toggle_on_press;
+		
+		layers.labels_first		= _labels_first;
+		layers.label_spacing	= _label_spacing;
+		layers.layer_spacing	= _layer_spacing;
+		
+		layers.font			= _font;
+		layers.font_size	= _font_size;
 	}
 	
 	protected void rebuild_layers()

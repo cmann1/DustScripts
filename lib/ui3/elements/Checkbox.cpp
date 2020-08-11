@@ -1,3 +1,4 @@
+#include '../../math/math.cpp';
 #include '../events/Event.cpp';
 #include '../utils/CheckboxState.cpp';
 #include 'Element.cpp';
@@ -21,8 +22,7 @@ class Checkbox : Element
 		
 		@label_click_delegate = EventCallback(on_label_click);
 		
-		_width  = _set_width  = _size + ui.style.spacing * 2;
-		_height = _set_height = _set_width;
+		fit();
 	}
 	
 	string element_type { get const { return 'Checkbox'; } }
@@ -101,6 +101,22 @@ class Checkbox : Element
 	void initialise_state(const bool checked)
 	{
 		_state = checked ? CheckboxState::On : CheckboxState::Off;
+	}
+	
+	void fit(float padding=NAN)
+	{
+		fit(padding, padding);
+	}
+	
+	void fit(float padding_x, float padding_y)
+	{
+		if(is_nan(padding_x))
+			padding_x = ui.style.spacing;
+		if(is_nan(padding_y))
+			padding_y = ui.style.spacing;
+		
+		width  = _size + padding_x * 2;
+		height = _size + padding_y * 2;
 	}
 	
 	void _do_layout(LayoutContext@ ctx) override

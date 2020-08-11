@@ -85,7 +85,10 @@ class Label : Graphic
 		}
 	}
 	
-	bool has_colour { get const { return _has_colour; } }
+	bool has_colour
+	{
+		get const { return _has_colour; }
+	}
 	
 	uint colour
 	{
@@ -95,6 +98,12 @@ class Label : Graphic
 			_colour = value;
 			_has_colour = true;
 		}
+	}
+	
+	/// Resets the colour to the default text colour defined in the ui style
+	void clear_colour()
+	{
+		has_colour = false;
 	}
 	
 	Label@ fit_to_contents()
