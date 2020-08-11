@@ -151,4 +151,85 @@ namespace string
 		return text;
 	}
 	
+	string join(const array<int>@ arr, const string delimiter, int start=0, int count=-1)
+	{
+		const int arr_length = int(arr.length());
+		
+		if(start < 0)
+			start = 0;
+		else if(start >= arr_length)
+			start = arr_length - 1;
+		
+		count = start + (count < 0 ? arr_length : count);
+		
+		if(count > arr_length)
+			count = arr_length;
+		
+		if(count - start == 0)
+			return '';
+		
+		string output = arr[start] + '';
+		
+		for(int i = start + 1; i < count; i++)
+		{
+			output += delimiter + arr[i];
+		}
+		
+		return output;
+	}
+	
+	string join(const array<uint>@ arr, const string delimiter, int start=0, int count=-1)
+	{
+		const int arr_length = int(arr.length());
+		
+		if(start < 0)
+			start = 0;
+		else if(start >= arr_length)
+			start = arr_length - 1;
+		
+		count = start + (count < 0 ? arr_length : count);
+		
+		if(count > arr_length)
+			count = arr_length;
+		
+		if(count - start == 0)
+			return '';
+		
+		string output = arr[start] + '';
+		
+		for(int i = start + 1; i < count; i++)
+		{
+			output += delimiter + arr[i];
+		}
+		
+		return output;
+	}
+	
+	string join(const array<float>@ arr, const string delimiter, int start=0, int count=-1)
+	{
+		const int arr_length = int(arr.length());
+		
+		if(start < 0)
+			start = 0;
+		else if(start >= arr_length)
+			start = arr_length - 1;
+		
+		count = start + (count < 0 ? arr_length : count);
+		
+		if(count > arr_length)
+			count = arr_length;
+		
+		if(count - start == 0)
+			return '';
+		
+		string output = arr[start] + '';
+		
+		for(int i = start + 1; i < count; i++)
+		{
+			output += delimiter + arr[i];
+		}
+		
+		return output;
+	}
+	
 }
