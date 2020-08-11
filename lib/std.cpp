@@ -53,6 +53,7 @@ string hex(uint x, uint width = 0)
 }
 
 void puts(bool x) { puts(x + ''); }
+void puts(bool x, bool y) { puts(x + ', ' + y); }
 void puts(int8 x) { puts(x + ''); }
 void puts(int x) { puts(x + ''); }
 void puts(int64 x) { puts(x + ''); }
