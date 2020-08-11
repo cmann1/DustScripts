@@ -901,8 +901,8 @@ class LayerSelector : LockedContainer
 				sub_layers.y = (height - sub_layers._height) * align_v;
 			}
 			
-			this.width = width;
-			this.height = height;
+			this.width = ceil(width);
+			this.height = ceil(height);
 			
 			validate_layout = false;
 		}

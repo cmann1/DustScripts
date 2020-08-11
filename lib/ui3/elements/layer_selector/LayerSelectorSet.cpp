@@ -726,8 +726,8 @@ class LayerSelectorSet : Container
 			y += checkbox._height;
 		}
 		
-		width = active_width + padding * 2;
-		height = active_height + padding * 2 - layer_spacing;
+		width = ceil(active_width + padding * 2);
+		height = ceil(active_height + padding * 2 - layer_spacing);
 		
 		validate_layout = false;
 	}
