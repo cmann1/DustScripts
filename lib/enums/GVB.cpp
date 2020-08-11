@@ -1,4 +1,4 @@
-namespace GlobalVirtualButton
+namespace GVB
 {
 	
 	const int WheelUp = 0;

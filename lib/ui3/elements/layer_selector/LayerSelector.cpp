@@ -1,5 +1,5 @@
 #include '../../../fonts.cpp';
-#include '../../../enums/GlobalVirtualButton.cpp';
+#include '../../../enums/GVB.cpp';
 #include '../../../math/math.cpp';
 #include '../../utils/GraphicAlign.cpp';
 #include '../../events/Event.cpp';
@@ -28,7 +28,7 @@ class LayerSelector : LockedContainer
 	protected float _layer_spacing = NAN;
 	protected float _padding = NAN;
 	protected bool _toggle_on_press = true;
-	protected int _select_layer_group_modifier = GlobalVirtualButton::Shift;
+	protected int _select_layer_group_modifier = GVB::Shift;
 	
 	protected bool _show_all_layers_toggle = true;
 	protected bool _show_all_sub_layers_toggle = true;

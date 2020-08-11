@@ -1,5 +1,5 @@
 #include '../../math/math.cpp';
-#include '../../enums/Key.cpp';
+#include '../../enums/VK.cpp';
 #include '../../string.cpp';
 #include 'LockedContainer.cpp';
 #include 'Image.cpp';
@@ -318,13 +318,13 @@ class RotationWheel : Image
 		if(!ui._has_editor)
 			return angle;
 		
-		if(ui._editor.key_check_vk(Key::Shift))
+		if(ui._editor.key_check_vk(VK::Shift))
 			return round(angle / snap_big) * snap_big;
 			
-		if(ui._editor.key_check_vk(Key::Control))
+		if(ui._editor.key_check_vk(VK::Control))
 			return round(angle / snap_small) * snap_small;
 			
-		if(ui._editor.key_check_vk(Key::Menu))
+		if(ui._editor.key_check_vk(VK::Menu))
 			return round(angle / snap_tiny) * snap_tiny;
 		
 		return angle;

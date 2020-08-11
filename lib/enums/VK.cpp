@@ -1,4 +1,4 @@
-namespace Key
+namespace VK
 {
 	
 	const int LeftButton = 0x01; // Left mouse button

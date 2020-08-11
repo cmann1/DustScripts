@@ -1,5 +1,5 @@
 #include 'std.cpp';
-#include 'enums/GlobalVirtualButton.cpp';
+#include 'enums/GVB.cpp';
 
 class Mouse
 {

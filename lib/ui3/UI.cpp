@@ -2,7 +2,7 @@
 #include '../string.cpp';
 #include '../fonts.cpp';
 #include '../editor/common.cpp';
-#include '../enums/GlobalVirtualButton.cpp';
+#include '../enums/GVB.cpp';
 #include '../math/math.cpp';
 #include '../utils/colour.cpp';
 #include 'UIMouse.cpp';
@@ -321,7 +321,7 @@ class UI
 			process_queued_events();
 		}
 		
-		mouse.step(_has_editor && _editor.key_check_gvb(GlobalVirtualButton::Space));
+		mouse.step(_has_editor && _editor.key_check_gvb(GVB::Space));
 		
 		switch(primary_button)
 		{
