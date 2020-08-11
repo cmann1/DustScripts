@@ -27,6 +27,8 @@ class LayerSelectorSet : Container
 	float label_spacing;
 	float layer_spacing;
 	
+	bool toggle_all_top;
+	
 	bool validate_layout = true;
 	EventCallback@ layer_select_delegate;
 	
@@ -456,9 +458,18 @@ class LayerSelectorSet : Container
 	{
 		float y = 0;
 		
-		for(int i = 0; i < active_count; i++)
+		int start_index = 0;
+		int end_index = active_count;
+		
+		if(toggle_all_top && @all_checkbox != null && all_checkbox.visible)
 		{
-			const int index = active_indices[i];
+			start_index= -1;
+			end_index--;
+		}
+		
+		for(int i = start_index; i < end_index; i++)
+		{
+			const int index = i == -1 ? active_indices[num_layers - 1] : active_indices[i];
 			Checkbox@ checkbox = @checkboxes[index];
 			Label@ label = @labels[index];
 			

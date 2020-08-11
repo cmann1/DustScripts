@@ -18,15 +18,14 @@ class LayerSelector : LockedContainer
 	// Properties
 	
 	protected LayerSelectorType _type = LayerSelectorType(-1);
-	/*DONE*/ protected bool _multi_select = false;
-	// TODO: Turn this off by default
+	/*DONE*/ protected bool _multi_select = true;
 	/*DONE*/ protected bool _allow_deselect = true;
-	// TODO: Turn this off by default
 	/*DONE*/ protected bool _drag_select = true;
-	protected int _align_v = GraphicAlign::Top;
+	/*DONE*/ protected float _align_v = GraphicAlign::Top;
 	/*DONE*/ protected bool  _labels_first = true;
 	/*DONE*/ protected float _label_spacing = NAN;
 	/*DONE*/ protected float _layer_spacing = NAN;
+	/*DONE*/ protected float _spacing = NAN;
 	/*DONE*/ protected bool _toggle_on_press = true;
 	/*DONE*/ protected int _select_layer_group_modifier = GlobalVirtualButton::Shift;
 	
@@ -41,9 +40,9 @@ class LayerSelector : LockedContainer
 	protected int _min_sublayer = 0;
 	protected int _max_sublayer = 24;
 	
-	// TODO: Turn these off by default
 	protected bool _show_all_layers_toggle = true;
 	protected bool _show_all_sub_layers_toggle = true;
+	/*DONE*/ protected bool _toggle_all_top = true;
 	
 	/*DONE*/ protected string _font = font::ENVY_BOLD;
 	/*DONE*/ protected uint _font_size = 20;
@@ -161,7 +160,7 @@ class LayerSelector : LockedContainer
 	
 	/// Only relevant when both the layer and sublayer lists are shown.
 	/// Controls how they are aligned vertically.
-	int align_v
+	float align_v
 	{
 		get const { return _align_v; }
 		set
@@ -226,7 +225,7 @@ class LayerSelector : LockedContainer
 		}
 	}
 	
-	/// Controls the spacing between labels and checkboxes
+	/// The spacing between labels and checkboxes
 	float label_spacing
 	{
 		get const { return _label_spacing; }
@@ -244,7 +243,7 @@ class LayerSelector : LockedContainer
 		}
 	}
 	
-	/// Controls the spacing between labels and checkboxes
+	/// The spacing between labels and checkboxes
 	float layer_spacing
 	{
 		get const { return _layer_spacing; }
@@ -259,6 +258,40 @@ class LayerSelector : LockedContainer
 				layers.update_layer_spacing(_layer_spacing);
 			if(has_sub_layers)
 				sub_layers.update_layer_spacing(_layer_spacing);
+		}
+	}
+	
+	/// The spacing between layers and sublayers
+	float spacing
+	{
+		get const { return _spacing; }
+		set
+		{
+			if(_spacing == value)
+				return;
+			
+			_spacing = value;
+			validate_layout = true;
+		}
+	}
+	
+	/// The toggle all checkboxes can be displayed at the bottom or the top
+	bool toggle_all_top
+	{
+		get const { return _toggle_all_top; }
+		set
+		{
+			if(_toggle_all_top == value)
+				return;
+			
+			_toggle_all_top = value;
+			
+			if(has_layers)
+				layers.toggle_all_top = _toggle_all_top;
+			if(has_sub_layers)
+				sub_layers.toggle_all_top = _toggle_all_top;
+			
+			invalidate();
 		}
 	}
 	
@@ -337,7 +370,24 @@ class LayerSelector : LockedContainer
 		return layers.select_all();
 	}
 	
-	// TODO: select all/none sublayers
+	/// Deselects all sub layers and returns the number that were changed
+	int select_sub_layers_none()
+	{
+		if(!has_sub_layers)
+			return 0;
+		
+		return sub_layers.select_all();
+	}
+	
+	/// Selects all sub layers and returns the number that were changed
+	int select_sub_layers_all()
+	{
+		if(!_multi_select || !has_sub_layers)
+			return 0;
+		
+		return sub_layers.select_all();
+	}
+	
 	// TODO: Get number of selected layers and sub layers
 	
 	void set_selectable_sub_layers(int min, int max)
@@ -373,26 +423,45 @@ class LayerSelector : LockedContainer
 			float width = 0;
 			float height = 0;
 			
-			if(has_layers && layers.validate_layout)
+			const float layer_spacing = is_nan(_layer_spacing) ? ui.style.spacing : _layer_spacing;
+			const float spacing = is_nan(_spacing) ? ui.style.spacing : _spacing;
+			
+			if(has_layers)
 			{
-				layers.do_layout();
-				width += layers._width;
+				if(layers.validate_layout)
+				{
+					layers.do_layout();
+				}
+				
 				height = max(layers._height, height);
 				layers.x = ui.style.spacing;
-				layers.y = ui.style.spacing;
+				width += layers._width;
 			}
 			
-			if(has_sub_layers && sub_layers.validate_layout)
+			if(has_sub_layers)
 			{
-				sub_layers.do_layout();
-				width += sub_layers._width;
+				if(sub_layers.validate_layout)
+				{
+					sub_layers.do_layout();
+				}
+				
 				height = max(sub_layers._height, height);
-				sub_layers.x = ui.style.spacing;
-				sub_layers.y = ui.style.spacing;
+				sub_layers.x = ui.style.spacing + width + (has_layers ? spacing : 0);
+				width += sub_layers._width;
 			}
 			
-			this.width = width + ui.style.spacing * 2;
-			this.height = height + ui.style.spacing * 2;
+			if(has_layers)
+			{
+				layers.y = ui.style.spacing - layer_spacing * 0.5 + (height - layers._height) * align_v;;
+			}
+			
+			if(has_sub_layers)
+			{
+				sub_layers.y = ui.style.spacing - layer_spacing * 0.5 + (height - sub_layers._height) * align_v;;
+			}
+			
+			this.width = width + ui.style.spacing * 2 + (has_layers && has_sub_layers ? spacing : 0);
+			this.height = height + ui.style.spacing * 2 - layer_spacing;
 			
 			validate_layout = false;
 		}
@@ -405,7 +474,7 @@ class LayerSelector : LockedContainer
 		if(has_layers)
 			layers.validate_layout = true;
 		if(has_sub_layers)
-			layers.validate_layout = true;
+			sub_layers.validate_layout = true;
 	}
 	
 	protected void initialise_layers_set()
@@ -448,6 +517,8 @@ class LayerSelector : LockedContainer
 		layers.label_spacing	= _label_spacing;
 		layers.layer_spacing	= _layer_spacing;
 		
+		layers.toggle_all_top	= _toggle_all_top;
+		
 		layers.font			= _font;
 		layers.font_size	= _font_size;
 	}
@@ -473,9 +544,9 @@ class LayerSelector : LockedContainer
 	{
 		sub_layers.rebuild();
 		
-		layers.rebuild_checkboxes(0, _min_sublayer, _max_sublayer, true);
+		sub_layers.rebuild_checkboxes(0, _min_sublayer, _max_sublayer, true);
 		sub_layers.rebuild_hide_other(_min_sublayer, _max_sublayer);
-		layers.rebuild_checkboxes(1, 24, 24, _show_all_sub_layers_toggle && _multi_select);
+		sub_layers.rebuild_checkboxes(1, 25, 25, _show_all_sub_layers_toggle && _multi_select);
 		
 		sub_layers.rebuild_complete();
 		validate_layout = true;
