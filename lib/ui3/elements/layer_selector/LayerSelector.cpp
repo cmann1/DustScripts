@@ -1,4 +1,5 @@
 #include '../../../fonts.cpp';
+#include '../../../enums/GlobalVirtualButton.cpp';
 #include '../../../math/math.cpp';
 #include '../../utils/GraphicAlign.cpp';
 #include '../../events/Event.cpp';
@@ -27,6 +28,7 @@ class LayerSelector : LockedContainer
 	/*DONE*/ protected float _label_spacing = NAN;
 	/*DONE*/ protected float _layer_spacing = NAN;
 	/*DONE*/ protected bool _toggle_on_press = true;
+	/*DONE*/ protected int _select_layer_group_modifier = GlobalVirtualButton::Shift;
 	
 	protected bool _show_backdrop_layers = true;
 	protected bool _show_parallax_layers = true;
@@ -157,6 +159,25 @@ class LayerSelector : LockedContainer
 		}
 	}
 	
+	/// Sets the GVB key that can be used to toggle entire layer groups.
+	/// Set to -1 to disable.
+	int select_layer_group_modifier
+	{
+		get const { return _select_layer_group_modifier; }
+		set
+		{
+			if(_select_layer_group_modifier == value)
+				return;
+			
+			_select_layer_group_modifier = value;
+			
+			if(has_layers)
+				layers.select_layer_group_modifier = _select_layer_group_modifier;
+			if(has_sub_layers)
+				sub_layers.select_layer_group_modifier = _select_layer_group_modifier;
+		}
+	}
+	
 	/// If false, will prevent layers from being selected.
 	/// Only has an effect when multi select is off.
 	bool allow_deselect
@@ -241,6 +262,67 @@ class LayerSelector : LockedContainer
 		invalidate();
 	}
 	
+	/// Returns true and sets colour if the specified layer has custom colour set
+	bool get_layer_colour(const int layer, uint &out colour)
+	{
+		return layers.get_layer_colour(layer, colour);
+	}
+	
+	/// Sets a custom colour for the specified layer. If end_layer is not -1 will set all layers between layer and end_layer (inclusive)
+	/// Returns true if the layer colours was succesfully set.
+	bool set_layer_colour(const int layer, const uint colour, const int end_layer=-1)
+	{
+		return layers.set_layer_colour(layer, colour, end_layer);
+	}
+	
+	/// Clears the custom colour for the specified layer if it has any. If end_layer is not -1 will set all layers between layer and end_layer (inclusive)
+	/// Returns true if the layer colours was succesfully cleared.
+	bool clear_layer_colour(const int layer, const int end_layer=-1)
+	{
+		return layers.clear_layer_colour(layer, end_layer);
+	}
+	
+	/// Returns true and sets colour if the specified sub layer has custom colour set
+	bool get_sub_layer_colour(const int sub_layer, uint &out colour)
+	{
+		return layers.get_layer_colour(sub_layer, colour);
+	}
+	
+	/// Sets a custom colour for the specified sub layer. If end_sub_layer is not -1 will set all layers between sub_layer and end_sub_layer (inclusive)
+	/// Returns true if the sub layer colours was succesfully set.
+	bool set_sub_layer_colour(const int sub_layer, const uint colour, const int end_sub_layer=-1)
+	{
+		return layers.set_layer_colour(sub_layer, colour, end_sub_layer);
+	}
+	
+	/// Clears the custom colour for the specified sub layer if it has any. If end_sub_layer is not -1 will set all layers between sub_layer and end_sub_layer (inclusive)
+	/// Returns true if the sub layer colours was succesfully cleared.
+	bool clear_sub_layer_colour(const int sub_layer, const int end_sub_layer=-1)
+	{
+		return layers.clear_layer_colour(sub_layer, end_sub_layer);
+	}
+	
+	/// Deselects all layers and returns the number that were changed
+	int select_layers_none()
+	{
+		if(!has_layers)
+			return 0;
+		
+		return layers.select_all();
+	}
+	
+	/// Selects all layers and returns the number that were changed
+	int select_layers_all()
+	{
+		if(!_multi_select || !has_layers)
+			return 0;
+		
+		return layers.select_all();
+	}
+	
+	// TODO: select all/none sublayers
+	// TODO: Get number of selected layers and sub layers
+	
 	void set_selectable_sub_layers(int min, int max)
 	{
 		if(min < 0)
@@ -266,27 +348,6 @@ class LayerSelector : LockedContainer
 			rebuild_sub_layers();
 		}
 	}
-	
-	/// Deselects all layers and returns the number that were changed
-	int select_layers_none()
-	{
-		if(!has_layers)
-			return 0;
-		
-		return layers.select_all();
-	}
-	
-	/// Selects all layers and returns the number that were changed
-	int select_layers_all()
-	{
-		if(!_multi_select || !has_layers)
-			return 0;
-		
-		return layers.select_all();
-	}
-	
-	// TODO: select all/none sublayers
-	// TODO: Get number of selected layers and sub layers
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
@@ -360,10 +421,11 @@ class LayerSelector : LockedContainer
 	
 	protected void initialise_layers_set_generic(LayerSelectorSet@ layers)
 	{
-		layers.allow_deselect	= _allow_deselect;
-		layers.multi_select		= _multi_select;
-		layers.drag_select		= _drag_select;
-		layers.toggle_on_press	= _toggle_on_press;
+		layers.allow_deselect				= _allow_deselect;
+		layers.multi_select					= _multi_select;
+		layers.drag_select					= _drag_select;
+		layers.toggle_on_press				= _toggle_on_press;
+		layers.select_layer_group_modifier	= _select_layer_group_modifier;
 		
 		layers.labels_first		= _labels_first;
 		layers.label_spacing	= _label_spacing;
@@ -377,14 +439,14 @@ class LayerSelector : LockedContainer
 	{
 		layers.rebuild();
 		
-		layers.rebuild_checkboxes(0, 5,   _show_backdrop_layers);
-		layers.rebuild_checkboxes(6, 11,  _show_parallax_layers);
-		layers.rebuild_checkboxes(12, 17, _show_background_layers);
-		layers.rebuild_checkboxes(18, 18, _show_entities_layer);
-		layers.rebuild_checkboxes(19, 19, _show_collision_layer);
-		layers.rebuild_checkboxes(20, 20, _show_foreground_layer);
-		layers.rebuild_checkboxes(21, 22, _show_ui_layers);
-		layers.rebuild_checkboxes(23, 23, _show_all_layers_toggle && _multi_select);
+		layers.rebuild_checkboxes(0, 0, 5,   _show_backdrop_layers, true, 0xffe7e6a7);
+		layers.rebuild_checkboxes(1, 6, 11,  _show_parallax_layers, true, 0xffbea7e7);
+		layers.rebuild_checkboxes(2, 12, 17, _show_background_layers);
+		layers.rebuild_checkboxes(3, 18, 18, _show_entities_layer, true, 0xff7bc4d9);
+		layers.rebuild_checkboxes(4, 19, 19, _show_collision_layer, true, 0xff7bd98f);
+		layers.rebuild_checkboxes(5, 20, 20, _show_foreground_layer);
+		layers.rebuild_checkboxes(6, 21, 22, _show_ui_layers, true, 0xff818181);
+		layers.rebuild_checkboxes(7, 23, 23, _show_all_layers_toggle && _multi_select);
 		
 		layers.rebuild_complete();
 		validate_layout = true;
@@ -394,9 +456,9 @@ class LayerSelector : LockedContainer
 	{
 		sub_layers.rebuild();
 		
-		layers.rebuild_checkboxes(_min_sublayer, _max_sublayer, true);
+		layers.rebuild_checkboxes(0, _min_sublayer, _max_sublayer, true);
 		sub_layers.rebuild_hide_other(_min_sublayer, _max_sublayer);
-		layers.rebuild_checkboxes(24, 24, _show_all_sub_layers_toggle && _multi_select);
+		layers.rebuild_checkboxes(1, 24, 24, _show_all_sub_layers_toggle && _multi_select);
 		
 		sub_layers.rebuild_complete();
 		validate_layout = true;

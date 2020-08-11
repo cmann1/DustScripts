@@ -88,6 +88,7 @@ class Label : Graphic
 	bool has_colour
 	{
 		get const { return _has_colour; }
+		set { _has_colour = value; }
 	}
 	
 	uint colour

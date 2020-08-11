@@ -9,6 +9,7 @@ class LayerSelectorSet : Container
 	
 	array<Checkbox@> checkboxes;
 	array<Label@> labels;
+	array<int> groups;
 	
 	array<int> active_indices;
 	int active_count;
@@ -21,6 +22,7 @@ class LayerSelectorSet : Container
 	string font;
 	uint font_size;
 	bool toggle_on_press;
+	int select_layer_group_modifier;
 	bool labels_first;
 	float label_spacing;
 	float layer_spacing;
@@ -171,6 +173,38 @@ class LayerSelectorSet : Container
 		return result;
 	}
 	
+	int initialise_all_group_states(const int group, const CheckboxState state, const bool trigger_event=true)
+	{
+		int result = 0;
+		
+		for(int i = 0; i < active_count; i++)
+		{
+			const int index = active_indices[i];
+			Checkbox@ checkbox = checkboxes[index];
+			
+			if(@checkbox == @all_checkbox || groups[index] != group)
+				continue;
+			
+			if(checkbox.state != state)
+			{
+				checkbox.initialise_state(state);
+				result++;
+			}
+		}
+		
+		if(result > 0)
+		{
+			update_toggle_all_checkbox();
+			
+			if(trigger_event)
+			{
+				ui._dispatch_event(@select_event, select_event_type, layer_selector);
+			}
+		}
+		
+		return result;
+	}
+	
 	CheckboxState calculate_all_state()
 	{
 		CheckboxState state = CheckboxState::Off;
@@ -212,12 +246,69 @@ class LayerSelectorSet : Container
 		return initialise_all_states(CheckboxState::Off);
 	}
 	
+	bool get_layer_colour(const int layer, uint &out colour)
+	{
+		if(layer < 0 || layer >= num_layers)
+			return false;
+		
+		Label@ label = @labels[layer];
+		
+		if(@label == null)
+			return false;
+		
+		colour = label.colour;
+		return true;
+	}
+	
+	bool set_layer_colour(int layer, const uint colour, int end_layer=-1)
+	{
+		if(!validate_layer_range(layer, end_layer, layer, end_layer))
+			return false;
+		
+		int result = 0;
+		
+		for(int i = layer; i <= end_layer; i++)
+		{
+			Label@ label = @labels[i];
+			
+			if(@label == null)
+				continue;
+			
+			label.colour = colour;
+			result++;
+		}
+		
+		return result > 0;
+	}
+	
+	bool clear_layer_colour(int layer, int end_layer=-1)
+	{
+		if(!validate_layer_range(layer, end_layer, layer, end_layer))
+			return false;
+		
+		int result = 0;
+		
+		for(int i = layer; i <= end_layer; i++)
+		{
+			Label@ label = @labels[i];
+			
+			if(@label == null)
+				continue;
+			
+			label.has_colour = false;
+			result++;
+		}
+		
+		return result > 0;
+	}
+	
 	void rebuild()
 	{
 		if(checkboxes.length() != uint(num_layers))
 		{
 			checkboxes.resize(num_layers);
 			labels.resize(num_layers);
+			groups.resize(num_layers);
 			active_indices.resize(num_layers);
 		}
 		
@@ -226,7 +317,7 @@ class LayerSelectorSet : Container
 		active_height = 0;
 	}
 	
-	void rebuild_checkboxes(const int start_layer, const int end_layer, const bool visible)
+	void rebuild_checkboxes(const int group, const int start_layer, const int end_layer, const bool visible, const bool has_default_colour=false, const uint default_colour=0)
 	{
 		const float label_spacing		= is_nan(this.label_spacing)	? ui.style.spacing : this.label_spacing;
 		const float layer_spacing		= is_nan(this.layer_spacing)	? ui.style.spacing : this.layer_spacing;
@@ -253,12 +344,18 @@ class LayerSelectorSet : Container
 					label.align_v = GraphicAlign::Middle;
 					label.fit_to_contents();
 					
+					if(has_default_colour)
+					{
+						label.colour = default_colour;
+					}
+					
 					const float layer_height = max(checkbox._set_height + layer_spacing, label._set_height + layer_spacing);
 					label.height = layer_height;
 					checkbox.height = layer_height;
 					
 					@checkboxes[i] = @checkbox;
 					@labels[i] = @label;
+					groups[i] = group;
 					add_child(checkbox);
 					add_child(label);
 				}
@@ -356,12 +453,59 @@ class LayerSelectorSet : Container
 		validate_layout = false;
 	}
 	
+	protected bool validate_layer_range(const int in_layer, const int in_end_layer, int &out layer, int &out end_layer)
+	{
+		layer = in_layer;
+		end_layer = in_end_layer;
+		
+		if(layer < 0 || layer >= num_layers)
+			return false;
+		
+		if(end_layer == -1)
+		{
+			end_layer = layer;
+		}
+		else
+		{
+			if(end_layer < 0) end_layer = 0;
+			if(end_layer >= num_layers) end_layer = num_layers - 1;
+			
+			if(end_layer < layer)
+			{
+				const int end_layer_t = end_layer;
+				end_layer = layer;
+				layer = end_layer_t;
+			}
+		}
+		
+		return true;
+	}
+	
 	protected void update_toggle_all_checkbox()
 	{
 		if(@all_checkbox == null)
 			return;
 		
 		all_checkbox.initialise_state(calculate_all_state());
+	}
+	
+	protected Checkbox@ get_checkbox(Element@ element)
+	{
+		if(@element.parent != @this)
+			return null;
+		
+		Checkbox@ checkbox = cast<Checkbox@>(@element);
+		
+		if(@checkbox != null)
+			return @checkbox;
+		
+		Label@ label = cast<Label@>(@element);
+		
+		int index = labels.findByRef(@label);
+		
+		return index != -1
+			? @checkboxes[index]
+			: null;
 	}
 	
 	protected void on_layer_select(EventInfo@ event)
@@ -388,28 +532,22 @@ class LayerSelectorSet : Container
 		}
 		else
 		{
-			update_toggle_all_checkbox();
-			ui._dispatch_event(@select_event, select_event_type, layer_selector);
+			if(select_layer_group_modifier >= 0 && ui._has_editor && ui._editor.key_check_gvb(select_layer_group_modifier))
+			{
+				const int group = groups[checkboxes.findByRef(@checkbox)];
+				
+				if(initialise_all_group_states(group, checkbox.state) == 0)
+				{
+					update_toggle_all_checkbox();
+					ui._dispatch_event(@select_event, select_event_type, layer_selector);
+				}
+			}
+			else
+			{
+				update_toggle_all_checkbox();
+				ui._dispatch_event(@select_event, select_event_type, layer_selector);
+			}
 		}
-	}
-	
-	protected Checkbox@ get_checkbox(Element@ element)
-	{
-		if(@element.parent != @this)
-			return null;
-		
-		Checkbox@ checkbox = cast<Checkbox@>(@element);
-		
-		if(@checkbox != null)
-			return @checkbox;
-		
-		Label@ label = cast<Label@>(@element);
-		
-		int index = labels.findByRef(@label);
-		
-		return index != -1
-			? @checkboxes[index]
-			: null;
 	}
 	
 	void _mouse_press(const MouseButton button) override

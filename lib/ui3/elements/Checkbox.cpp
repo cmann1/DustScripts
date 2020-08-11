@@ -45,7 +45,12 @@ class Checkbox : Element
 		get const { return _state == CheckboxState::On; }
 		set
 		{
-			_state = value ? CheckboxState::On : CheckboxState::Off;
+			const CheckboxState new_state = value ? CheckboxState::On : CheckboxState::Off;
+			
+			if(_state == new_state)
+				return;
+			
+			_state = new_state;
 			ui._dispatch_event(@change, EventType::CHANGE, this);
 		}
 	}
