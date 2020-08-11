@@ -234,6 +234,128 @@ class LayerSelectorSet : Container
 		return result;
 	}
 	
+	int get_selected()
+	{
+		for(int i = active_count - 1; i >= 0; i--)
+		{
+			Checkbox@ checkbox = checkboxes[active_indices[i]];
+			
+			if(@checkbox == @all_checkbox)
+				continue;
+			
+			if(checkbox.checked)
+				return i;
+		}
+		
+		return -1;
+	}
+	
+	int get_selected(array<int>@ results)
+	{
+		int count = int(results.length());
+		int index = 0;
+		
+		for(int i = 0; i < active_count; i++)
+		{
+			const int layer_index = active_indices[i];
+			Checkbox@ checkbox = checkboxes[layer_index];
+			
+			if(@checkbox == @all_checkbox)
+				continue;
+			
+			if(checkbox.checked)
+			{
+				if(index == count)
+				{
+					results.insertLast(layer_index);
+					index++;
+					count++;
+				}
+				else
+				{
+					results[index++] = layer_index;
+				}
+			}
+		}
+		
+		return index;
+	}
+	
+	int get_selected(array<int>@ results, int start_layer, int end_layer)
+	{
+		if(!validate_layer_range(start_layer, end_layer, start_layer, end_layer))
+			return 0;
+		
+		int count = int(results.length());
+		int index = 0;
+		
+		for(int i = start_layer; i <= end_layer; i++)
+		{
+			Checkbox@ checkbox = checkboxes[i];
+			
+			if(@checkbox == @all_checkbox || !checkbox.visible)
+				continue;
+			
+			if(checkbox.checked)
+			{
+				if(index == count)
+				{
+					results.insertLast(i);
+					index++;
+					count++;
+				}
+				else
+				{
+					results[index++] = i;
+				}
+			}
+		}
+		
+		return index;
+	}
+	
+	bool set_selected(const int layer, const bool trigger_event=true)
+	{
+		if(layer < 0 || layer >= num_layers)
+			return false;
+		
+		bool changed = false;
+		
+		for(int i = 0; i < active_count; i++)
+		{
+			Checkbox@ checkbox = checkboxes[active_indices[i]];
+			
+			if(@checkbox == @all_checkbox)
+				continue;
+			
+			if(i == layer)
+			{
+				if(!checkbox.checked)
+				{
+					checkbox.initialise_state(true);
+					changed = true;
+				}
+			}
+			else if(checkbox.checked)
+			{
+				checkbox.initialise_state(false);
+				changed = true;
+			}
+		}
+		
+		if(changed)
+		{
+			update_toggle_all_checkbox();
+			
+			if(trigger_event)
+			{
+				ui._dispatch_event(@select_event, select_event_type, layer_selector);
+			}
+		}
+		
+		return changed;
+	}
+	
 	int count_selected(int start_layer, int end_layer)
 	{
 		if(!validate_layer_range(start_layer, end_layer, start_layer, end_layer))
@@ -246,6 +368,26 @@ class LayerSelectorSet : Container
 			Checkbox@ checkbox = checkboxes[i];
 			
 			if(!checkbox.visible || @checkbox == @all_checkbox)
+				continue;
+			
+			if(checkbox.checked)
+			{
+				result++;
+			}
+		}
+		
+		return result;
+	}
+	
+	int count_selected()
+	{
+		int result = 0;
+		
+		for(int i = 0; i < active_count; i++)
+		{
+			Checkbox@ checkbox = checkboxes[active_indices[i]];
+			
+			if(@checkbox == @all_checkbox)
 				continue;
 			
 			if(checkbox.checked)
@@ -288,14 +430,14 @@ class LayerSelectorSet : Container
 		return state;
 	}
 	
-	int select_all()
+	int select_all(const bool trigger_event=true)
 	{
-		return initialise_all_states(true);
+		return initialise_all_states(true, trigger_event);
 	}
 	
-	int select_none()
+	int select_none(const bool trigger_event=true)
 	{
-		return initialise_all_states(false);
+		return initialise_all_states(false, trigger_event);
 	}
 	
 	bool get_layer_colour(const int layer, uint &out colour)
