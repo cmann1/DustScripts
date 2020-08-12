@@ -143,7 +143,7 @@ class UI
 	editor_api@ _editor;
 	bool _has_editor;
 	
-	UI(bool hud=true, int layer=20, int sub_layer=10, int player=0)
+	UI(bool hud=true, int layer=19, int sub_layer=19, int player=0)
 	{
 		@on_tooltip_hide_delegate = EventCallback(this.on_tooltip_hide);
 		
@@ -608,9 +608,9 @@ class UI
 	/// Otherwise hide_layer_selector will need to be called manually.
 	LayerSelector@ pick_layer_and_sub_layer(Element@ target,
 		EventCallback@ layer_callback, EventCallback@ sub_layer_callback, EventCallback@ close_callback=null,
-		const PopupPosition position=PopupPosition::Below, const bool auto_close=true)
+		const PopupPosition position=PopupPosition::Below, const bool auto_close=false)
 	{
-		close_layer_selector_on_select = false;
+		close_layer_selector_on_select = auto_close;
 		@on_layer_select_callback = @layer_callback;
 		@on_sub_layer_select_callback = @sub_layer_callback;
 		@on_layer_select_close_callback = @close_callback;
@@ -629,7 +629,19 @@ class UI
 		{
 			_event_info.reset(EventType::CLOSE, layer_selector);
 			on_layer_select_close_callback(_event_info);
+			@on_layer_select_close_callback = null;
 		}
+	}
+	
+	/// Forces an update to the layer picker popup if it is open.
+	void update_layer_picker()
+	{
+		update_tooltip(layer_selector_popup);
+	}
+	
+	void update_layer_picker_auto_close(bool auto_close)
+	{
+		close_layer_selector_on_select = auto_close;
 	}
 	
 	// Internal
@@ -650,6 +662,12 @@ class UI
 	void _dispatch_event(Event@ event, const string type, IGenericEventTarget@ generic_target, const string value='')
 	{
 		_event_info.reset(type, null, generic_target, value);
+		event.dispatch(_event_info);
+	}
+	
+	void _dispatch_event(Event@ event, const string type, Element@ target, IGenericEventTarget@ generic_target, const string value='')
+	{
+		_event_info.reset(type, target, generic_target, value);
 		event.dispatch(_event_info);
 	}
 	
@@ -936,6 +954,8 @@ class UI
 		// Mouse enter
 		// 
 		
+		bool mouse_over_element_entered = false;
+		
 		if(is_mouse_over)
 		{
 			_event_info.reset(EventType::MOUSE_ENTER, MouseButton::None, mouse.x, mouse.y);
@@ -955,6 +975,11 @@ class UI
 					element.tooltip.trigger_type == PopupTriggerType::MouseOver)
 				{
 					show_tooltip(element);
+				}
+				
+				if(@element == @_mouse_over_element)
+				{
+					mouse_over_element_entered = true;
 				}
 				
 				@_event_info.target = element;
@@ -1166,6 +1191,7 @@ class UI
 		// Hover tooltip
 		
 		if(
+			mouse_over_element_entered &&
 			@_mouse_over_element != null && !_mouse_over_element.disabled &&
 			@_mouse_over_element.tooltip != null &&
 			_mouse_over_element.tooltip.trigger_type == PopupTriggerType::MouseOver)
@@ -1571,7 +1597,9 @@ class UI
 		}
 		else
 		{
-			overlays.move_to_front(cast<Popup@>(tooltips[id]));
+			Popup@ tooltip = cast<Popup@>(tooltips[id]);
+			tooltip.update(options, element);
+			overlays.move_to_front(tooltip);
 		}
 	}
 	
@@ -1594,24 +1622,32 @@ class UI
 		tooltip.fit_to_contents();
 	}
 	
-	private LayerSelector@ show_layer_selector(const LayerSelectorType type, Element@ target, const PopupPosition position)
+	LayerSelector@ _create_layer_selector_for_popup(
+		const LayerSelectorType type, const PopupPosition position,
+		EventCallback@ layer_select, EventCallback@ sub_layer_select, EventCallback@ layer_selector_hide,
+		PopupOptions@ &out popup_options)
 	{
-		if(@layer_selector == null)
-		{
-			@layer_selector = LayerSelector(this, type);
-			layer_selector.layer_select.on(EventCallback(on_layer_select));
-			layer_selector.sub_layer_select.on(EventCallback(on_sub_layer_select));
-			@layer_selector_popup = PopupOptions(this, layer_selector, true, position, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
-			layer_selector_popup.mouse_self = false;
-			layer_selector_popup.padding_left = 0;
-			layer_selector_popup.padding_right = 0;
-			layer_selector_popup.padding_top = 0;
-			layer_selector_popup.padding_bottom = 0;
-			layer_selector_popup.clear_drawing();
-			layer_selector_popup.hide.on(EventCallback(on_layer_selector_hide));
-		}
+		LayerSelector@ layer_selector = LayerSelector(this, type);
+		layer_selector.layer_select.on(layer_select);
+		layer_selector.sub_layer_select.on(sub_layer_select);
 		
-		layer_selector_popup.position = position;
+		@popup_options = PopupOptions(this, layer_selector, true, position, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
+		popup_options.clear_drawing();
+		popup_options.mouse_self = false;
+		popup_options.padding_left = 0;
+		popup_options.padding_right = 0;
+		popup_options.padding_top = 0;
+		popup_options.padding_bottom = 0;
+		popup_options.hide_start.on(layer_selector_hide);
+		
+		return layer_selector;
+	}
+	
+	void _initialise_layer_selector_for_popup(
+		LayerSelector@ layer_selector, PopupOptions@ popup_options,
+		const LayerSelectorType type, const PopupPosition position)
+	{
+		popup_options.position = position;
 		
 		layer_selector.reset(false);
 		layer_selector.type = type;
@@ -1619,11 +1655,27 @@ class UI
 		layer_selector.individual_backgrounds = true;
 		layer_selector.background_colour = style.normal_bg_clr;
 		layer_selector.background_blur = true;
+		layer_selector.blur_inset = 0;
 		layer_selector.border_colour = 0;
 		layer_selector.border_size = 0;
 		layer_selector.shadow_colour = style.dialog_shadow_clr;
 		layer_selector.show_all_layers_toggle = false;
 		layer_selector.show_all_sub_layers_toggle = false;
+	}
+	
+	private LayerSelector@ show_layer_selector(const LayerSelectorType type, Element@ target, const PopupPosition position)
+	{
+		if(@layer_selector == null)
+		{
+			@layer_selector = _create_layer_selector_for_popup(
+				type, position,
+				EventCallback(on_layer_select), EventCallback(on_sub_layer_select), EventCallback(on_layer_selector_hide),
+				layer_selector_popup);
+		}
+		
+		_initialise_layer_selector_for_popup(
+			layer_selector, layer_selector_popup,
+			type, position);
 		
 		layer_selector.select_layers_none(false);
 		layer_selector.select_sub_layers_none(false);
@@ -1709,6 +1761,7 @@ class UI
 		{
 			_event_info.reset(EventType::CLOSE, layer_selector);
 			on_layer_select_close_callback(_event_info);
+			@on_layer_select_close_callback = null;
 		}
 	}
 	

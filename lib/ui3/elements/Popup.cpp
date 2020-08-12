@@ -32,12 +32,23 @@ class Popup : SingleContainer
 	
 	Popup(UI@ ui, PopupOptions@ options, Element@ target)
 	{
-		@this._options = @options;
+		super(ui, options.get_contenet_element());
 		
-		super(ui, _options.get_contenet_element());
+		 update(options, target);
+		
+		options._on_popup_show(this);
+	}
+	
+	string element_type { get const override { return 'Popup'; } }
+	
+	void update(PopupOptions@ options, Element@ target)
+	{
+		@_options = options;
+		@content = @options.get_contenet_element();
 		
 		@this._target = target;
 		waiting_for_mouse = _options.wait_for_mouse;
+		_force_hide = false;
 		
 		pending_fit = 2;
 		fit_to_contents();
@@ -48,11 +59,7 @@ class Popup : SingleContainer
 		mouse_self = _options.mouse_self;
 		mouse_enabled = false;
 		children_mouse_enabled = false;
-		
-		options._on_popup_show(this);
 	}
-	
-	string element_type { get const override { return 'Popup'; } }
 	
 	void force_hide()
 	{
@@ -257,9 +264,14 @@ class Popup : SingleContainer
 		}
 		else
 		{
-			if(fade > 0)
+			if(!fading_out)
 			{
 				fading_out = true;
+				_options._on_popup_start_hide(this);
+			}
+			
+			if(fade > 0)
+			{
 				fade--;
 				update_fade();
 			}

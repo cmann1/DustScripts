@@ -20,7 +20,7 @@ class LayerSelector : LockedContainer
 	
 	protected LayerSelectorType _type = LayerSelectorType(-1);
 	protected bool _multi_select = true;
-	protected bool _allow_deselect = true;
+	protected uint _allow_deselect = 0;
 	protected bool _drag_select = true;
 	protected float _align_v = GraphicAlign::Top;
 	protected bool  _labels_first = true;
@@ -100,6 +100,25 @@ class LayerSelector : LockedContainer
 			else
 			{
 				cast<Element@>(this).background_blur = value;
+			}
+		}
+	}
+	
+	float blur_inset
+	{
+		get { return _individual_backgrounds ? (has_layers ? layers.blur_inset : sub_layers.blur_inset) : cast<Element@>(this).blur_inset; }
+		set
+		{
+			if(_individual_backgrounds)
+			{
+				if(has_layers)
+					layers.blur_inset = value;
+				if(has_sub_layers)
+					sub_layers.blur_inset = value;
+			}
+			else
+			{
+				cast<Element@>(this).blur_inset = value;
 			}
 		}
 	}
@@ -281,14 +300,17 @@ class LayerSelector : LockedContainer
 		}
 	}
 	
-	/// Prevents layers from being deselected
-	bool allow_deselect
+	/// The minimum number of selected layers. Set to zero to allow layers to be deselected, 0xffffffff to never allow layers to be ddeselected,
+	/// or any other number to prevent less than that to from being selected at any given time.
+	uint allow_deselect
 	{
 		get const { return _allow_deselect; }
 		set
 		{
 			if(_allow_deselect == value)
 				return;
+			
+			_allow_deselect = value;
 			
 			if(has_layers)
 				layers.allow_deselect = _allow_deselect;
@@ -305,6 +327,8 @@ class LayerSelector : LockedContainer
 		{
 			if(_drag_select == value)
 				return;
+			
+			_drag_select = value;
 			
 			if(has_layers)
 				layers.drag_select = _drag_select;
@@ -339,9 +363,9 @@ class LayerSelector : LockedContainer
 			
 			_toggle_on_press = value;
 			
-			if(has_layers)
+			if(@layers != null)
 				layers.update_toggle_on_press(_toggle_on_press);
-			if(has_sub_layers)
+			if(@sub_layers != null)
 				sub_layers.update_toggle_on_press(_toggle_on_press);
 		}
 	}
@@ -371,6 +395,9 @@ class LayerSelector : LockedContainer
 		get const { return _labels_first; }
 		set
 		{
+			if(_labels_first == value)
+				return;
+			
 			_labels_first = value;
 			
 			if(has_layers)
@@ -391,9 +418,9 @@ class LayerSelector : LockedContainer
 			
 			_label_spacing = value;
 			
-			if(has_layers)
+			if(@layers != null)
 				layers.update_label_spacing(_label_spacing);
-			if(has_sub_layers)
+			if(@sub_layers != null)
 				sub_layers.update_label_spacing(_label_spacing);
 		}
 	}
@@ -409,9 +436,9 @@ class LayerSelector : LockedContainer
 			
 			_layer_spacing = value;
 			
-			if(has_layers)
+			if(@layers != null)
 				layers.update_layer_spacing(_layer_spacing);
-			if(has_sub_layers)
+			if(@sub_layers != null)
 				sub_layers.update_layer_spacing(_layer_spacing);
 		}
 	}
@@ -668,9 +695,9 @@ class LayerSelector : LockedContainer
 	// ///////////////////////////////////////////////////////////////////
 	
 	/// Deselects all layers and returns the number that were changed.
-	int select_layers_none(const bool trigger_events=true)
+	int select_layers_none(const bool trigger_events=true, const bool ignore_allow_deselect=false)
 	{
-		return @layers != null ? layers.select_none(trigger_events) : 0;
+		return @layers != null ? layers.select_none(trigger_events, ignore_allow_deselect) : 0;
 	}
 	
 	/// Selects all layers and returns the number that were changed.
@@ -680,9 +707,9 @@ class LayerSelector : LockedContainer
 	}
 	
 	/// Deselects all sub layers and returns the number that were changed.
-	int select_sub_layers_none(const bool trigger_events=true)
+	int select_sub_layers_none(const bool trigger_events=true, const bool ignore_allow_deselect=false)
 	{
-		return @sub_layers != null ? sub_layers.select_none(trigger_events) : 0;
+		return @sub_layers != null ? sub_layers.select_none(trigger_events, ignore_allow_deselect) : 0;
 	}
 	
 	/// Selects all sub layers and returns the number that were changed.
@@ -694,30 +721,62 @@ class LayerSelector : LockedContainer
 	// Set range
 	
 	/// Sets the selected state of the given layer and returns true if it was actually changed.
-	bool set_layer_selected(const int layer, const bool selected=true, const bool trigger_events=true)
+	bool set_layer_selected(const int layer, const bool selected=true, const bool trigger_event=true, const bool ignore_allow_deselect=false)
 	{
-		return @layers != null ? layers.initialise_states(layer, layer, selected, -1, trigger_events) == 1 : false;
+		return @layers != null ? layers.initialise_states(layer, layer, selected, -1, trigger_event, ignore_allow_deselect) == 1 : false;
 	}
 	
 	/// Sets the selected state of all layers in the range and returns how many were actually changed.
-	int set_layers_selected(const int start_layer, const int end_layer, const bool selected=true, const bool trigger_events=true)
+	int set_layers_selected(const int start_layer, const int end_layer, const bool selected=true, const bool trigger_event=true, const bool ignore_allow_deselect=false)
 	{
-		return @layers != null ? layers.initialise_states(start_layer, end_layer, selected, -1, trigger_events) : 0;
+		return @layers != null ? layers.initialise_states(start_layer, end_layer, selected, -1, trigger_event, ignore_allow_deselect) : 0;
+	}
+	
+	/// Sets the selected state of all layers from the given array and returns how many were actually changed.
+	/// Hidden layer checkboxes are not skipped.
+	int set_layers_selected(const array<bool>@ selected, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+	{
+		return @layers != null ? layers.initialise_states(@selected, trigger_event, ignore_allow_deselect) : 0;
 	}
 	
 	/// Sets the selected state of the given sublayer and returns true if it was actually changed.
-	bool set_sub_layer_selected(const int layer, const bool selected=true, const bool trigger_events=true)
+	bool set_sub_layer_selected(const int layer, const bool selected=true, const bool trigger_event=true, const bool ignore_allow_deselect=false)
 	{
-		return @sub_layers != null ? sub_layers.initialise_states(layer, layer, selected, -1, trigger_events) == 1 : false;
+		return @sub_layers != null ? sub_layers.initialise_states(layer, layer, selected, -1, trigger_event, ignore_allow_deselect) == 1 : false;
 	}
 	
 	/// Sets the selected state of all sublayers in the range and returns how many were actually changed.
-	int set_sub_layers_selected(const int start_layer, const int end_layer, const bool selected=true, const bool trigger_events=true)
+	int set_sub_layers_selected(const int start_layer, const int end_layer, const bool selected=true, const bool trigger_event=true, const bool ignore_allow_deselect=false)
 	{
-		return @sub_layers != null ? sub_layers.initialise_states(start_layer, end_layer, selected, -1, trigger_events) : 0;
+		return @sub_layers != null ? sub_layers.initialise_states(start_layer, end_layer, selected, -1, trigger_event, ignore_allow_deselect) : 0;
+	}
+	
+	/// Sets the selected state of all sublayers from the given array and returns how many were actually changed.
+	/// Hidden layer checkboxes are not skipped.
+	int set_sub_layers_selected(const array<bool>@ selected, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+	{
+		return @sub_layers != null ? sub_layers.initialise_states(@selected, trigger_event, ignore_allow_deselect) : 0;
 	}
 	
 	// Get range
+	
+	/// Gets the selected state of all layers. Hidden layer checkboxes are not skipped.
+	void get_layers_selected(array<bool>@ selected)
+	{
+		if(@layers != null)
+		{
+			layers.get_selected(@selected);
+		}
+	}
+	
+	/// Gets the selected state of all sublayers. Hidden layer checkboxes are not skipped.
+	void get_sub_layers_selected(array<bool>@ selected)
+	{
+		if(@sub_layers != null)
+		{
+			sub_layers.get_selected(@selected);
+		}
+	}
 	
 	/// Returns the total number of selected layers.
 	int num_layers_selected()
@@ -758,26 +817,26 @@ class LayerSelector : LockedContainer
 	// Layer groups set
 	
 	/// Set all backdrop layers selected state
-	int set_backdrop_layers_selected(const bool selected, const bool trigger_events=true)
-		{ return @layers != null ? layers.initialise_states(0, 5,   selected, -1, trigger_events) : 0; }
+	int set_backdrop_layers_selected(const bool selected, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+		{ return @layers != null ? layers.initialise_states(0, 5,   selected, -1, trigger_event, ignore_allow_deselect) : 0; }
 	/// Set all parallax layers selected state
-	int set_parallax_layers_selected(const bool selected, const bool trigger_events=true)
-		{ return @layers != null ? layers.initialise_states(6, 11,  selected, -1, trigger_events) : 0; }
+	int set_parallax_layers_selected(const bool selected, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+		{ return @layers != null ? layers.initialise_states(6, 11,  selected, -1, trigger_event, ignore_allow_deselect) : 0; }
 	/// Set all background layers selected state
-	int set_background_layers_selected(const bool selected, const bool trigger_events=true)
-		{ return @layers != null ? layers.initialise_states(12, 17, selected, -1, trigger_events) : 0; }
+	int set_background_layers_selected(const bool selected, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+		{ return @layers != null ? layers.initialise_states(12, 17, selected, -1, trigger_event, ignore_allow_deselect) : 0; }
 	/// Set all entities layers selected state
-	int set_entities_layer_selected(const bool selected, const bool trigger_events=true)
-		{ return @layers != null ? layers.initialise_states(18, 18, selected, -1, trigger_events) : 0; }
+	int set_entities_layer_selected(const bool selected, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+		{ return @layers != null ? layers.initialise_states(18, 18, selected, -1, trigger_event, ignore_allow_deselect) : 0; }
 	/// Set all collision layers selected state
-	int set_collision_layer_selected(const bool selected, const bool trigger_events=true)
-		{ return @layers != null ? layers.initialise_states(19, 19, selected, -1, trigger_events) : 0; }
+	int set_collision_layer_selected(const bool selected, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+		{ return @layers != null ? layers.initialise_states(19, 19, selected, -1, trigger_event, ignore_allow_deselect) : 0; }
 	/// Set all foreground layers selected state
-	int set_foreground_layer_selected(const bool selected, const bool trigger_events=true)
-		{ return @layers != null ? layers.initialise_states(20, 20, selected, -1, trigger_events) : 0; }
+	int set_foreground_layer_selected(const bool selected, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+		{ return @layers != null ? layers.initialise_states(20, 20, selected, -1, trigger_event, ignore_allow_deselect) : 0; }
 	/// Set all ui layers selected state
-	int set_ui_layers_selected(const bool selected, const bool trigger_events=true)
-		{ return @layers != null ? layers.initialise_states(21, 22, selected, -1, trigger_events) : 0; }
+	int set_ui_layers_selected(const bool selected, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+		{ return @layers != null ? layers.initialise_states(21, 22, selected, -1, trigger_event, ignore_allow_deselect) : 0; }
 	
 	// Layer groups get
 	
@@ -865,7 +924,7 @@ class LayerSelector : LockedContainer
 	void reset(const bool reset_background_properties=true, const bool reset_label_colours=true)
 	{
 		multi_select = true;
-		allow_deselect = true;
+		allow_deselect = 0;
 		drag_select = true;
 		align_v = GraphicAlign::Top;
 		labels_first = true;

@@ -18,7 +18,7 @@ class LayerSelectorSet : Container
 	float active_height;
 	
 	bool multi_select;
-	bool allow_deselect;
+	uint allow_deselect;
 	bool drag_select;
 	string font;
 	uint font_size;
@@ -36,13 +36,13 @@ class LayerSelectorSet : Container
 	bool validate_layout = true;
 	EventCallback@ layer_select_delegate;
 	
-	protected Event@ select_event;
-	protected string select_event_type;
+	private Event@ select_event;
+	private string select_event_type;
 	
-	protected Checkbox@ all_checkbox;
+	private Checkbox@ all_checkbox;
 	
-	protected bool busy_drag_select;
-	protected bool drag_select_value;
+	private bool busy_drag_select;
+	private bool drag_select_value;
 	
 	LayerSelectorSet(UI@ ui, LayerSelector@ layer_selector,
 		const int num_layers,
@@ -210,34 +210,89 @@ class LayerSelectorSet : Container
 	// Getting/Setting state
 	// ///////////////////////////////////////////////////////////////////
 	
-	int initialise_all_states(const bool checked, const bool trigger_event=true)
+	int initialise_all_states(const bool checked, const bool trigger_event=true, const bool ignore_allow_deselect=false)
 	{
-		return initialise_all_states(checked, -1, trigger_event);
+		return initialise_all_states(checked, -1, trigger_event, ignore_allow_deselect);
 	}
 	
-	int initialise_all_states(const bool checked, const int group, const bool trigger_event=true)
+	int initialise_all_states(const bool checked, const int group, const bool trigger_event=true, const bool ignore_allow_deselect=false)
 	{
-		return initialise_states(0, num_layers - 1, checked, group, trigger_event);
+		return initialise_states(0, num_layers - 1, checked, group, trigger_event, ignore_allow_deselect);
 	}
 	
-	int initialise_states(int start_layer, int end_layer, const bool checked, const int group=-1, const bool trigger_event=true)
+	int initialise_states(int start_layer, int end_layer, const bool checked, const int group=-1, const bool trigger_event=true, const bool ignore_allow_deselect=false)
 	{
 		if(!validate_layer_range(start_layer, end_layer, start_layer, end_layer))
 			return 0;
 		
 		int result = 0;
+		uint selected_count = uint(count_selected());
 		
-		for(int i = start_layer; i <= end_layer; i++)
+		if(ignore_allow_deselect || checked || selected_count > allow_deselect)
+		{
+			for(int i = start_layer; i <= end_layer; i++)
+			{
+				Checkbox@ checkbox = checkboxes[i];
+				
+				if(!checkbox.visible || @checkbox == @all_checkbox || (group != -1 && groups[i] != group))
+					continue;
+				
+				if(checkbox.checked != checked)
+				{
+					checkbox.initialise_state(checked);
+					result++;
+					
+					if(!checked && !ignore_allow_deselect)
+					{
+						if(--selected_count <= allow_deselect)
+							break;
+					}
+				}
+			}
+		}
+		
+		if(result > 0)
+		{
+			update_toggle_all_checkbox();
+			
+			if(trigger_event && visible)
+			{
+				ui._dispatch_event(@select_event, select_event_type, layer_selector);
+			}
+		}
+		
+		return result;
+	}
+	
+	int initialise_states(const array<bool>@ checked_list, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+	{
+		const int end = num_layers < int(checked_list.length()) ? num_layers : int(checked_list.length());
+		
+		if(end == 0)
+			return 0;
+		
+		int result = 0;
+		uint selected_count = uint(count_selected());
+		
+		for(int i = 0; i < end; i++)
 		{
 			Checkbox@ checkbox = checkboxes[i];
 			
-			if(!checkbox.visible || @checkbox == @all_checkbox || (group != -1 && groups[i] != group))
+			if(@checkbox == @all_checkbox)
 				continue;
+			
+			const bool checked = checked_list[i];
 			
 			if(checkbox.checked != checked)
 			{
 				checkbox.initialise_state(checked);
 				result++;
+				
+				if(!checked && !ignore_allow_deselect)
+				{
+					if(--selected_count <= allow_deselect)
+						break;
+				}
 			}
 		}
 		
@@ -332,6 +387,24 @@ class LayerSelectorSet : Container
 		}
 		
 		return index;
+	}
+	
+	void get_selected(array<bool>@ results)
+	{
+		if(int(results.length()) < num_layers)
+		{
+			results.resize(uint(num_layers));
+		}
+		
+		for(int i = 0; i < num_layers; i++)
+		{
+			Checkbox@ checkbox = checkboxes[i];
+			
+			if(@checkbox == @all_checkbox)
+				continue;
+			
+			results[i] = checkbox.checked;
+		}
 	}
 	
 	bool set_selected(const int layer, const bool trigger_event=true)
@@ -455,9 +528,9 @@ class LayerSelectorSet : Container
 		return initialise_all_states(true, trigger_event);
 	}
 	
-	int select_none(const bool trigger_event=true)
+	int select_none(const bool trigger_event=true, const bool ignore_allow_deselect=false)
 	{
-		return initialise_all_states(false, trigger_event);
+		return initialise_all_states(false, trigger_event, ignore_allow_deselect);
 	}
 	
 	bool get_layer_colour(const int layer, uint &out colour)
@@ -872,7 +945,7 @@ class LayerSelectorSet : Container
 		}
 		
 		// Prevent deselect
-		if(!allow_deselect && !checkbox.checked)
+		if(!checkbox.checked && uint(count_selected()) < allow_deselect)
 		{
 			checkbox.initialise_state(true);
 			return;
@@ -885,9 +958,8 @@ class LayerSelectorSet : Container
 			update_toggle_all_checkbox();
 			ui._dispatch_event(@select_event, select_event_type, layer_selector);
 		}
-		
-		if(
-			select_layer_group_modifier >= 0 && multi_select && (allow_deselect || checkbox.checked) &&
+		else if(
+			select_layer_group_modifier >= 0 && multi_select && (uint(count_selected()) >= allow_deselect || checkbox.checked) &&
 			ui._has_editor && ui._editor.key_check_gvb(select_layer_group_modifier))
 		{
 			const int group = groups[checkboxes.findByRef(@checkbox)];

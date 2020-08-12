@@ -45,11 +45,11 @@ class NumberSlider : LockedContainer
 	protected bool busy_dragging;
 	protected float drag_value;
 	
-	Label@ _label;
-	Button@ _left_button;
-	Button@ _right_button;
-	Arrow@ _left_arrow;
-	Arrow@ _right_arrow;
+	protected Label@ _label;
+	protected Button@ _left_button;
+	protected Button@ _right_button;
+	protected Arrow@ _left_arrow;
+	protected Arrow@ _right_arrow;
 	
 	NumberSlider(UI@ ui,
 		const float value=0, const float min_value=NAN, const float max_value=NAN, const float step=1,

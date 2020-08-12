@@ -42,6 +42,7 @@ class PopupOptions : IGenericEventTarget
 	float padding_bottom = NAN;
 	
 	Event show;
+	Event hide_start;
 	Event hide;
 	
 	protected UI@ ui;
@@ -291,8 +292,12 @@ class PopupOptions : IGenericEventTarget
 	
 	void _on_popup_show(Popup@ popup)
 	{
-		ui._event_info.reset(EventType::SHOW, @popup, @this);
-		show.dispatch(ui._event_info);
+		ui._dispatch_event(@show, EventType::SHOW, @popup, @this);
+	}
+	
+	void _on_popup_start_hide(Popup@ popup)
+	{
+		ui._dispatch_event(@hide_start, EventType::HIDE_START, @popup, @this);
 	}
 	
 	void _on_popup_hide(Popup@ popup)
@@ -303,8 +308,7 @@ class PopupOptions : IGenericEventTarget
 			@content_str_label = null;
 		}
 		
-		ui._event_info.reset(EventType::HIDE, @popup, @this);
-		hide.dispatch(ui._event_info);
+		ui._dispatch_event(@show, EventType::HIDE, @popup, @this);
 	}
 	
 }

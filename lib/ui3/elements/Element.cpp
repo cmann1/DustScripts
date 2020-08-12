@@ -38,6 +38,7 @@ abstract class Element
 	
 	uint background_colour = 0;
 	bool background_blur = false;
+	float blur_inset = 1;
 	uint border_colour = 0;
 	float border_size = 0;
 	
@@ -253,7 +254,7 @@ abstract class Element
 		
 		if(background_blur)
 		{
-			style.draw_glass(x1 + 1, y1 + 1, x2 - 1, y2 - 1, 0);
+			style.draw_glass(x1 + blur_inset, y1 + blur_inset, x2 - blur_inset, y2 - blur_inset, 0);
 		}
 		
 		if(background_colour != 0)
