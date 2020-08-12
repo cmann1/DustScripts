@@ -51,7 +51,7 @@ class Container : Element
 		set override
 		{
 			if(value < 0) value = 0;
-			if(_width == value) return;
+			if(_width == value) return;if(_id == '364' && value == 100) {float x = 0; float a = (3.0/x);}
 			_set_width = _width = value;
 			_validate_layout = true;
 			if(@parent != null) parent._validate_layout = true;

@@ -272,6 +272,8 @@ class LayerSelector : LockedContainer
 			if(_multi_select == value)
 				return;
 			
+			_multi_select = value;
+			
 			if(has_layers)
 				layers.update_multi_select(_multi_select);
 			if(has_sub_layers)
@@ -396,7 +398,7 @@ class LayerSelector : LockedContainer
 		}
 	}
 	
-	/// The spacing between labels and checkboxes
+	/// The spacing between layers
 	float layer_spacing
 	{
 		get const { return _layer_spacing; }
@@ -551,6 +553,24 @@ class LayerSelector : LockedContainer
 		return layers.clear_layer_colour(sub_layer, end_sub_layer);
 	}
 	
+	/// Sets all layer labels to the default colours
+	void reset_default_layer_colour()
+	{
+		if(@layers != null)
+		{
+			layers.reset_default_colours(true);
+		}
+	}
+	
+	/// Sets all sublayer labels to the default colours
+	void reset_default_sub_layer_colour()
+	{
+		if(@sub_layers != null)
+		{
+			sub_layers.reset_default_colours(false);
+		}
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Layer visiblity
 	// ///////////////////////////////////////////////////////////////////
@@ -650,37 +670,25 @@ class LayerSelector : LockedContainer
 	/// Deselects all layers and returns the number that were changed.
 	int select_layers_none(const bool trigger_events=true)
 	{
-		if(!has_layers)
-			return 0;
-		
-		return layers.select_all(trigger_events);
+		return @layers != null ? layers.select_none(trigger_events) : 0;
 	}
 	
 	/// Selects all layers and returns the number that were changed.
 	int select_layers_all(const bool trigger_events=true)
 	{
-		if(!_multi_select || !has_layers)
-			return 0;
-		
-		return layers.select_all(trigger_events);
+		return @layers != null && _multi_select ? layers.select_all(trigger_events) : 0;
 	}
 	
 	/// Deselects all sub layers and returns the number that were changed.
 	int select_sub_layers_none(const bool trigger_events=true)
 	{
-		if(!has_sub_layers)
-			return 0;
-		
-		return sub_layers.select_all(trigger_events);
+		return @sub_layers != null ? sub_layers.select_none(trigger_events) : 0;
 	}
 	
 	/// Selects all sub layers and returns the number that were changed.
 	int select_sub_layers_all(const bool trigger_events=true)
 	{
-		if(!_multi_select || !has_sub_layers)
-			return 0;
-		
-		return sub_layers.select_all(trigger_events);
+		return @sub_layers != null && _multi_select ? sub_layers.select_all(trigger_events) : 0;
 	}
 	
 	// Set range
@@ -688,25 +696,25 @@ class LayerSelector : LockedContainer
 	/// Sets the selected state of the given layer and returns true if it was actually changed.
 	bool set_layer_selected(const int layer, const bool selected=true, const bool trigger_events=true)
 	{
-		return layers.initialise_states(layer, layer, selected, -1, trigger_events) == 1;
+		return @layers != null ? layers.initialise_states(layer, layer, selected, -1, trigger_events) == 1 : false;
 	}
 	
 	/// Sets the selected state of all layers in the range and returns how many were actually changed.
 	int set_layers_selected(const int start_layer, const int end_layer, const bool selected=true, const bool trigger_events=true)
 	{
-		return layers.initialise_states(start_layer, end_layer, selected, -1, trigger_events);
+		return @layers != null ? layers.initialise_states(start_layer, end_layer, selected, -1, trigger_events) : 0;
 	}
 	
 	/// Sets the selected state of the given sublayer and returns true if it was actually changed.
 	bool set_sub_layer_selected(const int layer, const bool selected=true, const bool trigger_events=true)
 	{
-		return sub_layers.initialise_states(layer, layer, selected, -1, trigger_events) == 1;
+		return @sub_layers != null ? sub_layers.initialise_states(layer, layer, selected, -1, trigger_events) == 1 : false;
 	}
 	
 	/// Sets the selected state of all sublayers in the range and returns how many were actually changed.
 	int set_sub_layers_selected(const int start_layer, const int end_layer, const bool selected=true, const bool trigger_events=true)
 	{
-		return sub_layers.initialise_states(start_layer, end_layer, selected, -1, trigger_events);
+		return @sub_layers != null ? sub_layers.initialise_states(start_layer, end_layer, selected, -1, trigger_events) : 0;
 	}
 	
 	// Get range
@@ -714,125 +722,182 @@ class LayerSelector : LockedContainer
 	/// Returns the total number of selected layers.
 	int num_layers_selected()
 	{
-		return layers.count_selected();
+		return @layers != null ? layers.count_selected() : 0;
 	}
 	
 	/// Returns the number of selected layers in the given range.
 	int num_layers_selected(const int start_layer, const int end_layer)
 	{
-		return layers.count_selected(start_layer, end_layer);
+		return @layers != null ? layers.count_selected(start_layer, end_layer) : 0;
 	}
 	
 	/// Returns true if the given layer is selected
 	bool is_layer_selected(const int layer)
 	{
-		return layers.count_selected(layer, layer) == 1;
+		return @layers != null ? layers.count_selected(layer, layer) == 1 : false;
 	}
 	
 	/// Returns the total number of selected sublayers.
 	int num_sub_layers_selected()
 	{
-		return sub_layers.count_selected();
+		return @sub_layers != null ? sub_layers.count_selected() : 0;
 	}
 	
 	/// Returns the number of selected sublayers in the given range.
 	int num_sub_layers_selected(const int start_layer, const int end_layer)
 	{
-		return sub_layers.count_selected(start_layer, end_layer);
+		return @sub_layers != null ? sub_layers.count_selected(start_layer, end_layer) : 0;
 	}
 	
 	/// Returns true if the given sublayer is selected
 	bool is_sub_layer_selected(const int layer)
 	{
-		return sub_layers.count_selected(layer, layer) == 1;
+		return @sub_layers != null ? sub_layers.count_selected(layer, layer) == 1 : false;
 	}
 	
 	// Layer groups set
 	
 	/// Set all backdrop layers selected state
-	bool set_backdrop_layers_selected(const bool selected, const bool trigger_events=true)		{ return layers.initialise_states(0, 5,   selected, -1, trigger_events) > 0; }
+	int set_backdrop_layers_selected(const bool selected, const bool trigger_events=true)
+		{ return @layers != null ? layers.initialise_states(0, 5,   selected, -1, trigger_events) : 0; }
 	/// Set all parallax layers selected state
-	bool set_parallax_layers_selected(const bool selected, const bool trigger_events=true)		{ return layers.initialise_states(6, 11,  selected, -1, trigger_events) > 0; }
+	int set_parallax_layers_selected(const bool selected, const bool trigger_events=true)
+		{ return @layers != null ? layers.initialise_states(6, 11,  selected, -1, trigger_events) : 0; }
 	/// Set all background layers selected state
-	bool set_background_layers_selected(const bool selected, const bool trigger_events=true)	{ return layers.initialise_states(12, 17, selected, -1, trigger_events) > 0; }
+	int set_background_layers_selected(const bool selected, const bool trigger_events=true)
+		{ return @layers != null ? layers.initialise_states(12, 17, selected, -1, trigger_events) : 0; }
 	/// Set all entities layers selected state
-	bool set_entities_layer_selected(const bool selected, const bool trigger_events=true)		{ return layers.initialise_states(18, 18, selected, -1, trigger_events) > 0; }
+	int set_entities_layer_selected(const bool selected, const bool trigger_events=true)
+		{ return @layers != null ? layers.initialise_states(18, 18, selected, -1, trigger_events) : 0; }
 	/// Set all collision layers selected state
-	bool set_collision_layer_selected(const bool selected, const bool trigger_events=true)		{ return layers.initialise_states(19, 19, selected, -1, trigger_events) > 0; }
+	int set_collision_layer_selected(const bool selected, const bool trigger_events=true)
+		{ return @layers != null ? layers.initialise_states(19, 19, selected, -1, trigger_events) : 0; }
 	/// Set all foreground layers selected state
-	bool set_foreground_layer_selected(const bool selected, const bool trigger_events=true)		{ return layers.initialise_states(20, 20, selected, -1, trigger_events) > 0; }
+	int set_foreground_layer_selected(const bool selected, const bool trigger_events=true)
+		{ return @layers != null ? layers.initialise_states(20, 20, selected, -1, trigger_events) : 0; }
 	/// Set all ui layers selected state
-	bool set_ui_layers_selected(const bool selected, const bool trigger_events=true)			{ return layers.initialise_states(21, 22, selected, -1, trigger_events) > 0; }
+	int set_ui_layers_selected(const bool selected, const bool trigger_events=true)
+		{ return @layers != null ? layers.initialise_states(21, 22, selected, -1, trigger_events) : 0; }
 	
 	// Layer groups get
 	
 	/// Get the number of selected backdrop layers
-	int num_backdrop_layers_selected()		{ return layers.count_selected(0, 5); }
+	int num_backdrop_layers_selected()
+		{ return @layers != null ? layers.count_selected(0, 5) : 0; }
 	/// Get the number of selected parallax layers
-	int num_parallax_layers_selected()		{ return layers.count_selected(6, 11); }
+	int num_parallax_layers_selected()
+		{ return @layers != null ? layers.count_selected(6, 11) : 0; }
 	/// Get the number of selected background layers
-	int num_background_layers_selected()	{ return layers.count_selected(12, 17); }
+	int num_background_layers_selected()
+		{ return @layers != null ? layers.count_selected(12, 17) : 0; }
 	/// Get the number of selected entity layers
-	int num_entities_layer_selected()		{ return layers.count_selected(18, 18); }
+	int num_entities_layer_selected()
+		{ return @layers != null ? layers.count_selected(18, 18) : 0; }
 	/// Get the number of selected collision layers
-	int num_collision_layer_selected()		{ return layers.count_selected(19, 19); }
+	int num_collision_layer_selected()
+		{ return @layers != null ? layers.count_selected(19, 19) : 0; }
 	/// Get the number of selected foreground layers
-	int num_foreground_layer_selected()		{ return layers.count_selected(20, 20); }
+	int num_foreground_layer_selected()
+		{ return @layers != null ? layers.count_selected(20, 20) : 0; }
 	/// Get the number of selected ui layers
-	int num_ui_layers_selected()			{ return layers.count_selected(21, 22); }
+	int num_ui_layers_selected()
+		{ return @layers != null ? layers.count_selected(21, 22) : 0; }
 	
 	// Get/set selected
 	
 	/// Sets a single layer as the only selected layer. Returns true if something changed.
 	bool set_selected_layer(const int layer, const bool trigger_event=true)
 	{
-		return layers.set_selected(layer, trigger_event);
+		return @layers != null ? layers.set_selected(layer, trigger_event) : false;
 	}
 	
 	/// Sets a single sublayer as the only selected layer. Returns true if something changed.
 	bool set_selected_sub_layer(const int layer, const bool trigger_event=true)
 	{
-		return sub_layers.set_selected(layer, trigger_event);
+		return @sub_layers != null ? sub_layers.set_selected(layer, trigger_event) : false;
 	}
 	
 	/// Returns the selected layer index or -1 if none are selected. If multiple are selected returns the highest index.
 	int get_selected_layer()
 	{
-		return layers.get_selected();
+		return @layers != null ? layers.get_selected() : 0;
 	}
 	
 	/// Returns the selected sublayer index or -1 if none are selected. If multiple are selected returns the highest index.
 	int get_selected_sub_layer()
 	{
-		return sub_layers.get_selected();
+		return @sub_layers != null ? sub_layers.get_selected() : 0;
 	}
 	
 	/// Returns the number of selected layers and populates results with the indices of all selected layers in order.
 	/// results will be expanded as needed.
 	int get_selected_layers(array<int>@ results)
 	{
-		return layers.get_selected(@results);
+		return @layers != null ? layers.get_selected(@results) : 0;
 	}
 	
 	/// Returns the number of selected sublayers and populates results with the indices of all selected sublayers in order.
 	/// results will be expanded as needed.
 	int get_selected_sub_layers(array<int>@ results)
 	{
-		return sub_layers.get_selected(@results);
+		return @sub_layers != null ? sub_layers.get_selected(@results) : 0;
 	}
 	
 	/// Returns the number of selected layers in the given range and populates results with the indices in order.
 	/// results will be expanded as needed.
 	int get_selected_layers(array<int>@ results, const int start_layer, const int end_layer)
 	{
-		return layers.get_selected(@results, start_layer, end_layer);
+		return @layers != null ? layers.get_selected(@results, start_layer, end_layer) : 0;
 	}
 	
 	/// Returns the number of selected sublayers in the given range and populates results with the indices in order.
 	/// results will be expanded as needed.
 	int get_selected_sub_layers(array<int>@ results, const int start_layer, const int end_layer)
 	{
-		return sub_layers.get_selected(@results, start_layer, end_layer);
+		return @sub_layers != null ? sub_layers.get_selected(@results, start_layer, end_layer) : 0;
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Misc
+	// ///////////////////////////////////////////////////////////////////
+	
+	/// Resets most basic properties to their default values
+	void reset(const bool reset_background_properties=true, const bool reset_label_colours=true)
+	{
+		multi_select = true;
+		allow_deselect = true;
+		drag_select = true;
+		align_v = GraphicAlign::Top;
+		labels_first = true;
+		label_spacing = NAN;
+		layer_spacing = NAN;
+		padding = NAN;
+		toggle_on_press = true;
+		select_layer_group_modifier = GVB::Shift;
+		
+		show_all_layers_toggle = true;
+		show_all_sub_layers_toggle = true;
+		toggle_all_top = true;
+		
+		set_font(font::ENVY_BOLD, 20);
+		
+		if(reset_background_properties)
+		{
+			individual_backgrounds = true;
+			shadow_colour = 0;
+			background_colour = 0;
+			background_blur = false;
+			border_colour = 0;
+			border_size = 0;
+		}
+		
+		if(reset_label_colours)
+		{
+			reset_default_layer_colour();
+			reset_default_sub_layer_colour();
+		}
+		
+		validate_layout = true;
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -859,53 +924,50 @@ class LayerSelector : LockedContainer
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		if(validate_layout)
+		if(!validate_layout)
+			return;
+		
+		float width = 0;
+		float height = 0;
+		
+		if(has_layers)
 		{
-			float width = 0;
-			float height = 0;
-			
-			const float layer_spacing = is_nan(_layer_spacing) ? ui.style.spacing : _layer_spacing;
-//			const float spacing = is_nan(_spacing) ? ui.style.spacing : _spacing;
-			
-			if(has_layers)
+			if(layers.validate_layout)
 			{
-				if(layers.validate_layout)
-				{
-					layers.do_layout();
-				}
-				
-				height = max(layers._height, height);
-				layers.x = 0;
-				width += layers._width;
+				layers.do_layout();
 			}
 			
-			if(has_sub_layers)
-			{
-				if(sub_layers.validate_layout)
-				{
-					sub_layers.do_layout();
-				}
-				
-				height = max(sub_layers._height, height);
-				sub_layers.x = width;
-				width += sub_layers._width;
-			}
-			
-			if(has_layers)
-			{
-				layers.y = (height - layers._height) * align_v;
-			}
-			
-			if(has_sub_layers)
-			{
-				sub_layers.y = (height - sub_layers._height) * align_v;
-			}
-			
-			this.width = ceil(width);
-			this.height = ceil(height);
-			
-			validate_layout = false;
+			height = max(layers._height, height);
+			layers.x = 0;
+			width += layers._width;
 		}
+		
+		if(has_sub_layers)
+		{
+			if(sub_layers.validate_layout)
+			{
+				sub_layers.do_layout();
+			}
+			
+			height = max(sub_layers._height, height);
+			sub_layers.x = width;
+			width += sub_layers._width;
+		}
+		
+		if(has_layers)
+		{
+			layers.y = 0;//(height - layers._height) * align_v;
+		}
+		
+		if(has_sub_layers)
+		{
+			sub_layers.y = 0;//(height - sub_layers._height) * align_v;
+		}
+		
+		this.width = ceil(width);
+		this.height = ceil(height);
+		
+		validate_layout = false;
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
@@ -933,11 +995,11 @@ class LayerSelector : LockedContainer
 	
 	protected void initialise_layers_set()
 	{
-		if(@layers != null)
-			return;
-		
-		// 24 = 21 layers (0-20) + 2 ui layers + toggle all
-		@layers = LayerSelectorSet(ui, this, 24, @layer_select, EventType::LAYER_SELECT);
+		if(@layers == null)
+		{
+			// 24 = 21 layers (0-20) + 2 ui layers + toggle all
+			@layers = LayerSelectorSet(ui, this, 24, @layer_select, EventType::LAYER_SELECT);
+		}
 		
 		layers.initialise_layer_values(0, 5,   0, true);
 		layers.initialise_layer_values(6, 11,  1, true);
@@ -948,28 +1010,23 @@ class LayerSelector : LockedContainer
 		layers.initialise_layer_values(21, 22, 6, true);
 		layers.initialise_layer_values(23, 23, 7, _show_all_layers_toggle && _multi_select);
 
-		
 		initialise_layers_set_generic(layers);
 		rebuild_layers();
-		
-		Container::add_child(layers);
 	}
 	
 	protected void initialise_sub_layers_set()
 	{
-		if(@sub_layers != null)
-			return;
-		
-		// 26 = 25 sub layers (0-24) + toggle all
-		@sub_layers = LayerSelectorSet(ui, this, 26, @sub_layer_select, EventType::SUB_LAYER_SELECT);
+		if(@sub_layers == null)
+		{
+			// 26 = 25 sub layers (0-24) + toggle all
+			@sub_layers = LayerSelectorSet(ui, this, 26, @sub_layer_select, EventType::SUB_LAYER_SELECT);
+		}
 		
 		sub_layers.initialise_layer_values(0, 24, 0, true);
 		sub_layers.initialise_layer_values(25, 25, 1, _show_all_sub_layers_toggle && _multi_select);
 		
 		initialise_layers_set_generic(sub_layers);
 		rebuild_sub_layers();
-		
-		Container::add_child(sub_layers);
 	}
 	
 	protected void initialise_layers_set_generic(LayerSelectorSet@ layers)
@@ -989,6 +1046,8 @@ class LayerSelector : LockedContainer
 		
 		layers.font			= _font;
 		layers.font_size	= _font_size;
+		
+		Container::add_child(layers);
 	}
 	
 	protected void rebuild_layers()

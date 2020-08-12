@@ -1,7 +1,7 @@
 #include "../../lib/std.cpp";
 #include "../../lib/Mouse.cpp";
 #include '../../lib/editor/common.cpp';
-#include '../../lib/enums/GlobalVirtualButton.cpp';
+#include '../../lib/enums/GVB.cpp';
 #include "../../lib/math/math.cpp";
 #include "../../lib/math/geom.cpp";
 #include "../../lib/enums/ColType.cpp";
@@ -87,7 +87,7 @@ class script
 		const float view_y = cam.y();
 		const float editor_zoom = 1 / cam.editor_zoom();
 		
-		mouse.step(has_editor && editor.key_check_gvb(GlobalVirtualButton::Space));
+		mouse.step(has_editor && editor.key_check_gvb(GVB::Space));
 		find_emitters(view_x, view_y, editor_zoom);
 		
 		if(@active_emitter == null && @hovered_emitter != null)

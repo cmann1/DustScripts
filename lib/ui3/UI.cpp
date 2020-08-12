@@ -90,7 +90,6 @@ class UI
 	
 	private Element@ debug_mouse_over_element;
 	private bool debug_draw_active;
-	private PopupOptions@ debug_tooltip_options;
 	private DrawingContext debug_mouse_over_clipping_ctx;
 	
 	private Element@ mouse_over_overlays;
@@ -115,6 +114,15 @@ class UI
 	private float y2 = 100;
 	
 	private EventCallback@ on_tooltip_hide_delegate;
+	
+	// Layer selector
+	
+	private LayerSelector@ layer_selector;
+	private PopupOptions@ layer_selector_popup;
+	private EventCallback@ on_layer_select_callback;
+	private EventCallback@ on_sub_layer_select_callback;
+	private EventCallback@ on_layer_select_close_callback;
+	private bool close_layer_selector_on_select;
 	
 	// ///////////////////////////////////////////////////////////////
 	// Common reusable things
@@ -484,16 +492,13 @@ class UI
 		 }
 	}
 	
-	/**
-	 * @brief Shows the tooltip for the given element if it has one.
-	 * @param wait_for_mouse - If true and the tooltip hide type is MouseLeave, the tooltip will not close until the mouse enters it for the first time.
-	 */
-	void show_tooltip(Element@ element, bool wait_for_mouse=false)
+	/// Shows the tooltip for the given element if it has one.
+	void show_tooltip(Element@ element)
 	{
 		if(@element == null || @element.tooltip == null)
 			return;
 		
-		show_tooltip(element._id, element.tooltip, element, wait_for_mouse);
+		show_tooltip(element._id, element.tooltip, element);
 	}
 	
 	void hide_tooltip(Element@ element)
@@ -504,10 +509,7 @@ class UI
 		hide_tooltip(element._id);
 	}
 	
-	/**
-	 * @param wait_for_mouse - If true and the tooltip hide type is MouseLeave, the tooltip will not close until the mouse enters it for the first time.
-	 */
-	void show_tooltip(PopupOptions@ options, Element@ target = null, bool wait_for_mouse=false)
+	void show_tooltip(PopupOptions@ options, Element@ target = null)
 	{
 		if(@options == null)
 			return;
@@ -515,7 +517,7 @@ class UI
 		if(options._id == '')
 			options._id = '_tt_target' + (CUSTOM_TOOLTIP_ID++);
 		
-		show_tooltip(options._id, options, target, wait_for_mouse);
+		show_tooltip(options._id, options, target);
 	}
 	
 	void hide_tooltip(PopupOptions@ options)
@@ -570,6 +572,64 @@ class UI
 	bool contains_overlay(Element@ element)
 	{
 		return overlays.contains(element);
+	}
+	
+	/// Shows a layer selection popup. If target is null, will be displayed at the current mouse position.
+	/// The returned LayerSelector can be used to adjust the layer selector properties.
+	LayerSelector@ pick_layer(Element@ target, EventCallback@ callback, EventCallback@ close_callback=null,
+		const PopupPosition position=PopupPosition::Below, const bool auto_close=true)
+	{
+		close_layer_selector_on_select = auto_close;
+		@on_layer_select_callback = @callback;
+		@on_layer_select_close_callback = @close_callback;
+		
+		return show_layer_selector(
+			LayerSelectorType::Layers,
+			target, position);
+	}
+	
+	/// Shows a sub layer selection popup. If target is null, will be displayed at the current mouse position.
+	/// The returned LayerSelector can be used to adjust the layer selector properties.
+	LayerSelector@ pick_sub_layer(Element@ target, EventCallback@ callback, EventCallback@ close_callback=null,
+		const PopupPosition position=PopupPosition::Below, const bool auto_close=true)
+	{
+		close_layer_selector_on_select = auto_close;
+		@on_sub_layer_select_callback = @callback;
+		@on_layer_select_close_callback = @close_callback;
+		
+		return show_layer_selector(
+			LayerSelectorType::SubLayers,
+			target, position);
+	}
+	
+	/// Shows a layer and sub layer selection popup. If target is null, will be displayed at the current mouse position.
+	/// The returned LayerSelector can be used to adjust the layer selector properties.
+	/// If auto_close is true, the popup will only be closed once a layer and sub layer have been selected.
+	/// Otherwise hide_layer_selector will need to be called manually.
+	LayerSelector@ pick_layer_and_sub_layer(Element@ target,
+		EventCallback@ layer_callback, EventCallback@ sub_layer_callback, EventCallback@ close_callback=null,
+		const PopupPosition position=PopupPosition::Below, const bool auto_close=true)
+	{
+		close_layer_selector_on_select = false;
+		@on_layer_select_callback = @layer_callback;
+		@on_sub_layer_select_callback = @sub_layer_callback;
+		@on_layer_select_close_callback = @close_callback;
+		
+		return show_layer_selector(
+			LayerSelectorType::Both,
+			target, position);
+	}
+	
+	/// Hides the layer selector if it is currently visible.
+	void hide_layer_selector()
+	{
+		hide_tooltip(layer_selector_popup);
+		
+		if(@on_layer_select_close_callback != null)
+		{
+			_event_info.reset(EventType::CLOSE, layer_selector);
+			on_layer_select_close_callback(_event_info);
+		}
 	}
 	
 	// Internal
@@ -1495,14 +1555,16 @@ class UI
 		@queued_event_infos[num_queued_events++]	= event_info;
 	}
 	
-	private void show_tooltip(const string id, PopupOptions@ options, Element@ element, bool wait_for_mouse)
+	//
+	
+	private void show_tooltip(const string id, PopupOptions@ options, Element@ element)
 	{
 		if(!options.enabled)
 			return;
 		
 		if(!tooltips.exists(id))
 		{
-			Popup@ tooltip = Popup(this, options, element, wait_for_mouse);
+			Popup@ tooltip = Popup(this, options, element);
 			tooltip.hide.on(on_tooltip_hide_delegate);
 			overlays.add_child(tooltip);
 			@tooltips[id] = tooltip;
@@ -1532,6 +1594,61 @@ class UI
 		tooltip.fit_to_contents();
 	}
 	
+	private LayerSelector@ show_layer_selector(const LayerSelectorType type, Element@ target, const PopupPosition position)
+	{
+		if(@layer_selector == null)
+		{
+			@layer_selector = LayerSelector(this, type);
+			layer_selector.layer_select.on(EventCallback(on_layer_select));
+			layer_selector.sub_layer_select.on(EventCallback(on_sub_layer_select));
+			@layer_selector_popup = PopupOptions(this, layer_selector, true, position, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
+			layer_selector_popup.mouse_self = false;
+			layer_selector_popup.padding_left = 0;
+			layer_selector_popup.padding_right = 0;
+			layer_selector_popup.padding_top = 0;
+			layer_selector_popup.padding_bottom = 0;
+			layer_selector_popup.clear_drawing();
+			layer_selector_popup.hide.on(EventCallback(on_layer_selector_hide));
+		}
+		
+		layer_selector_popup.position = position;
+		
+		layer_selector.reset(false);
+		layer_selector.type = type;
+		layer_selector.multi_select = false;
+		layer_selector.individual_backgrounds = true;
+		layer_selector.background_colour = style.normal_bg_clr;
+		layer_selector.background_blur = true;
+		layer_selector.border_colour = 0;
+		layer_selector.border_size = 0;
+		layer_selector.shadow_colour = style.dialog_shadow_clr;
+		layer_selector.show_all_layers_toggle = false;
+		layer_selector.show_all_sub_layers_toggle = false;
+		
+		layer_selector.select_layers_none(false);
+		layer_selector.select_sub_layers_none(false);
+		
+		layer_selector.fit_to_contents(true);
+		show_tooltip(layer_selector_popup, target);
+		
+		return layer_selector;
+	}
+	
+	private void auto_hide_layer_selector()
+	{
+		if(layer_selector.type == LayerSelectorType::Both)
+		{
+			if(layer_selector.num_layers_selected() > 0 && layer_selector.num_sub_layers_selected() > 0)
+			{
+				hide_layer_selector();
+			}
+		}
+		else
+		{
+			hide_layer_selector();
+		}
+	}
+	
 	// Events
 	// ---------------------------------------------------------
 	
@@ -1558,6 +1675,41 @@ class UI
 		tooltip.hide.off(on_tooltip_hide_delegate);
 		tooltips.delete(id);
 		overlays.remove_child(tooltip);
+	}
+	
+	private void on_layer_select(EventInfo@ event)
+	{
+		if(@on_layer_select_callback != null)
+		{
+			on_layer_select_callback(event);
+		}
+		
+		if(close_layer_selector_on_select)
+		{
+			auto_hide_layer_selector();
+		}
+	}
+	
+	private void on_sub_layer_select(EventInfo@ event)
+	{
+		if(@on_sub_layer_select_callback != null)
+		{
+			on_sub_layer_select_callback(event);
+		}
+		
+		if(close_layer_selector_on_select)
+		{
+			auto_hide_layer_selector();
+		}
+	}
+	
+	private void on_layer_selector_hide(EventInfo@ event)
+	{
+		if(@on_layer_select_close_callback != null)
+		{
+			_event_info.reset(EventType::CLOSE, layer_selector);
+			on_layer_select_close_callback(_event_info);
+		}
 	}
 	
 }

@@ -103,7 +103,7 @@ class LayerSelectorSet : Container
 			}
 		}
 		
-		if(result > 0 && trigger_event)
+		if(result > 0 && trigger_event && visible)
 		{
 			ui._dispatch_event(@select_event, select_event_type, layer_selector);
 		}
@@ -245,7 +245,7 @@ class LayerSelectorSet : Container
 		{
 			update_toggle_all_checkbox();
 			
-			if(trigger_event)
+			if(trigger_event && visible)
 			{
 				ui._dispatch_event(@select_event, select_event_type, layer_selector);
 			}
@@ -367,7 +367,7 @@ class LayerSelectorSet : Container
 		{
 			update_toggle_all_checkbox();
 			
-			if(trigger_event)
+			if(trigger_event && visible)
 			{
 				ui._dispatch_event(@select_event, select_event_type, layer_selector);
 			}
@@ -562,12 +562,47 @@ class LayerSelectorSet : Container
 	// Initialise, rebuild, layout
 	// ///////////////////////////////////////////////////////////////////
 	
+	void reset()
+	{
+		
+	}
+	
 	void initialise_layer_values(const int start_layer, const int end_layer, const int group, const bool visible)
 	{
 		for(int i = start_layer; i <= end_layer; i++)
 		{
 			visibility[i] = visible;
 			groups[i] = group;
+		}
+	}
+	
+	void reset_default_colours(const bool use_default_layer_colours)
+	{
+		for(int i = 0; i < num_layers; i++)
+		{
+			Checkbox@ checkbox = @checkboxes[i];
+			Label@ label = @labels[i];
+			
+			if(@checkbox == null)
+				return;
+			
+			if(use_default_layer_colours)
+			{
+				const uint default_clr = get_default_layer_colour(i);
+				
+				if(default_clr != 0)
+				{
+					label.colour = default_clr;
+				}
+				else
+				{
+					label.has_colour = false;
+				}
+			}
+			else
+			{
+				label.has_colour = false;
+			}
 		}
 	}
 	
@@ -642,27 +677,6 @@ class LayerSelectorSet : Container
 				checkbox.visible = false;
 				label.visible = false;
 			}
-		}
-	}
-	
-	void rebuild_hide_other(const int start_layer, const int end_layer)
-	{
-		int start_index = 0;
-		int end_index = start_layer;
-		
-		for(int j = 0; j <= 1; j++)
-		{
-			for(int i = start_index; i < end_index; i++)
-			{
-				if(@checkboxes[i] == null)
-					continue;
-				
-				checkboxes[i].visible = false;
-				labels[i].visible = false;
-			}
-			
-			start_index = end_layer + 1;
-			end_index = num_layers;
 		}
 	}
 	

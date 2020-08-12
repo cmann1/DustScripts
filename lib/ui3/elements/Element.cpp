@@ -120,16 +120,13 @@ abstract class Element
 		}
 	}
 	
-	/**
-	 * @brief Shows the tooltip for this element if it has one.
-	 * @param wait_for_mouse - If true and the tooltip hide type is MouseLeave, the tooltip will not close until the mouse enters it for the first time.
-	 */
-	void show_tooltip(bool wait_for_mouse=true)
+	/// Shows the tooltip for this element if it has one.
+	void show_tooltip()
 	{
 		if(@tooltip == null)
 			return;
 		
-		ui.show_tooltip(this, wait_for_mouse);
+		ui.show_tooltip(this);
 	}
 	
 	void hide_tooltip()

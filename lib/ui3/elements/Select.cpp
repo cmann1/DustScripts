@@ -36,6 +36,7 @@ class Select : SelectBase
 		list_view.select.on(EventCallback(on_list_view_select));
 		
 		@popup = PopupOptions(ui, list_view, true, PopupPosition::Below, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
+		popup.wait_for_mouse = true;
 		popup.allow_target_overlap = false;
 		popup.spacing = 2;
 		popup.padding = 0;
@@ -184,7 +185,7 @@ class Select : SelectBase
 		}
 		
 		open = true;
-		ui.show_tooltip(popup, this, true);
+		ui.show_tooltip(popup, this);
 	}
 	
 	protected void on_list_view_select(EventInfo@ event)

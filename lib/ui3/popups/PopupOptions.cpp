@@ -20,8 +20,12 @@ class PopupOptions : IGenericEventTarget
 	/// Normally only the top most element element will trigger tooltips.
 	/// If this is set to true, this tooltip will trigger when the mouse is over
 	/// this element or any of its descendants
-	bool trigger_when_hovered = false;
+	bool trigger_when_hovered;
+	/// If true and the hide type is MouseLeave, the tooltip will not close until after the mouse enters it for the first time.
+	bool wait_for_mouse;
 	bool interactable;
+	/// Controls the mouse_self option for this popup. See Element::mouse_self
+	bool mouse_self = true;
 	bool follow_mouse;
 	TextAlign text_align_h = TextAlign::Left;
 	/// Only relevant for PopupHideType::MouseDownOutside. If true any mouse button being pressed will close the tooltip
@@ -273,6 +277,16 @@ class PopupOptions : IGenericEventTarget
 		}
 		
 		return content_str_label;
+	}
+	
+	/// Clears all background, border, and shadow options.
+	void clear_drawing()
+	{
+		background_colour = 0;
+		background_blur = false;
+		border_colour = 0;
+		border_size = 0;
+		shadow_colour = 0;
 	}
 	
 	void _on_popup_show(Popup@ popup)

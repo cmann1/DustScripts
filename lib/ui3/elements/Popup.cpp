@@ -20,6 +20,8 @@ class Popup : SingleContainer
 	private bool _force_hide = false;
 	private bool fading_out = false;
 	
+	private int pending_fit;
+	
 	protected float target_x1;
 	protected float target_y1;
 	protected float target_x2;
@@ -28,22 +30,22 @@ class Popup : SingleContainer
 	protected float prev_content_height;
 	protected bool try_expand;
 	
-	Popup(UI@ ui, PopupOptions@ options, Element@ target, const bool wait_for_mouse)
+	Popup(UI@ ui, PopupOptions@ options, Element@ target)
 	{
 		@this._options = @options;
 		
 		super(ui, _options.get_contenet_element());
 		
 		@this._target = target;
-		waiting_for_mouse = wait_for_mouse && @_target != null;
+		waiting_for_mouse = _options.wait_for_mouse;
 		
+		pending_fit = 2;
 		fit_to_contents();
-		prev_content_width  = _content._width;
-		prev_content_height = _content._height;
 		
 		active = true;
 		update_fade();
 		
+		mouse_self = _options.mouse_self;
 		mouse_enabled = false;
 		children_mouse_enabled = false;
 		
@@ -60,6 +62,17 @@ class Popup : SingleContainer
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
+		// Fit the popup for two frames to give the child a chance to layout
+		if(pending_fit > 0)
+		{
+			if(--pending_fit == 0)
+			{
+				fit_to_contents();
+				prev_content_width  = _content._width;
+				prev_content_height = _content._height;
+			}
+		}
+		
 		if(@_target != null)
 		{
 			if(waiting_for_mouse)
@@ -257,13 +270,25 @@ class Popup : SingleContainer
 				_options._on_popup_hide(this);
 			}
 		}
+		
+//		fit_to_contents();
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		style.draw_popup_element(this,
-			_options._shadow_colour, _options._background_colour, _options._border_colour, _options._border_size, _options._background_blur,
-			_options._has_shadow_colour, _options._has_background_colour, _options._has_border_colour, _options._has_border_size, _options._background_blur,
+			_options._shadow_colour,
+			_options._background_colour,
+			_options._border_colour,
+			_options._border_size,
+			_options._background_blur,
+			
+			_options._has_shadow_colour,
+			_options._has_background_colour,
+			_options._has_border_colour,
+			_options._has_border_size,
+			_options._has_background_blur,
+			
 			_options._has_blur_inset ? _options._blur_inset : NAN);
 	}
 	
