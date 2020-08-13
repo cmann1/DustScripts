@@ -34,7 +34,7 @@ class Popup : SingleContainer
 	{
 		super(ui, options.get_contenet_element());
 		
-		 update(options, target);
+		update(options, target);
 		
 		options._on_popup_show(this);
 	}
@@ -52,6 +52,8 @@ class Popup : SingleContainer
 		
 		pending_fit = 2;
 		fit_to_contents();
+		prev_content_width  = _content._width;
+		prev_content_height = _content._height;
 		
 		active = true;
 		update_fade();
@@ -72,12 +74,9 @@ class Popup : SingleContainer
 		// Fit the popup for two frames to give the child a chance to layout
 		if(pending_fit > 0)
 		{
-			if(--pending_fit == 0)
-			{
-				fit_to_contents();
-				prev_content_width  = _content._width;
-				prev_content_height = _content._height;
-			}
+			fit_to_contents();
+			prev_content_width  = _content._width;
+			prev_content_height = _content._height;
 		}
 		
 		if(@_target != null)

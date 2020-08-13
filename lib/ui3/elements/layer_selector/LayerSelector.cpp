@@ -9,9 +9,13 @@
 #include '../LockedContainer.cpp';
 #include 'LayerSelectorSet.cpp';
 #include 'LayerSelectorType.cpp';
+#include 'ILayerSelectorControl.cpp';
 
 class LayerSelector : LockedContainer
 {
+	
+	/// Internal. Used by the LayerButton to stay in sync with its LayerSelector
+	ILayerSelectorControl@ _control;
 	
 	Event layer_select;
 	Event sub_layer_select;
@@ -277,6 +281,11 @@ class LayerSelector : LockedContainer
 			else if(@sub_layers != null)
 			{
 				sub_layers.visible = false;
+			}
+			
+			if(@_control != null)
+			{
+				_control.on_layer_selector_type_change();
 			}
 		}
 	}

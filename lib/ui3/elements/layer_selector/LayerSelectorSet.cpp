@@ -254,6 +254,7 @@ class LayerSelectorSet : Container
 		if(result > 0)
 		{
 			update_toggle_all_checkbox();
+			update_control_selection();
 			
 			if(trigger_event && visible)
 			{
@@ -274,6 +275,9 @@ class LayerSelectorSet : Container
 		int result = 0;
 		uint selected_count = uint(count_selected());
 		
+		if(!multi_select && selected_count >= 1)
+			return 0;
+		
 		for(int i = 0; i < end; i++)
 		{
 			Checkbox@ checkbox = checkboxes[i];
@@ -288,17 +292,23 @@ class LayerSelectorSet : Container
 				checkbox.initialise_state(checked);
 				result++;
 				
-				if(!checked && !ignore_allow_deselect)
-				{
-					if(--selected_count <= allow_deselect)
-						break;
-				}
+				if(!checked)
+					selected_count--;
+				else
+					selected_count++;
+				
+				if(checked && !multi_select && selected_count >= 1)
+					break;
+				
+				if(!checked && !ignore_allow_deselect && selected_count <= allow_deselect)
+					break;
 			}
 		}
 		
 		if(result > 0)
 		{
 			update_toggle_all_checkbox();
+			update_control_selection();
 			
 			if(trigger_event && visible)
 			{
@@ -439,6 +449,7 @@ class LayerSelectorSet : Container
 		if(changed)
 		{
 			update_toggle_all_checkbox();
+			update_control_selection();
 			
 			if(trigger_event && visible)
 			{
@@ -835,6 +846,14 @@ class LayerSelectorSet : Container
 	// ///////////////////////////////////////////////////////////////////
 	// Protected/Internal
 	// ///////////////////////////////////////////////////////////////////
+	
+	protected void update_control_selection()
+	{
+		if(@layer_selector._control == null)
+			return;
+		
+		layer_selector._control.on_layer_selector_selection_change();
+	}
 	
 	protected void force_single_select(Checkbox@ checkbox)
 	{
