@@ -18,7 +18,7 @@ class LayerSelectorSet : Container
 	float active_height;
 	
 	bool multi_select;
-	uint allow_deselect;
+	uint min_select;
 	bool drag_select;
 	string font;
 	uint font_size;
@@ -210,17 +210,17 @@ class LayerSelectorSet : Container
 	// Getting/Setting state
 	// ///////////////////////////////////////////////////////////////////
 	
-	int initialise_all_states(const bool checked, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+	int initialise_all_states(const bool checked, const bool trigger_event=true, const bool ignore_min_select=false)
 	{
-		return initialise_all_states(checked, -1, trigger_event, ignore_allow_deselect);
+		return initialise_all_states(checked, -1, trigger_event, ignore_min_select);
 	}
 	
-	int initialise_all_states(const bool checked, const int group, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+	int initialise_all_states(const bool checked, const int group, const bool trigger_event=true, const bool ignore_min_select=false)
 	{
-		return initialise_states(0, num_layers - 1, checked, group, trigger_event, ignore_allow_deselect);
+		return initialise_states(0, num_layers - 1, checked, group, trigger_event, ignore_min_select);
 	}
 	
-	int initialise_states(int start_layer, int end_layer, const bool checked, const int group=-1, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+	int initialise_states(int start_layer, int end_layer, const bool checked, const int group=-1, const bool trigger_event=true, const bool ignore_min_select=false)
 	{
 		if(!validate_layer_range(start_layer, end_layer, start_layer, end_layer))
 			return 0;
@@ -228,7 +228,7 @@ class LayerSelectorSet : Container
 		int result = 0;
 		uint selected_count = uint(count_selected());
 		
-		if(ignore_allow_deselect || checked || selected_count > allow_deselect)
+		if(ignore_min_select || checked || selected_count > min_select)
 		{
 			for(int i = start_layer; i <= end_layer; i++)
 			{
@@ -242,9 +242,9 @@ class LayerSelectorSet : Container
 					checkbox.initialise_state(checked);
 					result++;
 					
-					if(!checked && !ignore_allow_deselect)
+					if(!checked && !ignore_min_select)
 					{
-						if(--selected_count <= allow_deselect)
+						if(--selected_count <= min_select)
 							break;
 					}
 				}
@@ -265,7 +265,7 @@ class LayerSelectorSet : Container
 		return result;
 	}
 	
-	int initialise_states(const array<bool>@ checked_list, const bool trigger_event=true, const bool ignore_allow_deselect=false)
+	int initialise_states(const array<bool>@ checked_list, const bool trigger_event=true, const bool ignore_min_select=false)
 	{
 		const int end = num_layers < int(checked_list.length()) ? num_layers : int(checked_list.length());
 		
@@ -300,7 +300,7 @@ class LayerSelectorSet : Container
 				if(checked && !multi_select && selected_count >= 1)
 					break;
 				
-				if(!checked && !ignore_allow_deselect && selected_count <= allow_deselect)
+				if(!checked && !ignore_min_select && selected_count <= min_select)
 					break;
 			}
 		}
@@ -539,9 +539,9 @@ class LayerSelectorSet : Container
 		return initialise_all_states(true, trigger_event);
 	}
 	
-	int select_none(const bool trigger_event=true, const bool ignore_allow_deselect=false)
+	int select_none(const bool trigger_event=true, const bool ignore_min_select=false)
 	{
-		return initialise_all_states(false, trigger_event, ignore_allow_deselect);
+		return initialise_all_states(false, trigger_event, ignore_min_select);
 	}
 	
 	bool get_layer_colour(const int layer, uint &out colour)
@@ -964,7 +964,7 @@ class LayerSelectorSet : Container
 		}
 		
 		// Prevent deselect
-		if(!checkbox.checked && uint(count_selected()) < allow_deselect)
+		if(!checkbox.checked && uint(count_selected()) < min_select)
 		{
 			checkbox.initialise_state(true);
 			return;
@@ -978,7 +978,7 @@ class LayerSelectorSet : Container
 			ui._dispatch_event(@select_event, select_event_type, layer_selector);
 		}
 		else if(
-			select_layer_group_modifier >= 0 && multi_select && (uint(count_selected()) >= allow_deselect || checkbox.checked) &&
+			select_layer_group_modifier >= 0 && multi_select && (uint(count_selected()) >= min_select || checkbox.checked) &&
 			ui._has_editor && ui._editor.key_check_gvb(select_layer_group_modifier))
 		{
 			const int group = groups[checkboxes.findByRef(@checkbox)];

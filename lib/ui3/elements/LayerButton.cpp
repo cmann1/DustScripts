@@ -428,7 +428,6 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 		if(!_open)
 			return;
 		
-		puts(id + '.on_layer_select');
 		update_labels();
 		ui._dispatch_event(@change, EventType::CHANGE, this);
 		
@@ -440,7 +439,6 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 		if(!_open)
 			return;
 		
-		puts(id + '.on_sub_layer_select');
 		update_labels();
 		ui._dispatch_event(@change, EventType::CHANGE, this);
 		
@@ -449,14 +447,12 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 	
 	private void on_layer_selector_close(EventInfo@ event)
 	{
-		puts(id + '.on_layer_selector_close');
 		_open = false;
 		string event_type;
 		
 		if(!canceled)
 		{
 			accept_layers_selection();
-			puts('  accept');
 			event_type = EventType::SELECT;
 		}
 		else
