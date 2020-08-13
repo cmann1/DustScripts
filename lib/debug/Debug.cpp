@@ -44,8 +44,8 @@ class Debug
 	private bool recalculate_text_height;
 	private float text_lines_scroll;
 	private float single_line_height;
-	private uint text_layer = 22;
-	private uint text_sub_layer = 15;
+	private uint text_layer = 16;
+	private uint text_sub_layer = 16;
 	
 	private DebugItemList items;
 	private DebugLinePool line_pool;
@@ -344,7 +344,7 @@ class Debug
 			if(text_bg_colour != 0 && text_width > 0 && (y2 - y1 > 0))
 			{
 				text_canvas.layer(text_layer);
-				text_canvas.sub_layer(text_sub_layer - 1);
+				text_canvas.sub_layer(text_sub_layer - 2);
 				
 				text_canvas.draw_rectangle(
 					x1, y1, x2, y2,

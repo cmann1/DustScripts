@@ -40,16 +40,21 @@ class UI
 	/// Only relevant when hud = true. When true, certain drawing operations
 	/// will attempt to snap to whole pixels to give cleaner lines
 	bool pixel_perfect = true;
-	float screen_width;
-	float screen_height;
+	
+	/// Triggered when the UI size changes.
+	/// This could be when set_region is called explicitly, or when the game window is resized and auto_fit_screen and hud is enabled.
+	Event screen_resize;
+	/// Triggered at the end of the frame after layout, but before drawing
+	Event after_layout;
+	
+	float _auto_fit_padding_left;
+	float _auto_fit_padding_right;
+	float _auto_fit_padding_top;
+	float _auto_fit_padding_bottom;
+	float _screen_width;
+	float _screen_height;
 	bool _even_screen_width;
 	bool _even_screen_height;
-	/// Mostly for testing. Adds padding around the screen when auto_fit_screen is true
-	float auto_fit_padding_x;
-	float auto_fit_padding_y;
-	
-	Event screen_resize;
-	
 	/// Debug only
 	bool _disable_clipping = false;
 	
@@ -143,7 +148,7 @@ class UI
 	editor_api@ _editor;
 	bool _has_editor;
 	
-	UI(bool hud=true, int layer=19, int sub_layer=19, int player=0)
+	UI(bool hud=true, int layer=15, int sub_layer=0, int player=0)
 	{
 		@on_tooltip_hide_delegate = EventCallback(this.on_tooltip_hide);
 		
@@ -184,12 +189,12 @@ class UI
 		this.sub_layer = sub_layer;
 		_player = player;
 		
-		screen_width  = g.hud_screen_width(false);
-		screen_height = g.hud_screen_height(false);
+		_screen_width  = g.hud_screen_width(false);
+		_screen_height = g.hud_screen_height(false);
 		
 		if(_hud && _auto_fit_screen)
 		{
-			fit_to_screen();
+			fit_to_screen_internal(true);
 		}
 	}
 	
@@ -205,6 +210,7 @@ class UI
 	/// Returns mouse y relative to the UI
 	float mouse_y { get { return mouse.y - contents.y1; } }
 	
+	/// Draw this UI in the world, or hud
 	bool hud
 	{
 		get { return _hud; }
@@ -217,17 +223,19 @@ class UI
 			
 			if(_hud && _auto_fit_screen)
 			{
-				fit_to_screen(true);
+				fit_to_screen_internal(true);
 			}
 		}
 	}
 	
+	/// The layer this UI is drawn on
 	uint layer
 	{
 		get { return _layer; }
 		set { style.layer = mouse.layer = _layer = value; }
 	}
 	
+	/// The sublayer this UI is drawn on
 	uint sub_layer
 	{
 		get { return _sub_layer; }
@@ -247,9 +255,37 @@ class UI
 			
 			if(_hud && _auto_fit_screen)
 			{
-				fit_to_screen(true);
+				fit_to_screen_internal(true);
 			}
 		}
+	}
+	
+	/// Mostly for testing. Adds padding around the screen when auto_fit_screen is true
+	float auto_fit_padding_left
+	{
+		get const { return _auto_fit_padding_left; }
+		set { _auto_fit_padding_left = update_auto_fit_padding(_auto_fit_padding_left, value); }
+	}
+	
+	/// Same as auto_fit_padding_left
+	float auto_fit_padding_right
+	{
+		get const { return _auto_fit_padding_right; }
+		set { _auto_fit_padding_right = update_auto_fit_padding(_auto_fit_padding_right, value); }
+	}
+	
+	/// Same as auto_fit_padding_left
+	float auto_fit_padding_top
+	{
+		get const { return _auto_fit_padding_top; }
+		set { _auto_fit_padding_top = update_auto_fit_padding(_auto_fit_padding_top, value); }
+	}
+	
+	/// Same as auto_fit_padding_left
+	float auto_fit_padding_bottom
+	{
+		get const { return _auto_fit_padding_bottom; }
+		set { _auto_fit_padding_bottom = update_auto_fit_padding(_auto_fit_padding_bottom, value); }
 	}
 	
 	bool add_child(Element@ child)
@@ -287,12 +323,11 @@ class UI
 		contents.clear();
 	}
 	
-	bool end_frame;
-	bool dl;
+	
 	void step()
 	{
 		/*
-		 * Detect screen size changes and auto fit hud to screen
+		 * Auto fit hud to screen
 		 */
 		
 		if(_hud)
@@ -300,18 +335,15 @@ class UI
 			const float new_screen_width  = g.hud_screen_width(false);
 			const float new_screen_height = g.hud_screen_height(false);
 			
-			if(!approximately(screen_width, new_screen_width) || !approximately(screen_height, new_screen_height))
+			if(!approximately(_screen_width, new_screen_width) || !approximately(_screen_height, new_screen_height))
 			{
-				screen_width  = new_screen_width;
-				screen_height = new_screen_height;
+				_screen_width  = new_screen_width;
+				_screen_height = new_screen_height;
 				
 				if(_auto_fit_screen)
 				{
-					fit_to_screen();
+					fit_to_screen_internal();
 				}
-				
-				_event_info.reset(EventType::SCREEN_RESIZE);
-				screen_resize.dispatch(_event_info);
 			}
 		}
 		
@@ -396,11 +428,7 @@ class UI
 		}
 		
 		const bool mouse_in_ui = mouse.x >= contents.x1 && mouse.x <= contents.x2 && mouse.y >= contents.y1 && mouse.y <= contents.y2;
-		if(dl)
-		{
-			puts('-- DO LAYOUT ----------------------------------------------------');
-			dl=false;
-		}
+		
 		Element@ mouse_over_main = update_layout(contents, mouse_in_ui);
 		@_mouse_over_element = mouse_over_main;
 		
@@ -423,11 +451,8 @@ class UI
 			editor_api::block_all_mouse(_editor);
 		}
 		
-		if(end_frame)
-		{
-			puts('-- END FRMAE ----------------------------------------------------');
-			end_frame=false;
-		}
+		_event_info.reset(EventType::AFTER_LAYOUT);
+		after_layout.dispatch(_event_info);
 	}
 	
 	void draw()
@@ -436,31 +461,11 @@ class UI
 		draw_root(overlays);
 	}
 	
-	/// Make sure to setup a Debug instance before calling this
-	void debug_draw(bool just_outline=false, bool show_ids=false, bool show_element_data=true, const float id_scale=1)
-	{
-		style.reset_drawing_context(null);
-		style.outline(contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
-		
-		if(just_outline)
-			return;
-		
-		debug_mouse_over_clipping_ctx.clipping_mode = ClippingMode::None;
-		
-		debug_draw_root(contents, show_ids, id_scale);
-		debug_draw_root(overlays, show_ids, id_scale);
-		
-		if(show_element_data)
-		{
-			debug_print_mouse_stack();
-			debug_draw_element_data();
-		}
-		
-		debug_draw_active = true;
-	}
-	
 	void set_region(const float x1, const float y1, const float x2, const float y2)
 	{
+		if(this.x1 == x1 && this.y1 == y1 && this.x2 == x2 && this.y2 == y2)
+			return;
+		
 		this.x1 = x1;
 		this.y1 = y1;
 		this.x2 = x2;
@@ -477,6 +482,9 @@ class UI
 		overlays.height = y2 - y1;
 		
 		style.set_default_clipping_region(x1, y1, x2, y2);
+		
+		_event_info.reset(EventType::SCREEN_RESIZE);
+		screen_resize.dispatch(_event_info);
 	}
 	
 	void get_region(float &out x1, float &out y1, float &out x2, float &out y2)
@@ -488,31 +496,24 @@ class UI
 	}
 	
 	float region_x1 { get const{ return x1; } }
+	
 	float region_y1 { get const{ return y1; } }
+	
 	float region_x2 { get const{ return x2; } }
+	
 	float region_y2 { get const{ return y2; } }
+	
 	float region_width  { get const{ return x2 - x1; } }
+	
 	float region_height { get const{ return y2 - y1; } }
 	
-	void fit_to_screen(bool update_screen_values=false)
+	float screen_width { get const{ return _screen_width; } }
+	
+	float screen_height { get const{ return _screen_height; } }
+	
+	void fit_to_screen()
 	{
-		if(!_hud)
-			return;
-		
-		const float new_screen_width  = g.hud_screen_width(false);
-		const float new_screen_height = g.hud_screen_height(false);
-		
-		set_region(
-			-new_screen_width * 0.5 + auto_fit_padding_x, -new_screen_height * 0.5 + auto_fit_padding_y,
-			 new_screen_width * 0.5 - auto_fit_padding_x,  new_screen_height * 0.5 - auto_fit_padding_y);
-		 
-		 if(update_screen_values)
-		 {
-			screen_width  = new_screen_width;
-			screen_height = new_screen_height;
-			_even_screen_width = (screen_width % 2) == 0;
-			_even_screen_height = (screen_height % 2) == 0;
-		 }
+		fit_to_screen_internal(true);
 	}
 	
 	/// Shows the tooltip for the given element if it has one.
@@ -667,8 +668,32 @@ class UI
 		close_layer_selector_on_select = auto_close;
 	}
 	
+	/// Make sure to setup a Debug instance before calling this
+	void debug_draw(bool just_outline=false, bool show_ids=false, bool show_element_data=true, const float id_scale=1)
+	{
+		style.reset_drawing_context(null);
+		style.outline(contents.x1, contents.y1, contents.x2, contents.y2, -2, 0xaaffffff);
+		
+		if(just_outline)
+			return;
+		
+		debug_mouse_over_clipping_ctx.clipping_mode = ClippingMode::None;
+		
+		debug_draw_root(contents, show_ids, id_scale);
+		debug_draw_root(overlays, show_ids, id_scale);
+		
+		if(show_element_data)
+		{
+			debug_print_mouse_stack();
+			debug_draw_element_data();
+		}
+		
+		debug_draw_active = true;
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
 	// Internal
-	// ---------------------------------------------------------
+	// ///////////////////////////////////////////////////////////////////
 	
 	float _pixel_floor(const float value) { return _hud && pixel_perfect ? floor(value) : value; }
 	
@@ -728,8 +753,50 @@ class UI
 		_queue_event(@event, @event_info);
 	}
 	
-	// Private
-	// ---------------------------------------------------------
+	LayerSelector@ _create_layer_selector_for_popup(
+		const LayerSelectorType type, const PopupPosition position,
+		EventCallback@ layer_select, EventCallback@ sub_layer_select, EventCallback@ layer_selector_hide,
+		PopupOptions@ &out popup_options)
+	{
+		LayerSelector@ layer_selector = LayerSelector(this, type);
+		layer_selector.layer_select.on(layer_select);
+		layer_selector.sub_layer_select.on(sub_layer_select);
+		
+		@popup_options = PopupOptions(this, layer_selector, true, position, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
+		popup_options.clear_drawing();
+		popup_options.mouse_self = false;
+		popup_options.padding_left = 0;
+		popup_options.padding_right = 0;
+		popup_options.padding_top = 0;
+		popup_options.padding_bottom = 0;
+		popup_options.hide_start.on(layer_selector_hide);
+		
+		return layer_selector;
+	}
+	
+	void _initialise_layer_selector_for_popup(
+		LayerSelector@ layer_selector, PopupOptions@ popup_options,
+		const LayerSelectorType type, const PopupPosition position)
+	{
+		popup_options.position = position;
+		
+		layer_selector.reset(false);
+		layer_selector.type = type;
+		layer_selector.multi_select = false;
+		layer_selector.individual_backgrounds = true;
+		layer_selector.background_colour = style.normal_bg_clr;
+		layer_selector.background_blur = true;
+		layer_selector.blur_inset = 0;
+		layer_selector.border_colour = 0;
+		layer_selector.border_size = 0;
+		layer_selector.shadow_colour = style.dialog_shadow_clr;
+		layer_selector.show_all_layers_toggle = false;
+		layer_selector.show_all_sub_layers_toggle = false;
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Layout and drawing
+	// ///////////////////////////////////////////////////////////////////
 	
 	private Element@ update_layout(Element@ base, bool check_mouse_over)
 	{
@@ -1625,7 +1692,43 @@ class UI
 		debug.print('[mouse path]', 0x99ffffff, '[mouse path]', 0);
 	}
 	
-	//
+	// ///////////////////////////////////////////////////////////////////
+	// Private
+	// ///////////////////////////////////////////////////////////////////
+	
+	private void fit_to_screen_internal(bool update_screen_values=false)
+	{
+		if(!_hud)
+			return;
+		
+		const float new_screen_width  = g.hud_screen_width(false);
+		const float new_screen_height = g.hud_screen_height(false);
+		 
+		 if(update_screen_values)
+		 {
+			_screen_width  = new_screen_width;
+			_screen_height = new_screen_height;
+			_even_screen_width  = (_screen_width % 2) == 0;
+			_even_screen_height = (_screen_height % 2) == 0;
+		 }
+		
+		set_region(
+			-new_screen_width * 0.5 + auto_fit_padding_left,  -new_screen_height * 0.5 + auto_fit_padding_top,
+			 new_screen_width * 0.5 - auto_fit_padding_right,  new_screen_height * 0.5 - auto_fit_padding_bottom);
+	}
+	
+	private float update_auto_fit_padding(const float current, const float new_value)
+	{
+		if(current == new_value)
+			return current;
+		
+		if(_hud && _auto_fit_screen)
+		{
+			fit_to_screen_internal(true);
+		}
+		
+		return new_value;
+	}
 	
 	private void show_tooltip(const string id, PopupOptions@ options, Element@ element)
 	{
@@ -1666,47 +1769,6 @@ class UI
 		tooltip.fit_to_contents();
 	}
 	
-	LayerSelector@ _create_layer_selector_for_popup(
-		const LayerSelectorType type, const PopupPosition position,
-		EventCallback@ layer_select, EventCallback@ sub_layer_select, EventCallback@ layer_selector_hide,
-		PopupOptions@ &out popup_options)
-	{
-		LayerSelector@ layer_selector = LayerSelector(this, type);
-		layer_selector.layer_select.on(layer_select);
-		layer_selector.sub_layer_select.on(sub_layer_select);
-		
-		@popup_options = PopupOptions(this, layer_selector, true, position, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
-		popup_options.clear_drawing();
-		popup_options.mouse_self = false;
-		popup_options.padding_left = 0;
-		popup_options.padding_right = 0;
-		popup_options.padding_top = 0;
-		popup_options.padding_bottom = 0;
-		popup_options.hide_start.on(layer_selector_hide);
-		
-		return layer_selector;
-	}
-	
-	void _initialise_layer_selector_for_popup(
-		LayerSelector@ layer_selector, PopupOptions@ popup_options,
-		const LayerSelectorType type, const PopupPosition position)
-	{
-		popup_options.position = position;
-		
-		layer_selector.reset(false);
-		layer_selector.type = type;
-		layer_selector.multi_select = false;
-		layer_selector.individual_backgrounds = true;
-		layer_selector.background_colour = style.normal_bg_clr;
-		layer_selector.background_blur = true;
-		layer_selector.blur_inset = 0;
-		layer_selector.border_colour = 0;
-		layer_selector.border_size = 0;
-		layer_selector.shadow_colour = style.dialog_shadow_clr;
-		layer_selector.show_all_layers_toggle = false;
-		layer_selector.show_all_sub_layers_toggle = false;
-	}
-	
 	private LayerSelector@ show_layer_selector(const LayerSelectorType type, Element@ target, const PopupPosition position)
 	{
 		if(@layer_selector == null)
@@ -1745,8 +1807,9 @@ class UI
 		}
 	}
 	
+	// ///////////////////////////////////////////////////////////////////
 	// Events
-	// ---------------------------------------------------------
+	// ///////////////////////////////////////////////////////////////////
 	
 	private void on_tooltip_hide(EventInfo@ event)
 	{

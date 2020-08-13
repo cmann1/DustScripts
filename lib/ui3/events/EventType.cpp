@@ -21,6 +21,7 @@ namespace EventType
 	const string MOVE_COMPLETED		= 'move_completed';
 	const string CLOSE				= 'close';
 	
+	const string AFTER_LAYOUT		= 'after_layout';
 	const string SCREEN_RESIZE		= 'screen_resize';
 	const string LAYER_SELECT		= 'layer_select';
 	const string SUB_LAYER_SELECT	= 'sub_layer_select';
