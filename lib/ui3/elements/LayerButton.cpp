@@ -467,7 +467,6 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 			
 			canceled = false;
 			event_type = EventType::CANCEL;
-			puts('  cancel');
 			update_labels();
 		}
 		
