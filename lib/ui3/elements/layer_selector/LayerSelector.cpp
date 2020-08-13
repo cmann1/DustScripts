@@ -34,7 +34,7 @@ class LayerSelector : LockedContainer
 	protected float _layer_spacing = NAN;
 	protected float _padding = NAN;
 	protected bool _toggle_on_press = true;
-	protected int _select_layer_group_modifier = GVB::Shift;
+	protected int _select_layer_group_modifier = GVB::Control;
 	
 	protected bool _show_all_layers_toggle = true;
 	protected bool _show_all_sub_layers_toggle = true;
@@ -1018,7 +1018,7 @@ class LayerSelector : LockedContainer
 		layer_spacing = NAN;
 		padding = NAN;
 		toggle_on_press = true;
-		select_layer_group_modifier = GVB::Shift;
+		select_layer_group_modifier = GVB::Control;
 		
 		show_all_layers_toggle = true;
 		show_all_sub_layers_toggle = true;
