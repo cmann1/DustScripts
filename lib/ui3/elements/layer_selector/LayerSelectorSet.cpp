@@ -24,6 +24,7 @@ class LayerSelectorSet : Container
 	uint font_size;
 	bool toggle_on_press;
 	int select_layer_group_modifier;
+	int select_range_modifier;
 	bool labels_first;
 	float padding;
 	float label_spacing;
@@ -33,6 +34,8 @@ class LayerSelectorSet : Container
 	
 	uint shadow_colour;
 	
+	int previous_select_index = -1;
+	bool previous_select_checked;
 	bool validate_layout = true;
 	EventCallback@ layer_select_delegate;
 	
@@ -234,7 +237,7 @@ class LayerSelectorSet : Container
 			{
 				Checkbox@ checkbox = checkboxes[i];
 				
-				if(!checkbox.visible || @checkbox == @all_checkbox || (group != -1 && groups[i] != group))
+				if(@checkbox == null || !checkbox.visible || @checkbox == @all_checkbox || (group != -1 && groups[i] != group))
 					continue;
 				
 				if(checkbox.checked != checked)
@@ -282,7 +285,7 @@ class LayerSelectorSet : Container
 		{
 			Checkbox@ checkbox = checkboxes[i];
 			
-			if(@checkbox == @all_checkbox)
+			if(@checkbox == null || @checkbox == @all_checkbox)
 				continue;
 			
 			const bool checked = checked_list[i];
@@ -847,6 +850,62 @@ class LayerSelectorSet : Container
 	// Protected/Internal
 	// ///////////////////////////////////////////////////////////////////
 	
+	protected void update_previous_select_index(Checkbox@ checkbox)
+	{
+		previous_select_index = -1;
+		
+		if(@checkbox == null || @checkbox == @all_checkbox)
+			return;
+		
+		previous_select_checked = checkbox.checked;
+		
+		for(int i = 0; i < active_count; i++)
+		{
+			Checkbox@ other_checkbox = @checkboxes[active_indices[i]];
+			
+			if(@other_checkbox == @checkbox)
+			{
+				previous_select_index = i;
+				break;
+			}
+		}
+	}
+	
+	protected void select_from_previous(Checkbox@ start_checkbox)
+	{
+		if(previous_select_index == -1 || @start_checkbox == @all_checkbox)
+			return;
+		
+		bool in_range = false;
+		bool has_been_in_range = false;
+		
+		int start_index = previous_select_index;
+		int end_index;
+		
+		for(int i = 0; i < active_count; i++)
+		{
+			Checkbox@ checkbox = @checkboxes[active_indices[i]];
+			
+			if(@checkbox == @start_checkbox)
+			{
+				end_index = i;
+				break;
+			}
+		}
+		
+		if(end_index < start_index)
+		{
+			const int start_index_t = start_index;
+			start_index = end_index;
+			end_index = start_index_t;
+		}
+		
+		for(int i = start_index; i <= end_index; i++)
+		{
+			checkboxes[active_indices[i]].checked = previous_select_checked;
+		}
+	}
+	
 	protected void update_control_selection()
 	{
 		if(@layer_selector._control == null)
@@ -966,6 +1025,7 @@ class LayerSelectorSet : Container
 		// Prevent deselect
 		if(!checkbox.checked && uint(count_selected()) < min_select)
 		{
+			update_previous_select_index(checkbox);
 			checkbox.initialise_state(true);
 			return;
 		}
@@ -973,9 +1033,16 @@ class LayerSelectorSet : Container
 		// Single select - deselect all others
 		if(!multi_select && checkbox.checked)
 		{
+			update_previous_select_index(checkbox);
 			force_single_select(checkbox);
 			update_toggle_all_checkbox();
 			ui._dispatch_event(@select_event, select_event_type, layer_selector);
+		}
+		else if(!busy_drag_select && multi_select && select_range_modifier >= 0 &&
+			previous_select_index >= 0 && ui._editor.key_check_gvb(select_range_modifier))
+		{
+			select_from_previous(checkbox);
+			update_previous_select_index(checkbox);
 		}
 		else if(
 			select_layer_group_modifier >= 0 && multi_select && (uint(count_selected()) >= min_select || checkbox.checked) &&
@@ -991,6 +1058,7 @@ class LayerSelectorSet : Container
 		}
 		else
 		{
+			update_previous_select_index(checkbox);
 			update_toggle_all_checkbox();
 			ui._dispatch_event(@select_event, select_event_type, layer_selector);
 		}
@@ -1009,6 +1077,7 @@ class LayerSelectorSet : Container
 			{
 				busy_drag_select = true;
 				drag_select_value = checkbox.checked;
+				update_previous_select_index(checkbox);
 			}
 		}
 	}

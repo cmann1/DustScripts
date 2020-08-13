@@ -35,9 +35,10 @@ class LayerSelector : LockedContainer
 	protected float _padding = NAN;
 	protected bool _toggle_on_press = true;
 	protected int _select_layer_group_modifier = GVB::Control;
+	protected int _select_range_modifier = GVB::Shift;
 	
-	protected bool _show_all_layers_toggle = true;
-	protected bool _show_all_sub_layers_toggle = true;
+	protected bool _show_all_layers_toggle = false;
+	protected bool _show_all_sub_layers_toggle = false;
 	protected bool _toggle_all_top = true;
 	
 	protected string _font = font::ENVY_BOLD;
@@ -470,6 +471,25 @@ class LayerSelector : LockedContainer
 				layers.select_layer_group_modifier = _select_layer_group_modifier;
 			if(has_sub_layers)
 				sub_layers.select_layer_group_modifier = _select_layer_group_modifier;
+		}
+	}
+	
+	/// Sets the GVB key that can be used to select a range of layers.
+	/// Set to -1 to disable.
+	int select_range_modifier
+	{
+		get const { return _select_range_modifier; }
+		set
+		{
+			if(_select_range_modifier == value)
+				return;
+			
+			_select_range_modifier = value;
+			
+			if(has_layers)
+				layers.select_range_modifier = _select_range_modifier;
+			if(has_sub_layers)
+				sub_layers.select_range_modifier = _select_range_modifier;
 		}
 	}
 	
@@ -1019,6 +1039,7 @@ class LayerSelector : LockedContainer
 		padding = NAN;
 		toggle_on_press = true;
 		select_layer_group_modifier = GVB::Control;
+		select_range_modifier = GVB::Shift;
 		
 		show_all_layers_toggle = true;
 		show_all_sub_layers_toggle = true;
@@ -1041,6 +1062,11 @@ class LayerSelector : LockedContainer
 			reset_default_layer_colour();
 			reset_default_sub_layer_colour();
 		}
+		
+		if(@layers != null)
+			layers.previous_select_index = -1;
+		if(@sub_layers != null)
+			sub_layers.previous_select_index = -1;
 		
 		validate_layout = true;
 	}
@@ -1185,6 +1211,7 @@ class LayerSelector : LockedContainer
 		layers.drag_select					= _drag_select;
 		layers.toggle_on_press				= _toggle_on_press;
 		layers.select_layer_group_modifier	= _select_layer_group_modifier;
+		layers.select_range_modifier		= _select_range_modifier;
 		
 		layers.labels_first		= _labels_first;
 		layers.label_spacing	= _label_spacing;
