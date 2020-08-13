@@ -162,10 +162,7 @@ class Scrollbar : Element
 		
 		if(previous_position != position)
 		{
-			EventInfo@ event = ui._event_info_pool.get();
-			event.reset(EventType::SCROLL, @this);
-			ui._queue_event(@this.scroll, @event);
-			previous_position = position;
+			ui._queue_event(@this.scroll, EventType::SCROLL, @this);
 		}
 	}
 	

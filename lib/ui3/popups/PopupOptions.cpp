@@ -292,12 +292,12 @@ class PopupOptions : IGenericEventTarget
 	
 	void _on_popup_show(Popup@ popup)
 	{
-		ui._dispatch_event(@show, EventType::SHOW, @popup, @this);
+		ui._queue_event(@show, EventType::SHOW, @popup, @this);
 	}
 	
 	void _on_popup_start_hide(Popup@ popup)
 	{
-		ui._dispatch_event(@hide_start, EventType::HIDE_START, @popup, @this);
+		ui._queue_event(@hide_start, EventType::SHOW, @popup, @this);
 	}
 	
 	void _on_popup_hide(Popup@ popup)
@@ -308,7 +308,7 @@ class PopupOptions : IGenericEventTarget
 			@content_str_label = null;
 		}
 		
-		ui._dispatch_event(@show, EventType::HIDE, @popup, @this);
+		ui._queue_event(@show, EventType::HIDE, @popup, @this);
 	}
 	
 }

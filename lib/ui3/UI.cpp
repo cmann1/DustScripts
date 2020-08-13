@@ -287,8 +287,14 @@ class UI
 		contents.clear();
 	}
 	
+	bool end_frame;
+	bool dl;
 	void step()
 	{
+		/*
+		 * Detect screen size changes and auto fit hud to screen
+		 */
+		
 		if(_hud)
 		{
 			const float new_screen_width  = g.hud_screen_width(false);
@@ -322,6 +328,12 @@ class UI
 			active_mouse_element_processed = false;
 		}
 		
+		
+		/*
+		 * Mouse events are instead processed at the start of the next frame to allow any changes
+		 * made during the event phase to take affect during the next layout before draw
+		 */
+		
 		process_mouse_events(@_mouse_over_element == @mouse_over_overlays ? overlays : contents);
 		
 		if(num_queued_events > 0)
@@ -329,7 +341,8 @@ class UI
 			process_queued_events();
 		}
 		
-		mouse.step(_has_editor && _editor.key_check_gvb(GVB::Space));
+		const bool block_mouse = _has_editor && (!_hud && _editor.mouse_in_gui() || _editor.key_check_gvb(GVB::Space));
+		mouse.step(block_mouse);
 		
 		switch(primary_button)
 		{
@@ -383,7 +396,11 @@ class UI
 		}
 		
 		const bool mouse_in_ui = mouse.x >= contents.x1 && mouse.x <= contents.x2 && mouse.y >= contents.y1 && mouse.y <= contents.y2;
-		
+		if(dl)
+		{
+			puts('-- DO LAYOUT ----------------------------------------------------');
+			dl=false;
+		}
 		Element@ mouse_over_main = update_layout(contents, mouse_in_ui);
 		@_mouse_over_element = mouse_over_main;
 		
@@ -404,6 +421,12 @@ class UI
 		if(block_editor_input && _hud && _has_editor && @_mouse_over_element != null)
 		{
 			editor_api::block_all_mouse(_editor);
+		}
+		
+		if(end_frame)
+		{
+			puts('-- END FRMAE ----------------------------------------------------');
+			end_frame=false;
 		}
 	}
 	
@@ -669,6 +692,40 @@ class UI
 	{
 		_event_info.reset(type, target, generic_target, value);
 		event.dispatch(_event_info);
+	}
+	
+	void _queue_event(Event@ event, EventInfo@ event_info)
+	{
+		if(num_queued_events == queued_events_size)
+		{
+			queued_events_size += 16;
+			queued_events.resize(queued_events_size);
+			queued_event_infos.resize(queued_events_size);
+		}
+		
+		@queued_events[num_queued_events]			= @event;
+		@queued_event_infos[num_queued_events++]	= event_info;
+	}
+	
+	void _queue_event(Event@ event, const string type, Element@ target, const string value='')
+	{
+		EventInfo@ event_info = _event_info_pool.get();
+		event_info.reset(type, target, value);
+		_queue_event(@event, @event_info);
+	}
+	
+	void _queue_event(Event@ event, const string type, IGenericEventTarget@ generic_target, const string value='')
+	{
+		EventInfo@ event_info = _event_info_pool.get();
+		event_info.reset(type, null, generic_target, value);
+		_queue_event(@event, @event_info);
+	}
+	
+	void _queue_event(Event@ event, const string type, Element@ target, IGenericEventTarget@ generic_target, const string value='')
+	{
+		EventInfo@ event_info = _event_info_pool.get();
+		event_info.reset(type, target, generic_target, value);
+		_queue_event(@event, @event_info);
 	}
 	
 	// Private
@@ -1566,19 +1623,6 @@ class UI
 		}
 		
 		debug.print('[mouse path]', 0x99ffffff, '[mouse path]', 0);
-	}
-	
-	/* internal */ void _queue_event(Event@ event, EventInfo@ event_info)
-	{
-		if(num_queued_events == queued_events_size)
-		{
-			queued_events_size += 16;
-			queued_events.resize(queued_events_size);
-			queued_event_infos.resize(queued_events_size);
-		}
-		
-		@queued_events[num_queued_events]			= @event;
-		@queued_event_infos[num_queued_events++]	= event_info;
 	}
 	
 	//

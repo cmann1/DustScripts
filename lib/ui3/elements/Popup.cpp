@@ -276,13 +276,10 @@ class Popup : SingleContainer
 			}
 			else
 			{
-				ui._event_info.reset(EventType::HIDE, this);
-				hide.dispatch(ui._event_info);
+				ui._queue_event(@hide, EventType::HIDE, @this);
 				_options._on_popup_hide(this);
 			}
 		}
-		
-//		fit_to_contents();
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override

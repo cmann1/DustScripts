@@ -428,7 +428,6 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 		if(!_open)
 			return;
 		
-		update_labels();
 		ui._dispatch_event(@change, EventType::CHANGE, this);
 		
 		auto_hide_layer_selector();
@@ -439,7 +438,6 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 		if(!_open)
 			return;
 		
-		update_labels();
 		ui._dispatch_event(@change, EventType::CHANGE, this);
 		
 		auto_hide_layer_selector();
