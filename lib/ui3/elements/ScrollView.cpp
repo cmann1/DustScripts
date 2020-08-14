@@ -114,6 +114,11 @@ class ScrollView : LockedContainer
 		if(@scrollbar_horizontal != null)// && scrollbar_horizontal.visible)
 			stack.push(scrollbar_horizontal);
 		
+		if(_content.validate_layout)
+		{
+			validate_layout = true;
+		}
+		
 		stack.push(_content);
 	}
 	
@@ -179,13 +184,14 @@ class ScrollView : LockedContainer
 			}
 		}
 		
-		if(_validate_layout)
+		if(validate_layout)
 		{
-			_content._validate_layout = true;
+			_content.validate_layout = true;
 		}
 		
 		content.width = content_width;
 		content.height = content_height;
+		_content._defer_layout = false;
 		_content._do_layout(ctx);
 		_content._defer_layout = true;
 		
@@ -255,26 +261,8 @@ class ScrollView : LockedContainer
 			content.width = content_width;
 			content.height = content_height;
 			
-			_content._validate_layout = true;
+			_content.validate_layout = true;
 			_content._do_layout_internal(ctx);
-		}
-		
-		const bool scrollbar_vertical_update   = prev_scroll_vertical && scrollbar_vertical.busy_dragging;
-		const bool scrollbar_horizontal_update = prev_scroll_horizontal && scrollbar_horizontal.busy_dragging;
-		
-		int scroll_dir;
-		const bool scrolled = !scrollbar_vertical_update && !scrollbar_horizontal_update && ui.mouse.scrolled(scroll_dir);
-		const bool scrolled_x = scrolled && @scrollbar_horizontal != null && scrollbar_horizontal.hovered;
-		const bool scrolled_y = scrolled && (_content.hovered || @scrollbar_vertical != null && scrollbar_vertical.hovered);
-		
-		if(scrolled_y && needs_scroll_vertical)
-		{
-			scrollbar_vertical.position += scroll_dir * scroll_amount;
-		}
-		
-		if(scrolled_x && needs_scroll_horizontal)
-		{
-			scrollbar_horizontal.position += scroll_dir * scroll_amount;
 		}
 		
 		update_vertical_scrollbar(needs_scroll_vertical);
@@ -282,19 +270,13 @@ class ScrollView : LockedContainer
 		
 		if(previous_scroll_x != _content._scroll_x || previous_scroll_y != _content._scroll_y)
 		{
-			EventInfo@ event = ui._event_info_pool.get();
-			event.reset(EventType::SCROLL, @this);
-			ui._queue_event(@this.scroll, @event);
+			ui._queue_event(@this.scroll, EventType::SCROLL, @this);
 			
 			previous_scroll_x = _content._scroll_x;
 			previous_scroll_y = _content._scroll_y;
 		}
 		
-		if(_validate_layout)
-		{
-			calculate_scroll_rect(false);
-			_validate_layout = false;
-		}
+		calculate_scroll_rect(false);
 		
 //		ui.debug.rect(22, 22,
 //			_content.x1 + _content.scroll_min_x, _content.y1 + _content.scroll_min_y,
@@ -333,9 +315,9 @@ class ScrollView : LockedContainer
 		
 		if(scroll && scrollbar_vertical.visible)
 		{
-			scrollbar_vertical._x = _content._x + _content._width;
-			scrollbar_vertical._y = ui.style.spacing;
-			scrollbar_vertical._height = _content._height;
+			scrollbar_vertical.x = _content._x + _content._width;
+			scrollbar_vertical.y = ui.style.spacing;
+			scrollbar_vertical.height = _content._height;
 		}
 		else
 		{
@@ -353,9 +335,9 @@ class ScrollView : LockedContainer
 		
 		if(scroll && scrollbar_horizontal.visible)
 		{
-			scrollbar_horizontal._x = ui.style.spacing;
-			scrollbar_horizontal._y = _content._y + _content._height;
-			scrollbar_horizontal._width = _content._width;
+			scrollbar_horizontal.x = ui.style.spacing;
+			scrollbar_horizontal.y = _content._y + _content._height;
+			scrollbar_horizontal.width = _content._width;
 		}
 		else
 		{
@@ -370,5 +352,23 @@ class ScrollView : LockedContainer
 	protected float layout_padding_top		{ get const override { return is_nan(this.content_padding_top)		? ui.style.spacing : this.content_padding_top; } }
 	
 	protected float layout_padding_bottom	{ get const override { return is_nan(this.content_padding_bottom)	? ui.style.spacing : this.content_padding_bottom; } }
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Events
+	// ///////////////////////////////////////////////////////////////////
+	
+	void _mouse_scroll(const int scroll_dir)
+	{
+		if(@scrollbar_vertical != null && (_content.hovered || scrollbar_vertical.hovered))
+		{
+			scrollbar_vertical.position += scroll_dir * scroll_amount;
+			validate_layout = true;
+		}
+		else if(@scrollbar_horizontal != null && scrollbar_horizontal.hovered)
+		{
+			scrollbar_horizontal.position += scroll_dir * scroll_amount;
+			validate_layout = true;
+		}
+	}
 	
 }

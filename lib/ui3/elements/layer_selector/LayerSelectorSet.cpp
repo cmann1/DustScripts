@@ -36,7 +36,6 @@ class LayerSelectorSet : Container
 	
 	int previous_select_index = -1;
 	bool previous_select_checked;
-	bool validate_layout = true;
 	EventCallback@ layer_select_delegate;
 	
 	private Event@ select_event;
@@ -649,11 +648,6 @@ class LayerSelectorSet : Container
 	// Initialise, rebuild, layout
 	// ///////////////////////////////////////////////////////////////////
 	
-	void reset()
-	{
-		
-	}
-	
 	void initialise_layer_values(const int start_layer, const int end_layer, const int group, const bool visible)
 	{
 		for(int i = start_layer; i <= end_layer; i++)
@@ -781,10 +775,11 @@ class LayerSelectorSet : Container
 		validate_layout = true;
 	}
 	
-	void do_layout()
+	void _do_layout(LayoutContext@ ctx) override
 	{
 		const float padding = is_nan(this.padding) ? ui.style.spacing : this.padding;
 		const float layer_spacing = is_nan(this.layer_spacing) ? ui.style.spacing : this.layer_spacing;
+		const float label_spacing = is_nan(this.label_spacing) ? ui.style.spacing : this.label_spacing;
 		
 		float y = padding - layer_spacing * 0.5;
 		
@@ -830,7 +825,7 @@ class LayerSelectorSet : Container
 		width = ceil(active_width + padding * 2);
 		height = ceil(active_height + padding * 2 - layer_spacing);
 		
-		validate_layout = false;
+		Container::_do_layout(ctx);
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override

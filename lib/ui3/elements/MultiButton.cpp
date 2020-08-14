@@ -121,11 +121,6 @@ class MultiButton : SingleContainer
 				_content._y += ui.style.button_pressed_icon_offset;
 			}
 		}
-		
-		if(pressed || hovered && ui.mouse.primary_press)
-		{
-			@ui._active_mouse_element = @this;
-		}
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
@@ -133,21 +128,6 @@ class MultiButton : SingleContainer
 		style.draw_interactive_element(
 			x1, y1, x2, y2,
 			hovered, false, pressed, disabled);
-	}
-	
-	void _mouse_click() override
-	{
-		const int num_items = int(item_names.length());
-		
-		if(num_items > 0)
-		{
-			const int new_index = (_selected_index + 1) % num_items;
-			
-			if(new_index != _selected_index)
-			{
-				set_selected(new_index, item_names[new_index], images[new_index]);
-			}
-		}
 	}
 	
 	private Image@ _remove(const int index, Image@ image)
@@ -233,5 +213,42 @@ class MultiButton : SingleContainer
 	protected float layout_padding_bottom	{ get const override { return ui.style.spacing; } }
 	
 	protected float layout_border_size		{ get const override { return ui.style.border_size; } }
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Events
+	// ///////////////////////////////////////////////////////////////////
+	
+	void _mouse_press(const MouseButton button) override
+	{
+		if(button != ui.primary_button)
+			return;
+		
+		@ui._active_mouse_element = @this;
+		validate_layout = true;
+	}
+	
+	void _mouse_release(const MouseButton button) override
+	{
+		if(button != ui.primary_button)
+			return;
+		
+		@ui._active_mouse_element = null;
+		validate_layout = true;
+	}
+	
+	void _mouse_click() override
+	{
+		const int num_items = int(item_names.length());
+		
+		if(num_items > 0)
+		{
+			const int new_index = (_selected_index + 1) % num_items;
+			
+			if(new_index != _selected_index)
+			{
+				set_selected(new_index, item_names[new_index], images[new_index]);
+			}
+		}
+	}
 	
 }

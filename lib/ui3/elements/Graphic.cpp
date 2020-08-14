@@ -7,19 +7,19 @@
 abstract class Graphic : Element
 {
 	
-	float rotation;
-	float scale_x = 1;
-	float scale_y = 1;
-	float origin_x = 0.5;
-	float origin_y = 0.5;
+	protected float _rotation;
+	protected float _scale_x = 1;
+	protected float _scale_y = 1;
+	protected float _origin_x = 0.5;
+	protected float _origin_y = 0.5;
 	
-	float align_h = GraphicAlign::Centre;
-	float align_v = GraphicAlign::Middle;
-	ImageSize sizing = ImageSize:: ConstrainInside;
-	float padding_left;
-	float padding_right;
-	float padding_top;
-	float padding_bottom;
+	protected float _align_h = GraphicAlign::Centre;
+	protected float _align_v = GraphicAlign::Middle;
+	protected ImageSize _sizing = ImageSize:: ConstrainInside;
+	protected float _padding_left;
+	protected float _padding_right;
+	protected float _padding_top;
+	protected float _padding_bottom;
 	
 	protected float _graphic_offset_x = 0;
 	protected float _graphic_offset_y = 0;
@@ -42,6 +42,7 @@ abstract class Graphic : Element
 	float debug_draw_y { get const { return draw_y; } }
 	float debug_draw_scale_x { get const { return draw_scale_x; } }
 	float debug_draw_scale_y { get const { return draw_scale_y; } }
+	bool debug_is_transposed { get const { return is_transposed; } }
 	
 	Graphic(UI@ ui)
 	{
@@ -50,44 +51,119 @@ abstract class Graphic : Element
 	
 	string element_type { get const override { return 'Graphic'; } }
 	
+	float rotation
+	{
+		get const { return _rotation; }
+		set { if(_rotation == value) return; _rotation = value; validate_layout = true; }
+	}
+	
+	float scale_x
+	{
+		get const { return _scale_x; }
+		set { if(_scale_x == value) return; _scale_x = value; validate_layout = true; }
+	}
+	
+	float scale_y
+	{
+		get const { return _scale_y; }
+		set { if(_scale_y == value) return; _scale_y = value; validate_layout = true; }
+	}
+	
+	float origin_x
+	{
+		get const { return _origin_x; }
+		set { if(_origin_x == value) return; _origin_x = value; validate_layout = true; }
+	}
+	
+	float origin_y
+	{
+		get const { return _origin_y; }
+		set { if(_origin_y == value) return; _origin_y = value; validate_layout = true; }
+	}
+	
+	float align_h
+	{
+		get const { return _align_h; }
+		set { if(_align_h == value) return; _align_h = value; validate_layout = true; }
+	}
+	
+	float align_v
+	{
+		get const { return _align_v; }
+		set { if(_align_v == value) return; _align_v = value; validate_layout = true; }
+	}
+	
+	ImageSize sizing
+	{
+		get const { return _sizing; }
+		set { if(_sizing == value) return; _sizing = value; validate_layout = true; }
+	}
+	
+	float padding_left
+	{
+		get const { return _padding_left; }
+		set { if(_padding_left == value) return; _padding_left = value; validate_layout = true; }
+	}
+	
+	float padding_right
+	{
+		get const { return _padding_right; }
+		set { if(_padding_right == value) return; _padding_right = value; validate_layout = true; }
+	}
+	
+	float padding_top
+	{
+		get const { return _padding_top; }
+		set { if(_padding_top == value) return; _padding_top = value; validate_layout = true; }
+	}
+	
+	float padding_bottom
+	{
+		get const { return _padding_bottom; }
+		set { if(_padding_bottom == value) return; _padding_bottom = value; validate_layout = true; }
+	}
+	
 	void set_padding(const float padding)
 	{
-		padding_left = padding_right = padding_top = padding_bottom = padding;
+		_padding_left = _padding_right = _padding_top = _padding_bottom = padding;
+		validate_layout= true;
 	}
 	
 	void set_padding(const float padding_left_right, const float padding_top_bottom)
 	{
-		padding_left	= padding_left_right;
-		padding_right	= padding_left_right;
-		padding_top		= padding_top_bottom;
-		padding_bottom	= padding_top_bottom;
+		_padding_left	= padding_left_right;
+		_padding_right	= padding_left_right;
+		_padding_top	= padding_top_bottom;
+		_padding_bottom	= padding_top_bottom;
+		validate_layout= true;
 	}
 	
 	void set_padding(const float padding_left, const float padding_right, const float padding_top, const float padding_bottom)
 	{
-		this.padding_left	= padding_left;
-		this.padding_right	= padding_right;
-		this.padding_top	= padding_top;
-		this.padding_bottom	= padding_bottom;
+		this._padding_left		= padding_left;
+		this._padding_right		= padding_right;
+		this._padding_top		= padding_top;
+		this._padding_bottom	= padding_bottom;
+		validate_layout= true;
 	}
 	
-	float real_padding_left		{ get const { return is_nan(this.padding_left)		? ui.style.spacing : this.padding_left; } }
-	float real_padding_right	{ get const { return is_nan(this.padding_right)		? ui.style.spacing : this.padding_right; } }
-	float real_padding_top		{ get const { return is_nan(this.padding_top)		? ui.style.spacing : this.padding_top; } }
-	float real_padding_bottom	{ get const { return is_nan(this.padding_bottom)	? ui.style.spacing : this.padding_bottom; } }
+	float real_padding_left		{ get const { return is_nan(this._padding_left)		? ui.style.spacing : this._padding_left; } }
+	float real_padding_right	{ get const { return is_nan(this._padding_right)	? ui.style.spacing : this._padding_right; } }
+	float real_padding_top		{ get const { return is_nan(this._padding_top)		? ui.style.spacing : this._padding_top; } }
+	float real_padding_bottom	{ get const { return is_nan(this._padding_bottom)	? ui.style.spacing : this._padding_bottom; } }
 	
 	void _do_layout(LayoutContext@ ctx)
 	{
-		float x1 = ctx.scroll_x + this.x + (@parent != null ? parent.x1 : 0);
-		float y1 = ctx.scroll_y + this.y + (@parent != null ? parent.y1 : 0);
-		float x2 = x1 + this._width;
-		float y2 = y1 + this._height;
+		float x1 = 0;
+		float y1 = 0;
+		float x2 = this._width;
+		float y2 = this._height;
 		
 		is_transposed = abs(abs(rotation) - 90) <= EPSILON;
-		const float gr_width  = ceil(is_transposed ? _graphic_height : _graphic_width);
-		const float gr_height = ceil(is_transposed ? _graphic_width  : _graphic_height);
-		const float scale_x = is_transposed ? this.scale_y : this.scale_x;
-		const float scale_y = is_transposed ? this.scale_x : this.scale_y;
+		const float gr_width  = is_transposed ? _graphic_height : _graphic_width;
+		const float gr_height = is_transposed ? _graphic_width  : _graphic_height;
+		const float _scale_x = is_transposed ? this._scale_y : this._scale_x;
+		const float _scale_y = is_transposed ? this._scale_x : this._scale_y;
 		
 		if(border_size > 0 && border_colour != 0)
 		{
@@ -97,10 +173,10 @@ abstract class Graphic : Element
 			y2 -= border_size;
 		}
 		
-		const float padding_left	= is_nan(this.padding_left)		? ui.style.spacing : this.padding_left;
-		const float padding_right	= is_nan(this.padding_right)	? ui.style.spacing : this.padding_right;
-		const float padding_top		= is_nan(this.padding_top)		? ui.style.spacing : this.padding_top;
-		const float padding_bottom	= is_nan(this.padding_bottom)	? ui.style.spacing : this.padding_bottom;
+		const float padding_left	= is_nan(this._padding_left)	? ui.style.spacing : this._padding_left;
+		const float padding_right	= is_nan(this._padding_right)	? ui.style.spacing : this._padding_right;
+		const float padding_top		= is_nan(this._padding_top)		? ui.style.spacing : this._padding_top;
+		const float padding_bottom	= is_nan(this._padding_bottom)	? ui.style.spacing : this._padding_bottom;
 		
 		{
 			x1 += padding_left;
@@ -112,11 +188,11 @@ abstract class Graphic : Element
 		const float width  = x2 - x1;
 		const float height = y2 - y1;
 		
-		switch(sizing)
+		switch(_sizing)
 		{
 			case ImageSize::None:
-				draw_scale_x = scale_x;
-				draw_scale_y = scale_y;
+				draw_scale_x = _scale_x;
+				draw_scale_y = _scale_y;
 				break;
 			case ImageSize::Fit:
 				draw_scale_x = gr_width > 0  ? (width  / gr_width) : 0;
@@ -126,36 +202,37 @@ abstract class Graphic : Element
 			case ImageSize::FitInside:
 			case ImageSize::ConstrainInside:
 			{
-				if(sizing == ImageSize::FitInside || gr_width * scale_x > width || gr_height * scale_y > height)
+				if(_sizing == ImageSize::FitInside || gr_width * _scale_x > width || gr_height * _scale_y > height)
 				{
-					const float width_scale  = gr_width  * scale_x > 0 ? width  / (gr_width  * scale_x) : 0;
-					const float height_scale = gr_height * scale_y > 0 ? height / (gr_height * scale_y) : 0;
+					const float width_scale  = gr_width  * _scale_x > 0 ? width  / (gr_width  * _scale_x) : 0;
+					const float height_scale = gr_height * _scale_y > 0 ? height / (gr_height * _scale_y) : 0;
 					const float scale = min(width_scale, height_scale);
-					draw_scale_x = scale_x * scale;
-					draw_scale_y = scale_y * scale;
+					draw_scale_x = _scale_x * scale;
+					draw_scale_y = _scale_y * scale;
 				}
 				else
 				{
-					draw_scale_x = scale_x;
-					draw_scale_y = scale_y;
+					draw_scale_x = _scale_x;
+					draw_scale_y = _scale_y;
 				}
 			}
 				break;
 		}
 		
-		float dx = _graphic_offset_x - _graphic_width  * origin_x;
-		float dy = _graphic_offset_y - _graphic_height * origin_y;
+		float dx = _graphic_offset_x - _graphic_width  * _origin_x;
+		float dy = _graphic_offset_y - _graphic_height * _origin_y;
 		
 		if(rotation != 0)
 		{
 			rotate(dx, dy, rotation * DEG2RAD, dx, dy);
 		}
 		
-		const float x = x1 + (width  - gr_width  * draw_scale_x) * align_h + gr_width  * draw_scale_x * (is_transposed ? origin_y : origin_x);
-		const float y = y1 + (height - gr_height * draw_scale_y) * align_v + gr_height * draw_scale_y * (is_transposed ? origin_x : origin_y);
+		const float x = x1 + (width  - gr_width  * draw_scale_x) * _align_h + gr_width  * draw_scale_x * (is_transposed ? _origin_y : _origin_x);
+		const float y = y1 + (height - gr_height * draw_scale_y) * _align_v + gr_height * draw_scale_y * (is_transposed ? _origin_x : _origin_y);
 		
 		draw_x = x + ui._pixel_ceil(dx * draw_scale_x);
 		draw_y = y + ui._pixel_ceil(dy * draw_scale_y);
+//		puts(id+str(x + ui._pixel_ceil(dx * draw_scale_x), y + ui._pixel_ceil(dy * draw_scale_y)));
 	}
 	
 }

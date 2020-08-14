@@ -74,6 +74,7 @@ class Window : MoveableDialog
 		{
 			fading = true;
 			mouse_enabled = false;
+			step_subscribed = ui._step_subscribe(@this, step_subscribed);
 		}
 	}
 	
@@ -96,6 +97,7 @@ class Window : MoveableDialog
 		{
 			fading = true;
 			this.fade = ui.style.tooltip_fade_frames;
+			step_subscribed = ui._step_subscribe(@this, step_subscribed);
 		}
 	}
 	
@@ -133,6 +135,7 @@ class Window : MoveableDialog
 		}
 		
 		_title_icon.set_sprite(set, name, width, height, offset_x, offset_y);
+		validate_layout = true;
 	}
 	
 	void remove_icon()
@@ -141,6 +144,7 @@ class Window : MoveableDialog
 			return;
 		
 		_title_icon.visible = false;
+		validate_layout = true;
 	}
 	
 	string title
@@ -171,6 +175,8 @@ class Window : MoveableDialog
 				_title_label.text = '';
 				_title_label.visible = false;
 			}
+			
+			validate_layout = true;
 		}
 	}
 	
@@ -204,6 +210,8 @@ class Window : MoveableDialog
 			{
 				_close_button.visible = false;
 			}
+			
+			validate_layout = true;
 		}
 	}
 	
@@ -219,11 +227,13 @@ class Window : MoveableDialog
 			@_title_before.layout = @title_flow_layout;
 			_title_before.name = 'title_before';
 			Container::add_child(_title_before);
+			validate_layout = true;
 		}
 		
 		if(_title_before.add_child(child, index))
 		{
 			_title_before.fit_to_contents(true);
+			validate_layout = true;
 			return true;
 		}
 		
@@ -235,6 +245,7 @@ class Window : MoveableDialog
 		if(_title_before.remove_child(child))
 		{
 			_title_before.fit_to_contents(true);
+			validate_layout = true;
 			return true;
 		}
 		
@@ -244,26 +255,31 @@ class Window : MoveableDialog
 	void set_title_before_index(Element@ child, int index)
 	{
 		_title_before.set_child_index(child, index);
+		validate_layout = true;
 	}
 	
 	void move_title_before_to_front(Element@ child)
 	{
 		_title_before.move_to_front(child);
+		validate_layout = true;
 	}
 	
 	void move_title_before_to_back(Element@ child)
 	{
 		_title_before.move_to_back(child);
+		validate_layout = true;
 	}
 	
 	void move_title_before_up(Element@ child)
 	{
 		_title_before.move_up(child);
+		validate_layout = true;
 	}
 	
 	void move_title_before_down(Element@ child)
 	{
 		_title_before.move_down(child);
+		validate_layout = true;
 	}
 	
 	// Title after
@@ -278,11 +294,13 @@ class Window : MoveableDialog
 			@_title_after.layout = @title_flow_layout;
 			_title_after.name = 'title_after';
 			Container::add_child(_title_before);
+			validate_layout = true;
 		}
 		
 		if(_title_after.add_child(child, index))
 		{
 			_title_after.fit_to_contents(true);
+			validate_layout = true;
 			return true;
 		}
 		
@@ -294,6 +312,7 @@ class Window : MoveableDialog
 		if(_title_after.remove_child(child))
 		{
 			_title_after.fit_to_contents(true);
+			validate_layout = true;
 			return true;
 		}
 		
@@ -303,37 +322,44 @@ class Window : MoveableDialog
 	void set_title_after_index(Element@ child, int index)
 	{
 		_title_after.set_child_index(child, index);
+		validate_layout = true;
 	}
 	
 	void move_title_after_to_front(Element@ child)
 	{
 		_title_before.move_to_front(child);
+		validate_layout = true;
 	}
 	
 	void move_title_after_to_back(Element@ child)
 	{
 		_title_after.move_to_back(child);
+		validate_layout = true;
 	}
 	
 	void move_title_after_up(Element@ child)
 	{
 		_title_after.move_up(child);
+		validate_layout = true;
 	}
 	
 	void move_title_after_down(Element@ child)
 	{
 		_title_after.move_down(child);
+		validate_layout = true;
 	}
 	
 	// Content
 	
 	bool add_child(Element@ child, int index=-1) override
 	{
+		validate_layout = true;
 		return _contents.add_child(child, index);
 	}
 	
 	bool remove_child(Element@ child) override
 	{
+		validate_layout = true;
 		return _contents.remove_child(child);
 	}
 	
@@ -383,6 +409,7 @@ class Window : MoveableDialog
 		}
 		
 		_set_height = _height;
+		validate_layout = true;
 	}
 	
 	// Buttons left
@@ -399,6 +426,7 @@ class Window : MoveableDialog
 			Container::add_child(_buttons_left);
 			
 			create_buttons_divider();
+			validate_layout = true;
 		}
 		
 		_buttons_divider.visible = true;
@@ -406,6 +434,7 @@ class Window : MoveableDialog
 		if(_buttons_left.add_child(child, index))
 		{
 			layout_buttons_left = true;
+			validate_layout = true;
 			return true;
 		}
 		
@@ -420,9 +449,11 @@ class Window : MoveableDialog
 				_buttons_divider.visible = false;
 			
 			layout_buttons_left = true;
+			validate_layout = true;
 			return true;
 		}
 		
+		validate_layout = true;
 		return false;
 	}
 	
@@ -465,6 +496,7 @@ class Window : MoveableDialog
 			Container::add_child(_buttons_right);
 			
 			create_buttons_divider();
+			validate_layout = true;
 		}
 		
 		_buttons_divider.visible = true;
@@ -472,6 +504,7 @@ class Window : MoveableDialog
 		if(_buttons_right.add_child(child, index))
 		{
 			layout_buttons_right = true;
+			validate_layout = true;
 			return true;
 		}
 		
@@ -486,6 +519,7 @@ class Window : MoveableDialog
 				_buttons_divider.visible = false;
 			
 			layout_buttons_right = true;
+			validate_layout = true;
 			return true;
 		}
 		
@@ -495,29 +529,73 @@ class Window : MoveableDialog
 	void set_button_right_index(Element@ child, int index)
 	{
 		_buttons_right.set_child_index(child, index);
+		validate_layout = true;
 	}
 	
 	void move_button_right_to_front(Element@ child)
 	{
 		_buttons_right.move_to_front(child);
+		validate_layout = true;
 	}
 	
 	void move_button_right_to_back(Element@ child)
 	{
 		_buttons_right.move_to_back(child);
+		validate_layout = true;
 	}
 	
 	void move_button_right_up(Element@ child)
 	{
 		_buttons_right.move_up(child);
+		validate_layout = true;
 	}
 	
 	void move_button_right_down(Element@ child)
 	{
 		_buttons_right.move_down(child);
+		validate_layout = true;
 	}
 	
-	// Interal
+	// Internal
+	
+	bool ui_step() override
+	{
+		MoveableDialog::ui_step();
+		
+		if(!fading)
+			return step_subscribed;
+		
+		if(open)
+		{
+			if(++fade == ui.style.tooltip_fade_frames)
+			{
+				mouse_enabled = true;
+				fading = false;
+			}
+			else
+			{
+				step_subscribed = true;
+			}
+			
+			alpha = (fade / ui.style.tooltip_fade_frames);
+		}
+		else if(fade > 0)
+		{
+			if(--fade == 0)
+			{
+				visible = false;
+				fading = false;
+			}
+			else
+			{
+				step_subscribed = true;
+			}
+			
+			alpha = (fade / ui.style.tooltip_fade_frames);
+		}
+		
+		return step_subscribed;
+	}
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
@@ -535,60 +613,60 @@ class Window : MoveableDialog
 		
 		if(has_icon)
 		{
-			_title_icon._x = spacing;
-			_title_icon._y = spacing;
-			_title_icon._width = _title_icon._height = title_item_height;
+			_title_icon.x = spacing;
+			_title_icon.y = spacing;
+			_title_icon.width = _title_icon._height = title_item_height;
 		}
 		
 		if(has_title_before)
 		{
-			_title_before._x = has_icon ? (_title_icon._x + _title_icon._width + spacing) : spacing;
-			_title_before._y = spacing;
+			_title_before.x = has_icon ? (_title_icon._x + _title_icon._width + spacing) : spacing;
+			_title_before.y = spacing;
 			_title_before.height = title_item_height;
 		}
 		
 		if(has_label)
 		{
-			_title_label._x = spacing;
-			_title_label._y = spacing;
+			_title_label.x = spacing;
+			_title_label.y = spacing;
 			
 			if(has_icon)
-				_title_label._x += _title_icon._width + spacing;
+				_title_label.x += _title_icon._width + spacing;
 			if(has_title_before)
-				_title_label._x += _title_before._width + spacing;
+				_title_label.x += _title_before._width + spacing;
 			
-			_title_label._height = title_height - spacing * 2;
-			_title_label._width = _width - spacing - _title_label._x;
+			_title_label.height = title_height - spacing * 2;
+			_title_label.width = _width - spacing - _title_label._x;
 			
 			if(has_close_button)
-				_title_label._width -= _close_button._width + spacing;
+				_title_label.width -= _close_button._width + spacing;
 			if(has_title_after)
-				_title_label._width -= _title_after._width + spacing;
+				_title_label.width -= _title_after._width + spacing;
 		}
 		
 		if(has_title_after)
 		{
-			_title_after._x = _width - _title_after._width - spacing;
-			_title_after._y = spacing;
+			_title_after.x = _width - _title_after._width - spacing;
+			_title_after.y = spacing;
 			_title_after.height = title_item_height;
 			
 			if(has_close_button)
-				_title_after._x -= _close_button._width + spacing;
+				_title_after.x -= _close_button._width + spacing;
 		}
 		
 		if(has_close_button)
 		{
-			_close_button._x = _width - title_item_height - spacing;
-			_close_button._y = spacing;
-			_close_button._width = title_item_height;
-			_close_button._height = title_item_height;
+			_close_button.x = _width - title_item_height - spacing;
+			_close_button.y = spacing;
+			_close_button.width = title_item_height;
+			_close_button.height = title_item_height;
 		}
 		
-		float content_height = _height - (_title_divider._y + _title_divider._height) - spacing * 2;
+		_title_divider.x = spacing;
+		_title_divider.y = title_height;
+		_title_divider.width = title_width;
 		
-		_title_divider._x = spacing;
-		_title_divider._y = title_height;
-		_title_divider._width = title_width;
+		float content_height = _height - (_title_divider._y + _title_divider._height) - spacing * 2;
 		
 		if(has_buttons_left || has_buttons_right)
 		{
@@ -611,23 +689,23 @@ class Window : MoveableDialog
 			
 			if(has_buttons_left)
 			{
-				_buttons_left._y = _height - spacing - buttons_height;
-				_buttons_left._x = spacing;
+				_buttons_left.y = _height - spacing - buttons_height;
+				_buttons_left.x = spacing;
 				_buttons_left.width = _buttons_left.scroll_max_x - _buttons_left.scroll_min_x;
 				_buttons_left.height = buttons_height;
 			}
 			
 			if(has_buttons_right)
 			{
-				_buttons_right._y = _height - spacing - buttons_height;
+				_buttons_right.y = _height - spacing - buttons_height;
 				_buttons_right.width = _buttons_right.scroll_max_x - _buttons_right.scroll_min_x;
 				_buttons_right.height = buttons_height;
-				_buttons_right._x = title_width - _buttons_right._width + spacing;
+				_buttons_right.x = title_width - _buttons_right._width + spacing;
 			}
 		}
 		
-		_contents._x = spacing;
-		_contents._y = _title_divider._y + _title_divider._height + spacing;
+		_contents.x = spacing;
+		_contents.y = _title_divider._y + _title_divider._height + spacing;
 		_contents.width = title_width;
 		_contents.height = content_height;
 		
@@ -635,34 +713,8 @@ class Window : MoveableDialog
 		{
 			_buttons_divider.x = spacing;
 			_buttons_divider.y = _contents._y + _contents._height + spacing;
-			_buttons_divider._width = title_width;
+			_buttons_divider.width = title_width;
 		}
-		
-		if(fading)
-		{
-			if(open)
-			{
-				if(++fade == ui.style.tooltip_fade_frames)
-				{
-					mouse_enabled = true;
-					fading = false;
-				}
-				
-				alpha = (fade / ui.style.tooltip_fade_frames);
-			}
-			else if(fade > 0)
-			{
-				if(--fade == 0)
-				{
-					visible = false;
-					fading = false;
-				}
-				
-				alpha = (fade / ui.style.tooltip_fade_frames);
-			}
-		}
-		
-		do_drag(ctx);
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override

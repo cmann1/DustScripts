@@ -75,6 +75,10 @@ abstract class Element
 	Event mouse_click;
 	/// Called when any mouse button is clicked
 	Event mouse_button_click;
+	Event mouse_scroll;
+	
+	/// Internal
+	bool validate_layout = true;
 	
 	Element(UI@ ui)
 	{
@@ -86,9 +90,16 @@ abstract class Element
 	
 	string id { get const { return element_type + _id; } }
 	
+	/// Returns true if the given point is within this element
 	bool overlaps_point(const float x, const float y)
 	{
 		return x < x2 && x >= x1 && y < y2 && y >= y1;
+	}
+	
+	/// Returns true if the mouse is within this element
+	bool check_mouse()
+	{
+		return ui.mouse.x < x2 && ui.mouse.x >= x1 && ui.mouse.y < y2 && ui.mouse.y >= y1;
 	}
 	
 	void to_local(const float x, const float y, float &out out_x, float &out out_y)
@@ -150,9 +161,13 @@ abstract class Element
 		get const { return _x; }
 		set
 		{
-			if(_x == value) return;
+			if(_x == value)
+				return;
+			
 			_x = value;
-			if(@parent != null) parent._validate_layout = true;
+			
+			if(@parent != null)
+				parent.validate_layout = true;
 		}
 	}
 	
@@ -161,9 +176,13 @@ abstract class Element
 		get const { return _y; }
 		set
 		{
-			if(_y == value) return;
+			if(_y == value)
+				return;
+			
 			_y = value;
-			if(@parent != null) parent._validate_layout = true;
+			
+			if(@parent != null)
+				parent.validate_layout = true;
 		}
 	}
 	
@@ -172,10 +191,16 @@ abstract class Element
 		get const { return _width; }
 		set
 		{
-			if(value < 0) value = 0;
-			if(_width == value) return;
+			if(value < 0)
+				value = 0;
+			if(_width == value)
+				return;
+			
 			_set_width = _width = value;
-			if(@parent != null) parent._validate_layout = true;
+			validate_layout = true;
+			
+			if(@parent != null)
+				parent.validate_layout = true;
 		}
 	}
 	
@@ -184,10 +209,16 @@ abstract class Element
 		get const { return _height; }
 		set
 		{
-			if(value < 0) value = 0;
-			if(_height == value) return;
+			if(value < 0)
+				value = 0;
+			if(_height == value)
+				return;
+			
 			_set_height = _height = value;
-			if(@parent != null) parent._validate_layout = true; 
+			validate_layout = true;
+			
+			if(@parent != null)
+				parent.validate_layout = true; 
 		}
 	}
 	
@@ -211,14 +242,9 @@ abstract class Element
 		}
 	}
 	
-	float _get_max_width(const float max_height=-1)
+	void invalidate_layout()
 	{
-		return _set_width;
-	}
-	
-	float _get_max_height(const float max_width=-1)
-	{
-		return _set_height;
+		validate_layout = true;
 	}
 	
 	// ------------------------------------------------
@@ -288,16 +314,43 @@ abstract class Element
 		y2 = _y + _height;
 	}
 	
-	// ------------------------------------------------
-	// Mouse Events
-	// ------------------------------------------------
+	float _get_max_width(const float max_height=-1)
+	{
+		return _set_width;
+	}
 	
+	float _get_max_height(const float max_width=-1)
+	{
+		return _set_height;
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Events
+	// ///////////////////////////////////////////////////////////////////
+	
+	/// When the mouse enters this element
 	void _mouse_enter() { }
+	
+	/// When the mouse exits this element
 	void _mouse_exit() { }
+	
+	/// This element is pressed with any mouse button
 	void _mouse_press(const MouseButton button) { }
+	
+	/// The mouse moves within this element
 	void _mouse_move() { }
+	
+	/// The mouse is released within this element. Will also trigger for the active element
+	/// even when the mouse is outside
 	void _mouse_release(const MouseButton button) { }
-	void _mouse_click() { }
+	
+	/// This element is clicked with any mouse button
 	void _mouse_button_click(const MouseButton button) { }
+	
+	/// This element is clicked with the primary mouse button
+	void _mouse_click() { }
+	
+	/// The mouse wheel is scroll while over this element
+	void _mouse_scroll(const int scroll_dir) { }
 	
 }

@@ -306,6 +306,8 @@ class FlowLayout : Layout
 				element._x = cross_x_final;
 			}
 			
+			element.validate_layout = true;
+			
 			if(!first_element_placed)
 			{
 				out_x1 = element._x;

@@ -127,6 +127,7 @@ class Select : SelectBase
 		_label._y = border_size;
 		_label._width = _width - button_size - border_size * 2;
 		_label._height = _height - border_size * 2;
+		_label.validate_layout = true;
 		
 		if(_show_icons && _icon.visible)
 		{
@@ -137,12 +138,14 @@ class Select : SelectBase
 			
 			_label._x += _icon._width;
 			_label._width -= _icon._width;
+			_icon.validate_layout = true;
 		}
 		
 		_arrow._x = _width - border_size - button_size;
 		_arrow._y = border_size;
 		_arrow._width  = button_size;
 		_arrow._height = _label._height;
+		_arrow.validate_layout = true;
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx)

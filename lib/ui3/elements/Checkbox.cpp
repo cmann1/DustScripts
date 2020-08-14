@@ -124,14 +124,6 @@ class Checkbox : Element
 		height = _size + padding_y * 2;
 	}
 	
-	void _do_layout(LayoutContext@ ctx) override
-	{
-		if(!_toggle_on_press && (pressed || @_label != null && _label.pressed) || (hovered || @_label != null && _label.hovered) && ui.mouse.primary_press )
-		{
-			@ui._active_mouse_element = @this;
-		}
-	}
-	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		float x = x1 + (_width  - _size) * 0.5;
@@ -159,22 +151,6 @@ class Checkbox : Element
 		}
 	}
 	
-	void _mouse_press(const MouseButton button)
-	{
-		if(!toggle_on_press || button != ui.primary_button)
-			return;
-		
-		checked = _state != CheckboxState::On;
-	}
-	
-	void _mouse_click() override
-	{
-		if(!toggle_on_press)
-		{
-			checked = _state != CheckboxState::On;
-		}
-	}
-	
 	protected void clear_label_events()
 	{
 		if(@_label == null)
@@ -196,27 +172,68 @@ class Checkbox : Element
 		if(@_label == null)
 			return;
 		
-		if(_toggle_on_press)
+		if(@label_press_delegate == null)
+			@label_press_delegate = EventCallback(on_label_press);
+		if(@label_click_delegate == null)
+			@label_click_delegate = EventCallback(on_label_click);
+		
+		_label.mouse_press.on(label_press_delegate);
+		
+		if(!_toggle_on_press)
+			_label.mouse_click.on(label_click_delegate);
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Events
+	// ///////////////////////////////////////////////////////////////////
+	
+	void _mouse_press(const MouseButton button)
+	{
+		if(button != ui.primary_button)
+			return;
+		
+		if(toggle_on_press)
 		{
-			if(@label_press_delegate == null)
-				@label_press_delegate = EventCallback(on_label_press);
-			
-			_label.mouse_press.on(label_press_delegate);
+			checked = _state != CheckboxState::On;
 		}
 		else
 		{
-			if(@label_click_delegate == null)
-				@label_click_delegate = EventCallback(on_label_click);
-			
-			_label.mouse_click.on(label_click_delegate);
+			@ui._active_mouse_element = @this;
+		}
+	}
+	
+	void _mouse_release(const MouseButton button) override
+	{
+		if(button != ui.primary_button)
+			return;
+		
+		if(!_toggle_on_press)
+		{
+			@ui._active_mouse_element = @null;
+		}
+	}
+	
+	void _mouse_click() override
+	{
+		if(!toggle_on_press)
+		{
+			checked = _state != CheckboxState::On;
+			@ui._active_mouse_element = @null;
 		}
 	}
 	
 	protected void on_label_press(EventInfo@ event)
 	{
-		if(event.button == ui.primary_button)
+		if(event.button != ui.primary_button)
+			return;
+		
+		if(toggle_on_press)
 		{
 			checked = _state != CheckboxState::On;
+		}
+		else
+		{
+			@ui._active_mouse_element = @this;
 		}
 	}
 	

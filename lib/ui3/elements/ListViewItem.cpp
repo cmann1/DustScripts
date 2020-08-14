@@ -242,6 +242,7 @@ class ListViewItem : Container
 				_icon._y = 0;
 				_icon._width = min(_height, _width);
 				_icon._height = _height;
+				_icon.validate_layout =true;
 			}
 			
 			if(@_label != null)
@@ -251,7 +252,7 @@ class ListViewItem : Container
 				_label._y = 0;
 				_label._width  = _width - _label._x;
 				_label._height = _height;
-				
+				_label.validate_layout =true;
 				
 				_label.visible = (_label._width - _label.real_padding_left - _label.real_padding_right) > 0;
 			}

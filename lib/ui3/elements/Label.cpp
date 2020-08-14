@@ -63,7 +63,8 @@ class Label : Graphic
 			if(scale_x == value && scale_y == value)
 				return;
 			
-			scale_x = scale_y = value;
+			scale_x = value;
+			scale_y = value;
 			update_size();
 		}
 	}
@@ -82,6 +83,8 @@ class Label : Graphic
 			{
 				fit_to_contents();
 			}
+			
+			validate_layout = true;
 		}
 	}
 	
@@ -141,21 +144,23 @@ class Label : Graphic
 		float dx = (is_transposed ? _graphic_height : _graphic_width)  * align_origin * final_scale_x;
 		float dy = 0;
 		
-		if(rotation != 0)
+		if(_rotation != 0)
 		{
-			rotate(dx, dy, rotation * DEG2RAD, dx, dy);
+			rotate(dx, dy, _rotation * DEG2RAD, dx, dy);
 		}
 		
 		style.draw_text(_text,
-			draw_x + dx, draw_y + dy,
+			ui._pixel_round(x1) + draw_x + dx,
+			ui._pixel_round(y1) + draw_y + dy,
 			_has_colour ? _colour : ui.style.text_clr,
 			final_scale_x, final_scale_y,
-			rotation, text_align_h, TextAlign::Top, _font, _size);
+			_rotation, text_align_h, TextAlign::Top, _font, _size);
 	}
 	
 	private void update_size()
 	{
 		ui.style.measure_text(_text, _font, _size, 1, 1, _graphic_width, _graphic_height);
+		validate_layout = true;
 		
 		if(!auto_size)
 			return;

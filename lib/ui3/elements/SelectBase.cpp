@@ -123,6 +123,7 @@ abstract class SelectBase : LockedContainer
 			update_label();
 			update_icon();
 			ui._dispatch_event(@change, EventType::CHANGE, this);
+			validate_layout = true;
 		}
 	}
 	
@@ -153,6 +154,7 @@ abstract class SelectBase : LockedContainer
 		if(index == _selected_index)
 		{
 			ui._dispatch_event(@change, EventType::CHANGE, this);
+			validate_layout = true;
 		}
 	}
 	
@@ -362,6 +364,7 @@ abstract class SelectBase : LockedContainer
 	protected void update_label()
 	{
 		_label.text = _selected_index == -1 ? _placeholder_text : _text[_selected_index];
+		validate_layout = true;
 	}
 	
 	protected void update_icon()
@@ -371,6 +374,7 @@ abstract class SelectBase : LockedContainer
 			if(@_icon != null)
 			{
 				_icon.visible = false;
+				validate_layout = true;
 			}
 			
 			return;
@@ -386,6 +390,7 @@ abstract class SelectBase : LockedContainer
 			if(@_icon != null)
 			{
 				_icon.visible = false;
+				validate_layout = true;
 			}
 			
 			return;
@@ -405,6 +410,8 @@ abstract class SelectBase : LockedContainer
 		
 		_icon.visible = true;
 		_icon.set_sprite(set, name, width, height, x, y);
+		
+		validate_layout = true;
 	}
 	
 }

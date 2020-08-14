@@ -4,7 +4,7 @@
 #include '../popups/PopupOptions.cpp';
 #include 'SingleContainer.cpp';
 
-class Popup : SingleContainer
+class Popup : SingleContainer, IStepHandler
 {
 	
 	/*protected*/ Element@ _target;
@@ -13,6 +13,7 @@ class Popup : SingleContainer
 	Event hide;
 	
 	private bool active;
+	private bool stepping;
 	private float fade;
 	private float offset;
 	
@@ -55,6 +56,12 @@ class Popup : SingleContainer
 		prev_content_width  = _content._width;
 		prev_content_height = _content._height;
 		
+		if(!stepping)
+		{
+			ui._step_subscribe(this);
+			stepping = true;
+		}
+		
 		active = true;
 		update_fade();
 		
@@ -69,7 +76,7 @@ class Popup : SingleContainer
 		waiting_for_mouse = false;
 	}
 	
-	void _do_layout(LayoutContext@ ctx) override
+	bool ui_step() override
 	{
 		// Fit the popup for two frames to give the child a chance to layout
 		if(pending_fit > 0)
@@ -111,7 +118,9 @@ class Popup : SingleContainer
 		{
 			// Also check the pressed to allow interactive or active elements inside the tooltip to prevent the tooltip from disappearing
 			active = !_force_hide && (
-				@_target == null || @_target == @ui.mouse_over_element || pressed || hovered || waiting_for_mouse || _options.force_open ||
+				@_target == null || @_target == @ui.mouse_over_element ||
+				(@_target == @ui._active_mouse_element && _target.check_mouse()) ||
+				pressed || hovered || waiting_for_mouse || _options.force_open ||
 				_options.trigger_when_hovered && _target.hovered ||
 				_options.keep_open_while_pressed && _target.pressed
 			);
@@ -154,7 +163,7 @@ class Popup : SingleContainer
 			
 			if(!_force_hide && !active && _options.interactable)
 			{
-				active = overlaps_point(ui.mouse.x, ui.mouse.y) || @_target == @ui.mouse_over_element;
+				active = check_mouse() || @_target == @ui.mouse_over_element;
 			}
 			
 			if(_options.force_open)
@@ -166,7 +175,7 @@ class Popup : SingleContainer
 		{
 			if(
 				(ui.mouse.primary_press || _options.any_mouse_down_button && (ui.mouse.left_press || ui.mouse.middle_press || ui.mouse.right_press)) &&
-				!overlaps_point(ui.mouse.x, ui.mouse.y) && (@_target == null || !_target.overlaps_point(ui.mouse.x, ui.mouse.y)))
+				!check_mouse() && (@_target == null || !_target.check_mouse()))
 			{
 				active = false;
 				_force_hide = true;
@@ -251,6 +260,8 @@ class Popup : SingleContainer
 		_set_width  = _width  = x2 - x1;
 		_set_height = _height = y2 - y1;
 		
+		this.active = active;
+		
 		if(active)
 		{
 			fading_out = false;
@@ -276,10 +287,17 @@ class Popup : SingleContainer
 			}
 			else
 			{
+				if(stepping)
+				{
+					stepping = false;
+				}
+				
 				ui._queue_event(@hide, EventType::HIDE, @this);
 				_options._on_popup_hide(this);
 			}
 		}
+		
+		return stepping;
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override

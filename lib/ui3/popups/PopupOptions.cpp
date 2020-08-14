@@ -308,7 +308,7 @@ class PopupOptions : IGenericEventTarget
 			@content_str_label = null;
 		}
 		
-		ui._queue_event(@show, EventType::HIDE, @popup, @this);
+		ui._queue_event(@hide, EventType::HIDE, @popup, @this);
 	}
 	
 }

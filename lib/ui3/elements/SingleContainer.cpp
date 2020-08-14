@@ -43,7 +43,7 @@ class SingleContainer : LockedContainer
 				Container::add_child(_content);
 			}
 			
-			_validate_layout = true;
+			validate_layout = true;
 		}
 	}
 	

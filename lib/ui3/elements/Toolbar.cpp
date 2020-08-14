@@ -55,7 +55,7 @@ class Toolbar : MoveableDialog, IOrientationParent
 				return;
 			
 			@_flow_layout = @value;
-			_validate_layout = true;
+			validate_layout = true;
 		}
 	}
 	
@@ -122,8 +122,6 @@ class Toolbar : MoveableDialog, IOrientationParent
 		
 		const bool is_horizontal = flow_layout.is_horizontal;
 		
-		do_drag(ctx);
-		
 		float x = 0;
 		float y = 0;
 		float width  = this._width;
@@ -154,7 +152,7 @@ class Toolbar : MoveableDialog, IOrientationParent
 			}
 		}
 		
-		if(_validate_layout)
+		if(validate_layout)
 		{
 			float out_x1, out_y1, out_x2, out_y2;
 			
@@ -181,8 +179,6 @@ class Toolbar : MoveableDialog, IOrientationParent
 			{
 				this.width  = out_x2 - out_x1 + hor_gripper_space;
 			}
-			
-			_validate_layout = false;
 		}
 	}
 	

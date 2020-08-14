@@ -6,7 +6,7 @@
 #include 'LockedContainer.cpp';
 #include 'Label.cpp';
 
-class LayerButton : LockedContainer, ILayerSelectorControl
+class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 {
 	
 	/// Triggered when layer is selected or deselected.
@@ -17,8 +17,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 	Event select;
 	
 	protected Orientation _orientation;
-	// TODO: Set to true
-	protected bool _auto_close = false;
+	protected bool _auto_close = true;
 	protected PopupPosition _position = PopupPosition::Below;
 	
 	protected bool _open;
@@ -36,8 +35,6 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 	
 	protected Label@ layer_label;
 	protected Label@ sub_layer_label;
-	
-	protected bool validate_layout = true;
 	
 	LayerButton(UI@ ui, const Orientation orientation=Orientation::Horizontal)
 	{
@@ -70,40 +67,6 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 	}
 	
 	string element_type { get const { return 'LayerButton'; } }
-	
-	float width
-	{
-		set override
-		{
-			if(value < 0)
-				value = 0;
-			if(_width == value)
-				return;
-			
-			_set_width = _width = value;
-			validate_layout = true;
-			
-			if(@parent != null)
-				parent._validate_layout = true;
-		}
-	}
-	
-	float height
-	{
-		set override
-		{
-			if(value < 0)
-				value = 0;
-			if(_height == value)
-				return;
-			
-			_set_height = _height = value;
-			validate_layout = true;
-			
-			if(@parent != null)
-				parent._validate_layout = true;
-		}
-	}
 	
 	/// The layer and sublayer numbers can be displayed in a row or column
 	Orientation orientation
@@ -167,7 +130,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 		layer_select.fit_to_contents(true);
 		ui.show_tooltip(popup_options, this);
 		
-		_open = true;
+		_open = ui._step_subscribe(this, _open);
 	}
 	
 	/// Hides the layer selection popup if it is open
@@ -183,7 +146,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 	// Internal
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _do_layout(LayoutContext@ ctx) override
+	bool ui_step() override
 	{
 		if(_open && ui._has_editor && editor_api::consume_gvb_press(ui._editor, GVB::Escape))
 		{
@@ -191,55 +154,53 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 			hide();
 		}
 		
-		if(validate_layout)
+		return _open;
+	}
+	
+	void _do_layout(LayoutContext@ ctx) override
+	{
+		if(_layer_select.type == LayerSelectorType::Both)
 		{
-			const bool is_horizontal = _orientation == Orientation::Horizontal;
-			
-			if(_layer_select.type == LayerSelectorType::Both)
+			if(_orientation == Orientation::Horizontal)
 			{
-				if(is_horizontal)
-				{
-					const float mid_x = _width * 0.5;
-					
-					layer_label._x = ui.style.spacing;
-					layer_label._y = ui.style.spacing;
-					layer_label._width = mid_x - ui.style.spacing - layer_label._x;
-					layer_label._height = _height - ui.style.spacing * 2;
-					sub_layer_label._x = mid_x + ui.style.spacing;
-					sub_layer_label._y = ui.style.spacing;
-					sub_layer_label._width = _width - ui.style.spacing - sub_layer_label._x;
-					sub_layer_label._height = _height - ui.style.spacing * 2;
-				}
-				else
-				{
-					const float mid_y = _height * 0.5;
-					
-					layer_label._x = ui.style.spacing;
-					layer_label._y = ui.style.spacing;
-					layer_label._width = _width - ui.style.spacing * 2;
-					layer_label._height = mid_y - ui.style.spacing - layer_label._y;
-					sub_layer_label._x = ui.style.spacing;
-					sub_layer_label._y = mid_y + ui.style.spacing;
-					sub_layer_label._width = _width - ui.style.spacing * 2;
-					sub_layer_label._height = _height - ui.style.spacing - sub_layer_label._y;
-				}
-			}
-			else if(_layer_select.type == LayerSelectorType::Layers)
-			{
-				layer_label.x = ui.style.spacing;
-				layer_label.y = ui.style.spacing;
-				layer_label.width = _width - ui.style.spacing * 2;
-				layer_label.height = _height - ui.style.spacing * 2;
+				const float mid_x = _width * 0.5;
+				
+				layer_label._x = ui.style.spacing;
+				layer_label._y = ui.style.spacing;
+				layer_label._width = mid_x - ui.style.spacing - layer_label._x;
+				layer_label._height = _height - ui.style.spacing * 2;
+				sub_layer_label._x = mid_x + ui.style.spacing;
+				sub_layer_label._y = ui.style.spacing;
+				sub_layer_label._width = _width - ui.style.spacing - sub_layer_label._x;
+				sub_layer_label._height = _height - ui.style.spacing * 2;
 			}
 			else
 			{
+				const float mid_y = _height * 0.5;
+				
+				layer_label._x = ui.style.spacing;
+				layer_label._y = ui.style.spacing;
+				layer_label._width = _width - ui.style.spacing * 2;
+				layer_label._height = mid_y - ui.style.spacing - layer_label._y;
 				sub_layer_label._x = ui.style.spacing;
-				sub_layer_label._y = ui.style.spacing;
+				sub_layer_label._y = mid_y + ui.style.spacing;
 				sub_layer_label._width = _width - ui.style.spacing * 2;
-				sub_layer_label._height = _height - ui.style.spacing * 2;
+				sub_layer_label._height = _height - ui.style.spacing - sub_layer_label._y;
 			}
-			
-			validate_layout = false;
+		}
+		else if(_layer_select.type == LayerSelectorType::Layers)
+		{
+			layer_label.x = ui.style.spacing;
+			layer_label.y = ui.style.spacing;
+			layer_label.width = _width - ui.style.spacing * 2;
+			layer_label.height = _height - ui.style.spacing * 2;
+		}
+		else
+		{
+			sub_layer_label._x = ui.style.spacing;
+			sub_layer_label._y = ui.style.spacing;
+			sub_layer_label._width = _width - ui.style.spacing * 2;
+			sub_layer_label._height = _height - ui.style.spacing * 2;
 		}
 	}
 	
@@ -411,7 +372,15 @@ class LayerButton : LockedContainer, ILayerSelectorControl
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_click()
+	void _mouse_press(const MouseButton button) override
+	{
+		if(button != ui.primary_button)
+			return;
+		
+		@ui._active_mouse_element = @this;
+	}
+	
+	void _mouse_click() override
 	{
 		if(!_open)
 		{

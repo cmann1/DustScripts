@@ -7,11 +7,13 @@ namespace EventType
 	const string MOUSE_MOVE 		= 'mouse_move';
 	const string MOUSE_RELEASE 		= 'mouse_release';
 	const string MOUSE_CLICK 		= 'mouse_click';
+	const string MOUSE_SCROLL 		= 'mouse_scroll';
 	
 	const string HIDE_START			= 'hide_start';
 	const string HIDE				= 'hide';
 	const string SHOW				= 'show';
 	const string SCROLL				= 'scroll';
+	const string SCROLL_CHANGE		= 'scroll_change';
 	const string SELECT 			= 'select';
 	const string CANCEL 			= 'cancel';
 	const string CHANGE 			= 'change';

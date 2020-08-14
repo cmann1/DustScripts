@@ -49,8 +49,6 @@ class LayerSelector : LockedContainer
 	
 	//
 	
-	protected bool validate_layout;
-	
 	protected LayerSelectorSet@ layers;
 	protected LayerSelectorSet@ sub_layers;
 	protected bool has_layers;
@@ -1095,18 +1093,15 @@ class LayerSelector : LockedContainer
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		if(!validate_layout)
-			return;
-		
 		float width = 0;
 		float height = 0;
 		
 		if(has_layers)
 		{
-			if(layers.validate_layout)
-			{
-				layers.do_layout();
-			}
+//			if(layers.validate_layout)
+//			{
+//				layers.do_layout();
+//			}
 			
 			height = max(layers._height, height);
 			layers.x = 0;
@@ -1115,10 +1110,10 @@ class LayerSelector : LockedContainer
 		
 		if(has_sub_layers)
 		{
-			if(sub_layers.validate_layout)
-			{
-				sub_layers.do_layout();
-			}
+//			if(sub_layers.validate_layout)
+//			{
+//				sub_layers.do_layout();
+//			}
 			
 			height = max(sub_layers._height, height);
 			sub_layers.x = width;

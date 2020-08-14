@@ -8,13 +8,14 @@ class Container : Element
 	 * @brief Any element that can contain other elements
 	 */
 	
-	Element@ scroll_into_view;
+	protected Element@ _scroll_into_view;
 	
-	bool _validate_layout = true;
 	float scroll_min_x;
 	float scroll_min_y;
 	float scroll_max_x;
 	float scroll_max_y;
+	
+	Event scroll_change;
 	
 	/// After scrolling an element into view this will be set for one frame.
 	/// Prevents attached scrollbars from resetting the position.
@@ -42,31 +43,19 @@ class Container : Element
 				return;
 			
 			@_layout = value;
-			_validate_layout = true;
+			validate_layout = true;
 		}
 	}
 	
-	float width
+	Element@ scroll_into_view
 	{
-		set override
+		set
 		{
-			if(value < 0) value = 0;
-			if(_width == value) return;
-			_set_width = _width = value;
-			_validate_layout = true;
-			if(@parent != null) parent._validate_layout = true;
-		}
-	}
-	
-	float height
-	{
-		set override
-		{
-			if(value < 0) value = 0;
-			if(_height == value) return;
-			_set_height = _height = value;
-			_validate_layout = true;
-			if(@parent != null) parent._validate_layout = true;
+			if(@_scroll_into_view == @value)
+				return;
+			
+			@_scroll_into_view = value;
+			validate_layout = true;
 		}
 	}
 	
@@ -96,7 +85,7 @@ class Container : Element
 		
 		num_children++;
 		@child.parent = @this;
-		_validate_layout = true;
+		validate_layout = true;
 		return true;
 	}
 	
@@ -124,7 +113,7 @@ class Container : Element
 		num_children--;
 		child._added();
 		@child.parent = null;
-		_validate_layout = true;
+		validate_layout = true;
 		return true;
 	}
 	
@@ -152,7 +141,7 @@ class Container : Element
 			children.insertAt(index < 0 ? 0 : index, child);
 		}
 		
-		_validate_layout = true;
+		validate_layout = true;
 	}
 	
 	void move_to_front(Element@ child)
@@ -183,7 +172,7 @@ class Container : Element
 		
 		@children[index] = @children[index + 1];
 		@children[index + 1] = child;
-		_validate_layout = true;
+		validate_layout = true;
 	}
 	
 	void move_down(Element@ child)
@@ -198,13 +187,13 @@ class Container : Element
 		
 		@children[index] = @children[index - 1];
 		@children[index - 1] = child;
-		_validate_layout = true;
+		validate_layout = true;
 	}
 	
 	void clear()
 	{
 		children.resize(0);
-		_validate_layout = true;
+		validate_layout = true;
 	}
 	
 	bool contains(Element@ element)
@@ -248,7 +237,7 @@ class Container : Element
 		const float padding_bottom	= layout_padding_bottom;
 		const float border_size		= layout_border_size;
 		
-		if(_validate_layout || fit_min)
+		if(validate_layout || fit_min)
 		{
 			do_fit_contents(fit_min);
 		}
@@ -266,14 +255,6 @@ class Container : Element
 		this.height = height;
 	}
 	
-	/**
-	 * @brief Required call after modifying layout properties
-	 */
-	void update_layout()
-	{
-		_validate_layout = true;
-	}
-	
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
 		stack.push_reversed(@children);
@@ -282,66 +263,73 @@ class Container : Element
 	void _do_layout(LayoutContext@ ctx) override
 	{
 		if(_defer_layout)
-		{
-			_defer_layout = false;
 			return;
-		}
 		
 		_do_layout_internal(@ctx);
 		
 		_scrolled_into_view = false;
 		
-		if(@scroll_into_view != null)
+		if(@_scroll_into_view != null)
 		{
 			bool scroll_changed = false;
 			
-			if(@scroll_into_view.parent == @this)
+			if(@_scroll_into_view.parent == @this)
 			{
-				if(scroll_into_view.x1 < x1 + ui.style.spacing)
+				if(_scroll_into_view.x1 < x1 + ui.style.spacing)
 				{
-					_scroll_x += x1 + ui.style.spacing - scroll_into_view.x1;
+					_scroll_x += x1 + ui.style.spacing - _scroll_into_view.x1;
 					scroll_changed = true;
 				}
-				else if(scroll_into_view.x2 > x2 - ui.style.spacing)
+				else if(_scroll_into_view.x2 > x2 - ui.style.spacing)
 				{
-					_scroll_x += x2 - ui.style.spacing - scroll_into_view.x2;
+					_scroll_x += x2 - ui.style.spacing - _scroll_into_view.x2;
 					scroll_changed = true;
 				}
 				
-				if(scroll_into_view.y1 < y1 + ui.style.spacing)
+				if(_scroll_into_view.y1 < y1 + ui.style.spacing)
 				{
-					_scroll_y += y1 + ui.style.spacing - scroll_into_view.y1;
+					_scroll_y += y1 + ui.style.spacing - _scroll_into_view.y1;
 					scroll_changed = true;
 				}
-				else if(scroll_into_view.y2 > y2 - ui.style.spacing)
+				else if(_scroll_into_view.y2 > y2 - ui.style.spacing)
 				{
-					_scroll_y += y2 - ui.style.spacing - scroll_into_view.y2;
+					_scroll_y += y2 - ui.style.spacing - _scroll_into_view.y2;
 					scroll_changed = true;
 				}
 			}
 			
 			_scrolled_into_view = scroll_changed;
-			@scroll_into_view = null;
+			@_scroll_into_view = null;
 		}
 	}
 	
 	void _do_layout_internal(LayoutContext@ ctx)
 	{
-		if(!_validate_layout)
+		if(!validate_layout)
 			return;
 		
 		if(@_layout != null)
 		{
+			const float min_x = scroll_min_x;
+			const float min_y = scroll_min_y;
+			const float max_x = scroll_max_x;
+			const float max_y = scroll_max_y;
+			
 			_layout.do_layout(@children,
 				0, 0, _width, _height,
 				scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
+			
+			if(min_x != scroll_min_x || min_y != scroll_min_y || max_x != scroll_max_x || max_y != scroll_max_y)
+			{
+				ui._dispatch_event(@scroll_change, EventType::SCROLL_CHANGE, @this);
+			}
 		}
 		else
 		{
 			calculate_scroll_rect(false);
 		}
 		
-		_validate_layout = false;
+		validate_layout = false;
 	}
 	
 	float get_preferred_width(const float max_height=-1)
@@ -358,41 +346,51 @@ class Container : Element
 	
 	protected void calculate_scroll_rect(const bool fit_min)
 	{
+		const float min_x = scroll_min_x;
+		const float min_y = scroll_min_y;
+		const float max_x = scroll_max_x;
+		const float max_y = scroll_max_y;
+		
 		if(num_children == 0)
 		{
 			scroll_min_x = 0;
 			scroll_min_y = 0;
 			scroll_max_x = 0;
 			scroll_max_y = 0;
+		}
+		else
+		{
+			Element@ element = children[0];
 			
-			return;
+			scroll_min_x = element._x;
+			scroll_min_y = element._y;
+			scroll_max_x = element._x + (fit_min ? element._set_width  : element._width);
+			scroll_max_y = element._y + (fit_min ? element._set_height : element._height);
+			
+			for(int i = 1; i < num_children; i++)
+			{
+				@element = children[i];
+				
+				if(!element.visible)
+					continue;
+				
+				const float width  = fit_min ? element._set_width  : element._width;
+				const float height = fit_min ? element._set_height : element._height;
+				
+				if(element._x < scroll_min_x)
+					scroll_min_x = element._x;
+				if(element._y < scroll_min_y)
+					scroll_min_y = element._y;
+				if(element._x + width > scroll_max_x)
+					scroll_max_x = element._x + width;
+				if(element._y + height > scroll_max_y)
+					scroll_max_y = element._y + height;
+			}
 		}
 		
-		Element@ element = children[0];
-		
-		scroll_min_x = element._x;
-		scroll_min_y = element._y;
-		scroll_max_x = element._x + (fit_min ? element._set_width  : element._width);
-		scroll_max_y = element._y + (fit_min ? element._set_height : element._height);
-		
-		for(int i = 1; i < num_children; i++)
+		if(min_x != scroll_min_x || min_y != scroll_min_y || max_x != scroll_max_x || max_y != scroll_max_y)
 		{
-			@element = children[i];
-			
-			if(!element.visible)
-				continue;
-			
-			const float width  = fit_min ? element._set_width  : element._width;
-			const float height = fit_min ? element._set_height : element._height;
-			
-			if(element._x < scroll_min_x)
-				scroll_min_x = element._x;
-			if(element._y < scroll_min_y)
-				scroll_min_y = element._y;
-			if(element._x + width > scroll_max_x)
-				scroll_max_x = element._x + width;
-			if(element._y + height > scroll_max_y)
-				scroll_max_y = element._y + height;
+			ui._dispatch_event(@scroll_change, EventType::SCROLL_CHANGE, @this);
 		}
 	}
 	
@@ -400,11 +398,21 @@ class Container : Element
 	{
 		if(@_layout != null)
 		{
+			const float min_x = scroll_min_x;
+			const float min_y = scroll_min_y;
+			const float max_x = scroll_max_x;
+			const float max_y = scroll_max_y;
+			
 			_layout.do_layout(@children,
 				0, 0,
 				fit_min ? 0 : _width,
 				fit_min ? 0 : _height,
 				scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
+			
+			if(min_x != scroll_min_x || min_y != scroll_min_y || max_x != scroll_max_x || max_y != scroll_max_y)
+			{
+				ui._dispatch_event(@scroll_change, EventType::SCROLL_CHANGE, @this);
+			}
 		}
 		else
 		{

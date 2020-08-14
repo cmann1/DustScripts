@@ -11,7 +11,7 @@
 #include 'shapes/Arrow.cpp';
 #include 'LockedContainer.cpp';
 
-class NumberSlider : LockedContainer
+class NumberSlider : LockedContainer, IStepHandler
 {
 	
 	float min_value;
@@ -40,7 +40,7 @@ class NumberSlider : LockedContainer
 	protected bool _show_buttons;
 	protected bool _show_text;
 	protected float button_timer;
-	protected bool first_button_press;
+	protected int button_hold_direction;
 	
 	protected bool busy_dragging;
 	protected float drag_value;
@@ -50,6 +50,8 @@ class NumberSlider : LockedContainer
 	protected Button@ _right_button;
 	protected Arrow@ _left_arrow;
 	protected Arrow@ _right_arrow;
+	
+	protected bool step_subscribed;
 	
 	NumberSlider(UI@ ui,
 		const float value=0, const float min_value=NAN, const float max_value=NAN, const float step=1,
@@ -155,6 +157,8 @@ class NumberSlider : LockedContainer
 				update_label();
 				Container::add_child(_label);
 			}
+			
+			validate_layout = true;
 		}
 	}
 	
@@ -191,7 +195,82 @@ class NumberSlider : LockedContainer
 				Container::add_child(_left_button);
 				Container::add_child(_right_button);
 			}
+			
+			validate_layout = true;
 		}
+	}
+	
+	bool ui_step() override
+	{
+		step_subscribed = false;
+		const bool is_horizontal = orientation == Orientation::Horizontal;
+		
+		if(busy_dragging)
+		{
+			if(ui.mouse.primary_down)
+			{
+				if(drag_normalised && !is_nan(min_value) && !is_nan(max_value))
+				{
+					value = drag_relative
+						? get_mouse_normalised_value() + drag_value
+						: get_mouse_normalised_value();
+				}
+				else
+				{
+					drag_value = clamp_value(drag_value + (is_horizontal ? ui.mouse.delta_x : -ui.mouse.delta_y) * drag_sensitivity * step, false);
+					value = drag_value;
+				}
+				
+				step_subscribed = true;
+			}
+			else
+			{
+				busy_dragging = false;
+				children_mouse_enabled = true;
+			}
+		}
+		else if(button_hold_direction != 0)
+		{
+			if(_left_button.pressed || _right_button.pressed)
+			{
+				if(button_timer-- == 0)
+				{
+					value = _value + step * button_hold_direction;
+					button_timer = button_speed;
+				}
+				
+				step_subscribed = true;
+			}
+			else
+			{
+				button_hold_direction = 0;
+			}
+		}
+		
+		if(fade_buttons < 1)
+		{
+			const float fade_speed = 0.15;
+			
+			if(!busy_dragging && (pressed || hovered) && (@ui._active_mouse_element == null || @ui._active_mouse_element == @this))
+			{
+				if(_left_arrow.alpha < 1)
+				{
+					_left_arrow.alpha = min(1, _left_arrow.alpha + fade_speed);
+					_right_arrow.alpha = min(1, _right_arrow.alpha + fade_speed);
+					step_subscribed = true;
+					validate_layout = true;
+				}
+			}
+			else if(_left_arrow.alpha > fade_buttons)
+			{
+				_left_arrow.alpha = max(fade_buttons, _left_arrow.alpha - fade_speed);
+				_right_arrow.alpha = max(fade_buttons, _right_arrow.alpha - fade_speed);
+				step_subscribed = true;
+				validate_layout = true;
+			}
+		}
+		
+		return step_subscribed;
 	}
 	
 	void _do_layout(LayoutContext@ ctx) override
@@ -206,108 +285,33 @@ class NumberSlider : LockedContainer
 		{
 			if(is_horizontal)
 			{
-				_left_button._x = border_size;
-				_left_button._y = border_size;
-				_left_button._width  = button_size;
-				_left_button._height = _height - border_size * 2;
+				_left_button.x = border_size;
+				_left_button.y = border_size;
+				_left_button.width  = button_size * _left_arrow.alpha;
+				_left_button.height = _height - border_size * 2;
 				
-				_right_button._x = _width - border_size - button_size;
-				_right_button._y = border_size;
-				_right_button._width  = _left_button._width;
-				_right_button._height = _left_button._height;
+				_right_button.x = _width - border_size - button_size * _left_arrow.alpha;
+				_right_button.y = border_size;
+				_right_button.width  = _left_button._width * _left_arrow.alpha;
+				_right_button.height = _left_button._height;
+				
+				 _left_arrow.scale_x = _left_arrow.alpha;
+				_right_arrow.scale_x = _left_arrow.alpha;
 			}
 			else
 			{
-				_right_button._x = border_size;
-				_right_button._y = border_size;
-				_right_button._width  = _width - border_size * 2;
-				_right_button._height = button_size;
+				_right_button.x = border_size;
+				_right_button.y = border_size;
+				_right_button.width  = _width - border_size * 2;
+				_right_button.height = button_size * _left_arrow.alpha;
 				
-				_left_button._x = border_size;
-				_left_button._y = _height - border_size - button_size;
-				_left_button._width  = _right_button._width;
-				_left_button._height = _right_button._height;
-			}
-			
-			if(_left_button.pressed || _right_button.pressed)
-			{
-				if(button_timer-- == 0)
-				{
-					value = _value + (_left_button.pressed ? -step : step);
-					button_timer = first_button_press ? button_pause : button_speed;
-					first_button_press = false;
-				}
-			}
-			else if(ui.mouse.primary_press && hovered)
-			{
-				// Check the hovered button states here because at this point pressed may not be set yet
-				if((drag_sensitivity > 0 || drag_normalised) && !_left_button.hovered && !_right_button.hovered)
-				{
-					busy_dragging = true;
-					drag_value = drag_normalised
-						? value - get_mouse_normalised_value()
-						: _value;
-					children_mouse_enabled = false;
-					@ui._active_mouse_element = @this;
-				}
-			}
-			else if(busy_dragging)
-			{
-				if(!ui.mouse.primary_down)
-				{
-					busy_dragging = false;
-					children_mouse_enabled = true;
-				}
-				else
-				{
-					@ui._active_mouse_element = @this;
-					
-					if(drag_normalised && !is_nan(min_value) && !is_nan(max_value))
-					{
-						value = drag_relative
-							? get_mouse_normalised_value() + drag_value
-							: get_mouse_normalised_value();
-					}
-					else
-					{
-						drag_value = clamp_value(drag_value + (is_horizontal ? ui.mouse.delta_x : -ui.mouse.delta_y) * drag_sensitivity * step, false);
-						value = drag_value;
-					}
-				}
-			}
-			else
-			{
-				if(hovered)
-				{
-					int scroll_dir;
-					
-					if(ui.mouse.scrolled(scroll_dir))
-					{
-						value = _value - step * scroll_dir;
-					}
-				}
+				_left_button.x = border_size;
+				_left_button.y = _height - border_size - button_size * _left_arrow.alpha;
+				_left_button.width  = _right_button._width;
+				_left_button.height = _right_button._height;
 				
-				button_timer = 0;
-				first_button_press = true;
-			}
-			
-			if(fade_buttons < 1)
-			{
-				const float fade_speed = 0.15;
-				
-				if((pressed || hovered) && !busy_dragging)
-				{
-					if(_left_arrow.alpha < 1)
-					{
-						_left_arrow.alpha = min(1, _left_arrow.alpha + fade_speed);
-						_right_arrow.alpha = min(1, _right_arrow.alpha + fade_speed);
-					}
-				}
-				else if(_left_arrow.alpha > fade_buttons)
-				{
-					_left_arrow.alpha = max(fade_buttons, _left_arrow.alpha - fade_speed);
-					_right_arrow.alpha = max(fade_buttons, _right_arrow.alpha - fade_speed);
-				}
+				 _left_arrow.scale_x = _left_arrow.alpha;
+				_right_arrow.scale_x = _left_arrow.alpha;
 			}
 		}
 		
@@ -317,33 +321,33 @@ class NumberSlider : LockedContainer
 			{
 				if(_show_buttons && _left_button.visible)
 				{
-					_label._x = border_size + button_size;
-					_label._width = _width - button_size * 2 - border_size * 2;
+					_label.x = border_size + button_size * _left_arrow.alpha;
+					_label.width = _width - button_size * 2 * _left_arrow.alpha - border_size * 2;
 				}
 				else
 				{
-					_label._x = border_size;
-					_label._width = _width - border_size * 2;
+					_label.x = border_size;
+					_label.width = _width - border_size * 2;
 				}
 				
-				_label._y = border_size;
-				_label._height = _height - border_size * 2;
+				_label.y = border_size;
+				_label.height = _height - border_size * 2;
 			}
 			else
 			{
 				if(_show_buttons && _left_button.visible)
 				{
-					_label._y = border_size + button_size;
-					_label._height = _height - button_size * 2 - border_size * 2;
+					_label.y = border_size + button_size * _left_arrow.alpha;
+					_label.height = _height - button_size * 2 * _left_arrow.alpha - border_size * 2;
 				}
 				else
 				{
-					_label._y = border_size;
-					_label._height = _height - border_size * 2;
+					_label.y = border_size;
+					_label.height = _height - border_size * 2;
 				}
 				
-				_label._x = border_size;
-				_label._width = _width - border_size * 2;
+				_label.x = border_size;
+				_label.width = _width - border_size * 2;
 			}
 		}
 	}
@@ -430,6 +434,58 @@ class NumberSlider : LockedContainer
 	protected void update_label()
 	{
 		_label.text = string::nice_float(_value, label_precision, label_trim_trailing_zeros);
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Events
+	// ///////////////////////////////////////////////////////////////////
+	
+	void _mouse_enter() override
+	{
+		if(fade_buttons >= 1)
+			return;
+		
+		step_subscribed = ui._step_subscribe(@this, step_subscribed);
+	}
+	
+	void _mouse_exit() override
+	{
+		if(fade_buttons >= 1)
+			return;
+		
+		step_subscribed = ui._step_subscribe(@this, step_subscribed);
+	}
+	
+	void _mouse_press(const MouseButton button) override
+	{
+		if(button != ui.primary_button)
+			return;
+		
+		if(_show_buttons && _left_button.visible && (_left_button.check_mouse() || _right_button.check_mouse()))
+		{
+			button_timer = button_pause;
+			button_hold_direction = _left_button.check_mouse() ? -1 : 1;
+			value = _value + step * button_hold_direction;
+			
+			@ui._active_mouse_element = @this;
+			step_subscribed = ui._step_subscribe(@this, step_subscribed);
+		}
+		else if(drag_sensitivity > 0 || drag_normalised)
+		{
+			busy_dragging = true;
+			drag_value = drag_normalised
+				? value - get_mouse_normalised_value()
+				: _value;
+			children_mouse_enabled = false;
+			
+			@ui._active_mouse_element = @this;
+			step_subscribed = ui._step_subscribe(@this, step_subscribed);
+		}
+	}
+	
+	void _mouse_scroll(const int scroll_dir) override
+	{
+		value = _value - step * scroll_dir;
 	}
 	
 }

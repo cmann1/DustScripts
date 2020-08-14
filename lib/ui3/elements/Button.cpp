@@ -106,11 +106,6 @@ class Button : SingleContainer
 				_content._y += ui.style.button_pressed_icon_offset;
 			}
 		}
-		
-		if(pressed || hovered && ui.mouse.primary_press)
-		{
-			@ui._active_mouse_element = @this;
-		}
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
@@ -125,14 +120,6 @@ class Button : SingleContainer
 			draw_border == DrawOption::Always || draw_border == DrawOption::Hover && hovered);
 	}
 	
-	void _mouse_click() override
-	{
-		if(selectable)
-		{
-			selected = !_selected;
-		}
-	}
-	
 	protected float layout_padding_left		{ get const override { return ui.style.spacing; } }
 	
 	protected float layout_padding_right	{ get const override { return ui.style.spacing; } }
@@ -142,5 +129,32 @@ class Button : SingleContainer
 	protected float layout_padding_bottom	{ get const override { return ui.style.spacing; } }
 	
 	protected float layout_border_size		{ get const override { return ui.style.border_size; } }
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Events
+	// ///////////////////////////////////////////////////////////////////
+	
+	void _mouse_press(const MouseButton button) override
+	{
+		if(button != ui.primary_button)
+			return;
+		
+		validate_layout = true;
+		@ui._active_mouse_element = @this;
+	}
+	
+	void _mouse_release(const MouseButton button) override
+	{
+		validate_layout = true;
+		@ui._active_mouse_element = null;
+	}
+	
+	void _mouse_click() override
+	{
+		if(selectable)
+		{
+			selected = !_selected;
+		}
+	}
 	
 }

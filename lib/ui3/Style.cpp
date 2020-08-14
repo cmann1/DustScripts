@@ -353,8 +353,16 @@ class Style
 		
 		text_field.text(text);
 		
-		x += text_offset_x * scale_x;
-		y += text_offset_y * scale_y;
+		float dx = text_offset_x * scale_x;
+		float dy = text_offset_y * scale_y;
+		
+		if(rotation != 0)
+		{
+			rotate(dx, dy, rotation * DEG2RAD, dx, dy);
+		}
+		
+		x += dx;
+		y += dy;
 		
 		c.draw_text(text_field, x, y, scale_x, scale_y, rotation);
 	}

@@ -351,6 +351,8 @@ class GridLayout : Layout
 				element._y = el_col_x;
 			}
 			
+			element.validate_layout = true;
+			
 			if(!first_element_placed)
 			{
 				out_x1 = element._x;

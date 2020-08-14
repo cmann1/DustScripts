@@ -5,7 +5,7 @@
 #include 'Image.cpp';
 #include '../events/Event.cpp';
 
-class RotationWheel : Image
+class RotationWheel : Image, IStepHandler
 {
 	
 	bool allow_range = true;
@@ -199,11 +199,13 @@ class RotationWheel : Image
 		return false;
 	}
 	
-	void _do_layout(LayoutContext@ ctx) override
+	// ///////////////////////////////////////////////////////////////////
+	// Internal
+	// ///////////////////////////////////////////////////////////////////
+	
+	bool ui_step() override
 	{
-		Image::_do_layout(ctx);
-		
-		int scroll_dir;
+		bool continue_step = false;
 		
 		if(drag_angle)
 		{
@@ -214,7 +216,7 @@ class RotationWheel : Image
 				if(_auto_tooltip)
 					tooltip.force_open = true;
 				
-				@ui._active_mouse_element = @this;
+				continue_step = true;
 			}
 			else
 			{
@@ -230,61 +232,15 @@ class RotationWheel : Image
 				if(_auto_tooltip)
 					tooltip.force_open = true;
 					
-				@ui._active_mouse_element = @this;
+				continue_step = true;
 			}
 			else
 			{
 				drag_range = false;
 			}
 		}
-		else if(hovered && (ui.mouse.primary_press || (allow_range && ui.mouse.secondary_press)))
-		{
-			if(ui.mouse.primary_press)
-			{
-				drag_angle = true;
-			}
-			else
-			{
-				drag_range = true;
-			}
-			
-			@ui._active_mouse_element = @this;
-			
-			const float mid_x = (x1 + x2) * 0.5;
-			const float mid_y = (y1 + y2) * 0.5;
-			const float dx = ui.mouse.x - mid_x;
-			const float dy = ui.mouse.y - mid_y;
-			const float length = magnitude(dx, dy);
-			
-			if(drag_relative)
-			{
-				drag_offset = get_mouse_angle();
-				
-				if(drag_range)
-				{
-					if(shortest_angle(_angle, drag_offset) >= 0)
-					{
-						drag_offset = shortest_angle(_angle + _range, drag_offset);
-					}
-					else
-					{
-						drag_offset = shortest_angle(_angle - _range, drag_offset);
-					}
-				}
-				else
-				{
-					drag_offset = shortest_angle(_angle, drag_offset);
-				}
-			}
-			else
-			{
-				drag_offset = 0;
-			}
-		}
-		else if(enable_mouse_wheel && hovered && ui.mouse.scrolled(scroll_dir))
-		{
-			angle = (round(_angle * RAD2DEG) - scroll_dir) * DEG2RAD;
-		}
+		
+		return true;
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
@@ -377,6 +333,76 @@ class RotationWheel : Image
 		
 		tooltip.content_string = _tooltip_prefix + str;
 		ui.update_tooltip(this);
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Events
+	// ///////////////////////////////////////////////////////////////////
+	
+	void _mouse_press(const MouseButton button)
+	{
+		if(button == ui.primary_button || button == ui.secondary_button)
+		{
+			if(button == ui.primary_button)
+			{
+				drag_angle = true;
+			}
+			else
+			{
+				drag_range = true;
+			}
+			
+			@ui._active_mouse_element = @this;
+			
+			const float mid_x = (x1 + x2) * 0.5;
+			const float mid_y = (y1 + y2) * 0.5;
+			const float dx = ui.mouse.x - mid_x;
+			const float dy = ui.mouse.y - mid_y;
+			const float length = magnitude(dx, dy);
+			
+			if(drag_relative)
+			{
+				drag_offset = get_mouse_angle();
+				
+				if(drag_range)
+				{
+					if(shortest_angle(_angle, drag_offset) >= 0)
+					{
+						drag_offset = shortest_angle(_angle + _range, drag_offset);
+					}
+					else
+					{
+						drag_offset = shortest_angle(_angle - _range, drag_offset);
+					}
+				}
+				else
+				{
+					drag_offset = shortest_angle(_angle, drag_offset);
+				}
+			}
+			else
+			{
+				drag_offset = 0;
+			}
+			
+			ui._step_subscribe(@this);
+		}
+	}
+	
+	void _mouse_release(const MouseButton button)
+	{
+		if(drag_angle && button == ui.primary_button || drag_range && button == ui.secondary_button)
+		{
+			@ui._active_mouse_element = null;
+		}
+	}
+	
+	void _mouse_scroll(const int scroll_dir) override
+	{
+		if(!enable_mouse_wheel)
+			return;
+		
+		angle = (round(_angle * RAD2DEG) - scroll_dir) * DEG2RAD;
 	}
 	
 }

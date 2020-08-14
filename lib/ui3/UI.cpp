@@ -7,6 +7,7 @@
 #include '../utils/colour.cpp';
 #include 'UIMouse.cpp';
 #include 'Style.cpp';
+#include 'utils/IStepHandler.cpp';
 #include 'utils/ClippingMode.cpp';
 #include 'utils/ElementStack.cpp';
 #include 'utils/LayoutContext.cpp';
@@ -108,6 +109,10 @@ class UI
 	private int queued_events_size = 16;
 	private array<Event@> queued_events(queued_events_size);
 	private array<EventInfo@> queued_event_infos(queued_events_size);
+	
+	private int step_listeners_size = 16;
+	private array<IStepHandler@> step_listeners(step_listeners_size);
+	private int num_step_listeners;
 	
 	private dictionary tooltips;
 	
@@ -323,7 +328,6 @@ class UI
 		contents.clear();
 	}
 	
-	
 	void step()
 	{
 		/*
@@ -347,20 +351,6 @@ class UI
 			}
 		}
 		
-		// Don't clear on the firt frame so that pressed elements will still update once
-		if(@_active_mouse_element != null && mouse.primary_down)
-		{
-			if(active_mouse_element_processed)
-				@_mouse_over_element = null;
-			else
-				active_mouse_element_processed = true;
-		}
-		else
-		{
-			active_mouse_element_processed = false;
-		}
-		
-		
 		/*
 		 * Mouse events are instead processed at the start of the next frame to allow any changes
 		 * made during the event phase to take affect during the next layout before draw
@@ -368,10 +358,25 @@ class UI
 		
 		process_mouse_events(@_mouse_over_element == @mouse_over_overlays ? overlays : contents);
 		
-		if(num_queued_events > 0)
+		if(@_active_mouse_element != null)
 		{
-			process_queued_events();
+			if(!mouse.primary_down || !contents.contains(@_active_mouse_element))
+			{
+				@_active_mouse_element = null;
+			}
+			else if(active_mouse_element_processed)
+			{
+				@_mouse_over_element = null;
+			}
+			else
+			{
+				active_mouse_element_processed = true;
+			}
 		}
+		
+		/*
+		 * Update mouse
+		 */
 		
 		const bool block_mouse = _has_editor && (!_hud && _editor.mouse_in_gui() || _editor.key_check_gvb(GVB::Space));
 		mouse.step(block_mouse);
@@ -415,12 +420,25 @@ class UI
 		}
 		
 		/*
+		 * Step and process queueed events
+		 */
+
+		for(int i = num_step_listeners - 1; i >= 0; i--)
+		{
+			if(!step_listeners[i].ui_step())
+			{
+				@step_listeners[i] = step_listeners[--num_step_listeners];
+			}
+		}
+		
+		if(num_queued_events > 0)
+		{
+			process_queued_events();
+		}
+		
+		/*
 		 * Update layout
 		 */
-		
-		@_active_mouse_element = null;
-		// Don't clear _mouse_over_element
-		// @_mouse_over_element = null;
 		
 		if(debug_draw_active)
 		{
@@ -453,6 +471,11 @@ class UI
 		
 		_event_info.reset(EventType::AFTER_LAYOUT);
 		after_layout.dispatch(_event_info);
+		
+		if(num_queued_events > 0)
+		{
+			process_queued_events();
+		}
 	}
 	
 	void draw()
@@ -461,8 +484,13 @@ class UI
 		draw_root(overlays);
 	}
 	
-	void set_region(const float x1, const float y1, const float x2, const float y2)
+	void set_region(float x1, float y1, float x2, float y2)
 	{
+		x1 = round(x1);
+		y1 = round(y1);
+		x2 = round(x2);
+		y2 = round(y2);
+		
 		if(this.x1 == x1 && this.y1 == y1 && this.x2 == x2 && this.y2 == y2)
 			return;
 		
@@ -695,11 +723,25 @@ class UI
 	// Internal
 	// ///////////////////////////////////////////////////////////////////
 	
-	float _pixel_floor(const float value) { return _hud && pixel_perfect ? floor(value) : value; }
+	bool _step_subscribe(IStepHandler@ listener, const bool already_subscribed=false)
+	{
+		if(already_subscribed)
+			return true;
+		
+		if(num_step_listeners == step_listeners_size)
+		{
+			step_listeners.resize(step_listeners_size += 16);
+		}
+		
+		@step_listeners[num_step_listeners++] = @listener;
+		return true;
+	}
 	
-	float _pixel_round(const float value) { return _hud && pixel_perfect ? round(value) : value; }
+	float _pixel_floor(const float value) { return _hud || true && pixel_perfect ? floor(value) : value; }
 	
-	float _pixel_ceil(const float value) { return _hud && pixel_perfect ? ceil(value) : value; }
+	float _pixel_round(const float value) { return _hud || true && pixel_perfect ? round(value) : value; }
+	
+	float _pixel_ceil(const float value) { return _hud || true && pixel_perfect ? ceil(value) : value; }
 	
 	void _dispatch_event(Event@ event, const string type, Element@ target, const string value='')
 	{
@@ -881,7 +923,12 @@ class UI
 				//}
 				
 				Element@ parent = element.parent;
-				element._do_layout(ctx);
+				
+				if(element.validate_layout)
+				{
+					element._do_layout(ctx);
+					element.validate_layout = false;
+				}
 				
 				if(@parent != null)
 				{
@@ -1176,6 +1223,24 @@ class UI
 		}
 		
 		// /////////////////////////////////////////////////
+		// Mouse scroll
+		// 
+		
+		int scroll_dir;
+		
+		if(is_mouse_over && mouse.scrolled(scroll_dir))
+		{
+			_event_info.reset(EventType::MOUSE_SCROLL, MouseButton::None, mouse.x, mouse.y);
+			
+			for(int i = 0; i < num_elements_mouse_enter; i++)
+			{
+				Element@ element = @_event_info.target = @elements_mouse_enter[i];
+				element._mouse_scroll(scroll_dir);
+				element.mouse_scroll.dispatch(_event_info);
+			}
+		}
+		
+		// /////////////////////////////////////////////////
 		// Mouse release and click
 		// 
 		
@@ -1222,14 +1287,14 @@ class UI
 					_event_info.button = MouseButton::Left;
 					primary_clicked = primary_clicked || primary_button == _event_info.button;
 					
+					element._mouse_button_click(MouseButton::Left);
+					element.mouse_button_click.dispatch(_event_info);
+					
 					if(primary_clicked)
 					{
 						element._mouse_click();
 						element.mouse_click.dispatch(_event_info);
 					}
-					
-					element._mouse_button_click(MouseButton::Left);
-					element.mouse_button_click.dispatch(_event_info);
 				}
 				
 				if(mouse.right_release && elements_right_pressed.exists(element._id))
@@ -1237,14 +1302,14 @@ class UI
 					_event_info.button = MouseButton::Right;
 					primary_clicked = primary_clicked || primary_button == _event_info.button;
 					
+					element._mouse_button_click( MouseButton::Right);
+					element.mouse_button_click.dispatch(_event_info);
+					
 					if(primary_clicked)
 					{
 						element._mouse_click();
 						element.mouse_click.dispatch(_event_info);
 					}
-					
-					element._mouse_button_click( MouseButton::Right);
-					element.mouse_button_click.dispatch(_event_info);
 				}
 				
 				if(mouse.middle_release && elements_middle_pressed.exists(element._id))
@@ -1252,14 +1317,14 @@ class UI
 					_event_info.button = MouseButton::Middle;
 					primary_clicked = primary_clicked || primary_button == _event_info.button;
 					
+					element._mouse_button_click(MouseButton::Middle);
+					element.mouse_button_click.dispatch(_event_info);
+					
 					if(primary_clicked)
 					{
 						element._mouse_click();
 						element.mouse_click.dispatch(_event_info);
 					}
-					
-					element._mouse_button_click(MouseButton::Middle);
-					element.mouse_button_click.dispatch(_event_info);
 				}
 				
 				// Tooltip
@@ -1313,7 +1378,6 @@ class UI
 		}
 		
 		// Hover tooltip
-		
 		if(
 			mouse_over_element_entered &&
 			@_mouse_over_element != null && !_mouse_over_element.disabled &&
@@ -1328,7 +1392,14 @@ class UI
 	{
 		for(int i = int(elements_pressed_list.length()) - 1; i >= 0; i--)
 		{
-			elements_pressed_list[i].pressed = false;
+			Element@ element = @elements_pressed_list[i];
+			
+			if(!element.hovered)
+			{
+				element._mouse_release(primary_button);
+			}
+			
+			element.pressed = false;
 		}
 		
 		elements_pressed_list.resize(0);
@@ -1592,6 +1663,8 @@ class UI
 		
 		if(@gr != null)
 		{
+			if(gr.debug_is_transposed)
+				debug.print(indent + '  transposed', txt_clr, print_id + id++, 0);
 			debug.print(indent + '  draw_scale: ' + gr.debug_draw_scale_x + ', ' + gr.debug_draw_scale_y, txt_clr, print_id + id++, 0);
 			debug.print(indent + '  draw_pos:   ' + gr.debug_draw_x + ', ' + gr.debug_draw_y, txt_clr, print_id + id++, 0);
 			if(gr.padding_left != 0 || gr.padding_right != 0 || gr.padding_top != 0 || gr.padding_bottom != 0)
