@@ -53,6 +53,7 @@ class Mouse
 		@g = get_scene();
 	}
 	
+	/// @param block_mouse Button presses and mouse scroll won't register
 	void step(bool block_mouse=false)
 	{
 		if(hud)
@@ -66,12 +67,22 @@ class Mouse
 			y = g.mouse_y_world(player, layer);
 		}
 		
-		state = block_mouse ? 0 : g.mouse_state(0);
+		state = g.mouse_state(0);
 		scroll = (state & 1 != 0) ? -1 : ((state & 2 != 0) ? 1 : 0);
 		
 		left_down = (state & 4) != 0;
 		right_down = (state & 8) != 0;
 		middle_down = (state & 16) != 0;
+		
+		if(block_mouse)
+		{
+			if(left_down && !prev_left_down)
+				left_down = false;
+			if(right_down && !prev_right_down)
+				right_down = false;
+			if(middle_down && !prev_middle_down)
+				middle_down = false;
+		}
 		
 		left_press = left_down && !prev_left_down;
 		right_press = right_down && !prev_right_down;

@@ -61,7 +61,7 @@ class Style
 	
 	// Text measurements don't seem to line up exactly always. Use these global values to offset
 	float text_offset_x = -1;
-	float text_offset_y = -2;
+	float text_offset_y = -1;
 	
 	string tooltip_font = default_font;
 	uint tooltip_text_size = default_text_size;
@@ -157,6 +157,17 @@ class Style
 		text_field.text(text);
 		width  = text_field.text_width() * scale_x;
 		height = text_field.text_height() * scale_y;
+	}
+	
+	textfield@ _get_text_field()
+	{
+		return @text_field;
+	}
+	
+	void get_real_font(const string in_font, const uint in_size, string &out font, uint &out size)
+	{
+		font = in_font == '' ? default_font : in_font;
+		size = in_size == 0 ? default_text_size : in_size;
 	}
 	
 	sprites@ get_sprite_for_set(const string &in sprite_set)

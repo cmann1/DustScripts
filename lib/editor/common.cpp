@@ -10,7 +10,6 @@ namespace editor_api
 		editor.key_clear_gvb(GVB::MiddleClick);
 		editor.key_clear_gvb(GVB::WheelDown);
 		editor.key_clear_gvb(GVB::WheelUp);
-		//editor.key_clear_gvb(GVB::Space);
 	}
 	
 	/// Returns true if the given global virtual button is down and then clears it

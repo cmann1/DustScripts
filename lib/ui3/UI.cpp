@@ -149,6 +149,10 @@ class UI
 	/*private*/ array<int> _int_array(16);
 	/*private*/ array<Element@> _element_array(16);
 	
+	private int _first_char_index = 32;
+	private int _last_char_index  = 126;
+	private dictionary font_metrics;
+	
 	camera@ _camera;
 	editor_api@ _editor;
 	bool _has_editor;
@@ -834,6 +838,42 @@ class UI
 		layer_selector.shadow_colour = style.dialog_shadow_clr;
 		layer_selector.show_all_layers_toggle = false;
 		layer_selector.show_all_sub_layers_toggle = false;
+	}
+	
+	int first_char_index { get const { return _first_char_index; } }
+	
+	int last_char_index  { get const { return _last_char_index;  } }
+	
+	void get_font_metrics(string font, uint size, array<float>@ &out widths, float &out line_height)
+	{
+		style.get_real_font(font, size, font, size);
+		const string key = font + '_' + size;
+		const string height_key = key + '_line_height';
+		
+		if(font_metrics.exists(key))
+		{
+			@widths = cast<array<float>@>(font_metrics[key]);
+			line_height = float((font_metrics[height_key]));
+			return;
+		}
+		
+		string s = ' ';
+		@widths = array<float>(_last_char_index - _first_char_index + 1);
+		
+		for(int i = _first_char_index; i <= _last_char_index; i++)
+		{
+			s[0] = i;
+			float width, height;
+			style.measure_text(s, font, size, 1, 1, width, height);
+			widths[i - _first_char_index] = width;
+			
+			if(height > line_height)
+			{
+				line_height = height;
+			}
+		}
+		
+		font_metrics[height_key] = line_height;
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
