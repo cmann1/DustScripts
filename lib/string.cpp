@@ -259,4 +259,48 @@ namespace string
 		return output;
 	}
 	
+	bool is_whitespace(const int chr)
+	{
+		return chr == 9 || chr == 10 || chr == 32;
+	}
+	
+	bool is_punctuation(const int chr)
+	{
+		return
+			(chr >= 33  && chr <= 47) ||
+			(chr >= 58  && chr <= 64) ||
+			(chr >= 91  && chr <= 96) ||
+			(chr >= 123 && chr <= 126);
+	}
+	
+	bool is_digit(const int chr)
+	{
+		return chr >= 48  && chr <= 57;
+	}
+	
+	bool is_alpha(const int chr)
+	{
+		return
+			(chr >= 65  && chr <= 90) ||
+			(chr >= 97  && chr <= 122);
+	}
+	
+	bool is_lowercase(const int chr)
+	{
+		return chr >= 97  && chr <= 122;
+	}
+	
+	bool is_uppercase(const int chr)
+	{
+		return chr >= 65  && chr <= 90;
+	}
+	
+	bool is_alphanumeric(const int chr)
+	{
+		return
+			(chr >= 48  && chr <= 57) ||
+			(chr >= 65  && chr <= 90) ||
+			(chr >= 97  && chr <= 122);
+	}
+	
 }
