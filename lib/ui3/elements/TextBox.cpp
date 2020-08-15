@@ -7,16 +7,19 @@
 class TextBox : Element, IStepHandler
 {
 	
-	/// TODO: Set to empty
+	// TODO: Set to empty
 	protected string _text =
-		'This is a     really ,,|;,really./\\[] long line of text!!\n'
+		'1\n'
+		'This is a     really\n'
 		'\n'
-		'asdf\n'
+		'          asdf\n'
 		'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n'
 		'Fusce finibus purus in mauris iaculis, in luctus dolor consequat. Fusce finibus purus in mauris iaculis, in luctus dolor consequat.\n'
+		'This is a     really ,,|;,really./\\[] long line of text!!\n'
 		'The quick brown fox jumped over the lazy dog.';
 	// TODO: Set to false
 	protected bool _multi_line = true;
+	protected bool _smart_home = true;
 	protected string _font;
 	protected uint _size;
 	
@@ -29,6 +32,8 @@ class TextBox : Element, IStepHandler
 	/// When navigating up or down a line, the caret will try to match this position.
 	/// Only updated when the position within the line is explicitly changed, e.g. moving left/right, or selecting with the mouse.
 	protected int _line_relative_caret_index = -1;
+	protected int _selection_start_line_index;
+	protected int _selection_end_line_index;
 	
 	/// The actual line height in pixels
 	protected float real_line_height;
@@ -98,6 +103,7 @@ class TextBox : Element, IStepHandler
 		}
 	}
 	
+	/// Can this TextBox contain more than one line?
 	bool multi_line
 	{
 		get const { return _multi_line; }
@@ -110,7 +116,14 @@ class TextBox : Element, IStepHandler
 			update();
 		}
 	}
-	 
+	
+	/// If true pressing the home key will move the caret to the first non whitespace character in the line
+	bool smart_home
+	{
+		get const { return _smart_home; }
+		set { _smart_home = value; }
+	}
+	
 	string font
 	{
 		get const { return _font; }
@@ -240,9 +253,10 @@ class TextBox : Element, IStepHandler
 		}
 	}
 	
+	/// If word is true moves to the next word boundary. extend controls wether to move the caret, or extend the selection
 	void move_caret_left(const bool word, const bool extend)
 	{
-		int index = word
+		const int index = word
 			? find_word_boundary(_selection_end, -1)
 			: _selection_end - 1;
 		
@@ -255,12 +269,19 @@ class TextBox : Element, IStepHandler
 			caret_index = index;
 		}
 		
+		if(validate_layout)
+		{
+			update_selection_line_indices();
+			_line_relative_caret_index = -1;
+		}
+		
 		persist_caret = ui.style.caret_blink_rate;
 	}
 	
+	/// If word is true moves to the next word boundary. extend controls wether to move the caret, or extend the selection
 	void move_caret_right(const bool word, const bool extend)
 	{
-		int index = word
+		const int index = word
 			? find_word_boundary(_selection_end, 1)
 			: _selection_end + 1;
 		
@@ -273,29 +294,182 @@ class TextBox : Element, IStepHandler
 			caret_index = index;
 		}
 		
+		if(validate_layout)
+		{
+			update_selection_line_indices();
+			_line_relative_caret_index = -1;
+		}
+		
 		persist_caret = ui.style.caret_blink_rate;
 	}
 	
-	int find_word_boundary(const int start, const int dir)
+	/// Moves the caret up a line. extend controls wether to move the caret, or extend the selection
+	void move_caret_up(const bool extend)
 	{
+		if(_selection_end_line_index == 0)
+			return;
+		
+		update_relative_line_index();
+		
+		const int line_start = get_line_start(_selection_end_line_index - 1);
+		const int line_end   = get_line_end  (_selection_end_line_index - 1);
+		const int index = clamp(line_start + _line_relative_caret_index, line_start, line_end);
+		
+		if(extend)
+		{
+			selection_end = index;
+		}
+		else
+		{
+			caret_index = index;
+		}
+		
+		if(validate_layout)
+		{
+			update_selection_line_indices();
+		}
+		
+		persist_caret = ui.style.caret_blink_rate;
+	}
+	
+	/// Moves the caret down a line. extend controls wether to move the caret, or extend the selection
+	void move_caret_down(const bool extend)
+	{
+		if(_selection_end_line_index == _num_lines - 1)
+			return;
+		
+		update_relative_line_index();
+		
+		const int line_start = get_line_start(_selection_end_line_index + 1);
+		const int line_end   = get_line_end  (_selection_end_line_index + 1);
+		const int index = clamp(line_start + _line_relative_caret_index, line_start, line_end);
+		
+		if(extend)
+		{
+			selection_end = index;
+		}
+		else
+		{
+			caret_index = index;
+		}
+		
+		if(validate_layout)
+		{
+			update_selection_line_indices();
+		}
+		
+		persist_caret = ui.style.caret_blink_rate;
+	}
+	
+	/// Moves the caret to the start of the line, or the beginning of the text if start is true.
+	/// extend controls wether to move the caret, or extend the selection
+	void move_caret_home(const bool start, const bool extend)
+	{
+		const int line_start = get_line_start(_selection_end_line_index);
+		int home_index = line_start;
+		
+		if(_smart_home)
+		{
+			const int line_end = get_line_end(_selection_end_line_index);
+			
+			for(int i = line_start; i < line_end; i++)
+			{
+				const int chr = _text[i];
+				
+				if(!string::is_whitespace(chr))
+				{
+					home_index = i;
+					break;
+				}
+			}
+			
+			if(_selection_end == home_index)
+			{
+				home_index = line_start;
+			}
+		}
+		
+		if(extend)
+		{
+			selection_end = home_index;
+		}
+		else
+		{
+			caret_index = home_index;
+		}
+		
+		if(validate_layout)
+		{
+			update_selection_line_indices();
+		}
+		
+		persist_caret = ui.style.caret_blink_rate;
+	}
+	
+	/// Moves the caret to the end of the line, or the end of the text if end is true.
+	/// extend controls wether to move the caret, or extend the selection
+	void move_caret_end(const bool end, const bool extend)
+	{
+		const int line_end = get_line_end(_selection_end_line_index);
+		
+		if(extend)
+		{
+			selection_end = line_end;
+		}
+		else
+		{
+			caret_index = line_end;
+		}
+		
+		if(validate_layout)
+		{
+			update_selection_line_indices();
+		}
+		
+		persist_caret = ui.style.caret_blink_rate;
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Helpers and various properties
+	// ///////////////////////////////////////////////////////////////////
+	
+	int text_length
+	{
+		get const { return _text_length; }
+	}
+	
+	int num_lines
+	{
+		get const { return _num_lines; }
+	}
+	
+	/// Finds the index of the nearest word boundary from start in direction dir
+	int find_word_boundary(const int start, int dir)
+	{
+		dir = dir >= 0 ? 1 : -1;
 		const int end = dir == 1 ? _text_length : -1;
 		int chr_index = dir == 1 ? start : max_int(0, start - 1);
 		// 0 = whitespace
 		// 1 = punctuation
 		// 2 = alphanumeric
+		// 3 = newline
 		int chr_type = -1;
 		bool found_whitespace = false;
 		
 		while(chr_index != end)
 		{
 			const int chr = _text[chr_index];
-			const int new_chr_type = string::is_whitespace(chr) ? 0 : string::is_punctuation(chr) ? 1 : string::is_alphanumeric(chr) ? 2 : -1;
+			const int new_chr_type = chr == 10 ? 3 : string::is_whitespace(chr) ? 0 : string::is_punctuation(chr) ? 1 : string::is_alphanumeric(chr) ? 2 : -1;
 			
 			if(chr_type == -1)
 			{
 				chr_type = new_chr_type;
+				chr_index += dir;
 				continue;
 			}
+			
+			if(new_chr_type == 3)
+				break;
 			
 			if(new_chr_type == 0)
 			{
@@ -306,14 +480,12 @@ class TextBox : Element, IStepHandler
 			{
 				if(chr_type != 0 && new_chr_type != 0 || new_chr_type != 0 && found_whitespace)
 				{
-//					puts(chr_index + '  ' + _text.substr(chr_index, 1));
 					break;
 				}
 				
 				chr_type = new_chr_type;
 			}
 			
-//				puts(_text.substr(chr_index, 1) + ' [' + _text[chr_index] + ']');
 			chr_index += dir;
 		}
 		
@@ -323,6 +495,52 @@ class TextBox : Element, IStepHandler
 		}
 		
 		return chr_index;
+	}
+	
+	/// Returns the line at the specified character index. Will return -1 if line_index is not valid
+	int get_line_at_index(int index)
+	{
+		index = clamp(index, 0, _text_length);
+		int line_start_index = 0;
+		int line_index = -1;
+		
+		for(int i = 0; i < _num_lines; i++)
+		{
+			const int line_end_index = line_end_indices[i];
+			
+			if(index >= line_start_index && index <= line_end_index)
+			{
+				line_index = i;
+				break;
+			}
+			
+			line_start_index = line_end_index + 1;
+		}
+		
+		return line_index;
+	}
+	
+	/// Returns the starting character index of the given line.
+	/// Will return -1 if line_index is not valid
+	int get_line_start(const int line_index)
+	{
+		if(line_index < 0 || line_index >= _num_lines)
+			return -1;
+		
+		if(line_index == 0)
+			return 0;
+		
+		return line_end_indices[line_index - 1] + 1;
+	}
+	
+	/// Returns the ending character index of the given line.
+	/// Will return -1 if line_index is not valid
+	int get_line_end(const int line_index)
+	{
+		if(line_index < 0 || line_index >= _num_lines)
+			return -1;
+		
+		return line_end_indices[line_index];
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -355,6 +573,7 @@ class TextBox : Element, IStepHandler
 		if(ui._has_editor)
 		{
 			// Arrow keys
+			// TODO: KeyboardInput manager will check all modifier keys by default
 			if(editor_api::consume_gvb_press(ui._editor, GVB::LeftArrow))
 			{
 				move_caret_left(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
@@ -362,6 +581,22 @@ class TextBox : Element, IStepHandler
 			else if(editor_api::consume_gvb_press(ui._editor, GVB::RightArrow))
 			{
 				move_caret_right(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
+			}
+			else if(editor_api::consume_gvb_press(ui._editor, GVB::UpArrow))
+			{
+				move_caret_up(ui._editor.key_check_gvb(GVB::Shift));
+			}
+			else if(editor_api::consume_gvb_press(ui._editor, GVB::DownArrow))
+			{
+				move_caret_down(ui._editor.key_check_gvb(GVB::Shift));
+			}
+			else if(ui._editor.key_check_pressed_vk(VK::Home))
+			{
+				move_caret_home(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
+			}
+			else if(ui._editor.key_check_pressed_vk(VK::End))
+			{
+				move_caret_end(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
 			}
 		}
 		
@@ -702,15 +937,31 @@ class TextBox : Element, IStepHandler
 		
 		// TODO: Remove line breaks, or just ignore other lines, when multi_line is false
 		
-		while(true)
+		_selection_start = min_int(_selection_start, _text_length);
+		_selection_end   = min_int(_selection_end,   _text_length);
+		_selection_start_line_index = 0;
+		_selection_end_line_index   = 0;
+		bool reached_end = false;
+		
+		while(!reached_end)
 		{
 			_num_lines++;
-			const int line_end_index = _text.findFirst('\n', line_start_index);
+			int line_end_index = _text.findFirst('\n', line_start_index);
 			
 			if(line_end_index == -1)
 			{
-				line_end_indices.insertLast(int(_text.length()));
-				break;
+				line_end_index = int(_text.length());
+				reached_end = true;
+			}
+			
+			if(_selection_start >= line_start_index && _selection_start <= line_end_index)
+			{
+				_selection_start_line_index = _num_lines - 1;
+			}
+			
+			if(_selection_end >= line_start_index && _selection_end <= line_end_index)
+			{
+				_selection_end_line_index = _num_lines - 1;
 			}
 			
 			line_end_indices.insertLast(line_end_index);
@@ -718,6 +969,38 @@ class TextBox : Element, IStepHandler
 		}
 		
 		validate_layout = true;
+	}
+	
+	protected void update_selection_line_indices()
+	{
+		int line_start_index = 0;
+		_selection_start_line_index = 0;
+		_selection_end_line_index = 0;
+		
+		for(int i = 0; i < _num_lines; i++)
+		{
+			const int line_end_index = line_end_indices[i];
+			
+			if(_selection_start >= line_start_index && _selection_start <= line_end_index)
+			{
+				_selection_start_line_index = i;
+			}
+			
+			if(_selection_end >= line_start_index && _selection_end <= line_end_index)
+			{
+				_selection_end_line_index = i;
+			}
+			
+			line_start_index = line_end_index + 1;
+		}
+	}
+	
+	protected void update_relative_line_index()
+	{
+		if(_line_relative_caret_index == -1)
+		{
+			_line_relative_caret_index = _selection_end - get_line_start(_selection_end_line_index);
+		}
 	}
 	
 	protected float clamp_scroll(const float scroll, const float max)
