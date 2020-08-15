@@ -149,6 +149,8 @@ class UI
 	/*private*/ array<int> _int_array(16);
 	/*private*/ array<Element@> _element_array(16);
 	
+	uint _frame;
+	
 	private int _first_char_index = 32;
 	private int _last_char_index  = 126;
 	private dictionary font_metrics;
@@ -334,6 +336,8 @@ class UI
 	
 	void step()
 	{
+		_frame++;
+		
 		/*
 		 * Auto fit hud to screen
 		 */

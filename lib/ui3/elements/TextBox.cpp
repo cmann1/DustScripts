@@ -1,11 +1,15 @@
 #include '../../enums/VK.cpp';
+#include '../../enums/GVB.cpp';
+#include '../../editor/common.cpp';
+#include '../../string.cpp';
 #include 'Element.cpp';
 
 class TextBox : Element, IStepHandler
 {
 	
+	/// TODO: Set to empty
 	protected string _text =
-		'This is a really really long line of text!!\n'
+		'This is a     really ,,|;,really./\\[] long line of text!!\n'
 		'\n'
 		'asdf\n'
 		'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n'
@@ -19,8 +23,12 @@ class TextBox : Element, IStepHandler
 	protected float _line_height = 5;
 	protected float _line_spacing = 6;
 	
-	protected int _selection_start = 0;
-	protected int _selection_end = 64;
+	protected int _selection_start = 64;
+	protected int _selection_end = 0;
+	/// The stored relative index of the caret within the selected line.
+	/// When navigating up or down a line, the caret will try to match this position.
+	/// Only updated when the position within the line is explicitly changed, e.g. moving left/right, or selecting with the mouse.
+	protected int _line_relative_caret_index = -1;
 	
 	/// The actual line height in pixels
 	protected float real_line_height;
@@ -44,13 +52,19 @@ class TextBox : Element, IStepHandler
 	protected array<float> visible_lines_offset;
 	protected array<float> visible_lines_selection;
 	
+	protected int caret_line_index;
+	protected float caret_line_x;
+	protected int persist_caret;
+	
+	
 	TextBox(UI@ ui, const string font='', const uint size=0)
 	{
 		super(ui);
 		
-		_width  = _set_width  = 140;
+		// TODO: Set to 140
+		_width  = _set_width  = 200;
 		// TODO: Set to 34
-		_height = _set_height = 54;
+		_height = _set_height = 84;
 		
 		first_char_index = ui.first_char_index;
 		last_char_index = ui.last_char_index;
@@ -153,6 +167,10 @@ class TextBox : Element, IStepHandler
 		}
 	}
 	
+	// ///////////////////////////////////////////////////////////////////
+	// Selection
+	// ///////////////////////////////////////////////////////////////////
+	
 	int selection_start
 	{
 		get const { return _selection_start; }
@@ -216,8 +234,95 @@ class TextBox : Element, IStepHandler
 	{
 		get const
 		{
-			return _text.substr(_selection_start, _selection_end - _selection_start);
+			return _selection_start < _selection_end
+				? _text.substr(_selection_start, _selection_end   - _selection_start)
+				: _text.substr(_selection_end,   _selection_start - _selection_end);
 		}
+	}
+	
+	void move_caret_left(const bool word, const bool extend)
+	{
+		int index = word
+			? find_word_boundary(_selection_end, -1)
+			: _selection_end - 1;
+		
+		if(extend)
+		{
+			selection_end = index;
+		}
+		else
+		{
+			caret_index = index;
+		}
+		
+		persist_caret = ui.style.caret_blink_rate;
+	}
+	
+	void move_caret_right(const bool word, const bool extend)
+	{
+		int index = word
+			? find_word_boundary(_selection_end, 1)
+			: _selection_end + 1;
+		
+		if(extend)
+		{
+			selection_end = index;
+		}
+		else
+		{
+			caret_index = index;
+		}
+		
+		persist_caret = ui.style.caret_blink_rate;
+	}
+	
+	int find_word_boundary(const int start, const int dir)
+	{
+		const int end = dir == 1 ? _text_length : -1;
+		int chr_index = dir == 1 ? start : max_int(0, start - 1);
+		// 0 = whitespace
+		// 1 = punctuation
+		// 2 = alphanumeric
+		int chr_type = -1;
+		bool found_whitespace = false;
+		
+		while(chr_index != end)
+		{
+			const int chr = _text[chr_index];
+			const int new_chr_type = string::is_whitespace(chr) ? 0 : string::is_punctuation(chr) ? 1 : string::is_alphanumeric(chr) ? 2 : -1;
+			
+			if(chr_type == -1)
+			{
+				chr_type = new_chr_type;
+				continue;
+			}
+			
+			if(new_chr_type == 0)
+			{
+				found_whitespace = true;
+			}
+			
+			if(new_chr_type != chr_type)
+			{
+				if(chr_type != 0 && new_chr_type != 0 || new_chr_type != 0 && found_whitespace)
+				{
+//					puts(chr_index + '  ' + _text.substr(chr_index, 1));
+					break;
+				}
+				
+				chr_type = new_chr_type;
+			}
+			
+//				puts(_text.substr(chr_index, 1) + ' [' + _text[chr_index] + ']');
+			chr_index += dir;
+		}
+		
+		if(dir == -1)
+		{
+			chr_index++;
+		}
+		
+		return chr_index;
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -247,6 +352,19 @@ class TextBox : Element, IStepHandler
 			puts('"' + selection + '"');
 		}
 		
+		if(ui._has_editor)
+		{
+			// Arrow keys
+			if(editor_api::consume_gvb_press(ui._editor, GVB::LeftArrow))
+			{
+				move_caret_left(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
+			}
+			else if(editor_api::consume_gvb_press(ui._editor, GVB::RightArrow))
+			{
+				move_caret_right(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
+			}
+		}
+		
 		return step_registered;
 	}
 	
@@ -259,6 +377,7 @@ class TextBox : Element, IStepHandler
 		visible_lines_offset.resize(0);
 		visible_lines_selection.resize(0);
 		num_visible_lines = 0;
+		caret_line_index = -1;
 		
 		float y = 0;
 		int line_start_index = 0;
@@ -385,6 +504,12 @@ class TextBox : Element, IStepHandler
 					? font_metrics[chr - first_char_index] * text_scale
 					: 0;
 				
+				if(chr_index == _selection_end)
+				{
+					caret_line_index = i;
+					caret_line_x = x + line_width;
+				}
+				
 				line_width += chr_width;
 				
 				if(
@@ -501,15 +626,15 @@ class TextBox : Element, IStepHandler
 			if(draw_selection)
 			{
 				const float selection_start = visible_lines_selection[selection_index++];
-				float selection_end   = visible_lines_selection[selection_index++];
+				float selection_end         = visible_lines_selection[selection_index++];
 				
 				if(selection_start >= 0)
 				{
 					style.draw_rectangle(
 						x + selection_start,
-						y - 1,
+						y - style.selection_padding_top,
 						x + selection_end,
-						y + line_height + 3,
+						y + line_height + style.selection_padding_bottom,
 						0, style.secondary_bg_clr);
 				}
 			}
@@ -543,6 +668,27 @@ class TextBox : Element, IStepHandler
 			}
 			
 			y += line_height + _line_spacing;
+		}
+		
+		if(persist_caret > 0)
+		{
+			persist_caret--;
+		}
+		
+		if(
+			caret_line_index != -1 && caret_line_x >= 0 &&
+			((ui._frame % ui.style.caret_blink_rate) > ui.style.caret_blink_rate / 2 || persist_caret > 0)
+		)
+		{
+			y  = y1 + padding + _scroll_y + caret_line_index * (line_height + _line_spacing);
+			x += caret_line_x - _scroll_x;
+			
+			style.draw_rectangle(
+				x - style.caret_width * 0.5,
+				y - style.selection_padding_top,
+				x + style.caret_width * 0.5,
+				y + line_height + style.selection_padding_bottom,
+				0, style.selected_highlight_border_clr);
 		}
 	}
 	
