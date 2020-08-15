@@ -164,6 +164,47 @@ class Style
 		return @text_field;
 	}
 	
+	/// Can be used to set the textfield properties for batch drawing.
+	/// Don't manually change properties on the canvas or textfield.
+	textfield@ _initialise_text_field(
+		canvas@ &out c,
+		uint colour,
+		float &out out_scale_x, float &out out_scale_y,
+		float scale_x=NAN, float scale_y=NAN,
+		const float rotation=0,
+		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
+		string font='', uint size=0)
+	{
+		out_scale_x = is_nan(scale_x) ? default_text_scale : scale_x;
+		out_scale_y = is_nan(scale_y) ? default_text_scale : scale_y;
+		
+		if(font == '')
+			font = default_font;
+		if(size == 0)
+			size = default_text_size;
+		
+		if(current_font != font || current_text_size != size)
+			text_field.set_font(current_font = font, current_text_size = size);
+		
+		if(current_align_h != align_h)
+			text_field.align_horizontal(current_align_h = align_h);
+		
+		if(current_align_v != align_v)
+			text_field.align_vertical(current_align_v = align_v);
+		
+		if(ctx.alpha != 1)
+			colour = set_alpha(colour);
+		
+		if(current_text_colour != colour)
+		{
+			current_text_colour = colour;
+			text_field.colour(colour);
+		}
+		
+		@c = @this.c;
+		return @text_field;
+	}
+	
 	void get_real_font(const string in_font, const uint in_size, string &out font, uint &out size)
 	{
 		font = in_font == '' ? default_font : in_font;

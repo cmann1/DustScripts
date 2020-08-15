@@ -1,19 +1,26 @@
+#include '../../enums/VK.cpp';
 #include 'Element.cpp';
 
 class TextBox : Element, IStepHandler
 {
 	
-	protected string _text = 'This is a really really long line of text!!\n>>\nasdf\nThe quick brown fox jumped over the lazy dog.';
+	protected string _text =
+		'This is a really really long line of text!!\n'
+		'\n'
+		'asdf\n'
+		'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n'
+		'Fusce finibus purus in mauris iaculis, in luctus dolor consequat. Fusce finibus purus in mauris iaculis, in luctus dolor consequat.\n'
+		'The quick brown fox jumped over the lazy dog.';
 	// TODO: Set to false
 	protected bool _multi_line = true;
 	protected string _font;
 	protected uint _size;
 	
-	protected float _line_height = 1;
+	protected float _line_height = 5;
 	protected float _line_spacing = 6;
 	
-	protected int _selection_start;
-	protected int _selection_end;
+	protected int _selection_start = 0;
+	protected int _selection_end = 64;
 	
 	/// The actual line height in pixels
 	protected float real_line_height;
@@ -27,19 +34,22 @@ class TextBox : Element, IStepHandler
 	protected float scroll_max_x;
 	protected float scroll_max_y;
 	
+	protected int _text_length;
 	protected int _num_lines;
 	protected array<int> line_end_indices;
 	
 	protected int first_visible_line;
 	protected int num_visible_lines;
 	protected array<string> visible_lines;
-	protected array<float> visible_line_offset;
+	protected array<float> visible_lines_offset;
+	protected array<float> visible_lines_selection;
 	
 	TextBox(UI@ ui, const string font='', const uint size=0)
 	{
 		super(ui);
 		
 		_width  = _set_width  = 140;
+		// TODO: Set to 34
 		_height = _set_height = 54;
 		
 		first_char_index = ui.first_char_index;
@@ -51,6 +61,7 @@ class TextBox : Element, IStepHandler
 		ui.get_font_metrics(_font, _size, @font_metrics, real_line_height);
 		
 		update();
+		step_registered = true;
 		ui._step_subscribe(this);
 	}
 	
@@ -142,13 +153,80 @@ class TextBox : Element, IStepHandler
 		}
 	}
 	
+	int selection_start
+	{
+		get const { return _selection_start; }
+		set
+		{
+			value = clamp(value, 0, _text_length);
+			
+			if(_selection_start == value)
+				return;
+			
+			_selection_start = value;
+			validate_layout = true;
+		}
+	}
+	
+	int selection_end
+	{
+		get const { return _selection_end; }
+		set
+		{
+			value = clamp(value, 0, _text_length);
+			
+			if(_selection_end == value)
+				return;
+			
+			_selection_end = value;
+			validate_layout = true;
+		}
+	}
+	
+	int caret_index
+	{
+		get const { return _selection_end; }
+		set
+		{
+			value = clamp(value, 0, _text_length);
+			
+			if(_selection_start == value && _selection_end == value)
+				return;
+			
+			_selection_start = value;
+			_selection_end = value;
+			validate_layout = true;
+		}
+	}
+	
+	void select(int start, int end)
+	{
+		start = clamp(start, 0, _text_length);
+		end = clamp(end, 0, _text_length);
+		
+		if(_selection_start == start && _selection_end == end)
+			return;
+		
+		_selection_start = start;
+		_selection_end = end;
+		validate_layout = true;
+	}
+	
+	string selection
+	{
+		get const
+		{
+			return _text.substr(_selection_start, _selection_end - _selection_start);
+		}
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Internal
 	// ///////////////////////////////////////////////////////////////////
 	
 	bool ui_step() override
 	{
-		step_registered = false;
+//		step_registered = false;
 		
 		if(_debug_drag)
 		{
@@ -164,6 +242,11 @@ class TextBox : Element, IStepHandler
 			}
 		}
 		
+		if(ui.mouse.middle_press)
+		{
+			puts('"' + selection + '"');
+		}
+		
 		return step_registered;
 	}
 	
@@ -173,7 +256,8 @@ class TextBox : Element, IStepHandler
 		text_scale = ui.style.default_text_scale;
 		
 		visible_lines.resize(0);
-		visible_line_offset.resize(0);
+		visible_lines_offset.resize(0);
+		visible_lines_selection.resize(0);
 		num_visible_lines = 0;
 		
 		float y = 0;
@@ -186,13 +270,7 @@ class TextBox : Element, IStepHandler
 		const float text_scale = this.text_scale;
 		const float line_height = real_line_height * text_scale;
 		
-		// Call measure_text here to make sure the correct font and size is set
-		// Then later on access the style textfield directly to avoid having to call measure_text
-		// since we know that only the text will change per line and measure_text will possibly be called a lot
-		// TODO: REMOVE
-		float line_width, _lh;
-		ui.style.measure_text('', _font, _size, text_scale, text_scale, line_width, _lh);
-		textfield@ text_field = ui.style._get_text_field();
+		float line_width;
 		
 		////////////////////////////////////////////////////////////
 		// Step 1. Calculate the total text width and height
@@ -204,8 +282,19 @@ class TextBox : Element, IStepHandler
 		{
 			const int line_end_index = line_end_indices[i];
 			
-			text_field.text(_text.substr(line_start_index, line_end_index - line_start_index));
-			line_width = text_field.text_width() * text_scale;
+			string line_text = _text.substr(line_start_index, line_end_index - line_start_index);
+			const int line_length = int(line_text.length());
+			
+			line_width = 0;
+			
+			for(int j = 0; j < line_length; j++)
+			{
+				const int chr = int(line_text[j]);
+				
+				line_width += chr <= last_char_index && chr >= first_char_index
+					? font_metrics[chr - first_char_index] * text_scale
+					: 0;
+			}
 			
 			if(line_width > text_width)
 			{
@@ -244,9 +333,10 @@ class TextBox : Element, IStepHandler
 			if(y + line_height > available_height)
 				break;
 			
+			const int current_line_start_index = line_start_index;
 			const int line_end_index = line_end_indices[i];
 			
-			string line_text = _text.substr(line_start_index, line_end_index - line_start_index);
+			string line_text = _text.substr(line_start_index, line_end_index - line_start_index + 1);
 			const int line_length = int(line_text.length());
 			
 			// Move to the next line - these values aren't used below so they can be set here
@@ -256,8 +346,24 @@ class TextBox : Element, IStepHandler
 			if(line_length == 0)
 			{
 				visible_lines.insertLast('');
-				visible_line_offset.insertLast(0);
+				visible_lines_offset.insertLast(0);
 				num_visible_lines++;
+				
+				if(
+					scroll_x >= 0 &&
+					current_line_start_index >= _selection_start && current_line_start_index < _selection_end ||
+					current_line_start_index >= _selection_end   && current_line_start_index < _selection_start
+				)
+				{
+					visible_lines_selection.insertLast(0);
+					visible_lines_selection.insertLast(0);
+				}
+				else
+				{
+					visible_lines_selection.insertLast(-1);
+					visible_lines_selection.insertLast(-1);
+				}
+				
 				continue;
 			}
 			
@@ -268,14 +374,37 @@ class TextBox : Element, IStepHandler
 			float x = scroll_x;
 			line_width = 0;
 			
+			int chr_index = current_line_start_index;
+			float line_selection_start = NAN;
+			float line_selection_end   = NAN;
+			
 			for(int j = 0; j < line_length; j++)
 			{
-				const int chr_index = int(line_text[j]);
-				const float chr_width = chr_index <= last_char_index && chr_index >= first_char_index
-					? font_metrics[chr_index - first_char_index] * text_scale
+				const int chr = int(line_text[j]);
+				const float chr_width = chr <= last_char_index && chr >= first_char_index
+					? font_metrics[chr - first_char_index] * text_scale
 					: 0;
 				
 				line_width += chr_width;
+				
+				if(
+					chr_index >= _selection_start && chr_index < _selection_end ||
+					chr_index >= _selection_end   && chr_index < _selection_start
+				)
+				{
+					if(is_nan(line_selection_start))
+						line_selection_start = x + line_width - chr_width;
+					
+					line_selection_end = is_nan(line_selection_end)
+						? min(line_selection_end,   x + line_width)
+						: x + line_width;
+					
+					// Add some extra to display a selected newline
+					if(chr_index == current_line_start_index + line_length - 1 && (chr_index + 1 <= _selection_start || chr_index + 1 <= _selection_end))
+					{
+						line_selection_end += 6;
+					}
+				}
 				
 				if(x + line_width - EPSILON > available_width)
 					break;
@@ -288,6 +417,22 @@ class TextBox : Element, IStepHandler
 					start_index = j + 1;
 					end_index = start_index;
 				}
+				
+				chr_index++;
+			}
+			
+			if(
+				!is_nan(line_selection_start) && !is_nan(line_selection_end) &&
+				line_selection_end > 0
+			)
+			{
+				visible_lines_selection.insertLast(clamp(line_selection_start, 0, available_width) - scroll_x);
+				visible_lines_selection.insertLast(clamp(line_selection_end, 0, available_width) - scroll_x);
+			}
+			else
+			{
+				visible_lines_selection.insertLast(-1);
+				visible_lines_selection.insertLast(-1);
 			}
 			
 			if(end_index - start_index == line_length)
@@ -299,7 +444,7 @@ class TextBox : Element, IStepHandler
 				visible_lines.insertLast(line_text.substr(start_index, end_index - start_index + 1));
 			}
 			
-			visible_line_offset.insertLast(line_offset);
+			visible_lines_offset.insertLast(line_offset);
 			num_visible_lines++;
 		}
 	}
@@ -326,28 +471,75 @@ class TextBox : Element, IStepHandler
 				style.border_size, border_clr);
 		}
 		
-		const float text_scale = this.text_scale;
+		float text_scale = this.text_scale;
 		const float line_height = real_line_height * text_scale;
 		float x = x1 + padding + _scroll_x;
 		float y = y1 + padding + _scroll_y + first_visible_line * (line_height + _line_spacing);
+		int selection_index = 0;
+		const bool draw_selection = _selection_start != _selection_end;
 		
 		if(!multi_line)
 		{
 			y = y1 + (_height - line_height) * 0.5;
 		}
 		
+		canvas@ c;
+		textfield@ text_field = style._initialise_text_field(
+			@c,
+			style.text_clr,
+			text_scale, text_scale,
+			text_scale, text_scale, 0,
+			TextAlign::Left, TextAlign::Top,
+			_font, _size);
+		const float dx = style.text_offset_x * text_scale;
+		const float dy = style.text_offset_y * text_scale;
+		
 		for(int i = 0; i < num_visible_lines; i++)
 		{
 			const string text = visible_lines[i];
 			
+			if(draw_selection)
+			{
+				const float selection_start = visible_lines_selection[selection_index++];
+				float selection_end   = visible_lines_selection[selection_index++];
+				
+				if(selection_start >= 0)
+				{
+					style.draw_rectangle(
+						x + selection_start,
+						y - 1,
+						x + selection_end,
+						y + line_height + 3,
+						0, style.secondary_bg_clr);
+				}
+			}
+			
 			if(text != '')
 			{
-				style.draw_text(text,
-					x + visible_line_offset[i], y,
-					style.text_clr,
-					text_scale, text_scale, 0,
-					TextAlign::Left, TextAlign::Top,
-					_font, _size);
+				// TODO: Draw in chunks of 64 characters since that seems to be the limit for that textfield can draw
+				const int chunk_size = 64;
+				float chunk_x = x + visible_lines_offset[i];
+				const int line_length = int(text.length());
+				int characters_drawn = 0;
+				const bool draw_in_chunks = line_length > chunk_size;
+				
+				while(characters_drawn < line_length)
+				{
+					text_field.text(draw_in_chunks
+						? text.substr(characters_drawn, chunk_size)
+						: text);
+					c.draw_text(text_field, chunk_x, y, text_scale, text_scale, 0);
+					
+					if(draw_in_chunks)
+					{
+						chunk_x += text_field.text_width() * text_scale;
+						characters_drawn += chunk_size;
+					}
+					else
+					{
+						break;
+					}
+				}
 			}
 			
 			y += line_height + _line_spacing;
@@ -359,6 +551,8 @@ class TextBox : Element, IStepHandler
 		int line_start_index = 0;
 		_num_lines = 0;
 		line_end_indices.resize(0);
+		
+		_text_length = int(_text.length());
 		
 		// TODO: Remove line breaks, or just ignore other lines, when multi_line is false
 		
