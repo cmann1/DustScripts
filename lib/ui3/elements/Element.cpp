@@ -146,14 +146,10 @@ abstract class Element
 		ui.hide_tooltip(this);
 	}
 	
-	/**
-	 * @brief Returns mouse x relative to this element
-	 */
+	/// Returns mouse x relative to this element
 	float mouse_x { get { return ui.mouse.x - x1; } }
 	
-	/**
-	 * @brief Returns mouse y relative to this element
-	 */
+	/// Returns mouse y relative to this element
 	float mouse_y { get { return ui.mouse.y - y1; } }
 	
 	float x

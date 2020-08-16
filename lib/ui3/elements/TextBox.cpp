@@ -23,7 +23,6 @@ class TextBox : Element, IStepHandler
 	protected string _font;
 	protected uint _size;
 	
-	protected float _line_height = 5;
 	protected float _line_spacing = 6;
 	
 	protected int _selection_start = 64;
@@ -42,8 +41,8 @@ class TextBox : Element, IStepHandler
 	protected float text_scale;
 	protected int first_char_index;
 	protected int last_char_index;
-	protected float text_width;
-	protected float text_height;
+	protected float _text_width;
+	protected float _text_height;
 	protected float scroll_max_x;
 	protected float scroll_max_y;
 	
@@ -59,8 +58,9 @@ class TextBox : Element, IStepHandler
 	
 	protected int caret_line_index;
 	protected float caret_line_x;
-	protected int persist_caret;
+	protected int persist_caret_time;
 	
+	protected bool drag_selection;
 	
 	TextBox(UI@ ui, const string font='', const uint size=0)
 	{
@@ -137,7 +137,7 @@ class TextBox : Element, IStepHandler
 			validate_layout = true;
 		}
 	}
-	 
+	
 	uint size
 	{
 		get const { return _size; }
@@ -148,6 +148,19 @@ class TextBox : Element, IStepHandler
 			
 			_size = value;
 			ui.get_font_metrics(_font, _size, @font_metrics, real_line_height);
+			validate_layout = true;
+		}
+	}
+	
+	float line_spacing
+	{
+		get const { return _line_spacing; }
+		set
+		{
+			if(_line_spacing == value)
+				return;
+			
+			_line_spacing = value;
 			validate_layout = true;
 		}
 	}
@@ -254,7 +267,7 @@ class TextBox : Element, IStepHandler
 	}
 	
 	/// If word is true moves to the next word boundary. extend controls wether to move the caret, or extend the selection
-	void move_caret_left(const bool word, const bool extend)
+	void move_caret_left(const bool word, const bool extend, const bool scroll_to_caret=false)
 	{
 		const int index = word
 			? find_word_boundary(_selection_end, -1)
@@ -273,13 +286,18 @@ class TextBox : Element, IStepHandler
 		{
 			update_selection_line_indices();
 			_line_relative_caret_index = -1;
+			
+			if(scroll_to_caret)
+			{
+				this.scroll_to_caret(8);
+			}
 		}
 		
-		persist_caret = ui.style.caret_blink_rate;
+		persist_caret();
 	}
 	
 	/// If word is true moves to the next word boundary. extend controls wether to move the caret, or extend the selection
-	void move_caret_right(const bool word, const bool extend)
+	void move_caret_right(const bool word, const bool extend, const bool scroll_to_caret=false)
 	{
 		const int index = word
 			? find_word_boundary(_selection_end, 1)
@@ -298,13 +316,18 @@ class TextBox : Element, IStepHandler
 		{
 			update_selection_line_indices();
 			_line_relative_caret_index = -1;
+			
+			if(scroll_to_caret)
+			{
+				this.scroll_to_caret(8);
+			}
 		}
 		
-		persist_caret = ui.style.caret_blink_rate;
+		persist_caret();
 	}
 	
 	/// Moves the caret up a line. extend controls wether to move the caret, or extend the selection
-	void move_caret_up(const bool extend)
+	void move_caret_up(const bool extend, const bool scroll_to_caret=false)
 	{
 		if(_selection_end_line_index == 0)
 			return;
@@ -327,13 +350,18 @@ class TextBox : Element, IStepHandler
 		if(validate_layout)
 		{
 			update_selection_line_indices();
+			
+			if(scroll_to_caret)
+			{
+				this.scroll_to_caret();
+			}
 		}
 		
-		persist_caret = ui.style.caret_blink_rate;
+		persist_caret();
 	}
 	
 	/// Moves the caret down a line. extend controls wether to move the caret, or extend the selection
-	void move_caret_down(const bool extend)
+	void move_caret_down(const bool extend, const bool scroll_to_caret=false)
 	{
 		if(_selection_end_line_index == _num_lines - 1)
 			return;
@@ -356,14 +384,19 @@ class TextBox : Element, IStepHandler
 		if(validate_layout)
 		{
 			update_selection_line_indices();
+			
+			if(scroll_to_caret)
+			{
+				this.scroll_to_caret();
+			}
 		}
 		
-		persist_caret = ui.style.caret_blink_rate;
+		persist_caret();
 	}
 	
 	/// Moves the caret to the start of the line, or the beginning of the text if start is true.
 	/// extend controls wether to move the caret, or extend the selection
-	void move_caret_home(const bool start, const bool extend)
+	void move_caret_home(const bool start, const bool extend, const bool scroll_to_caret=false)
 	{
 		const int line_start = start
 			? 0
@@ -404,14 +437,20 @@ class TextBox : Element, IStepHandler
 		if(validate_layout)
 		{
 			update_selection_line_indices();
+			_line_relative_caret_index = -1;
+			
+			if(scroll_to_caret)
+			{
+				this.scroll_to_caret();
+			}
 		}
 		
-		persist_caret = ui.style.caret_blink_rate;
+		persist_caret();
 	}
 	
 	/// Moves the caret to the end of the line, or the end of the text if end is true.
 	/// extend controls wether to move the caret, or extend the selection
-	void move_caret_end(const bool end, const bool extend)
+	void move_caret_end(const bool end, const bool extend, const bool scroll_to_caret=false)
 	{
 		const int line_end = end
 			? _text_length
@@ -429,9 +468,55 @@ class TextBox : Element, IStepHandler
 		if(validate_layout)
 		{
 			update_selection_line_indices();
+			_line_relative_caret_index = -1;
+			
+			if(scroll_to_caret)
+			{
+				this.scroll_to_caret();
+			}
 		}
 		
-		persist_caret = ui.style.caret_blink_rate;
+		persist_caret();
+	}
+	
+	/// Scrolls the caret into view. padding_x controls approximately how many extra characters
+	/// will be scrolled when the caret is not in view horizontally
+	void scroll_to_caret(const int padding_x=0)
+	{
+		float x1, y1;
+		get_index_xy(_selection_end, x1 ,y1);
+		x1 -= ui.style.caret_width * 0.5;
+		y1 -= ui.style.selection_padding_top;
+		const float y2 = y1 + real_line_height * text_scale + ui.style.selection_padding_top + ui.style.selection_padding_bottom;
+		const float x2 = x1 + ui.style.caret_width;
+		
+		scroll_into_view(x1, y1, x2, y2, padding_x);
+	}
+	
+	/// Scrolls the given rectangle into view. padding_x controls approximately how many extra characters
+	/// will be scrolled when the caret is not in view horizontally
+	void scroll_into_view(const float x1, const float y1, const float x2, const float y2, const int padding_x=0)
+	{
+		const float view_width  = _width  - padding * 2;
+		const float view_height = _height - padding * 2;
+		
+		if(_scroll_x + x1 < 0)
+		{
+			scroll_x = -x1 + max(0, padding_x) * font_metrics[0] * text_scale;
+		}
+		else if(_scroll_x + x2 > view_width)
+		{
+			scroll_x = view_width - x2 - max(0, padding_x) * font_metrics[0] * text_scale;
+		}
+		
+		if(_scroll_y + y1 < 0)
+		{
+			scroll_y = -y1;
+		}
+		else if(_scroll_y + y2 > view_height)
+		{
+			scroll_y = view_height - y2;
+		}
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -448,7 +533,25 @@ class TextBox : Element, IStepHandler
 		get const { return _num_lines; }
 	}
 	
-	/// Finds the index of the nearest word boundary from start in direction dir
+	/// The total width of the text
+	float text_width
+	{
+		get const { return _text_width; }
+	}
+	
+	/// The total height of the text
+	float text_height
+	{
+		get const { return _text_height; }
+	}
+	
+	/// The height of a line of text.
+	float line_height
+	{
+		get const { return real_line_height * text_scale; }
+	}
+	
+	/// Finds the index of the nearest word boundary from start in direction dir.
 	int find_word_boundary(const int start, int dir)
 	{
 		dir = dir >= 0 ? 1 : -1;
@@ -464,7 +567,7 @@ class TextBox : Element, IStepHandler
 		while(chr_index != end)
 		{
 			const int chr = _text[chr_index];
-			const int new_chr_type = chr == 10 ? 3 : string::is_whitespace(chr) ? 0 : string::is_punctuation(chr) ? 1 : string::is_alphanumeric(chr) ? 2 : -1;
+			const int new_chr_type = (chr == 10 || chr == 13) ? 3 : string::is_whitespace(chr) ? 0 : string::is_punctuation(chr) ? 1 : string::is_alphanumeric(chr) ? 2 : -1;
 			
 			if(chr_type == -1)
 			{
@@ -502,7 +605,7 @@ class TextBox : Element, IStepHandler
 		return chr_index;
 	}
 	
-	/// Returns the line at the specified character index. Will return -1 if line_index is not valid
+	/// Returns the line at the specified character index. Will return -1 if line_index is not valid.
 	int get_line_at_index(int index)
 	{
 		index = clamp(index, 0, _text_length);
@@ -525,8 +628,70 @@ class TextBox : Element, IStepHandler
 		return line_index;
 	}
 	
+	/// Returns the relative position within this TextBox from the given global position,
+	/// taking the current scroll position into account.
+	void get_relative_xy(const float global_x, const float global_y, float &out x, float &out y)
+	{
+		x = global_x - x1 - padding - _scroll_x;
+		y = global_y - y1 - padding - _scroll_y;
+	}
+	
+	/// Returns the closest line index at the given y value.
+	/// If closest_boundary is false the closest index of the chracter at x,y is returned,
+	/// otherwise the index/boundary boundary between two characters is returned.
+	/// If relative is false, x and y are considered global coordinates.
+	int get_index_at(float x, float y, const bool closest_boundary=false, const bool relative=true)
+	{
+		if(!relative)
+		{
+			get_relative_xy(x, y, x, y);
+		}
+		
+		const int line_index = get_line_at_y(y);
+		const int line_start = get_line_start(line_index);
+		const int line_end   = get_line_end(line_index);
+		
+		int index = line_start;
+		float width = 0;
+		
+		while(index < line_end)
+		{
+			const int chr = int(_text[index]);
+			const float chr_width = chr <= last_char_index && chr >= first_char_index
+				? font_metrics[chr - first_char_index] * text_scale
+				: 0;
+			
+			if(x >= width && x <= width + chr_width)
+			{
+				if(closest_boundary && chr_width > 0 && x >= width + chr_width * 0.5)
+				{
+					index++;
+				}
+				
+				break;
+			}
+			
+			width += chr_width;
+			index++;
+		}
+		
+		return clamp(index, 0, _text_length);
+	}
+	
+	/// Returns the closest line index at the given y value.
+	/// If relative is false, y is considered a global coordinate.
+	int get_line_at_y(float y, const bool relative=true)
+	{
+		if(!relative)
+		{
+			y = y - y1 - padding - _scroll_y;
+		}
+		
+		return clamp(floor_int((y + _line_spacing * 0.25) / (real_line_height * text_scale + _line_spacing)), 0, _num_lines - 1);
+	}
+	
 	/// Returns the starting character index of the given line.
-	/// Will return -1 if line_index is not valid
+	/// Will return -1 if line_index is not valid.
 	int get_line_start(const int line_index)
 	{
 		if(line_index < 0 || line_index >= _num_lines)
@@ -539,13 +704,90 @@ class TextBox : Element, IStepHandler
 	}
 	
 	/// Returns the ending character index of the given line.
-	/// Will return -1 if line_index is not valid
+	/// Will return -1 if line_index is not valid.
 	int get_line_end(const int line_index)
 	{
 		if(line_index < 0 || line_index >= _num_lines)
 			return -1;
 		
 		return line_end_indices[line_index];
+	}
+	
+	/// Returns the character index relative to the line containing it.
+	/// Returns -1 if index is not valid
+	int get_index_in_line(const int index)
+	{
+		const int line_index = get_line_at_index(index);
+		
+		if(line_index == -1)
+			return -1;
+		
+		return index - get_line_start(line_index);
+	}
+	
+	/// Calculates the x and y position at the given index
+	void get_index_xy(const int index, float &out x, float &out y)
+	{
+		if(_num_lines == 0 || index < 0)
+			return;
+		
+		const int line_index = index >= _text_length
+			? _num_lines - 1 : get_line_at_index(index);
+		
+		const int line_start = get_line_start(line_index);
+		const int line_end   = min_int(index, get_line_end(line_index));
+		
+		float width = 0;
+		
+		for(int chr_index = line_start; chr_index < line_end; chr_index++)
+		{
+			const int chr = int(_text[chr_index]);
+			
+			width += chr <= last_char_index && chr >= first_char_index
+				? font_metrics[chr - first_char_index] * text_scale
+				: 0;
+		}
+		
+		x = width;
+		y = (real_line_height * text_scale + _line_spacing) * line_index;
+	}
+	
+	/// Returns the x position of the given index.
+	float get_index_x(const int index)
+	{
+		if(_num_lines == 0 || index < 0)
+			return 0;
+		
+		const int line_index = index >= _text_length
+			? _num_lines - 1 : get_line_at_index(index);
+		
+		const int line_start = get_line_start(line_index);
+		const int line_end   = min_int(index, get_line_end(line_index));
+		
+		float width = 0;
+		
+		for(int chr_index = line_start; chr_index < line_end; chr_index++)
+		{
+			const int chr = int(_text[chr_index]);
+			
+			width += chr <= last_char_index && chr >= first_char_index
+				? font_metrics[chr - first_char_index] * text_scale
+				: 0;
+		}
+		
+		return width;
+	}
+	
+	/// Returns the relative y position of the given line index.
+	float get_line_y(const int line_index)
+	{
+		if(line_index < 0)
+			return 0;
+		
+		if(line_index >= _num_lines)
+			return _text_height;
+		
+		return (real_line_height * text_scale + _line_spacing) * line_index;
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -558,7 +800,7 @@ class TextBox : Element, IStepHandler
 		
 		if(_debug_drag)
 		{
-			if(ui.mouse.primary_down)
+			if(ui.mouse.secondary_down)
 			{
 				scroll_x = _scroll_x + ui.mouse.delta_x;
 				scroll_y = _scroll_y + ui.mouse.delta_y;
@@ -575,33 +817,47 @@ class TextBox : Element, IStepHandler
 			puts('"' + selection + '"');
 		}
 		
-		if(ui._has_editor)
+		if(ui.mouse.right_down)
+		{
+//			puts(get_index_at(ui.mouse.x, ui.mouse.y, false, false));
+		}
+		
+		if(drag_selection)
+		{
+			if(ui.mouse.moved)
+			{
+				do_drag_selection();
+			}
+			
+			step_registered = true;
+		}
+		else if(ui._has_editor)
 		{
 			// Arrow keys
 			// TODO: KeyboardInput manager will check all modifier keys by default
 			if(editor_api::consume_gvb_press(ui._editor, GVB::LeftArrow))
 			{
-				move_caret_left(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
+				move_caret_left(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift), true);
 			}
 			else if(editor_api::consume_gvb_press(ui._editor, GVB::RightArrow))
 			{
-				move_caret_right(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
+				move_caret_right(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift), true);
 			}
 			else if(editor_api::consume_gvb_press(ui._editor, GVB::UpArrow))
 			{
-				move_caret_up(ui._editor.key_check_gvb(GVB::Shift));
+				move_caret_up(ui._editor.key_check_gvb(GVB::Shift), true);
 			}
 			else if(editor_api::consume_gvb_press(ui._editor, GVB::DownArrow))
 			{
-				move_caret_down(ui._editor.key_check_gvb(GVB::Shift));
+				move_caret_down(ui._editor.key_check_gvb(GVB::Shift), true);
 			}
 			else if(ui._editor.key_check_pressed_vk(VK::Home))
 			{
-				move_caret_home(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
+				move_caret_home(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift), true);
 			}
 			else if(ui._editor.key_check_pressed_vk(VK::End))
 			{
-				move_caret_end(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift));
+				move_caret_end(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift), true);
 			}
 		}
 		
@@ -636,8 +892,8 @@ class TextBox : Element, IStepHandler
 		////////////////////////////////////////////////////////////
 		// Step 1. Calculate the total text width and height
 		
-		text_width = 0;
-		text_height = 0;
+		_text_width = 0;
+		_text_height = 0;
 		
 		for(int i = 0; i < _num_lines; i++)
 		{
@@ -657,22 +913,22 @@ class TextBox : Element, IStepHandler
 					: 0;
 			}
 			
-			if(line_width > text_width)
+			if(line_width > _text_width)
 			{
-				text_width = line_width;
+				_text_width = line_width;
 			}
 			
 			if(i > 0)
 			{
-				text_height += _line_spacing;
+				_text_height += _line_spacing;
 			}
 			
-			text_height += line_height;
+			_text_height += line_height;
 			line_start_index = line_end_index + 1;
 		}
 		
-		scroll_max_x = max(0, text_width  - available_width);
-		scroll_max_y = max(0, text_height - available_height);
+		scroll_max_x = max(0, _text_width  - available_width);
+		scroll_max_y = max(0, _text_height - available_height);
 		
 		_scroll_x = clamp_scroll(_scroll_x, scroll_max_x);
 		_scroll_y = clamp_scroll(_scroll_y, scroll_max_y);
@@ -850,6 +1106,9 @@ class TextBox : Element, IStepHandler
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
+		// TODO: Check UI focus
+		const bool focused = true;
+		
 		const uint border_clr = style.get_interactive_element_border_colour(hovered, false, false, disabled);
 		
 		const uint bg_clr = style.get_interactive_element_background_colour(false, false, false, disabled, true);
@@ -909,13 +1168,13 @@ class TextBox : Element, IStepHandler
 						y - style.selection_padding_top,
 						x + selection_end,
 						y + line_height + style.selection_padding_bottom,
-						0, style.secondary_bg_clr);
+						0, focused ? style.secondary_bg_clr : multiply_alpha(style.secondary_bg_clr, 0.5));
 				}
 			}
 			
 			if(text != '')
 			{
-				// TODO: Draw in chunks of 64 characters since that seems to be the limit for that textfield can draw
+				// Draw in chunks of 64 characters since that seems to be the limit for that textfield can draw
 				const int chunk_size = 64;
 				float chunk_x = x + visible_lines_offset[i];
 				const int line_length = int(text.length());
@@ -944,15 +1203,14 @@ class TextBox : Element, IStepHandler
 			y += line_height + _line_spacing;
 		}
 		
-		if(persist_caret > 0)
+		if(persist_caret_time > 0)
 		{
-			persist_caret--;
+			persist_caret_time--;
 		}
 		
-		// TODO: Check focus
 		if(
 			caret_line_index != -1 && caret_line_x >= 0 &&
-			((ui._frame % ui.style.caret_blink_rate) > ui.style.caret_blink_rate / 2 || persist_caret > 0)
+			((ui._frame % ui.style.caret_blink_rate) > ui.style.caret_blink_rate / 2 || persist_caret_time > 0)
 		)
 		{
 			y  = y1 + padding + _scroll_y + caret_line_index * (line_height + _line_spacing);
@@ -981,12 +1239,13 @@ class TextBox : Element, IStepHandler
 		_selection_end   = min_int(_selection_end,   _text_length);
 		_selection_start_line_index = 0;
 		_selection_end_line_index   = 0;
+		
 		bool reached_end = false;
 		
 		while(!reached_end)
 		{
 			_num_lines++;
-			int line_end_index = _text.findFirst('\n', line_start_index);
+			int line_end_index = _text.findFirstOf('\n\r', line_start_index);
 			
 			if(line_end_index == -1)
 			{
@@ -1054,6 +1313,34 @@ class TextBox : Element, IStepHandler
 		return scroll;
 	}
 	
+	protected void do_drag_selection(const bool extend_selection=true)
+	{
+		const int index = get_index_at(ui.mouse.x, ui.mouse.y, true, false);
+		
+		if(extend_selection)
+		{
+			selection_end = index;
+		}
+		else
+		{
+			caret_index = index;
+		}
+		
+		if(validate_layout)
+		{
+			update_selection_line_indices();
+			_line_relative_caret_index = -1;
+			this.scroll_to_caret(0);
+		}
+		
+		persist_caret();
+	}
+	
+	protected void persist_caret()
+	{
+		persist_caret_time = ui.style.caret_blink_rate;
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////////////////////////////
@@ -1064,11 +1351,20 @@ class TextBox : Element, IStepHandler
 	
 	void _mouse_press(const MouseButton button)
 	{
-		if(button == ui.primary_button)
+		// TODO: REMOVE
+		if(button == ui.secondary_button)
 		{
 			_debug_drag = true;
 			step_registered = ui._step_subscribe(this, step_registered);
 		}
+		
+		if(button != ui.primary_button)
+			return;
+		
+		drag_selection = true;
+		do_drag_selection(ui._has_editor && ui._editor.key_check_gvb(GVB::Shift));
+		
+		step_registered = ui._step_subscribe(this, step_registered);
 	}
 	
 	void _mouse_release(const MouseButton button)
@@ -1077,6 +1373,11 @@ class TextBox : Element, IStepHandler
 		{
 			_debug_drag = false;
 		}
+		
+		if(button != ui.primary_button)
+			return;
+		
+		drag_selection = false;
 	}
 	
 	void _mouse_scroll(const int scroll_dir)

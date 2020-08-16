@@ -261,7 +261,7 @@ namespace string
 	
 	bool is_whitespace(const int chr)
 	{
-		return chr == 9 || chr == 10 || chr == 32;
+		return chr >= 9 && chr <= 13 || chr == 32;
 	}
 	
 	bool is_punctuation(const int chr)
