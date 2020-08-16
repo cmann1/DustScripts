@@ -1,5 +1,5 @@
 #include "../../lib/std.cpp";
-#include "../../lib/Mouse.cpp";
+#include "../../lib/input/Mouse.cpp";
 #include '../../lib/editor/common.cpp';
 #include '../../lib/enums/GVB.cpp';
 #include "../../lib/math/math.cpp";

@@ -2,7 +2,7 @@
 #include '../../lib/layer.cpp';
 #include '../../lib/math/math.cpp';
 #include '../../lib/math/Line.cpp';
-#include '../../lib/Mouse.cpp';
+#include '../../lib/input/Mouse.cpp';
 #include '../../lib/drawing/common.cpp';
 #include '../../lib/drawing/circle.cpp';
 #include '../../lib/tiles/common.cpp';
