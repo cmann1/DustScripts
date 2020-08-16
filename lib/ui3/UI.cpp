@@ -4,6 +4,7 @@
 #include '../editor/common.cpp';
 #include '../enums/GVB.cpp';
 #include '../input/Keyboard.cpp';
+#include '../input/IKeyboardFocusManager.cpp';
 #include '../math/math.cpp';
 #include '../utils/colour.cpp';
 #include 'UIMouse.cpp';
@@ -23,7 +24,7 @@
 #include 'elements/Popup.cpp';
 #include 'layouts/flow/FlowLayout.cpp';
 
-class UI
+class UI : IKeyboardFocusManager
 {
 	
 	int NEXT_ID;
@@ -199,7 +200,7 @@ class UI
 		
 		if(_has_editor)
 		{
-			@keyboard = Keyboard();
+			@keyboard = Keyboard(this);
 		}
 		
 		@_camera = get_active_camera();

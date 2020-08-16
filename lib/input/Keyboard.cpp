@@ -1,7 +1,10 @@
 #include '../enums/GVB.cpp';
 #include '../enums/VK.cpp';
 #include '../editor/common.cpp';
+#include 'navigation/navigation.cpp';
+#include 'IKeyboardFocusManager.cpp';
 #include 'IKeyboardFocus.cpp';
+#include 'navigation/INavigable.cpp';
 
 class Keyboard
 {
@@ -11,7 +14,9 @@ class Keyboard
 	/// While a key is pressed, this specifies the speed (in frames) at which it will trigger
 	int repeat_period = 1;
 	/// If true any registered GVB keys will be consumed/cleared
-	bool consume_gvb;
+	bool consume_gvb = true;
+	/// Allow navigation with enter and tab
+	bool allow_navigation = true;
 	
 	/// If true the ctrl, shift, and alt fields will be set accordingly each frame.
 	/// This is reset each time a new element is focused.
@@ -24,7 +29,9 @@ class Keyboard
 	/// Is the alt key down this frame
 	bool alt;
 	
+	IKeyboardFocusManager@ keyboard_focus_manager;
 	IKeyboardFocus@ _focus;
+	INavigable@ _navigable;
 	
 	private editor_api@ editor;
 	
@@ -47,9 +54,11 @@ class Keyboard
 	private bool pressed_gvb;
 	private int pressed_timer;
 	
-	Keyboard()
+	Keyboard(IKeyboardFocusManager@ keyboard_focus_manager=null)
 	{
 		@editor = get_editor_api();
+		
+		@this.keyboard_focus_manager = keyboard_focus_manager;
 		
 		reset();
 	}
@@ -73,7 +82,12 @@ class Keyboard
 			
 			if(@_focus != null)
 			{
+				@_navigable = cast<INavigable@>(@_focus);
 				_focus.on_focus(@this);
+			}
+			else
+			{
+				@_navigable = null;
 			}
 		}
 	}
@@ -88,6 +102,24 @@ class Keyboard
 			ctrl  = editor.key_check_gvb(GVB::Control);
 			shift = editor.key_check_gvb(GVB::Shift);
 			alt   = editor.key_check_gvb(GVB::Alt);
+		}
+		
+		if(allow_navigation && @_navigable != null && @keyboard_focus_manager != null)
+		{
+			const NavigateOn navigate_on = _navigable.navigate_on;
+			
+			if(navigation::consume(editor, navigate_on, NavigateOn::Tab, GVB::Tab, consume_gvb))
+			{
+				navigate();
+			}
+			else if(ctrl && navigation::consume(editor, navigate_on, NavigateOn::CtrlReturn, GVB::Return, consume_gvb))
+			{
+				navigate();
+			}
+			else if(!ctrl && navigation::consume(editor, navigate_on, NavigateOn::Return, GVB::Return, consume_gvb))
+			{
+				navigate();
+			}
 		}
 		
 		for(int i = num_vk_up - 1; i >= 0; i--)
@@ -125,6 +157,11 @@ class Keyboard
 				continue;
 			
 			gvb_up[i] = gvb_up[--num_gvb_up];
+			
+			if(consume_gvb)
+			{
+				editor.key_clear_gvb(key);
+			}
 			
 			if(pressed_key != -1)
 			{
@@ -257,6 +294,13 @@ class Keyboard
 		num_gvb_up = 0;
 		
 		pressed_key = -1;
+	}
+	
+	private void navigate()
+	{
+		@keyboard_focus_manager.focus = cast<IKeyboardFocus@>(shift
+			? _navigable.previous_navigable(@_navigable)
+			: _navigable.next_navigable(@_navigable));
 	}
 	
 }

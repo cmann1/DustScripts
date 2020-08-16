@@ -2,10 +2,11 @@
 #include '../../enums/GVB.cpp';
 #include '../../editor/common.cpp';
 #include '../../input/Keyboard.cpp';
+#include '../../input/navigation/INavigable.cpp';
 #include '../../string.cpp';
 #include 'Element.cpp';
 
-class TextBox : Element, IStepHandler, IKeyboardFocus
+class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 {
 	
 	// TODO: Set to empty
@@ -65,6 +66,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus
 	protected int persist_caret_time;
 	
 	protected bool focused;
+	protected NavigationGroup@ _navigation_parent;
+	protected NavigateOn _navigate_on = NavigateOn(NavigateOn::Inherit | NavigateOn::Tab | (_multi_line ? NavigateOn::CtrlReturn : NavigateOn::Return));
 	
 	protected bool drag_selection;
 	protected int double_click_start_index = -1;
@@ -129,6 +132,18 @@ class TextBox : Element, IStepHandler, IKeyboardFocus
 			
 			_multi_line = value;
 			update_line_endings();
+			
+			if(_multi_line)
+			{
+				if((_navigate_on | NavigateOn::Return) != 0)
+				{
+					_navigate_on = NavigateOn((_navigate_on & ~NavigateOn::Return) | NavigateOn::CtrlReturn);
+				}
+			}
+			else if((_navigate_on | NavigateOn::CtrlReturn) != 0)
+			{
+				_navigate_on = NavigateOn((_navigate_on & ~NavigateOn::CtrlReturn) | NavigateOn::Return);
+			}
 		}
 	}
 	
@@ -862,6 +877,33 @@ class TextBox : Element, IStepHandler, IKeyboardFocus
 			return _text_height;
 		
 		return (real_line_height * text_scale + _line_spacing) * line_index;
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// INavigable
+	// ///////////////////////////////////////////////////////////////////
+	
+	/// Internal - don't set explicitly.
+	NavigationGroup@ navigation_parent
+	{
+		get { return @_navigation_parent; }
+		set { @_navigation_parent = @value; }
+	}
+	
+	NavigateOn navigate_on
+	{
+		get const { return navigation::get(_navigate_on, _navigation_parent); }
+		set { _navigate_on = value; }
+	}
+	
+	INavigable@ previous_navigable(INavigable@ from)
+	{
+		return @_navigation_parent != null ? _navigation_parent.previous_navigable(@this) : null;
+	}
+	
+	INavigable@ next_navigable(INavigable@ from)
+	{
+		return @_navigation_parent != null ? _navigation_parent.next_navigable(@this) : null;
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
