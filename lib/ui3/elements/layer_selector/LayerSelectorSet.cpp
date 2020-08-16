@@ -895,9 +895,23 @@ class LayerSelectorSet : Container
 			end_index = start_index_t;
 		}
 		
+		int update_count = 0;
+		
 		for(int i = start_index; i <= end_index; i++)
 		{
-			checkboxes[active_indices[i]].checked = previous_select_checked;
+			Checkbox@ checkbox = @checkboxes[active_indices[i]];
+			
+			if(checkbox.checked == previous_select_checked)
+				continue;
+			
+			checkbox.checked = previous_select_checked;
+			update_count++;
+		}
+		
+		if(update_count > 0)
+		{
+			update_toggle_all_checkbox();
+			ui._dispatch_event(@select_event, select_event_type, layer_selector);
 		}
 	}
 	
