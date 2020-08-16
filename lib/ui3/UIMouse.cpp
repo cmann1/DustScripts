@@ -1,4 +1,4 @@
-#include '../Mouse.cpp';
+#include '../input/Mouse.cpp';
 
 class UIMouse : Mouse
 {

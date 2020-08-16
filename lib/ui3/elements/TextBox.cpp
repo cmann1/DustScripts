@@ -1,10 +1,11 @@
 #include '../../enums/VK.cpp';
 #include '../../enums/GVB.cpp';
 #include '../../editor/common.cpp';
+#include '../../input/Keyboard.cpp';
 #include '../../string.cpp';
 #include 'Element.cpp';
 
-class TextBox : Element, IStepHandler
+class TextBox : Element, IStepHandler, IKeyboardFocus
 {
 	
 	// TODO: Set to empty
@@ -16,7 +17,7 @@ class TextBox : Element, IStepHandler
 		'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n'
 		'Fusce finibus purus in mauris iaculis, in luctus dolor consequat. Fusce finibus purus in mauris iaculis, in luctus dolor consequat.\n'
 		'This is a     really ,,|;,really./\\[] long line of text!!\n'
-		'The quick brown fox jumped over the lazy dog.\n';
+		'The quick brown fox jumped over the lazy dog.';
 	// TODO: Set to false
 	protected bool _multi_line = true;
 	protected bool _smart_home = true;
@@ -37,7 +38,10 @@ class TextBox : Element, IStepHandler
 	/// The actual line height in pixels
 	protected float real_line_height;
 	protected array<float>@ font_metrics;
-	protected float padding;
+	protected float padding_left;
+	protected float padding_right;
+	protected float padding_top;
+	protected float padding_bottom;
 	protected float text_scale;
 	protected int first_char_index;
 	protected int last_char_index;
@@ -60,10 +64,20 @@ class TextBox : Element, IStepHandler
 	protected float caret_line_x;
 	protected int persist_caret_time;
 	
+	protected bool focused;
+	
 	protected bool drag_selection;
 	protected int double_click_start_index = -1;
 	protected int double_click_end_index = -1;
 	protected bool scrolled;
+	
+	protected bool drag_scroll;
+	protected float drag_scroll_start_x;
+	protected float drag_scroll_start_y;
+	protected float drag_mouse_x_start;
+	protected float drag_mouse_y_start;
+	
+	protected bool step_registered;
 	
 	TextBox(UI@ ui, const string font='', const uint size=0)
 	{
@@ -83,8 +97,6 @@ class TextBox : Element, IStepHandler
 		ui.get_font_metrics(_font, _size, @font_metrics, real_line_height);
 		
 		update_line_endings();
-		step_registered = true;
-		ui._step_subscribe(this);
 	}
 	
 	string element_type { get const { return 'TextBox'; } }
@@ -500,8 +512,8 @@ class TextBox : Element, IStepHandler
 	/// will be scrolled when the caret is not in view horizontally
 	void scroll_into_view(const float x1, const float y1, const float x2, const float y2, const int padding_x=0)
 	{
-		const float view_width  = _width  - padding * 2;
-		const float view_height = _height - padding * 2;
+		const float view_width  = _width  - padding_left - padding_right;
+		const float view_height = _height - padding_top - padding_bottom;
 		
 		if(_scroll_x + x1 < 0)
 		{
@@ -691,8 +703,8 @@ class TextBox : Element, IStepHandler
 	/// taking the current scroll position into account.
 	void get_relative_xy(const float global_x, const float global_y, float &out x, float &out y)
 	{
-		x = global_x - x1 - padding - _scroll_x;
-		y = global_y - y1 - padding - _scroll_y;
+		x = global_x - x1 - padding_left - _scroll_x;
+		y = global_y - y1 - padding_top - _scroll_y;
 	}
 	
 	/// Returns the closest line index at the given y value.
@@ -746,7 +758,7 @@ class TextBox : Element, IStepHandler
 	{
 		if(!relative)
 		{
-			y = y - y1 - padding - _scroll_y;
+			y = y - y1 - padding_top - _scroll_y;
 		}
 		
 		return clamp(floor_int((y + _line_spacing * 0.25) / (real_line_height * text_scale + _line_spacing)), 0, _num_lines - 1);
@@ -858,30 +870,20 @@ class TextBox : Element, IStepHandler
 	
 	bool ui_step() override
 	{
-//		step_registered = false;
+		step_registered = false;
 		
-		if(_debug_drag)
+		if(drag_scroll)
 		{
 			if(ui.mouse.secondary_down)
 			{
-				scroll_x = _scroll_x + ui.mouse.delta_x;
-				scroll_y = _scroll_y + ui.mouse.delta_y;
+				scroll_x = drag_scroll_start_x + ui.mouse.x - drag_mouse_x_start;
+				scroll_y = drag_scroll_start_y + ui.mouse.y - drag_mouse_y_start;
 				step_registered = true;
 			}
 			else
 			{
-				_debug_drag = false;
+				drag_scroll = false;
 			}
-		}
-		
-		if(ui.mouse.middle_press)
-		{
-			puts('"' + selection + '"');
-		}
-		
-		if(ui.mouse.right_down)
-		{
-//			puts(get_index_at(ui.mouse.x, ui.mouse.y, false, false));
 		}
 		
 		if(drag_selection)
@@ -902,42 +904,16 @@ class TextBox : Element, IStepHandler
 			
 			step_registered = true;
 		}
-		else if(ui._has_editor)
-		{
-			// Arrow keys
-			// TODO: KeyboardInput manager will check all modifier keys by default
-			if(editor_api::consume_gvb_press(ui._editor, GVB::LeftArrow))
-			{
-				move_caret_left(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift), true);
-			}
-			else if(editor_api::consume_gvb_press(ui._editor, GVB::RightArrow))
-			{
-				move_caret_right(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift), true);
-			}
-			else if(editor_api::consume_gvb_press(ui._editor, GVB::UpArrow))
-			{
-				move_caret_up(ui._editor.key_check_gvb(GVB::Shift), true);
-			}
-			else if(editor_api::consume_gvb_press(ui._editor, GVB::DownArrow))
-			{
-				move_caret_down(ui._editor.key_check_gvb(GVB::Shift), true);
-			}
-			else if(ui._editor.key_check_pressed_vk(VK::Home))
-			{
-				move_caret_home(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift), true);
-			}
-			else if(ui._editor.key_check_pressed_vk(VK::End))
-			{
-				move_caret_end(ui._editor.key_check_gvb(GVB::Control), ui._editor.key_check_gvb(GVB::Shift), true);
-			}
-		}
 		
 		return step_registered;
 	}
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		padding = ui.style.spacing;
+		padding_left	= ui.style.spacing;
+		padding_right	= ui.style.spacing + 1;
+		padding_top		= ui.style.spacing + ui.style.selection_padding_top;
+		padding_bottom	= ui.style.spacing + ui.style.selection_padding_bottom + 1;
 		text_scale = ui.style.default_text_scale;
 		
 		visible_lines.resize(0);
@@ -949,11 +925,9 @@ class TextBox : Element, IStepHandler
 		
 		float y = 0;
 		int line_start_index = 0;
-		const float available_width  = _width  - padding * 2;
-		const float available_height = _height - padding * 2;
+		const float available_width  = _width  - padding_left - padding_right;
+		const float available_height = _height - padding_top - padding_bottom;
 		
-		// TODO: Check UI focus
-		const bool focused = true;
 		const float scroll_x = this._scroll_x;
 		const float scroll_y = this._scroll_y;
 		const float text_scale = this.text_scale;
@@ -1178,10 +1152,7 @@ class TextBox : Element, IStepHandler
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		// TODO: Check UI focus
-		const bool focused = true;
-		
-		const uint border_clr = style.get_interactive_element_border_colour(hovered, false, false, disabled);
+		const uint border_clr = style.get_interactive_element_border_colour(hovered, focused, focused, disabled);
 		
 		const uint bg_clr = style.get_interactive_element_background_colour(false, false, false, disabled, true);
 		const float inset = border_clr != 0 ? max(0, style.border_size) : 0;
@@ -1193,21 +1164,24 @@ class TextBox : Element, IStepHandler
 			0, bg_clr);
 		
 		// Border
-		if(border_clr != 0 && style.border_size > 0)
+		const float border_size = focused ? style.selected_border_size : style.border_size;
+		
+		if(border_clr != 0 && border_size > 0)
 		{
 			style.outline(
 				x1, y1,
 				x2, y2,
-				style.border_size, border_clr);
+				border_size, border_clr);
 		}
 		
 		float text_scale = this.text_scale;
 		const float line_height = real_line_height * text_scale;
-		float x = x1 + padding + _scroll_x;
-		float y = y1 + padding + _scroll_y + first_visible_line * (line_height + _line_spacing);
+		float x = x1 + padding_left + _scroll_x;
+		float y = y1 + padding_top + _scroll_y + first_visible_line * (line_height + _line_spacing);
 		int selection_index = 0;
 		const bool draw_selection = _selection_start != _selection_end;
 		
+		// TODO: Take this into account when in all util methods that conver between position <--> line/index
 		if(!multi_line)
 		{
 			y = y1 + (_height - line_height) * 0.5;
@@ -1281,11 +1255,12 @@ class TextBox : Element, IStepHandler
 		}
 		
 		if(
+			focused &&
 			caret_line_index != -1 && caret_line_x >= 0 &&
 			((ui._frame % ui.style.caret_blink_rate) > ui.style.caret_blink_rate / 2 || persist_caret_time > 0)
 		)
 		{
-			y  = y1 + padding + _scroll_y + caret_line_index * (line_height + _line_spacing);
+			y  = y1 + padding_top + _scroll_y + caret_line_index * (line_height + _line_spacing);
 			x += caret_line_x - _scroll_x;
 			
 			style.draw_rectangle(
@@ -1461,40 +1436,41 @@ class TextBox : Element, IStepHandler
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	// TODO: REMOVE
-	bool _debug_drag;
-	bool step_registered;
-	
 	void _mouse_press(const MouseButton button)
 	{
-		// TODO: REMOVE
-		if(button == ui.secondary_button)
+		@ui.focus = @this;
+		
+		if(button == ui.primary_button)
 		{
-			_debug_drag = true;
+			if(ui.mouse.primary_double_click)
+			{
+				start_boundary_drag_selection();
+			}
+			else
+			{
+				drag_selection = true;
+				do_drag_selection(ui._has_editor && ui._editor.key_check_gvb(GVB::Shift));
+			}
+			
 			step_registered = ui._step_subscribe(this, step_registered);
 		}
-		
-		if(button != ui.primary_button)
-			return;
-		
-		if(ui.mouse.primary_double_click)
+		else if(button == ui.secondary_button)
 		{
-			start_boundary_drag_selection();
+			drag_mouse_x_start = ui.mouse.x;
+			drag_mouse_y_start = ui.mouse.y;
+			drag_scroll_start_x = _scroll_x;
+			drag_scroll_start_y = _scroll_y;
+			drag_scroll = true;
+			
+			step_registered = ui._step_subscribe(this, step_registered);
 		}
-		else
-		{
-			drag_selection = true;
-			do_drag_selection(ui._has_editor && ui._editor.key_check_gvb(GVB::Shift));
-		}
-		
-		step_registered = ui._step_subscribe(this, step_registered);
 	}
 	
 	void _mouse_release(const MouseButton button)
 	{
 		if(button == ui.primary_button)
 		{
-			_debug_drag = false;
+			drag_scroll = false;
 		}
 		
 		if(button != ui.primary_button)
@@ -1507,8 +1483,62 @@ class TextBox : Element, IStepHandler
 	
 	void _mouse_scroll(const int scroll_dir)
 	{
-		scroll_y -= scroll_dir * real_line_height * text_scale + _line_spacing;
+		scroll_y -= scroll_dir * (real_line_height * text_scale + _line_spacing);
 		scrolled = true;
 	}
+	
+	void on_focus(Keyboard@ keyboard) override
+	{
+		focused = true;
+		keyboard.update_modifiers = true;
+		keyboard.register_arrows_gvb();
+		keyboard.register_vk(VK::End, VK::Home);
+	}
+	
+	void on_blur(Keyboard@ keyboard) override
+	{
+		focused = false;
+	}
+	
+	void on_key_press(Keyboard@ keyboard, const int key, const bool is_gvb)
+	{
+		on_key(keyboard, key, is_gvb);
+	}
+	
+	void on_key(Keyboard@ keyboard, const int key, const bool is_gvb)
+	{
+		if(is_gvb)
+		{
+			switch(key)
+			{
+				case GVB::LeftArrow:
+					move_caret_left(ui.keyboard.ctrl, ui.keyboard.shift, true);
+					break;
+				case GVB::RightArrow:
+					move_caret_right(ui.keyboard.ctrl, ui.keyboard.shift, true);
+					break;
+				case GVB::UpArrow:
+					move_caret_up(ui.keyboard.shift, true);
+					break;
+				case GVB::DownArrow:
+					move_caret_down(ui.keyboard.shift, true);
+					break;
+			}
+		}
+		else
+		{
+			switch(key)
+			{
+				case VK::Home:
+					move_caret_home(ui.keyboard.ctrl, ui.keyboard.shift, true);
+					break;
+				case VK::End:
+					move_caret_end(ui.keyboard.ctrl, ui.keyboard.shift, true);
+					break;
+			}
+		}
+	}
+	
+	void on_key_release(Keyboard@ keyboard, const int key, const bool is_gvb) { }
 	
 }

@@ -3,6 +3,7 @@
 #include '../fonts.cpp';
 #include '../editor/common.cpp';
 #include '../enums/GVB.cpp';
+#include '../input/Keyboard.cpp';
 #include '../math/math.cpp';
 #include '../utils/colour.cpp';
 #include 'UIMouse.cpp';
@@ -36,6 +37,7 @@ class UI
 	
 	Style@ style;
 	UIMouse@ mouse;
+	Keyboard@ keyboard;
 	bool block_editor_input = true;
 	
 	/// Only relevant when hud = true. When true, certain drawing operations
@@ -93,6 +95,8 @@ class UI
 	private array<Element@> elements_mouse_enter();
 	/// The hierarchy of elements the mouse is over, from the outermost to the inner
 	private array<Element@> elements_mouse_over();
+	
+	private Element@ _focused_element;
 	
 	private Element@ debug_mouse_over_element;
 	private bool debug_draw_active;
@@ -193,6 +197,11 @@ class UI
 		@_editor = get_editor_api();
 		_has_editor = @_editor != null;
 		
+		if(_has_editor)
+		{
+			@keyboard = Keyboard();
+		}
+		
 		@_camera = get_active_camera();
 		
 		this.hud = hud;
@@ -205,7 +214,7 @@ class UI
 		
 		if(_hud && _auto_fit_screen)
 		{
-			fit_to_screen_internal(true);
+			fit_to_screen_internal();
 		}
 	}
 	
@@ -234,7 +243,7 @@ class UI
 			
 			if(_hud && _auto_fit_screen)
 			{
-				fit_to_screen_internal(true);
+				fit_to_screen_internal();
 			}
 		}
 	}
@@ -266,7 +275,7 @@ class UI
 			
 			if(_hud && _auto_fit_screen)
 			{
-				fit_to_screen_internal(true);
+				fit_to_screen_internal();
 			}
 		}
 	}
@@ -297,6 +306,42 @@ class UI
 	{
 		get const { return _auto_fit_padding_bottom; }
 		set { _auto_fit_padding_bottom = update_auto_fit_padding(_auto_fit_padding_bottom, value); }
+	}
+	
+	IKeyboardFocus@ focus
+	{
+		get { return @keyboard != null ? @keyboard.focus : null; }
+		set
+		{
+			if(@keyboard == null)
+				return;
+			
+			Element@ previous = @_focused_element;
+			@keyboard.focus = @value;
+			@_focused_element = @keyboard._focus != null ? cast<Element@>(@value) : null;
+			
+			if(@previous != @_focused_element && @_focused_element != null && @_focused_element.parent != null)
+			{
+				@_focused_element.parent.scroll_into_view = @_focused_element;
+			}
+		}
+	}
+	
+	Element@ focused_element
+	{
+		get { return @_focused_element; }
+		set
+		{
+			if(@keyboard == null)
+				return;
+			
+			IKeyboardFocus@ keyboard_focus = cast<IKeyboardFocus@>(@value);
+			
+			if(@keyboard_focus != null)
+			{
+				@focus = keyboard_focus;
+			}
+		}
 	}
 	
 	bool add_child(Element@ child)
@@ -383,7 +428,7 @@ class UI
 		}
 		
 		/*
-		 * Update mouse
+		 * Update mouse and keyboard
 		 */
 		
 		const bool block_mouse = _has_editor && (!_hud && _editor.mouse_in_gui() || _editor.key_check_gvb(GVB::Space));
@@ -428,6 +473,24 @@ class UI
 				mouse.secondary_press = mouse.right_press;
 				mouse.secondary_release = mouse.right_release;
 				break;
+		}
+		
+		if(@keyboard != null)
+		{
+			if(@_focused_element != null)
+			{
+				if(
+					!_focused_element.visible ||
+					((mouse.left_press || mouse.middle_press || mouse.right_press) && !_focused_element.check_mouse()) ||
+					(!contents.contains(@_focused_element) && !overlays.contains(@_focused_element))
+				)
+				{
+					@keyboard.focus = null;
+					@_focused_element = null;
+				}
+			}
+			
+			keyboard.step();
 		}
 		
 		/*
@@ -552,7 +615,7 @@ class UI
 	
 	void fit_to_screen()
 	{
-		fit_to_screen_internal(true);
+		fit_to_screen_internal();
 	}
 	
 	/// Shows the tooltip for the given element if it has one.
@@ -1761,9 +1824,15 @@ class UI
 		
 		if(@container != null)
 		{
-			debug.print(indent +     'scroll: ' +
+			debug.print(indent +     'content rect: ' +
 				container.scroll_min_x + ', ' + container.scroll_min_y + '  ' +
 				container.scroll_max_x + ', ' + container.scroll_max_y, txt_clr, print_id + id++, 0);
+		}
+		
+		if(debug_el._scroll_x != 0 || debug_el._scroll_y != 0)
+		{
+			debug.print(indent +     'scroll: ' +
+				debug_el._scroll_x + ', ' + debug_el._scroll_y, txt_clr, print_id + id++, 0);
 		}
 		
 		if(debug_el.x1 != debug_el._x || debug_el.y1 != debug_el._y)
@@ -1816,7 +1885,7 @@ class UI
 	// Private
 	// ///////////////////////////////////////////////////////////////////
 	
-	private void fit_to_screen_internal(bool update_screen_values=false)
+	private void fit_to_screen_internal()
 	{
 		if(!_hud)
 			return;
@@ -1824,13 +1893,10 @@ class UI
 		const float new_screen_width  = g.hud_screen_width(false);
 		const float new_screen_height = g.hud_screen_height(false);
 		 
-		 if(update_screen_values)
-		 {
-			_screen_width  = new_screen_width;
-			_screen_height = new_screen_height;
-			_even_screen_width  = (_screen_width % 2) == 0;
-			_even_screen_height = (_screen_height % 2) == 0;
-		 }
+		_screen_width  = new_screen_width;
+		_screen_height = new_screen_height;
+		_even_screen_width  = (_screen_width % 2) == 0;
+		_even_screen_height = (_screen_height % 2) == 0;
 		
 		set_region(
 			-new_screen_width * 0.5 + auto_fit_padding_left,  -new_screen_height * 0.5 + auto_fit_padding_top,
@@ -1844,7 +1910,7 @@ class UI
 		
 		if(_hud && _auto_fit_screen)
 		{
-			fit_to_screen_internal(true);
+			fit_to_screen_internal();
 		}
 		
 		return new_value;

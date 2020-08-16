@@ -219,12 +219,43 @@ class Container : Element
 		get { return num_children > 0 ? @children[num_children - 1] : null; }
 	}
 	
+	Element@ previous_sibling(Element@ child)
+	{
+		if(@child == null)
+			return null;
+		
+		int index = children.findByRef(@child);
+		
+		if(index <= 0)
+			return null;
+		
+		return @children[index - 1];
+	}
+	
+	Element@ next_sibling(Element@ child)
+	{
+		if(@child == null)
+			return null;
+		
+		int index = children.findByRef(@child);
+		
+		if(index == -1 || index == num_children - 1)
+			return null;
+		
+		return @children[index + 1];
+	}
+	
 	Element@ get_child(int index)
 	{
 		if(index < 0 || index >= num_children)
 			return null;
 		
 		return @children[index];
+	}
+	
+	int get_child_index(Element@ child)
+	{
+		return children.findByRef(@child);
 	}
 	
 	int child_count { get const { return num_children; } }
@@ -275,27 +306,30 @@ class Container : Element
 			
 			if(@_scroll_into_view.parent == @this)
 			{
-				if(_scroll_into_view.x1 < x1 + ui.style.spacing)
+				if(_scroll_into_view.x1 < x1)
 				{
-					_scroll_x += x1 + ui.style.spacing - _scroll_into_view.x1;
+					_scroll_x += x1 - _scroll_into_view.x1;
 					scroll_changed = true;
 				}
-				else if(_scroll_into_view.x2 > x2 - ui.style.spacing)
+				else if(_scroll_into_view.x2 > x2)
 				{
-					_scroll_x += x2 - ui.style.spacing - _scroll_into_view.x2;
+					_scroll_x += x2 - _scroll_into_view.x2;
 					scroll_changed = true;
 				}
 				
-				if(_scroll_into_view.y1 < y1 + ui.style.spacing)
+				if(_scroll_into_view.y1 < y1)
 				{
-					_scroll_y += y1 + ui.style.spacing - _scroll_into_view.y1;
+					_scroll_y += y1 - _scroll_into_view.y1;
 					scroll_changed = true;
 				}
-				else if(_scroll_into_view.y2 > y2 - ui.style.spacing)
+				else if(_scroll_into_view.y2 > y2)
 				{
-					_scroll_y += y2 - ui.style.spacing - _scroll_into_view.y2;
+					_scroll_y += y2 - _scroll_into_view.y2;
 					scroll_changed = true;
 				}
+				
+				_scroll_x = clamp(_scroll_x, 0, -(scroll_max_x - _width));
+				_scroll_y = clamp(_scroll_y, 0, -(scroll_max_y - _height));
 			}
 			
 			_scrolled_into_view = scroll_changed;

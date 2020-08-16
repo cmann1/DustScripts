@@ -1,6 +1,6 @@
 #include '../std.cpp';
 #include '../fonts.cpp';
-#include '../Mouse.cpp';
+#include '../input/Mouse.cpp';
 #include '../drawing/canvas.cpp';
 #include '../math/math.cpp';
 #include 'DebugItemList.cpp';

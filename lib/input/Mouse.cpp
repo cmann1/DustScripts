@@ -1,6 +1,3 @@
-#include 'std.cpp';
-#include 'enums/GVB.cpp';
-
 class Mouse
 {
 	
@@ -54,11 +51,7 @@ class Mouse
 		this.hud = hud;
 		this.layer = layer;
 		this.player = player;
-		initialise();
-	}
-	
-	private void initialise()
-	{
+		
 		@g = get_scene();
 	}
 	
