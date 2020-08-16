@@ -16,7 +16,7 @@ class TextBox : Element, IStepHandler
 		'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n'
 		'Fusce finibus purus in mauris iaculis, in luctus dolor consequat. Fusce finibus purus in mauris iaculis, in luctus dolor consequat.\n'
 		'This is a     really ,,|;,really./\\[] long line of text!!\n'
-		'The quick brown fox jumped over the lazy dog.';
+		'The quick brown fox jumped over the lazy dog.\n';
 	// TODO: Set to false
 	protected bool _multi_line = true;
 	protected bool _smart_home = true;
@@ -79,7 +79,7 @@ class TextBox : Element, IStepHandler
 		
 		ui.get_font_metrics(_font, _size, @font_metrics, real_line_height);
 		
-		update();
+		update_line_endings();
 		step_registered = true;
 		ui._step_subscribe(this);
 	}
@@ -99,7 +99,7 @@ class TextBox : Element, IStepHandler
 				return;
 			
 			_text = value;
-			update();
+			update_line_endings();
 		}
 	}
 	
@@ -113,7 +113,7 @@ class TextBox : Element, IStepHandler
 				return;
 			
 			_multi_line = value;
-			update();
+			update_line_endings();
 		}
 	}
 	
@@ -134,7 +134,7 @@ class TextBox : Element, IStepHandler
 			
 			_font = value;
 			ui.get_font_metrics(_font, _size, @font_metrics, real_line_height);
-			update();
+			validate_layout = true;
 		}
 	}
 	 
@@ -148,7 +148,7 @@ class TextBox : Element, IStepHandler
 			
 			_size = value;
 			ui.get_font_metrics(_font, _size, @font_metrics, real_line_height);
-			update();
+			validate_layout = true;
 		}
 	}
 	
@@ -365,10 +365,13 @@ class TextBox : Element, IStepHandler
 	/// extend controls wether to move the caret, or extend the selection
 	void move_caret_home(const bool start, const bool extend)
 	{
-		const int line_start = get_line_start(_selection_end_line_index);
+		const int line_start = start
+			? 0
+			: get_line_start(_selection_end_line_index);
+		
 		int home_index = line_start;
 		
-		if(_smart_home)
+		if(_smart_home && !start)
 		{
 			const int line_end = get_line_end(_selection_end_line_index);
 			
@@ -410,7 +413,9 @@ class TextBox : Element, IStepHandler
 	/// extend controls wether to move the caret, or extend the selection
 	void move_caret_end(const bool end, const bool extend)
 	{
-		const int line_end = get_line_end(_selection_end_line_index);
+		const int line_end = end
+			? _text_length
+			: get_line_end(_selection_end_line_index);
 		
 		if(extend)
 		{
@@ -619,6 +624,8 @@ class TextBox : Element, IStepHandler
 		const float available_width  = _width  - padding * 2;
 		const float available_height = _height - padding * 2;
 		
+		// TODO: Check UI focus
+		const bool focused = true;
 		const float scroll_x = this._scroll_x;
 		const float scroll_y = this._scroll_y;
 		const float text_scale = this.text_scale;
@@ -682,14 +689,15 @@ class TextBox : Element, IStepHandler
 		const int first_char_index = this.first_char_index;
 		const int last_char_index = this.last_char_index;
 		
-		for(int i = first_visible_line; i < _num_lines; i++)
+		for(int line_index = first_visible_line; line_index < _num_lines; line_index++)
 		{
 			if(y + line_height > available_height)
 				break;
 			
 			const int current_line_start_index = line_start_index;
-			const int line_end_index = line_end_indices[i];
+			const int line_end_index = line_end_indices[line_index];
 			
+			// This will include the newline, so for all lines execpt the last, this will always be >= 1
 			string line_text = _text.substr(line_start_index, line_end_index - line_start_index + 1);
 			const int line_length = int(line_text.length());
 			
@@ -697,6 +705,8 @@ class TextBox : Element, IStepHandler
 			y += line_height + _line_spacing;
 			line_start_index = line_end_index + 1;
 			
+			/////////////////////////////////////////////////////////////
+			// The last line is empty 
 			if(line_length == 0)
 			{
 				visible_lines.insertLast('');
@@ -705,12 +715,18 @@ class TextBox : Element, IStepHandler
 				
 				if(
 					scroll_x >= 0 &&
-					current_line_start_index >= _selection_start && current_line_start_index < _selection_end ||
-					current_line_start_index >= _selection_end   && current_line_start_index < _selection_start
+					current_line_start_index >= _selection_start && current_line_start_index <= _selection_end ||
+					current_line_start_index >= _selection_end   && current_line_start_index <= _selection_start
 				)
 				{
 					visible_lines_selection.insertLast(0);
 					visible_lines_selection.insertLast(0);
+					
+					if(current_line_start_index == _selection_end)
+					{
+						caret_line_index = line_index;
+						caret_line_x = scroll_x;
+					}
 				}
 				else
 				{
@@ -720,6 +736,7 @@ class TextBox : Element, IStepHandler
 				
 				continue;
 			}
+			/////////////////////////////////////////////////////////////
 			
 			int start_index = 0;
 			int end_index = 0;
@@ -732,6 +749,9 @@ class TextBox : Element, IStepHandler
 			float line_selection_start = NAN;
 			float line_selection_end   = NAN;
 			
+			/////////////////////////////////////////////////////////////
+			// Loop through each character in this line to find the first and last visible character.
+			// Also find the visible selection bounds for drawing
 			for(int j = 0; j < line_length; j++)
 			{
 				const int chr = int(line_text[j]);
@@ -739,14 +759,27 @@ class TextBox : Element, IStepHandler
 					? font_metrics[chr - first_char_index] * text_scale
 					: 0;
 				
-				if(chr_index == _selection_end)
+				/////////////////////////////////////////
+				// Check the caret position
+				if(focused)
 				{
-					caret_line_index = i;
-					caret_line_x = x + line_width;
+					if(chr_index == _selection_end)
+					{
+						caret_line_index = line_index;
+						caret_line_x = x + line_width;
+					}
+					// Special case for the when the caret is at the very end of the text
+					else if(_selection_end == _text_length && line_index == _num_lines - 1 && chr_index == _text_length - 1)
+					{
+						caret_line_index = line_index;
+						caret_line_x = x + line_width + chr_width;
+					}
 				}
 				
 				line_width += chr_width;
 				
+				/////////////////////////////////////////////////////
+				// Check the selection bounds for this line
 				if(
 					chr_index >= _selection_start && chr_index < _selection_end ||
 					chr_index >= _selection_end   && chr_index < _selection_start
@@ -760,7 +793,11 @@ class TextBox : Element, IStepHandler
 						: x + line_width;
 					
 					// Add some extra to display a selected newline
-					if(chr_index == current_line_start_index + line_length - 1 && (chr_index + 1 <= _selection_start || chr_index + 1 <= _selection_end))
+					if(
+						chr_index == current_line_start_index + line_length - 1 &&
+						(chr_index + 1 <= _selection_start || chr_index + 1 <= _selection_end) &&
+						line_index < _num_lines - 1
+					)
 					{
 						line_selection_end += 6;
 					}
@@ -780,6 +817,8 @@ class TextBox : Element, IStepHandler
 				
 				chr_index++;
 			}
+			// End for - character loop
+			////////////////////////////////////////////
 			
 			if(
 				!is_nan(line_selection_start) && !is_nan(line_selection_end) &&
@@ -910,6 +949,7 @@ class TextBox : Element, IStepHandler
 			persist_caret--;
 		}
 		
+		// TODO: Check focus
 		if(
 			caret_line_index != -1 && caret_line_x >= 0 &&
 			((ui._frame % ui.style.caret_blink_rate) > ui.style.caret_blink_rate / 2 || persist_caret > 0)
@@ -927,7 +967,7 @@ class TextBox : Element, IStepHandler
 		}
 	}
 	
-	protected void update()
+	protected void update_line_endings()
 	{
 		int line_start_index = 0;
 		_num_lines = 0;
