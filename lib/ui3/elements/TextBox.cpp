@@ -61,6 +61,9 @@ class TextBox : Element, IStepHandler
 	protected int persist_caret_time;
 	
 	protected bool drag_selection;
+	protected int double_click_start_index = -1;
+	protected int double_click_end_index = -1;
+	protected bool scrolled;
 	
 	TextBox(UI@ ui, const string font='', const uint size=0)
 	{
@@ -551,12 +554,12 @@ class TextBox : Element, IStepHandler
 		get const { return real_line_height * text_scale; }
 	}
 	
-	/// Finds the index of the nearest word boundary from start in direction dir.
-	int find_word_boundary(const int start, int dir)
+	/// Finds the index of the nearest word boundary from start_index in direction dir.
+	int find_word_boundary(const int start_index, int dir)
 	{
 		dir = dir >= 0 ? 1 : -1;
 		const int end = dir == 1 ? _text_length : -1;
-		int chr_index = dir == 1 ? start : max_int(0, start - 1);
+		int chr_index = dir == 1 ? start_index : max_int(0, start_index - 1);
 		// 0 = whitespace
 		// 1 = punctuation
 		// 2 = alphanumeric
@@ -593,6 +596,62 @@ class TextBox : Element, IStepHandler
 				
 				chr_type = new_chr_type;
 			}
+			
+			chr_index += dir;
+		}
+		
+		if(dir == -1)
+		{
+			chr_index++;
+		}
+		
+		return chr_index;
+	}
+	
+	/// Finds the next boundary starting from index in direction
+	int expand_to_boundary(const int start_index, int dir)
+	{
+		if(start_index <= 0)
+			return 0;
+		if(start_index >= _text_length)
+			return _text_length;
+		
+		dir = dir >= 0 ? 1 : -1;
+		const int end = dir == 1 ? _text_length : -1;
+		int chr_index = start_index;
+		int chr = _text[chr_index];
+		// 0 = whitespace
+		// 1 = punctuation
+		// 2 = alphanumeric
+		// 3 = newline
+		int chr_type = (chr == 10 || chr == 13) ? 3 : string::is_whitespace(chr) ? 0 : string::is_punctuation(chr) ? 1 : string::is_alphanumeric(chr) ? 2 : -1;
+		
+		if(chr_type == 3)
+		{
+			const int line_index = get_line_at_index(start_index);
+			const int line_start_index = get_line_start(line_index);
+			const int line_end_index = get_line_end(line_index);
+			
+			// if we're at teh end of the line, instead expand based on the last non newline character on this line
+			if(line_start_index != line_end_index)
+			{
+				chr_index = max_int(chr_index - 1, 0);
+				chr = _text[chr_index];
+				chr_type = (chr == 10 || chr == 13) ? 3 : string::is_whitespace(chr) ? 0 : string::is_punctuation(chr) ? 1 : string::is_alphanumeric(chr) ? 2 : -1;
+			}
+			else
+			{
+				return start_index;
+			}
+		}
+		
+		while(chr_index != end)
+		{
+			chr = _text[chr_index];
+			const int new_chr_type = (chr == 10 || chr == 13) ? 3 : string::is_whitespace(chr) ? 0 : string::is_punctuation(chr) ? 1 : string::is_alphanumeric(chr) ? 2 : -1;
+			
+			if(new_chr_type != chr_type || new_chr_type == 3)
+				break;
 			
 			chr_index += dir;
 		}
@@ -650,6 +709,9 @@ class TextBox : Element, IStepHandler
 		const int line_index = get_line_at_y(y);
 		const int line_start = get_line_start(line_index);
 		const int line_end   = get_line_end(line_index);
+		
+		if(x <= 0)
+			return line_start;
 		
 		int index = line_start;
 		float width = 0;
@@ -824,9 +886,18 @@ class TextBox : Element, IStepHandler
 		
 		if(drag_selection)
 		{
-			if(ui.mouse.moved)
+			if(ui.mouse.moved || scrolled)
 			{
-				do_drag_selection();
+				if(double_click_start_index == -1)
+				{
+					do_drag_selection();
+				}
+				else
+				{
+					do_boundary_drag_selection();
+				}
+				
+				scrolled = false;
 			}
 			
 			step_registered = true;
@@ -874,6 +945,7 @@ class TextBox : Element, IStepHandler
 		visible_lines_selection.resize(0);
 		num_visible_lines = 0;
 		caret_line_index = -1;
+		scrolled = false;
 		
 		float y = 0;
 		int line_start_index = 0;
@@ -1336,6 +1408,50 @@ class TextBox : Element, IStepHandler
 		persist_caret();
 	}
 	
+	protected void start_boundary_drag_selection()
+	{
+		const int caret_index = get_index_at(ui.mouse.x, ui.mouse.y, false, false);
+		double_click_start_index = expand_to_boundary(caret_index, -1);
+		double_click_end_index   = expand_to_boundary(caret_index,  1);
+		selection_start = double_click_start_index;
+		selection_end = double_click_end_index;
+		
+		if(validate_layout)
+		{
+			update_selection_line_indices();
+			_line_relative_caret_index = -1;
+			this.scroll_to_caret(0);
+		}
+		
+		drag_selection = true;
+		persist_caret();
+	}
+	
+	protected void do_boundary_drag_selection()
+	{
+		const int caret_index = get_index_at(ui.mouse.x, ui.mouse.y, false, false);
+		
+		if(caret_index > double_click_start_index)
+		{
+			selection_start = double_click_start_index;
+			selection_end = expand_to_boundary(caret_index,  1);
+		}
+		else
+		{
+			selection_start = double_click_end_index;
+			selection_end = expand_to_boundary(caret_index,  -1);
+		}
+		
+		if(validate_layout)
+		{
+			update_selection_line_indices();
+			_line_relative_caret_index = -1;
+			this.scroll_to_caret(0);
+		}
+		
+		persist_caret();
+	}
+	
 	protected void persist_caret()
 	{
 		persist_caret_time = ui.style.caret_blink_rate;
@@ -1361,8 +1477,15 @@ class TextBox : Element, IStepHandler
 		if(button != ui.primary_button)
 			return;
 		
-		drag_selection = true;
-		do_drag_selection(ui._has_editor && ui._editor.key_check_gvb(GVB::Shift));
+		if(ui.mouse.primary_double_click)
+		{
+			start_boundary_drag_selection();
+		}
+		else
+		{
+			drag_selection = true;
+			do_drag_selection(ui._has_editor && ui._editor.key_check_gvb(GVB::Shift));
+		}
 		
 		step_registered = ui._step_subscribe(this, step_registered);
 	}
@@ -1378,11 +1501,14 @@ class TextBox : Element, IStepHandler
 			return;
 		
 		drag_selection = false;
+		double_click_start_index = -1;
+		double_click_end_index = -1;
 	}
 	
 	void _mouse_scroll(const int scroll_dir)
 	{
-		scroll_x -= scroll_dir;// * 10;
+		scroll_y -= scroll_dir * real_line_height * text_scale + _line_spacing;
+		scrolled = true;
 	}
 	
 }

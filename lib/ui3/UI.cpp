@@ -395,16 +395,19 @@ class UI
 				mouse.primary_down = mouse.left_down;
 				mouse.primary_press = mouse.left_press;
 				mouse.primary_release = mouse.left_release;
+				mouse.primary_double_click = mouse.left_double_click;
 				break;
 			case MouseButton::Middle:
 				mouse.primary_down = mouse.middle_down;
 				mouse.primary_press = mouse.middle_press;
 				mouse.primary_release = mouse.middle_release;
+				mouse.primary_double_click = mouse.middle_double_click;
 				break;
 			case MouseButton::Right:
 				mouse.primary_down = mouse.right_down;
 				mouse.primary_press = mouse.right_press;
 				mouse.primary_release = mouse.right_release;
+				mouse.primary_double_click = mouse.right_double_click;
 				break;
 		}
 		

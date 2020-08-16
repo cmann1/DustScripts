@@ -8,6 +8,7 @@ class Mouse
 	int layer = 19;
 	int player = 0;
 	bool scale_hud = false;
+	int double_click_period = 30;
 	
 	bool moved;
 	
@@ -22,6 +23,10 @@ class Mouse
 	bool left_release;
 	bool right_release;
 	bool middle_release;
+	
+	bool left_double_click;
+	bool right_double_click;
+	bool middle_double_click;
 	
 	float x;
 	float y;
@@ -39,6 +44,10 @@ class Mouse
 	private bool prev_left_down;
 	private bool prev_right_down;
 	private bool prev_middle_down;
+	
+	private float left_double_click_timer;
+	private float right_double_click_timer;
+	private float middle_double_click_timer;
 	
 	Mouse(bool hud=true, int layer=19, int player=0)
 	{
@@ -67,6 +76,17 @@ class Mouse
 			y = g.mouse_y_world(player, layer);
 		}
 		
+		delta_x = x - prev_x;
+		delta_y = y - prev_y;
+		moved = delta_x != 0 || delta_y != 0;
+		
+		if(moved)
+		{
+			left_double_click_timer = double_click_period + 1;
+			right_double_click_timer = double_click_period + 1;
+			middle_double_click_timer = double_click_period + 1;
+		}
+		
 		state = g.mouse_state(0);
 		scroll = (state & 1 != 0) ? -1 : ((state & 2 != 0) ? 1 : 0);
 		
@@ -92,13 +112,28 @@ class Mouse
 		right_release = !right_down && prev_right_down;
 		middle_release = !middle_down && prev_middle_down;
 		
+		left_double_click = left_press && left_double_click_timer <= double_click_period;
+		right_double_click = right_press && right_double_click_timer <= double_click_period;
+		middle_double_click = middle_press && middle_double_click_timer <= double_click_period;
+		
+		if(left_press)
+			left_double_click_timer = 0;
+		else if(left_double_click_timer <= double_click_period)
+			left_double_click_timer++;
+		
+		if(right_press)
+			right_double_click_timer = 0;
+		else if(right_double_click_timer <= double_click_period)
+			right_double_click_timer++;
+		
+		if(middle_press)
+			middle_double_click_timer = 0;
+		else if(middle_double_click_timer <= double_click_period)
+			middle_double_click_timer++;
+		
 		prev_left_down = left_down;
 		prev_right_down = right_down;
 		prev_middle_down = middle_down;
-		
-		delta_x = x - prev_x;
-		delta_y = y - prev_y;
-		moved = delta_x != 0 || delta_y != 0;
 		
 		prev_x = x;
 		prev_y = y;
