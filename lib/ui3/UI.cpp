@@ -4,7 +4,7 @@
 #include '../editor/common.cpp';
 #include '../enums/GVB.cpp';
 #include '../input/Keyboard.cpp';
-#include '../input/IKeyboardFocusManager.cpp';
+#include '../input/IKeyboardFocusListener.cpp';
 #include '../math/math.cpp';
 #include '../utils/colour.cpp';
 #include 'UIMouse.cpp';
@@ -24,7 +24,7 @@
 #include 'elements/Popup.cpp';
 #include 'layouts/flow/FlowLayout.cpp';
 
-class UI : IKeyboardFocusManager
+class UI : IKeyboardFocusListener
 {
 	
 	int NEXT_ID;
@@ -317,14 +317,7 @@ class UI : IKeyboardFocusManager
 			if(@keyboard == null)
 				return;
 			
-			Element@ previous = @_focused_element;
-			@keyboard.focus = @value;
-			@_focused_element = @keyboard._focus != null ? cast<Element@>(@value) : null;
-			
-			if(@previous != @_focused_element && @_focused_element != null && @_focused_element.parent != null)
-			{
-				@_focused_element.parent.scroll_into_view = @_focused_element;
-			}
+			@keyboard.focus = value;
 		}
 	}
 	
@@ -340,7 +333,7 @@ class UI : IKeyboardFocusManager
 			
 			if(@keyboard_focus != null)
 			{
-				@focus = keyboard_focus;
+				@keyboard.focus = keyboard_focus;
 			}
 		}
 	}
@@ -2056,6 +2049,16 @@ class UI : IKeyboardFocusManager
 			_event_info.reset(EventType::CLOSE, layer_selector);
 			on_layer_select_close_callback(_event_info);
 			@on_layer_select_close_callback = null;
+		}
+	}
+	
+	void on_keyboard_focus_change(IKeyboardFocus@ focus)
+	{
+		@_focused_element = @keyboard._focus != null ? cast<Element@>(@focus) : null;
+		
+		if(@_focused_element != null && @_focused_element.parent != null)
+		{
+			@_focused_element.parent.scroll_into_view = @_focused_element;
 		}
 	}
 	

@@ -11,5 +11,7 @@ enum NavigateOn
 	Return		= 4,
 	/// Navigate when ctrl+return is pressed
 	CtrlReturn	= 8,
+	/// Remove focus when escape is pressed
+	Escape		= 16,
 	
 }

@@ -22,6 +22,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	// TODO: Set to false
 	protected bool _multi_line = true;
 	protected bool _smart_home = true;
+	protected bool _accept_on_blur = true;
+	protected bool _drag_scroll = true;
 	protected string _font;
 	protected uint _size;
 	
@@ -67,7 +69,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	
 	protected bool focused;
 	protected NavigationGroup@ _navigation_parent;
-	protected NavigateOn _navigate_on = NavigateOn(NavigateOn::Inherit | NavigateOn::Tab | (_multi_line ? NavigateOn::CtrlReturn : NavigateOn::Return));
+	protected NavigateOn _navigate_on = NavigateOn(Inherit | Tab | (_multi_line ? CtrlReturn : Return) | Escape);
 	
 	protected bool drag_selection;
 	protected int double_click_start_index = -1;
@@ -152,6 +154,20 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	{
 		get const { return _smart_home; }
 		set { _smart_home = value; }
+	}
+	
+	/// When this TextBox loses focus, accept the changes if true, otherwise cancel and revert.
+	bool accept_on_blur
+	{
+		get const { return _accept_on_blur; }
+		set { _accept_on_blur = value; }
+	}
+	
+	/// If true, dragging with right mouse will scroll the TextBox
+	bool drag_scroll
+	{
+		get const { return _drag_scroll; }
+		set { _drag_scroll = value; }
 	}
 	
 	string font
@@ -273,6 +289,17 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		}
 	}
 	
+	string selection
+	{
+		get const
+		{
+			return _selection_start < _selection_end
+				? _text.substr(_selection_start, _selection_end   - _selection_start)
+				: _text.substr(_selection_end,   _selection_start - _selection_end);
+		}
+	}
+	
+	/// Sets the selection from start to end. end can be smaller than start.
 	void select(int start, int end)
 	{
 		start = clamp(start, 0, _text_length);
@@ -286,14 +313,16 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		validate_layout = true;
 	}
 	
-	string selection
+	/// Selects all the text.
+	void select_all()
 	{
-		get const
-		{
-			return _selection_start < _selection_end
-				? _text.substr(_selection_start, _selection_end   - _selection_start)
-				: _text.substr(_selection_end,   _selection_start - _selection_end);
-		}
+		select(0, _text_length);
+	}
+	
+	/// Sets the selection to the selection end.
+	void select_none()
+	{
+		caret_index = _selection_end;
 	}
 	
 	/// If word is true moves to the next word boundary. extend controls wether to move the caret, or extend the selection
@@ -1496,7 +1525,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			
 			step_registered = ui._step_subscribe(this, step_registered);
 		}
-		else if(button == ui.secondary_button)
+		else if(_drag_scroll && button == ui.secondary_button)
 		{
 			drag_mouse_x_start = ui.mouse.x;
 			drag_mouse_y_start = ui.mouse.y;
@@ -1535,15 +1564,29 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		keyboard.update_modifiers = true;
 		keyboard.register_arrows_gvb();
 		keyboard.register_vk(VK::End, VK::Home);
+		keyboard.register_vk(VK::Digit0, VK::Z);
+		keyboard.register_vk(VK::Oem1, VK::Oem7);
+		keyboard.register_vk(VK::Numpad0, VK::Divide);
+		keyboard.register_vk(VK::Back);
+		keyboard.register_vk(VK::Delete);
 	}
 	
-	void on_blur(Keyboard@ keyboard) override
+	void on_blur(Keyboard@ keyboard, const BlurAction type) override
 	{
 		focused = false;
+		// TODO: accept on unknown, or cancel if _accept_on_blur is false
+		// TODO: accept on accept
+		// TODO: reset text on cancel
 	}
 	
 	void on_key_press(Keyboard@ keyboard, const int key, const bool is_gvb)
 	{
+		if(!is_gvb && key == VK::A && keyboard.ctrl)
+		{
+			select_all();
+			return;
+		}
+		
 		on_key(keyboard, key, is_gvb);
 	}
 	

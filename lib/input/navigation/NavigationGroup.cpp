@@ -12,7 +12,7 @@ class NavigationGroup : INavigable
 	private string _id;
 	private NavigationGroup@ _parent;
 	
-	private NavigateOn _navigate_on = NavigateOn(NavigateOn::Inherit | NavigateOn::Tab);
+	private NavigateOn _navigate_on = NavigateOn(Inherit | Tab | Escape);
 	
 	private dictionary elements_map;
 	private NavigationGroupItem@ first_item;

@@ -2,7 +2,7 @@
 #include '../enums/VK.cpp';
 #include '../editor/common.cpp';
 #include 'navigation/navigation.cpp';
-#include 'IKeyboardFocusManager.cpp';
+#include 'IKeyboardFocusListener.cpp';
 #include 'IKeyboardFocus.cpp';
 #include 'navigation/INavigable.cpp';
 
@@ -29,7 +29,7 @@ class Keyboard
 	/// Is the alt key down this frame
 	bool alt;
 	
-	IKeyboardFocusManager@ keyboard_focus_manager;
+	IKeyboardFocusListener@ focus_listener;
 	IKeyboardFocus@ _focus;
 	INavigable@ _navigable;
 	
@@ -54,11 +54,11 @@ class Keyboard
 	private bool pressed_gvb;
 	private int pressed_timer;
 	
-	Keyboard(IKeyboardFocusManager@ keyboard_focus_manager=null)
+	Keyboard(IKeyboardFocusListener@ focus_listener=null)
 	{
 		@editor = get_editor_api();
 		
-		@this.keyboard_focus_manager = keyboard_focus_manager;
+		@this.focus_listener = focus_listener;
 		
 		reset();
 	}
@@ -66,30 +66,7 @@ class Keyboard
 	IKeyboardFocus@ focus
 	{
 		get { return @_focus; }
-		set
-		{
-			if(@_focus == @value)
-				return;
-			
-			if(@_focus != null)
-			{
-				_focus.on_blur(@this);
-			}
-			
-			reset();
-			
-			@_focus = @value;
-			
-			if(@_focus != null)
-			{
-				@_navigable = cast<INavigable@>(@_focus);
-				_focus.on_focus(@this);
-			}
-			else
-			{
-				@_navigable = null;
-			}
-		}
+		set { set_focus(@value, BlurAction::None); }
 	}
 	
 	void step()
@@ -104,21 +81,25 @@ class Keyboard
 			alt   = editor.key_check_gvb(GVB::Alt);
 		}
 		
-		if(allow_navigation && @_navigable != null && @keyboard_focus_manager != null)
+		if(allow_navigation && @_navigable != null)
 		{
 			const NavigateOn navigate_on = _navigable.navigate_on;
 			
-			if(navigation::consume(editor, navigate_on, NavigateOn::Tab, GVB::Tab, consume_gvb))
+			if(navigation::consume(editor, navigate_on, Tab, GVB::Tab, consume_gvb))
 			{
 				navigate();
 			}
-			else if(ctrl && navigation::consume(editor, navigate_on, NavigateOn::CtrlReturn, GVB::Return, consume_gvb))
+			else if(ctrl && navigation::consume(editor, navigate_on, CtrlReturn, GVB::Return, consume_gvb))
 			{
-				navigate();
+				navigate(Accepted);
 			}
-			else if(!ctrl && navigation::consume(editor, navigate_on, NavigateOn::Return, GVB::Return, consume_gvb))
+			else if(!ctrl && navigation::consume(editor, navigate_on, Return, GVB::Return, consume_gvb))
 			{
-				navigate();
+				navigate(Accepted);
+			}
+			else if(navigation::consume(editor, navigate_on, Escape, GVB::Escape, consume_gvb))
+			{
+				set_focus(null, Cancelled);
 			}
 		}
 		
@@ -209,6 +190,36 @@ class Keyboard
 		}
 	}
 	
+	void set_focus(IKeyboardFocus@ new_focus, const BlurAction type)
+	{
+		if(@_focus == @new_focus)
+			return;
+		
+		if(@_focus != null)
+		{
+			_focus.on_blur(@this, type);
+		}
+		
+		reset();
+		
+		@_focus = @new_focus;
+		
+		if(@_focus != null)
+		{
+			@_navigable = cast<INavigable@>(@_focus);
+			_focus.on_focus(@this);
+		}
+		else
+		{
+			@_navigable = null;
+		}
+		
+		if(@focus_listener != null)
+		{
+			focus_listener.on_keyboard_focus_change(_focus);
+		}
+	}
+	
 	/// Registers all the GVB keys in the given range.
 	void register_gvb(int start_index_gvb, int end_index_gvb=-1)
 	{
@@ -296,11 +307,11 @@ class Keyboard
 		pressed_key = -1;
 	}
 	
-	private void navigate()
+	private void navigate(const BlurAction type=BlurAction::None)
 	{
-		@keyboard_focus_manager.focus = cast<IKeyboardFocus@>(shift
+		set_focus(cast<IKeyboardFocus@>(shift
 			? _navigable.previous_navigable(@_navigable)
-			: _navigable.next_navigable(@_navigable));
+			: _navigable.next_navigable(@_navigable)), type);
 	}
 	
 }
