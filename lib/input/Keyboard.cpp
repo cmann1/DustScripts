@@ -103,6 +103,9 @@ class Keyboard
 			}
 		}
 		
+		if(@focus == null)
+			return;
+		
 		for(int i = num_vk_up - 1; i >= 0; i--)
 		{
 			const int key = vk_up[i];
@@ -164,7 +167,7 @@ class Keyboard
 		
 		if(pressed_key != -1)
 		{
-			if(pressed_gvb && editor.key_check_gvb(pressed_key) || !pressed_gvb && editor.key_check_vk(pressed_key))
+			if(pressed_timer == press_delay || pressed_gvb && editor.key_check_gvb(pressed_key) || !pressed_gvb && editor.key_check_vk(pressed_key))
 			{
 				if(pressed_timer-- == 0)
 				{

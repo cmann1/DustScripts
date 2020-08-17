@@ -76,7 +76,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	protected int double_click_end_index = -1;
 	protected bool scrolled;
 	
-	protected bool drag_scroll;
+	protected bool busy_drag_scroll;
 	protected float drag_scroll_start_x;
 	protected float drag_scroll_start_y;
 	protected float drag_mouse_x_start;
@@ -578,6 +578,68 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		}
 	}
 	
+	/// Replaces the current selection with the given ascii character
+	void replace(const int chr)
+	{
+		string str = ' ';
+		str[0] = chr;
+		replace(str);
+	}
+	
+	/// Replaces the current selection with the given string
+	void replace(const string str)
+	{
+		const int start = min_int(_selection_start, _selection_end);
+		const int end   = max_int(_selection_start, _selection_end);
+		
+		if(start != end)
+		{
+			_text.erase(start, end - start);
+		}
+		
+		_text.insert(start, str);
+		_text_length = int(_text.length());
+		caret_index = start + int(str.length());
+		
+		update_line_endings();
+		update_selection_line_indices();
+		persist_caret();
+	}
+	
+	/// Deletes the current selection. If there is no selection deletes the next character.
+	/// If word is true and there is no selection, deletes to the next word boundary.
+	/// If dir is -1 will delete backwards
+	void delete(const bool word, const int dir=1)
+	{
+		int start = min_int(_selection_start, _selection_end);
+		int end   = max_int(_selection_start, _selection_end);
+		
+		if(start != end)
+		{
+			_text.erase(start, end - start);
+			caret_index = start;
+		}
+		else
+		{
+			if(dir < 0)
+			{
+				start = word ? find_word_boundary(start, -1) : start - 1;
+			}
+			else
+			{
+				end = word ? find_word_boundary(start, 1) : end + 1;
+			}
+			
+			_text.erase(start, end - start);
+			_text_length = int(_text.length());
+			caret_index = start;
+		}
+		
+		update_line_endings();
+		update_selection_line_indices();
+		persist_caret();
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Helpers and various properties
 	// ///////////////////////////////////////////////////////////////////
@@ -943,7 +1005,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	{
 		step_registered = false;
 		
-		if(drag_scroll)
+		if(busy_drag_scroll)
 		{
 			if(ui.mouse.secondary_down)
 			{
@@ -953,7 +1015,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			}
 			else
 			{
-				drag_scroll = false;
+				busy_drag_scroll = false;
 			}
 		}
 		
@@ -1531,7 +1593,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			drag_mouse_y_start = ui.mouse.y;
 			drag_scroll_start_x = _scroll_x;
 			drag_scroll_start_y = _scroll_y;
-			drag_scroll = true;
+			busy_drag_scroll = true;
 			
 			step_registered = ui._step_subscribe(this, step_registered);
 		}
@@ -1541,7 +1603,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	{
 		if(button == ui.primary_button)
 		{
-			drag_scroll = false;
+			busy_drag_scroll = false;
 		}
 		
 		if(button != ui.primary_button)
@@ -1563,12 +1625,14 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		focused = true;
 		keyboard.update_modifiers = true;
 		keyboard.register_arrows_gvb();
+		keyboard.register_gvb(GVB::Delete);
+		keyboard.register_gvb(GVB::Back);
 		keyboard.register_vk(VK::End, VK::Home);
+		keyboard.register_vk(VK::Return);
+		keyboard.register_vk(VK::Space);
 		keyboard.register_vk(VK::Digit0, VK::Z);
 		keyboard.register_vk(VK::Oem1, VK::Oem7);
 		keyboard.register_vk(VK::Numpad0, VK::Divide);
-		keyboard.register_vk(VK::Back);
-		keyboard.register_vk(VK::Delete);
 	}
 	
 	void on_blur(Keyboard@ keyboard, const BlurAction type) override
@@ -1608,8 +1672,37 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 				case GVB::DownArrow:
 					move_caret_down(ui.keyboard.shift, true);
 					break;
+				case GVB::Delete:
+					delete(ui.keyboard.ctrl, 1);
+					break;
+				case GVB::Back:
+					delete(ui.keyboard.ctrl, -1);
+					break;
 			}
 		}
+		else if(key >= VK::Multiply && key <= VK::Divide)
+		{
+			replace(key - VK::Multiply + 42);
+		}
+		else if(key >= VK::Numpad0 && key <= VK::Numpad9)
+		{
+			replace(key - VK::Numpad0 + VK::Digit0);
+		}
+		else if(key >= VK::Digit0 && key <= VK::Digit9)
+		{
+			// TODO: Symbols
+			replace(key);
+		}
+		else if(key == VK::Space || key == VK::Return)
+		{
+			// TODO: Symbols
+			replace(key);
+		}
+		else if(key >= VK::A && key <= VK::Z)
+		{
+			replace(keyboard.shift ? key : key + 32);
+		}
+		// TODO: Punctuation
 		else
 		{
 			switch(key)
