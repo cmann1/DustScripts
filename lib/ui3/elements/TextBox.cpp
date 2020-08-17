@@ -82,6 +82,13 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	protected float drag_mouse_x_start;
 	protected float drag_mouse_y_start;
 	
+	protected bool pending_scroll_into_view;
+	protected float pending_scroll_into_view_x1;
+	protected float pending_scroll_into_view_y1;
+	protected float pending_scroll_into_view_x2;
+	protected float pending_scroll_into_view_y2;
+	protected int pending_scroll_into_view_padding_x;
+	
 	protected bool step_registered;
 	
 	TextBox(UI@ ui, const string font='', const uint size=0)
@@ -556,6 +563,19 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	/// will be scrolled when the caret is not in view horizontally
 	void scroll_into_view(const float x1, const float y1, const float x2, const float y2, const int padding_x=0)
 	{
+		// After an edit, the text bounds might not be correct.
+		// Wait until the next do_layout, and the perform scroll_into_view
+		if(validate_layout)
+		{
+			pending_scroll_into_view = true;
+			pending_scroll_into_view_x1 = x1;
+			pending_scroll_into_view_y1 = y1;
+			pending_scroll_into_view_x2 = x2;
+			pending_scroll_into_view_y2 = y2;
+			pending_scroll_into_view_padding_x = padding_x;
+			return;
+		}
+		
 		const float view_width  = _width  - padding_left - padding_right;
 		const float view_height = _height - padding_top - padding_bottom;
 		
@@ -579,15 +599,15 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	}
 	
 	/// Replaces the current selection with the given ascii character
-	void replace(const int chr)
+	void replace(const int chr, const int scroll_to_caret=-1)
 	{
 		string str = ' ';
 		str[0] = chr;
-		replace(str);
+		replace(str, scroll_to_caret);
 	}
 	
 	/// Replaces the current selection with the given string
-	void replace(const string str)
+	void replace(const string str, const int scroll_to_caret=-1)
 	{
 		const int start = min_int(_selection_start, _selection_end);
 		const int end   = max_int(_selection_start, _selection_end);
@@ -604,12 +624,17 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		update_line_endings();
 		update_selection_line_indices();
 		persist_caret();
+		
+		if(scroll_to_caret >= 0)
+		{
+			this.scroll_to_caret(scroll_to_caret);
+		}
 	}
 	
 	/// Deletes the current selection. If there is no selection deletes the next character.
 	/// If word is true and there is no selection, deletes to the next word boundary.
 	/// If dir is -1 will delete backwards
-	void delete(const bool word, const int dir=1)
+	void delete(const bool word, const int dir=1, const int scroll_to_caret=-1)
 	{
 		int start = min_int(_selection_start, _selection_end);
 		int end   = max_int(_selection_start, _selection_end);
@@ -623,12 +648,15 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		{
 			if(dir < 0)
 			{
-				start = word ? find_word_boundary(start, -1) : start - 1;
+				start = max_int(0, word ? find_word_boundary(start, -1) : start - 1);
 			}
 			else
 			{
-				end = word ? find_word_boundary(start, 1) : end + 1;
+				end = min_int(_text_length, word ? find_word_boundary(start, 1) : end + 1);
 			}
+			
+			if(start == end)
+				return;
 			
 			_text.erase(start, end - start);
 			_text_length = int(_text.length());
@@ -638,6 +666,11 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		update_line_endings();
 		update_selection_line_indices();
 		persist_caret();
+		
+		if(scroll_to_caret >= 0)
+		{
+			this.scroll_to_caret(scroll_to_caret);
+		}
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -729,14 +762,15 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	/// Finds the next boundary starting from index in direction
 	int expand_to_boundary(const int start_index, int dir)
 	{
-		if(start_index <= 0)
+		dir = dir >= 0 ? 1 : -1;
+		
+		if(start_index <= 0 && dir == -1)
 			return 0;
-		if(start_index >= _text_length)
+		if(start_index >= _text_length && dir == 1)
 			return _text_length;
 		
-		dir = dir >= 0 ? 1 : -1;
 		const int end = dir == 1 ? _text_length : -1;
-		int chr_index = start_index;
+		int chr_index = clamp(start_index, 0, _text_length);
 		int chr = _text[chr_index];
 		// 0 = whitespace
 		// 1 = punctuation
@@ -1061,8 +1095,6 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		const float available_width  = _width  - padding_left - padding_right;
 		const float available_height = _height - padding_top - padding_bottom;
 		
-		const float scroll_x = this._scroll_x;
-		const float scroll_y = this._scroll_y;
 		const float text_scale = this.text_scale;
 		const float line_height = real_line_height * text_scale;
 		
@@ -1112,9 +1144,22 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		_scroll_x = clamp_scroll(_scroll_x, scroll_max_x);
 		_scroll_y = clamp_scroll(_scroll_y, scroll_max_y);
 		
+		if(pending_scroll_into_view)
+		{
+			validate_layout = false;
+			scroll_into_view(
+				pending_scroll_into_view_x1, pending_scroll_into_view_y1,
+				pending_scroll_into_view_x2, pending_scroll_into_view_y2,
+				pending_scroll_into_view_padding_x);
+			pending_scroll_into_view = false;
+		}
+		
 		////////////////////////////////////////////////////////////
 		// Step 1. Calculate the visible lines, and the start end
 		//         visible character per line
+		
+		const float scroll_x = this._scroll_x;
+		const float scroll_y = this._scroll_y;
 		
 		first_visible_line = ceil_int(-_scroll_y / (line_height + _line_spacing));
 		y = _scroll_y + first_visible_line * (line_height + _line_spacing);
@@ -1403,6 +1448,12 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 				y + line_height + style.selection_padding_bottom,
 				0, style.selected_highlight_border_clr);
 		}
+		
+		// Debug
+		// style.outline(
+		// 	x1 + _scroll_x + padding_left, y1 + _scroll_y + padding_top,
+		// 	x1 + _scroll_x + padding_left + text_width, y1 + _scroll_y + padding_top + text_height,
+		// 	1, 0x99ff0000);
 	}
 	
 	protected void update_line_endings()
@@ -1616,23 +1667,32 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	
 	void _mouse_scroll(const int scroll_dir)
 	{
-		scroll_y -= scroll_dir * (real_line_height * text_scale + _line_spacing);
+		if(ui._has_editor && ui._editor.key_check_gvb(GVB::Shift))
+		{
+			scroll_x -= scroll_dir * (font_metrics[0] * 7);
+		}
+		else
+		{
+			scroll_y -= scroll_dir * (real_line_height * text_scale + _line_spacing);
+		}
+		
 		scrolled = true;
 	}
 	
 	void on_focus(Keyboard@ keyboard) override
 	{
 		focused = true;
-		keyboard.update_modifiers = true;
 		keyboard.register_arrows_gvb();
-		keyboard.register_gvb(GVB::Delete);
-		keyboard.register_gvb(GVB::Back);
-		keyboard.register_vk(VK::End, VK::Home);
-		keyboard.register_vk(VK::Return);
-		keyboard.register_vk(VK::Space);
-		keyboard.register_vk(VK::Digit0, VK::Z);
-		keyboard.register_vk(VK::Oem1, VK::Oem7);
+		keyboard.register_gvb(GVB::Delete, -1, ModifierKey::Ctrl);
+		keyboard.register_gvb(GVB::Back, -1, ModifierKey::Ctrl);
+		keyboard.register_vk(VK::End, VK::Home, ModifierKey::Ctrl | ModifierKey::Shift);
+		keyboard.register_vk(VK::Return, -1, ModifierKey::None);
 		keyboard.register_vk(VK::Numpad0, VK::Divide);
+		keyboard.register_vk(VK::Space, -1, ModifierKey::None);
+		keyboard.register_vk(VK::Digit0, VK::Digit9, ModifierKey::Shift);
+		keyboard.register_vk(VK::A, -1, ModifierKey::Ctrl | ModifierKey::Shift);
+		keyboard.register_vk(VK::B, VK::Z, ModifierKey::Shift);
+		keyboard.register_vk(VK::Oem1, VK::Oem7);
 	}
 	
 	void on_blur(Keyboard@ keyboard, const BlurAction type) override
@@ -1673,36 +1733,75 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 					move_caret_down(ui.keyboard.shift, true);
 					break;
 				case GVB::Delete:
-					delete(ui.keyboard.ctrl, 1);
+					delete(ui.keyboard.ctrl, 1, 8);
 					break;
 				case GVB::Back:
-					delete(ui.keyboard.ctrl, -1);
+					delete(ui.keyboard.ctrl, -1, 8);
 					break;
 			}
 		}
 		else if(key >= VK::Multiply && key <= VK::Divide)
 		{
-			replace(key - VK::Multiply + 42);
+			replace(key - VK::Multiply + 42, 8);
 		}
 		else if(key >= VK::Numpad0 && key <= VK::Numpad9)
 		{
-			replace(key - VK::Numpad0 + VK::Digit0);
+			replace(key - VK::Numpad0 + VK::Digit0, 8);
 		}
 		else if(key >= VK::Digit0 && key <= VK::Digit9)
 		{
-			// TODO: Symbols
-			replace(key);
+			if(keyboard.shift)
+			{
+				switch(key)
+				{
+					case VK::Digit0: replace(')', 8); break;
+					case VK::Digit1: replace('!', 8); break;
+					case VK::Digit2: replace('@', 8); break;
+					case VK::Digit3: replace('#', 8); break;
+					case VK::Digit4: replace('$', 8); break;
+					case VK::Digit5: replace('%', 8); break;
+					case VK::Digit6: replace('^', 8); break;
+					case VK::Digit7: replace('&', 8); break;
+					case VK::Digit8: replace('*', 8); break;
+					case VK::Digit9: replace('(', 8); break;
+				}
+			}
+			else
+			{
+				replace(key, 8);
+			}
 		}
-		else if(key == VK::Space || key == VK::Return)
+		else if(key == VK::Space)
 		{
-			// TODO: Symbols
-			replace(key);
+			replace(key, 8);
+		}
+		else if(key == VK::Return)
+		{
+			replace(10, 8);
 		}
 		else if(key >= VK::A && key <= VK::Z)
 		{
-			replace(keyboard.shift ? key : key + 32);
+			replace(keyboard.shift ? key : key + 32, 8);
 		}
-		// TODO: Punctuation
+		else if(key >= VK::Oem1 && key <= VK::Oem7)
+		{
+			const bool shift = keyboard.shift;
+			
+			switch(key)
+			{
+				case VK::Oem1: 	    replace(!shift ? ';'  : ':', 8); break;
+				case VK::OemPlus:   replace(!shift ? '='  : '+', 8); break;
+				case VK::OemComma:  replace(!shift ? ','  : '<', 8); break;
+				case VK::OemMinus:  replace(!shift ? '-'  : '_', 8); break;
+				case VK::OemPeriod: replace(!shift ? '.'  : '>', 8); break;
+				case VK::Oem2: 	 	replace(!shift ? '/'  : '?', 8); break;
+				case VK::Oem3: 	 	replace(!shift ? '`'  : '~', 8); break;
+				case VK::Oem4: 	 	replace(!shift ? '['  : '{', 8); break;
+				case VK::Oem5: 	 	replace(!shift ? '\\' : '|', 8); break;
+				case VK::Oem6: 	 	replace(!shift ? ']'  : '}', 8); break;
+				case VK::Oem7: 	 	replace(!shift ? '\'' : '"', 8); break;
+			}
+		}
 		else
 		{
 			switch(key)
