@@ -133,7 +133,7 @@ class Debug
 				text_lines_scroll -= scroll * single_line_height;
 			}
 			
-			text_lines_scroll = clamp(text_lines_scroll, 0, max(0, text_lines.text_height + text_lines_padding * 2 - (SCREEN_BOTTOM - SCREEN_TOP)));
+			text_lines_scroll = clamp(text_lines_scroll, 0, max(0.0, text_lines.text_height + text_lines_padding * 2 - (SCREEN_BOTTOM - SCREEN_TOP)));
 		}
 	}
 	

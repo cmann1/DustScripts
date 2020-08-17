@@ -255,8 +255,8 @@ class NumberSlider : LockedContainer, IStepHandler
 			{
 				if(_left_arrow.alpha < 1)
 				{
-					_left_arrow.alpha = min(1, _left_arrow.alpha + fade_speed);
-					_right_arrow.alpha = min(1, _right_arrow.alpha + fade_speed);
+					_left_arrow.alpha = min(1.0, _left_arrow.alpha + fade_speed);
+					_right_arrow.alpha = min(1.0, _right_arrow.alpha + fade_speed);
 					step_subscribed = true;
 					validate_layout = true;
 				}
@@ -276,7 +276,7 @@ class NumberSlider : LockedContainer, IStepHandler
 	void _do_layout(LayoutContext@ ctx) override
 	{
 		const bool is_horizontal = orientation == Orientation::Horizontal;
-		const float border_size = max(0, ui.style.border_size);
+		const float border_size = max(0.0, ui.style.border_size);
 		const float width  = is_horizontal ? _width  : _height;
 		const float height = is_horizontal ? _height : _width;
 		const float button_spacing = 2;

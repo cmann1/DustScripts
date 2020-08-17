@@ -128,22 +128,22 @@ int ceil_int(float x)
 	return int(ceil(x));
 }
 
-int min_int(const int a, const int b)
+int min(const int a, const int b)
 {
 	return a < b ? a : b;
 }
 
-int max_int(const int a, const int b)
+int max(const int a, const int b)
 {
 	return a > b ? a : b;
 }
 
-int min_uint(const uint a, const uint b)
+int min(const uint a, const uint b)
 {
 	return a < b ? a : b;
 }
 
-int max_uint(const uint a, const uint b)
+int max(const uint a, const uint b)
 {
 	return a > b ? a : b;
 }

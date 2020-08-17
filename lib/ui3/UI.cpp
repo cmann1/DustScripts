@@ -156,8 +156,8 @@ class UI : IKeyboardFocusListener
 	
 	uint _frame;
 	
-	private int _first_char_index = 32;
-	private int _last_char_index  = 126;
+	private int _first_valid_char_index = 32;
+	private int _last_valid_char_index  = 126;
 	private dictionary font_metrics;
 	
 	camera@ _camera;
@@ -904,9 +904,9 @@ class UI : IKeyboardFocusListener
 		layer_selector.show_all_sub_layers_toggle = false;
 	}
 	
-	int first_char_index { get const { return _first_char_index; } }
+	int first_valid_char_index { get const { return _first_valid_char_index; } }
 	
-	int last_char_index  { get const { return _last_char_index;  } }
+	int last_valid_char_index  { get const { return _last_valid_char_index;  } }
 	
 	void get_font_metrics(string font, uint size, array<float>@ &out widths, float &out line_height)
 	{
@@ -922,14 +922,15 @@ class UI : IKeyboardFocusListener
 		}
 		
 		string s = ' ';
-		@widths = array<float>(_last_char_index - _first_char_index + 1);
+		@widths = array<float>(_last_valid_char_index - _first_valid_char_index + 1);
+		line_height = 0;
 		
-		for(int i = _first_char_index; i <= _last_char_index; i++)
+		for(int i = _first_valid_char_index; i <= _last_valid_char_index; i++)
 		{
 			s[0] = i;
 			float width, height;
 			style.measure_text(s, font, size, 1, 1, width, height);
-			widths[i - _first_char_index] = width;
+			widths[i - _first_valid_char_index] = width;
 			
 			if(height > line_height)
 			{
@@ -937,6 +938,7 @@ class UI : IKeyboardFocusListener
 			}
 		}
 		
+		@font_metrics[key] = @widths;
 		font_metrics[height_key] = line_height;
 	}
 	

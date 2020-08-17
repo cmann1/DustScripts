@@ -124,13 +124,13 @@ class PopupOptions : IGenericEventTarget
 	float fade_max
 	{
 		get { return _fade_max; }
-		set { _fade_max = max(0, value); }
+		set { _fade_max = max(0.0, value); }
 	}
 	
 	float offset_max
 	{
 		get { return _offset_max; }
-		set { _offset_max = max(0, value); }
+		set { _offset_max = max(0.0, value); }
 	}
 	
 	float spacing

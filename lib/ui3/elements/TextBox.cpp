@@ -5,6 +5,7 @@
 #include '../../input/navigation/INavigable.cpp';
 #include '../../string.cpp';
 #include 'Element.cpp';
+#include 'TextBox2.cpp';
 
 class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 {
@@ -46,8 +47,6 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	protected float padding_top;
 	protected float padding_bottom;
 	protected float text_scale;
-	protected int first_char_index;
-	protected int last_char_index;
 	protected float _text_width;
 	protected float _text_height;
 	protected float scroll_max_x;
@@ -99,9 +98,6 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		_width  = _set_width  = 200;
 		// TODO: Set to 34
 		_height = _set_height = 84;
-		
-		first_char_index = ui.first_char_index;
-		last_char_index = ui.last_char_index;
 		
 		this._font = font;
 		this._size = size;
@@ -609,8 +605,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	/// Replaces the current selection with the given string
 	void replace(const string str, const int scroll_to_caret=-1)
 	{
-		const int start = min_int(_selection_start, _selection_end);
-		const int end   = max_int(_selection_start, _selection_end);
+		const int start = min(_selection_start, _selection_end);
+		const int end   = max(_selection_start, _selection_end);
 		
 		if(start != end)
 		{
@@ -636,8 +632,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	/// If dir is -1 will delete backwards
 	void delete(const bool word, const int dir=1, const int scroll_to_caret=-1)
 	{
-		int start = min_int(_selection_start, _selection_end);
-		int end   = max_int(_selection_start, _selection_end);
+		int start = min(_selection_start, _selection_end);
+		int end   = max(_selection_start, _selection_end);
 		
 		if(start != end)
 		{
@@ -648,11 +644,11 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		{
 			if(dir < 0)
 			{
-				start = max_int(0, word ? find_word_boundary(start, -1) : start - 1);
+				start = max(0, word ? find_word_boundary(start, -1) : start - 1);
 			}
 			else
 			{
-				end = min_int(_text_length, word ? find_word_boundary(start, 1) : end + 1);
+				end = min(_text_length, word ? find_word_boundary(start, 1) : end + 1);
 			}
 			
 			if(start == end)
@@ -710,7 +706,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	{
 		dir = dir >= 0 ? 1 : -1;
 		const int end = dir == 1 ? _text_length : -1;
-		int chr_index = dir == 1 ? start_index : max_int(0, start_index - 1);
+		int chr_index = dir == 1 ? start_index : max(0, start_index - 1);
 		// 0 = whitespace
 		// 1 = punctuation
 		// 2 = alphanumeric
@@ -787,7 +783,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			// if we're at teh end of the line, instead expand based on the last non newline character on this line
 			if(line_start_index != line_end_index)
 			{
-				chr_index = max_int(chr_index - 1, 0);
+				chr_index = max(chr_index - 1, 0);
 				chr = _text[chr_index];
 				chr_type = (chr == 10 || chr == 13) ? 3 : string::is_whitespace(chr) ? 0 : string::is_punctuation(chr) ? 1 : string::is_alphanumeric(chr) ? 2 : -1;
 			}
@@ -868,11 +864,14 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		int index = line_start;
 		float width = 0;
 		
+		const int first_valid_char_index = ui.first_valid_char_index;
+		const int last_valid_char_index  = ui.last_valid_char_index;
+		
 		while(index < line_end)
 		{
 			const int chr = int(_text[index]);
-			const float chr_width = chr <= last_char_index && chr >= first_char_index
-				? font_metrics[chr - first_char_index] * text_scale
+			const float chr_width = chr <= last_valid_char_index && chr >= first_valid_char_index
+				? font_metrics[chr - first_valid_char_index] * text_scale
 				: 0;
 			
 			if(x >= width && x <= width + chr_width)
@@ -949,16 +948,19 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			? _num_lines - 1 : get_line_at_index(index);
 		
 		const int line_start = get_line_start(line_index);
-		const int line_end   = min_int(index, get_line_end(line_index));
+		const int line_end   = min(index, get_line_end(line_index));
 		
 		float width = 0;
+		
+		const int first_valid_char_index = ui.first_valid_char_index;
+		const int last_valid_char_index  = ui.last_valid_char_index;
 		
 		for(int chr_index = line_start; chr_index < line_end; chr_index++)
 		{
 			const int chr = int(_text[chr_index]);
 			
-			width += chr <= last_char_index && chr >= first_char_index
-				? font_metrics[chr - first_char_index] * text_scale
+			width += chr <= last_valid_char_index && chr >= first_valid_char_index
+				? font_metrics[chr - first_valid_char_index] * text_scale
 				: 0;
 		}
 		
@@ -976,16 +978,19 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			? _num_lines - 1 : get_line_at_index(index);
 		
 		const int line_start = get_line_start(line_index);
-		const int line_end   = min_int(index, get_line_end(line_index));
+		const int line_end   = min(index, get_line_end(line_index));
 		
 		float width = 0;
+		
+		const int first_valid_char_index = ui.first_valid_char_index;
+		const int last_valid_char_index  = ui.last_valid_char_index;
 		
 		for(int chr_index = line_start; chr_index < line_end; chr_index++)
 		{
 			const int chr = int(_text[chr_index]);
 			
-			width += chr <= last_char_index && chr >= first_char_index
-				? font_metrics[chr - first_char_index] * text_scale
+			width += chr <= last_valid_char_index && chr >= first_valid_char_index
+				? font_metrics[chr - first_valid_char_index] * text_scale
 				: 0;
 		}
 		
@@ -1106,6 +1111,9 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		_text_width = 0;
 		_text_height = 0;
 		
+		const int first_valid_char_index = ui.first_valid_char_index;
+		const int last_valid_char_index  = ui.last_valid_char_index;
+		
 		for(int i = 0; i < _num_lines; i++)
 		{
 			const int line_end_index = line_end_indices[i];
@@ -1119,8 +1127,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			{
 				const int chr = int(line_text[j]);
 				
-				line_width += chr <= last_char_index && chr >= first_char_index
-					? font_metrics[chr - first_char_index] * text_scale
+				line_width += chr <= last_valid_char_index && chr >= first_valid_char_index
+					? font_metrics[chr - first_valid_char_index] * text_scale
 					: 0;
 			}
 			
@@ -1138,8 +1146,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			line_start_index = line_end_index + 1;
 		}
 		
-		scroll_max_x = max(0, _text_width  - available_width);
-		scroll_max_y = max(0, _text_height - available_height);
+		scroll_max_x = max(0.0, _text_width  - available_width);
+		scroll_max_y = max(0.0, _text_height - available_height);
 		
 		_scroll_x = clamp_scroll(_scroll_x, scroll_max_x);
 		_scroll_y = clamp_scroll(_scroll_y, scroll_max_y);
@@ -1166,8 +1174,6 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		line_start_index = _num_lines > 0 && first_visible_line > 0 ? line_end_indices[first_visible_line - 1] + 1 : 0;
 		
 		array<float>@ font_metrics = @this.font_metrics;
-		const int first_char_index = this.first_char_index;
-		const int last_char_index = this.last_char_index;
 		
 		for(int line_index = first_visible_line; line_index < _num_lines; line_index++)
 		{
@@ -1235,8 +1241,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			for(int j = 0; j < line_length; j++)
 			{
 				const int chr = int(line_text[j]);
-				const float chr_width = chr <= last_char_index && chr >= first_char_index
-					? font_metrics[chr - first_char_index] * text_scale
+				const float chr_width = chr <= last_valid_char_index && chr >= first_valid_char_index
+					? font_metrics[chr - first_valid_char_index] * text_scale
 					: 0;
 				
 				/////////////////////////////////////////
@@ -1333,7 +1339,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		const uint border_clr = style.get_interactive_element_border_colour(hovered, focused, focused, disabled);
 		
 		const uint bg_clr = style.get_interactive_element_background_colour(false, false, false, disabled, true);
-		const float inset = border_clr != 0 ? max(0, style.border_size) : 0;
+		const float inset = border_clr != 0 ? max(0.0, style.border_size) : 0;
 		
 		// Fill
 		style.draw_rectangle(
@@ -1466,8 +1472,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		
 		// TODO: Remove line breaks, or just ignore other lines, when multi_line is false
 		
-		_selection_start = min_int(_selection_start, _text_length);
-		_selection_end   = min_int(_selection_end,   _text_length);
+		_selection_start = min(_selection_start, _text_length);
+		_selection_end   = min(_selection_end,   _text_length);
 		_selection_start_line_index = 0;
 		_selection_end_line_index   = 0;
 		

@@ -281,7 +281,7 @@ abstract class Element
 		
 		if(background_colour != 0)
 		{
-			const float inset = has_border ? max(0, border_size) : 0;
+			const float inset = has_border ? max(0.0, border_size) : 0;
 			
 			style.draw_rectangle(
 				x1 + inset, y1 + inset, x2 - inset, y2 - inset,

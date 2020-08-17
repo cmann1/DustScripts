@@ -102,8 +102,8 @@ class GridLayout : Layout
 		const bool expand_columns = expand == FlowFit::MainAxis || expand == FlowFit::Both;
 		const bool expand_rows = expand == FlowFit::CrossAxis || expand == FlowFit::Both;
 		
-		const float column_spacing	= max(0, is_nan(this.column_spacing) ? ui.style.spacing : this.column_spacing);
-		const float row_spacing		= max(0, is_nan(this.row_spacing) ? ui.style.spacing : this.row_spacing);
+		const float column_spacing	= max(0.0, is_nan(this.column_spacing) ? ui.style.spacing : this.column_spacing);
+		const float row_spacing		= max(0.0, is_nan(this.row_spacing) ? ui.style.spacing : this.row_spacing);
 		
 		int num_columns = columns <= 0
 			? floor_int(main_axis_size / column_width)
@@ -114,7 +114,7 @@ class GridLayout : Layout
 		// Don't know if there's a better way to do this
 		if(columns <= 0)
 		{
-			while(num_columns * column_width + max(0, num_columns - 1) * column_spacing > max(0, main_axis_size))
+			while(num_columns * column_width + max(0.0, num_columns - 1) * column_spacing > max(0.0, main_axis_size))
 				num_columns--;
 			
 			if(num_columns < 1)

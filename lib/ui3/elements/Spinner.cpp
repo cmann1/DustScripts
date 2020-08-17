@@ -124,8 +124,8 @@ class Spinner : SelectBase, IStepHandler
 				
 				if(_left_arrow.alpha < 1)
 				{
-					_left_arrow.alpha = min(1, _left_arrow.alpha + fade_speed);
-					_right_arrow.alpha = min(1, _right_arrow.alpha + fade_speed);
+					_left_arrow.alpha = min(1.0, _left_arrow.alpha + fade_speed);
+					_right_arrow.alpha = min(1.0, _right_arrow.alpha + fade_speed);
 					validate_layout = true;
 					step_subscribed = true;
 				}
@@ -150,7 +150,7 @@ class Spinner : SelectBase, IStepHandler
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		const float border_size = max(0, ui.style.border_size);
+		const float border_size = max(0.0, ui.style.border_size);
 		const bool show_buttons = _left_arrow.alpha > 0;
 		
 		_left_button.x = border_size;

@@ -445,28 +445,28 @@ class Popup : SingleContainer, IStepHandler
 		switch(calculatedPosition)
 		{
 			case PopupPosition::Above:
-				if(y1 < view_y1 && max(0, view_y2 - target_y2) > max(0, target_y1 - view_y1))
+				if(y1 < view_y1 && max(0.0, view_y2 - target_y2) > max(0.0, target_y1 - view_y1))
 				{
 					calculatedPosition = PopupPosition::Below;
 					reposition_y = true;
 				}
 				break;
 			case PopupPosition::Below:
-				if(y2 > view_y2 && max(0, target_y1 - view_y1) > max(0, view_y2 - target_y2))
+				if(y2 > view_y2 && max(0.0, target_y1 - view_y1) > max(0.0, view_y2 - target_y2))
 				{
 					calculatedPosition = PopupPosition::Above;
 					reposition_y = true;
 				}
 				break;
 			case PopupPosition::Left:
-				if(x1 < view_x1 && max(0, view_x2 - target_x2) > max(0, target_x1 - view_x1))
+				if(x1 < view_x1 && max(0.0, view_x2 - target_x2) > max(0.0, target_x1 - view_x1))
 				{
 					calculatedPosition = PopupPosition::Right;
 					reposition_x = true;
 				}
 				break;
 			case PopupPosition::Right:
-				if(x2 > view_x2 && max(0, target_x1 - view_x1) > max(0, view_x2 - target_x2))
+				if(x2 > view_x2 && max(0.0, target_x1 - view_x1) > max(0.0, view_x2 - target_x2))
 				{
 					calculatedPosition = PopupPosition::Left;
 					reposition_x = true;

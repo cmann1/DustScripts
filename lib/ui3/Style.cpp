@@ -468,7 +468,7 @@ class Style
 		{
 			const uint bg_clr = get_interactive_element_background_colour(highlighted, selected, active, disabled, draw_background);
 			
-			const float inset = border_clr != 0 ? max(0, border_size) : 0;
+			const float inset = border_clr != 0 ? max(0.0, border_size) : 0;
 			
 			draw_rectangle(
 				x1 + inset, y1 + inset,
@@ -546,7 +546,7 @@ class Style
 		// Fill/bg
 		if(bg_clr != 0)
 		{
-			const float inset = border_clr != 0 ? max(0, border_size) : 0;
+			const float inset = border_clr != 0 ? max(0.0, border_size) : 0;
 			draw_rectangle(element.x1 + inset, element.y1 + inset, element.x2 - inset, element.y2 - inset, 0, bg_clr);
 		}
 		

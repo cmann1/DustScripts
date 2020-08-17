@@ -121,7 +121,7 @@ class Select : SelectBase
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		const float border_size = max(0, ui.style.border_size);
+		const float border_size = max(0.0, ui.style.border_size);
 		
 		_label._x = border_size;
 		_label._y = border_size;

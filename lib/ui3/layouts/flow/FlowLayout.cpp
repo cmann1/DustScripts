@@ -53,7 +53,7 @@ class FlowLayout : Layout
 			return;
 		}
 		
-		const float spacing = max(0, is_nan(this.spacing) ? ui.style.spacing : this.spacing);
+		const float spacing = max(0.0, is_nan(this.spacing) ? ui.style.spacing : this.spacing);
 		
 		const bool is_horizontal	= this.is_horizontal;
 		const bool is_reversed		= direction == FlowDirection::RowReverse || direction == FlowDirection::ColumnReverse;
