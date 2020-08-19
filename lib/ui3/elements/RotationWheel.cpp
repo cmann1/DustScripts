@@ -5,6 +5,8 @@
 #include 'Image.cpp';
 #include '../events/Event.cpp';
 
+namespace RotationWheel { const string TYPE_NAME = 'RotationWheel'; }
+
 class RotationWheel : Image, IStepHandler
 {
 	
@@ -47,7 +49,7 @@ class RotationWheel : Image, IStepHandler
 		_height = _set_height = _width;
 	}
 	
-	string element_type { get const override { return 'RotationWheel'; } }
+	string element_type { get const override { return RotationWheel::TYPE_NAME; } }
 	
 	//
 	
@@ -339,11 +341,11 @@ class RotationWheel : Image, IStepHandler
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_press(const MouseButton button)
+	void _mouse_press(EventInfo@ event)
 	{
-		if(button == ui.primary_button || button == ui.secondary_button)
+		if(event.button == ui.primary_button || event.button == ui.secondary_button)
 		{
-			if(button == ui.primary_button)
+			if(event.button == ui.primary_button)
 			{
 				drag_angle = true;
 			}
@@ -389,20 +391,20 @@ class RotationWheel : Image, IStepHandler
 		}
 	}
 	
-	void _mouse_release(const MouseButton button)
+	void _mouse_release(EventInfo@ event)
 	{
-		if(drag_angle && button == ui.primary_button || drag_range && button == ui.secondary_button)
+		if(drag_angle && event.button == ui.primary_button || drag_range && event.button == ui.secondary_button)
 		{
 			@ui._active_mouse_element = null;
 		}
 	}
 	
-	void _mouse_scroll(const int scroll_dir) override
+	void _mouse_scroll(EventInfo@ event) override
 	{
 		if(!enable_mouse_wheel)
 			return;
 		
-		angle = (round(_angle * RAD2DEG) - scroll_dir) * DEG2RAD;
+		angle = (round(_angle * RAD2DEG) - event.mouse.scroll) * DEG2RAD;
 	}
 	
 }

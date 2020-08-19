@@ -430,7 +430,7 @@ class Debug
 		return text_item;
 	}
 	
-	// TODO: Add more drawing types
+	// TO DO: Add more drawing types
 	
 	/*
 	 * Text option methods

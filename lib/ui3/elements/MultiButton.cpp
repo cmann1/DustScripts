@@ -5,6 +5,8 @@
 #include '../popups/PopupOptions.cpp';
 #include 'SingleContainer.cpp';
 
+namespace MultiButton { const string TYPE_NAME = 'MultiButton'; }
+
 class MultiButton : SingleContainer
 {
 	
@@ -32,7 +34,7 @@ class MultiButton : SingleContainer
 		_set_height = _height = 40;
 	}
 	
-	string element_type { get const override { return 'MultiButton'; } }
+	string element_type { get const override { return MultiButton::TYPE_NAME; } }
 	
 	Image@ add(const string name, Image@ image, int index=-1)
 	{
@@ -218,25 +220,25 @@ class MultiButton : SingleContainer
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_press(const MouseButton button) override
+	void _mouse_press(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		@ui._active_mouse_element = @this;
 		validate_layout = true;
 	}
 	
-	void _mouse_release(const MouseButton button) override
+	void _mouse_release(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		@ui._active_mouse_element = null;
 		validate_layout = true;
 	}
 	
-	void _mouse_click() override
+	void _mouse_click(EventInfo@ event) override
 	{
 		const int num_items = int(item_names.length());
 		

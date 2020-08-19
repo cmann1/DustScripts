@@ -7,6 +7,8 @@
 #include '../utils/GraphicAlign.cpp';
 #include 'SingleContainer.cpp';
 
+namespace Button { const string TYPE_NAME = 'Button'; }
+
 class Button : SingleContainer
 {
 	
@@ -56,7 +58,7 @@ class Button : SingleContainer
 		_set_height = _height = 30;
 	}
 	
-	string element_type { get const override { return 'Button'; } }
+	string element_type { get const override { return Button::TYPE_NAME; } }
 	
 	ButtonGroup@ group
 	{
@@ -134,22 +136,22 @@ class Button : SingleContainer
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_press(const MouseButton button) override
+	void _mouse_press(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		validate_layout = true;
 		@ui._active_mouse_element = @this;
 	}
 	
-	void _mouse_release(const MouseButton button) override
+	void _mouse_release(EventInfo@ event) override
 	{
 		validate_layout = true;
 		@ui._active_mouse_element = null;
 	}
 	
-	void _mouse_click() override
+	void _mouse_click(EventInfo@ event) override
 	{
 		if(selectable)
 		{

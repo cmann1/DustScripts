@@ -3,6 +3,8 @@
 #include '../TextAlign.cpp';
 #include 'Graphic.cpp';
 
+namespace Label { const string TYPE_NAME = 'Label'; }
+
 class Label : Graphic
 {
 	
@@ -36,7 +38,7 @@ class Label : Graphic
 		fit_to_contents();
 	}
 	
-	string element_type { get const override { return 'Label'; } }
+	string element_type { get const override { return Label::TYPE_NAME; } }
 	
 	string text
 	{

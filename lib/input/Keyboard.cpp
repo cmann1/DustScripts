@@ -1,6 +1,7 @@
 #include '../enums/GVB.cpp';
 #include '../enums/VK.cpp';
 #include '../editor/common.cpp';
+#include '../string.cpp';
 #include 'navigation/navigation.cpp';
 #include 'navigation/INavigable.cpp';
 #include 'IKeyboardFocusListener.cpp';
@@ -42,6 +43,7 @@ class Keyboard
 	private array<int> vk_modifiers;
 	private int num_vk;
 	
+	private bool process_input;
 	private int pressed_key;
 	private bool pressed_gvb;
 	private int pressed_timer;
@@ -129,7 +131,7 @@ class Keyboard
 			
 			if((modifiers & ~pressed_modifiers) == 0)
 			{
-				focus.on_key_press(@this, key, false);
+				focus.on_key_press(@this, key, false, process_input_key(key));
 			}
 		}
 		
@@ -170,7 +172,7 @@ class Keyboard
 			
 			if((modifiers & ~pressed_modifiers) == 0)
 			{
-				focus.on_key_press(@this, key, true);
+				focus.on_key_press(@this, key, true, '');
 			}
 		}
 		
@@ -182,7 +184,7 @@ class Keyboard
 				{
 					if((modifiers & ~pressed_modifiers) == 0)
 					{
-						focus.on_key(@this, pressed_key, pressed_gvb);
+						focus.on_key(@this, pressed_key, pressed_gvb, pressed_gvb ? '' : process_input_key(pressed_key));
 					}
 					
 					pressed_timer = repeat_period;
@@ -241,23 +243,24 @@ class Keyboard
 		}
 	}
 	
-	/// Registers all the GVB keys in the given range.
-	void register_gvb(int start_index_gvb, int end_index_gvb=-1, const int allowed_modifiers=-1)
+	/// Registers the specified GVB key.
+	void register_gvb(int gvb, const int allowed_modifiers=-1)
 	{
-		if(start_index_gvb < 0 || start_index_gvb > GVB::EditorAux)
-			return;
-		
-		if(end_index_gvb == -1)
-		{
-			end_index_gvb = start_index_gvb;
-		}
-		
+		register_range_gvb(gvb, gvb, allowed_modifiers);
+	}
+	
+	/// Registers all the GVB keys in the given range.
+	void register_range_gvb(int start_index_gvb, int end_index_gvb, const int allowed_modifiers=-1)
+	{
 		if(end_index_gvb < start_index_gvb)
 		{
 			const int end_index_gvb_t = end_index_gvb;
 			end_index_gvb = start_index_gvb;
 			start_index_gvb = end_index_gvb_t;
 		}
+		
+		start_index_gvb = clamp(start_index_gvb, -1, GVB::EditorAux + 1);
+		end_index_gvb   = clamp(end_index_gvb,   -1, GVB::EditorAux + 1);
 		
 		const int count = end_index_gvb - start_index_gvb + 1;
 		
@@ -269,28 +272,32 @@ class Keyboard
 		
 		for(int i = start_index_gvb; i <= end_index_gvb; i++)
 		{
+			if(i < 0 || i > GVB::EditorAux)
+				continue;
+			
 			gvb[num_gvb] = i;
 			gvb_modifiers[num_gvb++] = allowed_modifiers == -1 ? int(ModifierKey::All) : allowed_modifiers;
 		}
 	}
 	
 	/// Registers all the VK keys in the given range.
-	void register_vk(int start_index_vk, int end_index_vk=-1, const int allowed_modifiers=-1)
+	void register_vk(int key_vk, const int allowed_modifiers=-1)
 	{
-		if(start_index_vk < 0 || start_index_vk > VK::OemClear)
-			return;
-		
-		if(end_index_vk == -1)
-		{
-			end_index_vk = start_index_vk;
-		}
-		
+		register_range_vk(key_vk, key_vk, allowed_modifiers);
+	}
+	
+	/// Registers all the VK keys in the given range.
+	void register_range_vk(int start_index_vk, int end_index_vk, const int allowed_modifiers=-1)
+	{
 		if(end_index_vk < start_index_vk)
 		{
 			const int end_index_gvb_t = end_index_vk;
 			end_index_vk = start_index_vk;
 			start_index_vk = end_index_gvb_t;
 		}
+		
+		start_index_vk = clamp(start_index_vk, -1, VK::OemClear + 1);
+		end_index_vk   = clamp(end_index_vk,   -1, VK::OemClear + 1);
 		
 		const int count = end_index_vk - start_index_vk + 1;
 		
@@ -302,6 +309,9 @@ class Keyboard
 		
 		for(int i = start_index_vk; i <= end_index_vk; i++)
 		{
+			if(i < 0 || i > VK::OemClear)
+				continue;
+			
 			vk[num_vk] = i;
 			vk_modifiers[num_vk++] = allowed_modifiers == -1 ? int(ModifierKey::All): allowed_modifiers;
 		}
@@ -310,11 +320,26 @@ class Keyboard
 	/// Registers all GVB arrows keys
 	void register_arrows_gvb(const int allowed_modifiers=-1)
 	{
-		register_gvb(GVB::UpArrow, GVB::RightArrow, allowed_modifiers);
+		register_range_gvb(GVB::UpArrow, GVB::RightArrow, allowed_modifiers);
+	}
+	
+	/// Registers all text input keys and automatically processes and returns the character in the
+	/// IKeyboardFocus "input" param of on_key_press and on_key, or an empty string of the key does not have a textual representation.
+	void register_inputs()
+	{
+		process_input = true;
+		
+		register_vk(VK::Return, ModifierKey::None);
+		register_vk(VK::Space, ModifierKey::None);
+		register_range_vk(VK::Numpad0, VK::Divide);
+		register_range_vk(VK::Digit0, VK::Z, ModifierKey::Shift);
+		register_range_vk(VK::Oem1, VK::Oem7);
 	}
 	
 	private void reset()
 	{
+		process_input = false;
+		
 		ctrl = false;
 		shift = false;
 		alt = false;
@@ -330,6 +355,82 @@ class Keyboard
 		set_focus(cast<IKeyboardFocus@>(shift
 			? _navigable.previous_navigable(@_navigable)
 			: _navigable.next_navigable(@_navigable)), type);
+	}
+	
+	private string process_input_key(const int key)
+	{
+		if(key == VK::Space)
+			return ' ';
+		
+		if(key == VK::Return)
+			return '\n';
+			
+		if(key >= VK::Multiply && key <= VK::Divide)
+		{
+			string s = ' ';
+			s[0] = key - VK::Multiply + 42;
+			return s;
+		}
+		
+		if(key >= VK::Numpad0 && key <= VK::Numpad9)
+		{
+			string s = ' ';
+			s[0] = key - VK::Numpad0 + VK::Digit0;
+			return s;
+		}
+		
+		if(key >= VK::Digit0 && key <= VK::Digit9)
+		{
+			if(shift)
+			{
+				switch(key)
+				{
+					case VK::Digit0: return ')';
+					case VK::Digit1: return '!';
+					case VK::Digit2: return '@';
+					case VK::Digit3: return '#';
+					case VK::Digit4: return '$';
+					case VK::Digit5: return '%';
+					case VK::Digit6: return '^';
+					case VK::Digit7: return '&';
+					case VK::Digit8: return '*';
+					case VK::Digit9: return '(';
+				}
+			}
+			else
+			{
+				string s = ' ';
+				s[0] = key;
+				return s;
+			}
+		}
+		
+		if(key >= VK::A && key <= VK::Z)
+		{
+			string s = ' ';
+			s[0] = shift ? key : key + 32;
+			return s;
+		}
+		
+		if(key >= VK::Oem1 && key <= VK::Oem7)
+		{
+			switch(key)
+			{
+				case VK::Oem1: 	    return !shift ? ';'  : ':';
+				case VK::OemPlus:   return !shift ? '='  : '+';
+				case VK::OemComma:  return !shift ? ','  : '<';
+				case VK::OemMinus:  return !shift ? '-'  : '_';
+				case VK::OemPeriod: return !shift ? '.'  : '>';
+				case VK::Oem2: 	 	return !shift ? '/'  : '?';
+				case VK::Oem3: 	 	return !shift ? '`'  : '~';
+				case VK::Oem4: 	 	return !shift ? '['  : '{';
+				case VK::Oem5: 	 	return !shift ? '\\' : '|';
+				case VK::Oem6: 	 	return !shift ? ']'  : '}';
+				case VK::Oem7: 	 	return !shift ? '\'' : '"';
+			}
+		}
+		
+		return '';
 	}
 	
 }

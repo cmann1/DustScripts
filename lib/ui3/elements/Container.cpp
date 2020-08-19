@@ -1,6 +1,8 @@
 #include '../layouts/Layout.cpp';
 #include 'Element.cpp';
 
+namespace Container { const string TYPE_NAME = 'Container'; }
+
 class Container : Element
 {
 	/**
@@ -32,7 +34,7 @@ class Container : Element
 		super(ui);
 	}
 	
-	string element_type { get const override { return 'Container'; } }
+	string element_type { get const override { return Container::TYPE_NAME; } }
 	
 	Layout@ layout
 	{

@@ -7,6 +7,8 @@
 #include 'Button.cpp';
 #include 'Divider.cpp';
 
+namespace Toolbar { const string TYPE_NAME = 'Toolbar'; }
+
 class Toolbar : MoveableDialog, IOrientationParent
 {
 	
@@ -26,7 +28,7 @@ class Toolbar : MoveableDialog, IOrientationParent
 		this.max_size = max_size;
 	}
 	
-	string element_type { get const override { return 'Toolbar'; } }
+	string element_type { get const override { return Toolbar::TYPE_NAME; } }
 	
 	Layout@ layout
 	{

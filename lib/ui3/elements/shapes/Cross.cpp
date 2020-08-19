@@ -1,5 +1,7 @@
 #include 'Shape.cpp';
 
+namespace Cross { const string TYPE_NAME = 'CrossShape'; }
+
 class Cross : Shape
 {
 	
@@ -15,7 +17,7 @@ class Cross : Shape
 		super(ui, colour);
 	}
 	
-	string element_type { get const override { return 'CrossShape'; } }
+	string element_type { get const override { return Cross::TYPE_NAME; } }
 	
 	protected void init() override
 	{

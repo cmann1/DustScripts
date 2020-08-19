@@ -1196,7 +1196,10 @@ class UI : IKeyboardFocusListener
 		// Mouse exit
 		// 
 		
-		_event_info.reset(EventType::MOUSE_EXIT, MouseButton::None, mouse.x, mouse.y);
+		EventInfo@ event = _event_info_pool.get();
+		
+		event.reset(EventType::MOUSE_EXIT, MouseButton::None, mouse.x, mouse.y);
+		@event.src = @_mouse_over_element;
 		
 		const int num_elements_mouse_over = int(elements_mouse_over.size());
 		const int num_elements_mouse_enter = int(elements_mouse_enter.size());
@@ -1219,9 +1222,9 @@ class UI : IKeyboardFocusListener
 				Element@ element = @elements_mouse_over[k];
 				element.hovered = false;
 				
-				@_event_info.target = element;
-				element._mouse_exit();
-				element.mouse_exit.dispatch(_event_info);
+				@event.target = element;
+				element._mouse_exit(event);
+				element.mouse_exit.dispatch(event);
 			}
 			
 			break;
@@ -1235,7 +1238,8 @@ class UI : IKeyboardFocusListener
 		
 		if(is_mouse_over)
 		{
-			_event_info.reset(EventType::MOUSE_ENTER, MouseButton::None, mouse.x, mouse.y);
+			event.reset(EventType::MOUSE_ENTER, MouseButton::None, mouse.x, mouse.y);
+			@event.src = @_mouse_over_element;
 			
 			for(int i = int(elements_mouse_enter.size()) - 1; i >= 0; i--)
 			{
@@ -1259,9 +1263,9 @@ class UI : IKeyboardFocusListener
 					mouse_over_element_entered = true;
 				}
 				
-				@_event_info.target = element;
-				element._mouse_enter();
-				element.mouse_enter.dispatch(_event_info);
+				@event.target = element;
+				element._mouse_enter(event);
+				element.mouse_enter.dispatch(event);
 			}
 		}
 		
@@ -1271,31 +1275,35 @@ class UI : IKeyboardFocusListener
 		
 		if(is_mouse_over && mouse.left_press || mouse.middle_press || mouse.right_press)
 		{
-			_event_info.reset(EventType::MOUSE_PRESS, MouseButton::None, mouse.x, mouse.y);
+			event.reset(EventType::MOUSE_PRESS, MouseButton::None, mouse.x, mouse.y);
+			@event.src = @_mouse_over_element;
 			
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
-				Element@ element = @_event_info.target = @elements_mouse_enter[i];
+				Element@ element = @event.target = @elements_mouse_enter[i];
 				
 				if(mouse.left_press)
 				{
 					elements_left_pressed[element._id] = true;
-					element._mouse_press(_event_info.button = MouseButton::Left);
-					element.mouse_press.dispatch(_event_info);
+					event.button = MouseButton::Left;
+					element._mouse_press(event);
+					element.mouse_press.dispatch(event);
 				}
 				
 				if(mouse.right_press)
 				{
 					elements_right_pressed[element._id] = true;
-					element._mouse_press(_event_info.button = MouseButton::Right);
-					element.mouse_press.dispatch(_event_info);
+					event.button = MouseButton::Right;
+					element._mouse_press(event);
+					element.mouse_press.dispatch(event);
 				}
 				
 				if(mouse.middle_press)
 				{
 					elements_middle_pressed[element._id] = true;
-					element._mouse_press(_event_info.button = MouseButton::Middle);
-					element.mouse_press.dispatch(_event_info);
+					event.button = MouseButton::Middle;
+					element._mouse_press(event);
+					element.mouse_press.dispatch(event);
 				}
 				
 				if(mouse.primary_press)
@@ -1318,13 +1326,14 @@ class UI : IKeyboardFocusListener
 		
 		if(is_mouse_over && mouse.moved)
 		{
-			_event_info.reset(EventType::MOUSE_MOVE, MouseButton::None, mouse.x, mouse.y);
+			event.reset(EventType::MOUSE_MOVE, MouseButton::None, mouse.x, mouse.y);
+			@event.src = @_mouse_over_element;
 			
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
-				Element@ element = @_event_info.target = @elements_mouse_enter[i];
-				element._mouse_move();
-				element.mouse_move.dispatch(_event_info);
+				Element@ element = @event.target = @elements_mouse_enter[i];
+				element._mouse_move(event);
+				element.mouse_move.dispatch(event);
 			}
 		}
 		
@@ -1336,13 +1345,14 @@ class UI : IKeyboardFocusListener
 		
 		if(is_mouse_over && mouse.scrolled(scroll_dir))
 		{
-			_event_info.reset(EventType::MOUSE_SCROLL, MouseButton::None, mouse.x, mouse.y);
+			event.reset(EventType::MOUSE_SCROLL, MouseButton::None, mouse.x, mouse.y);
+			@event.src = @_mouse_over_element;
 			
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
-				Element@ element = @_event_info.target = @elements_mouse_enter[i];
-				element._mouse_scroll(scroll_dir);
-				element.mouse_scroll.dispatch(_event_info);
+				Element@ element = @event.target = @elements_mouse_enter[i];
+				element._mouse_scroll(event);
+				element.mouse_scroll.dispatch(event);
 			}
 		}
 		
@@ -1354,82 +1364,87 @@ class UI : IKeyboardFocusListener
 		{
 			// Release
 			
-			_event_info.reset(EventType::MOUSE_RELEASE, MouseButton::None, mouse.x, mouse.y);
+			event.reset(EventType::MOUSE_RELEASE, MouseButton::None, mouse.x, mouse.y);
+			@event.src = @_mouse_over_element;
 			
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
-				Element@ element = @_event_info.target = @elements_mouse_enter[i];
+				Element@ element = @event.target = @elements_mouse_enter[i];
 				
 				if(mouse.left_release)
 				{
-					element._mouse_release(_event_info.button = MouseButton::Left);
-					element.mouse_release.dispatch(_event_info);
+					event.button = MouseButton::Left;
+					element._mouse_release(event);
+					element.mouse_release.dispatch(event);
 				}
 				
 				if(mouse.right_release)
 				{
-					element._mouse_release(_event_info.button = MouseButton::Right);
-					element.mouse_release.dispatch(_event_info);
+					event.button = MouseButton::Right;
+					element._mouse_release(event);
+					element.mouse_release.dispatch(event);
 				}
 				
 				if(mouse.middle_release)
 				{
-					element._mouse_release(_event_info.button = MouseButton::Middle);
-					element.mouse_release.dispatch(_event_info);
+					event.button = MouseButton::Middle;
+					element._mouse_release(event);
+					element.mouse_release.dispatch(event);
 				}
 			}
 			
 			// Click
 			
-			_event_info.reset(EventType::MOUSE_CLICK, MouseButton::None, mouse.x, mouse.y);
+			event.reset(EventType::MOUSE_CLICK, MouseButton::None, mouse.x, mouse.y);
+			@event.src = @_mouse_over_element;
 			
 			for(int i = 0; i < num_elements_mouse_enter; i++)
 			{
-				Element@ element = @_event_info.target = @elements_mouse_enter[i];
+				Element@ element = @event.target = @elements_mouse_enter[i];
 				bool primary_clicked = false;
 				
 				if(mouse.left_release && elements_left_pressed.exists(element._id))
 				{
-					_event_info.button = MouseButton::Left;
-					primary_clicked = primary_clicked || primary_button == _event_info.button;
+					event.button = MouseButton::Left;
+					primary_clicked = primary_clicked || primary_button == event.button;
 					
-					element._mouse_button_click(MouseButton::Left);
-					element.mouse_button_click.dispatch(_event_info);
+					element._mouse_button_click(event);
+					element.mouse_button_click.dispatch(event);
 					
 					if(primary_clicked)
 					{
-						element._mouse_click();
-						element.mouse_click.dispatch(_event_info);
+						element._mouse_click(event);
+						element.mouse_click.dispatch(event);
 					}
 				}
 				
 				if(mouse.right_release && elements_right_pressed.exists(element._id))
 				{
-					_event_info.button = MouseButton::Right;
-					primary_clicked = primary_clicked || primary_button == _event_info.button;
+					event.button = MouseButton::Right;
+					primary_clicked = primary_clicked || primary_button == event.button;
 					
-					element._mouse_button_click( MouseButton::Right);
-					element.mouse_button_click.dispatch(_event_info);
+					element._mouse_button_click(event);
+					element.mouse_button_click.dispatch(event);
 					
 					if(primary_clicked)
 					{
-						element._mouse_click();
-						element.mouse_click.dispatch(_event_info);
+						element._mouse_click(event);
+						element.mouse_click.dispatch(event);
 					}
 				}
 				
 				if(mouse.middle_release && elements_middle_pressed.exists(element._id))
 				{
-					_event_info.button = MouseButton::Middle;
-					primary_clicked = primary_clicked || primary_button == _event_info.button;
+					event.button = MouseButton::Middle;
+					primary_clicked = primary_clicked || primary_button == event.button;
 					
-					element._mouse_button_click(MouseButton::Middle);
-					element.mouse_button_click.dispatch(_event_info);
+					element._mouse_button_click(event);
+					element.mouse_button_click.dispatch(event);
 					
 					if(primary_clicked)
 					{
-						element._mouse_click();
-						element.mouse_click.dispatch(_event_info);
+						element._mouse_click(event);
+						element.mouse_click.dispatch(event);
 					}
 				}
 				
@@ -1447,6 +1462,8 @@ class UI : IKeyboardFocusListener
 		// /////////////////////////////////////////////////
 		// Finalise
 		// 
+		
+		_event_info_pool.release(@event);
 		
 		// Set mouse_over erray
 		
@@ -1496,19 +1513,24 @@ class UI : IKeyboardFocusListener
 	
 	private void clear_press()
 	{
+		EventInfo@ event = _event_info_pool.get();
+		event.reset(EventType::MOUSE_RELEASE, primary_button, mouse.x, mouse.y);
+		@event.src = @_mouse_over_element;
+		
 		for(int i = int(elements_pressed_list.length()) - 1; i >= 0; i--)
 		{
-			Element@ element = @elements_pressed_list[i];
+			Element@ element = @event.target = @elements_pressed_list[i];
 			
 			if(!element.hovered)
 			{
-				element._mouse_release(primary_button);
+				element._mouse_release(event);
 			}
 			
 			element.pressed = false;
 		}
 		
 		elements_pressed_list.resize(0);
+		_event_info_pool.release(@event);
 	}
 	
 	private void process_queued_events()

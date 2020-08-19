@@ -3,6 +3,8 @@
 #include 'ListView.cpp';
 #include 'shapes/Arrow.cpp';
 
+namespace Select { const string TYPE_NAME = 'Select'; }
+
 class Select : SelectBase
 {
 	
@@ -43,7 +45,7 @@ class Select : SelectBase
 		popup.hide.on(EventCallback(on_popup_hide));
 	}
 	
-	string element_type { get const override { return 'Select'; } }
+	string element_type { get const override { return Select::TYPE_NAME; } }
 	
 	bool set_icon(int index, const string set, const string name, const float width, const float height, const float offset_x=0, const float offset_y=0) override
 	{
@@ -159,9 +161,9 @@ class Select : SelectBase
 	
 	// Events
 	
-	void _mouse_press(const MouseButton button)
+	void _mouse_press(EventInfo@ event)
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		list_view.fit_to_contents(true);

@@ -5,6 +5,8 @@
 #include 'shapes/Cross.cpp';
 #include '../layouts/flow/FlowLayout.cpp';
 
+namespace Window { const string TYPE_NAME = 'Window'; }
+
 class Window : MoveableDialog
 {
 	
@@ -54,7 +56,7 @@ class Window : MoveableDialog
 		alpha = 0;
 	}
 	
-	string element_type { get const override { return 'Window'; } }
+	string element_type { get const override { return Window::TYPE_NAME; } }
 	
 	void show(bool fade=true)
 	{

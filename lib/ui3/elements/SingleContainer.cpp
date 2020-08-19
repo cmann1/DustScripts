@@ -4,6 +4,8 @@
 #include 'Element.cpp';
 #include 'LockedContainer.cpp';
 
+namespace SingleContainer { const string TYPE_NAME = 'SingleContainer'; }
+
 class SingleContainer : LockedContainer
 {
 	
@@ -21,7 +23,7 @@ class SingleContainer : LockedContainer
 		@this.content = content;
 	}
 	
-	string element_type { get const override { return 'SingleContainer'; } }
+	string element_type { get const override { return SingleContainer::TYPE_NAME; } }
 	
 	Element@ content
 	{

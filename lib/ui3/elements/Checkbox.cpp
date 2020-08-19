@@ -3,6 +3,8 @@
 #include '../utils/CheckboxState.cpp';
 #include 'Element.cpp';
 
+namespace Checkbox { const string TYPE_NAME = 'Checkbox'; }
+
 class Checkbox : Element
 {
 	
@@ -25,7 +27,7 @@ class Checkbox : Element
 		fit();
 	}
 	
-	string element_type { get const { return 'Checkbox'; } }
+	string element_type { get const { return Checkbox::TYPE_NAME; } }
 	
 	CheckboxState state
 	{
@@ -187,9 +189,9 @@ class Checkbox : Element
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_press(const MouseButton button)
+	void _mouse_press(EventInfo@ event)
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		if(toggle_on_press)
@@ -202,9 +204,9 @@ class Checkbox : Element
 		}
 	}
 	
-	void _mouse_release(const MouseButton button) override
+	void _mouse_release(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		if(!_toggle_on_press)
@@ -213,7 +215,7 @@ class Checkbox : Element
 		}
 	}
 	
-	void _mouse_click() override
+	void _mouse_click(EventInfo@ event) override
 	{
 		if(!toggle_on_press)
 		{
@@ -239,7 +241,7 @@ class Checkbox : Element
 	
 	protected void on_label_click(EventInfo@ event)
 	{
-		_mouse_click();
+		_mouse_click(event);
 	}
 	
 }

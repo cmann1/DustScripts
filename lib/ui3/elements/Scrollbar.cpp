@@ -4,6 +4,8 @@
 #include '../events/Event.cpp';
 #include 'Container.cpp';
 
+namespace Scrollbar { const string TYPE_NAME = 'Scrollbar'; }
+
 class Scrollbar : Element, IStepHandler
 {
 	
@@ -50,7 +52,7 @@ class Scrollbar : Element, IStepHandler
 		}
 	}
 	
-	string element_type { get const override { return 'Scrollbar'; } }
+	string element_type { get const override { return Scrollbar::TYPE_NAME; } }
 	
 	Orientation orientation
 	{
@@ -339,24 +341,24 @@ class Scrollbar : Element, IStepHandler
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_enter() override
+	void _mouse_enter(EventInfo@ event) override
 	{
 		calculate_mouse_over_thumb();
 	}
 	
-	void _mouse_exit() override
+	void _mouse_exit(EventInfo@ event) override
 	{
 		mouse_over_thumb = false;
 	}
 	
-	void _mouse_move() override
+	void _mouse_move(EventInfo@ event) override
 	{
 		calculate_mouse_over_thumb();
 	}
 	
-	void _mouse_press(const MouseButton button) override
+	void _mouse_press(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		const float mouse_t = calculate_mouse_over_thumb();

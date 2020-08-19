@@ -2,6 +2,8 @@
 #include 'Button.cpp';
 #include 'shapes/Arrow.cpp';
 
+namespace Spinner { const string TYPE_NAME = 'Spinner'; }
+
 class Spinner : SelectBase, IStepHandler
 {
 	
@@ -56,7 +58,7 @@ class Spinner : SelectBase, IStepHandler
 		children_mouse_enabled = true;
 	}
 	
-	string element_type { get const override { return 'Spinner'; } }
+	string element_type { get const override { return Spinner::TYPE_NAME; } }
 	
 	int selected_index
 	{
@@ -194,7 +196,7 @@ class Spinner : SelectBase, IStepHandler
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_enter() override
+	void _mouse_enter(EventInfo@ event) override
 	{
 		if(fade_buttons >= 1)
 			return;
@@ -202,7 +204,7 @@ class Spinner : SelectBase, IStepHandler
 		step_subscribed = ui._step_subscribe(@this, step_subscribed);
 	}
 	
-	void _mouse_exit() override
+	void _mouse_exit(EventInfo@ event) override
 	{
 		if(fade_buttons >= 1)
 			return;
@@ -210,9 +212,9 @@ class Spinner : SelectBase, IStepHandler
 		step_subscribed = ui._step_subscribe(@this, step_subscribed);
 	}
 	
-	void _mouse_press(const MouseButton button) override
+	void _mouse_press(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		if(_left_button.check_mouse() || _right_button.check_mouse())
@@ -226,9 +228,9 @@ class Spinner : SelectBase, IStepHandler
 		}
 	}
 	
-	void _mouse_scroll(const int scroll_dir) override
+	void _mouse_scroll(EventInfo@ event) override
 	{
-		selected_index = _selected_index - scroll_dir;
+		selected_index = _selected_index - event.mouse.scroll;
 	}
 	
 }

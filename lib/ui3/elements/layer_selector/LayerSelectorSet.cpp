@@ -1,5 +1,7 @@
 #include '../Container.cpp';
 
+namespace LayerSelectorSet { const string TYPE_NAME = 'LayerSelectorSet'; }
+
 /// Internal. See LayerSelector instead
 class LayerSelectorSet : Container
 {
@@ -66,7 +68,7 @@ class LayerSelectorSet : Container
 		active_indices.resize(num_layers);
 	}
 	
-	string element_type { get const override { return 'LayerSelectorSet'; } }
+	string element_type { get const override { return LayerSelectorSet::TYPE_NAME; } }
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Basic Properties
@@ -1073,9 +1075,9 @@ class LayerSelectorSet : Container
 		}
 	}
 	
-	void _mouse_press(const MouseButton button) override
+	void _mouse_press(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		if(drag_select && toggle_on_press)
@@ -1091,7 +1093,7 @@ class LayerSelectorSet : Container
 		}
 	}
 	
-	void _mouse_move() override
+	void _mouse_move(EventInfo@ event) override
 	{
 		if(busy_drag_select)
 		{

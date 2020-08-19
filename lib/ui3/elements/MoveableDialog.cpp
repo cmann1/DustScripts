@@ -227,11 +227,11 @@ abstract class MoveableDialog : Container, IStepHandler
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_press(const MouseButton button) override
+	void _mouse_press(EventInfo@ event) override
 	{
 		parent.move_to_front(this);
 		
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		if(draggable && is_mouse_over_draggable_region())
@@ -248,9 +248,9 @@ abstract class MoveableDialog : Container, IStepHandler
 		}
 	}
 	
-	void _mouse_release(const MouseButton button) override
+	void _mouse_release(EventInfo@ event) override
 	{
-		if(busy_dragging && button == ui.primary_button)
+		if(busy_dragging && event.button == ui.primary_button)
 		{
 			busy_dragging = false;
 			@ui._active_mouse_element = null;

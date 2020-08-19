@@ -1,6 +1,8 @@
 #include '../../../math/math.cpp';
 #include 'Shape.cpp';
 
+namespace Arrow { const string TYPE_NAME = 'ArrowShape'; }
+
 class Arrow : Shape
 {
 	
@@ -14,7 +16,7 @@ class Arrow : Shape
 		super(ui, colour);
 	}
 	
-	string element_type { get const override { return 'ArrowShape'; } }
+	string element_type { get const override { return Arrow::TYPE_NAME; } }
 	
 	protected void init() override
 	{

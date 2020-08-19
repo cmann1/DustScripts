@@ -11,6 +11,8 @@
 #include 'LayerSelectorType.cpp';
 #include 'ILayerSelectorControl.cpp';
 
+namespace LayerSelector { const string TYPE_NAME = 'LayerSelector'; }
+
 class LayerSelector : LockedContainer
 {
 	
@@ -65,7 +67,7 @@ class LayerSelector : LockedContainer
 		validate_layout = true;
 	}
 	
-	string element_type { get const override { return 'LayerSelector'; } }
+	string element_type { get const override { return LayerSelector::TYPE_NAME; } }
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Background

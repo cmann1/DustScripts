@@ -9,7 +9,10 @@ class EventInfo
 	string type;
 	string value;
 	UIMouse@ mouse;
+	/// The current target of the event
 	Element@ target;
+	/// For mouse events this is set as the inner most element that recieved this event
+	Element@ src;
 	IGenericEventTarget@ generic_target;
 	MouseButton button;
 	float x, y;
@@ -22,6 +25,7 @@ class EventInfo
 		this.x = x;
 		this.y = y;
 		@this.target = null;
+		@this.src = null;
 		@this.generic_target = null;
 	}
 	
@@ -46,6 +50,7 @@ class EventInfo
 		this.value = value;
 		@this.target = @target;
 		@this.generic_target = @generic_target;
+		@this.src = null;
 		
 		this.button = MouseButton::None;
 		this.x = 0;

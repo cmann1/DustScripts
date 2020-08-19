@@ -11,6 +11,8 @@
 #include 'shapes/Arrow.cpp';
 #include 'LockedContainer.cpp';
 
+namespace NumberSlider { const string TYPE_NAME = 'NumberSlider'; }
+
 class NumberSlider : LockedContainer, IStepHandler
 {
 	
@@ -74,7 +76,7 @@ class NumberSlider : LockedContainer, IStepHandler
 		_set_height = _height = orientation == Orientation::Horizontal ? 34 : 70;
 	}
 	
-	string element_type { get const override { return 'NumberSlider'; } }
+	string element_type { get const override { return NumberSlider::TYPE_NAME; } }
 	
 	float value
 	{
@@ -440,7 +442,7 @@ class NumberSlider : LockedContainer, IStepHandler
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_enter() override
+	void _mouse_enter(EventInfo@ event) override
 	{
 		if(fade_buttons >= 1)
 			return;
@@ -448,7 +450,7 @@ class NumberSlider : LockedContainer, IStepHandler
 		step_subscribed = ui._step_subscribe(@this, step_subscribed);
 	}
 	
-	void _mouse_exit() override
+	void _mouse_exit(EventInfo@ event) override
 	{
 		if(fade_buttons >= 1)
 			return;
@@ -456,9 +458,9 @@ class NumberSlider : LockedContainer, IStepHandler
 		step_subscribed = ui._step_subscribe(@this, step_subscribed);
 	}
 	
-	void _mouse_press(const MouseButton button) override
+	void _mouse_press(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		if(_show_buttons && _left_button.visible && (_left_button.check_mouse() || _right_button.check_mouse()))
@@ -483,9 +485,9 @@ class NumberSlider : LockedContainer, IStepHandler
 		}
 	}
 	
-	void _mouse_scroll(const int scroll_dir) override
+	void _mouse_scroll(EventInfo@ event) override
 	{
-		value = _value - step * scroll_dir;
+		value = _value - step * event.mouse.scroll;
 	}
 	
 }

@@ -7,10 +7,12 @@
 #include 'Element.cpp';
 #include 'TextBox2.cpp';
 
+namespace TextBox { const string TYPE_NAME = 'TextBox'; }
+
 class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 {
 	
-	// TODO: Set to empty
+	//{ DONE
 	protected string _text =
 		'1\n'
 		'This is a     really\n'
@@ -29,7 +31,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	protected uint _size;
 	
 	protected float _line_spacing = 6;
-	
+	//}
+	//{ DONE
 	protected int _selection_start = 64;
 	protected int _selection_end = 0;
 	/// The stored relative index of the caret within the selected line.
@@ -38,8 +41,9 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	protected int _line_relative_caret_index = -1;
 	protected int _selection_start_line_index;
 	protected int _selection_end_line_index;
-	
-	/// The actual line height in pixels
+	//}
+	//{ DONE
+	///  The actual line height in pixels
 	protected float real_line_height;
 	protected array<float>@ font_metrics;
 	protected float padding_left;
@@ -51,16 +55,18 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	protected float _text_height;
 	protected float scroll_max_x;
 	protected float scroll_max_y;
-	
+	    
 	protected int _text_length;
 	protected int _num_lines;
 	protected array<int> line_end_indices;
-	
+	//} 
+	//{ DONE
 	protected int first_visible_line;
 	protected int num_visible_lines;
 	protected array<string> visible_lines;
 	protected array<float> visible_lines_offset;
 	protected array<float> visible_lines_selection;
+	
 	
 	protected int caret_line_index;
 	protected float caret_line_x;
@@ -69,18 +75,21 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	protected bool focused;
 	protected NavigationGroup@ _navigation_parent;
 	protected NavigateOn _navigate_on = NavigateOn(Inherit | Tab | (_multi_line ? CtrlReturn : Return) | Escape);
-	
+	//}
+	//{ DONE
 	protected bool drag_selection;
 	protected int double_click_start_index = -1;
 	protected int double_click_end_index = -1;
 	protected bool scrolled;
-	
+	//}
+	//{ DONE
 	protected bool busy_drag_scroll;
 	protected float drag_scroll_start_x;
 	protected float drag_scroll_start_y;
 	protected float drag_mouse_x_start;
 	protected float drag_mouse_y_start;
-	
+	//}
+	//{ DONE
 	protected bool pending_scroll_into_view;
 	protected float pending_scroll_into_view_x1;
 	protected float pending_scroll_into_view_y1;
@@ -89,7 +98,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	protected int pending_scroll_into_view_padding_x;
 	
 	protected bool step_registered;
-	
+	//}
 	TextBox(UI@ ui, const string font='', const uint size=0)
 	{
 		super(ui);
@@ -107,12 +116,12 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		update_line_endings();
 	}
 	
-	string element_type { get const { return 'TextBox'; } }
+	string element_type { get const { return TextBox::TYPE_NAME; } }
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Basic properties
 	// ///////////////////////////////////////////////////////////////////
-	
+	//{ DONE
 	string text
 	{
 		get const { return _text; }
@@ -241,11 +250,11 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			validate_layout = true;
 		}
 	}
-	
+	//}
 	// ///////////////////////////////////////////////////////////////////
 	// Selection
 	// ///////////////////////////////////////////////////////////////////
-	
+	//{ DONE
 	int selection_start
 	{
 		get const { return _selection_start; }
@@ -327,7 +336,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	{
 		caret_index = _selection_end;
 	}
-	
+	//}
+	//{ DONE
 	/// If word is true moves to the next word boundary. extend controls wether to move the caret, or extend the selection
 	void move_caret_left(const bool word, const bool extend, const bool scroll_to_caret=false)
 	{
@@ -455,7 +465,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		
 		persist_caret();
 	}
-	
+	//}
 	/// Moves the caret to the start of the line, or the beginning of the text if start is true.
 	/// extend controls wether to move the caret, or extend the selection
 	void move_caret_home(const bool start, const bool extend, const bool scroll_to_caret=false)
@@ -540,7 +550,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		
 		persist_caret();
 	}
-	
+	//{ DONE
 	/// Scrolls the caret into view. padding_x controls approximately how many extra characters
 	/// will be scrolled when the caret is not in view horizontally
 	void scroll_to_caret(const int padding_x=0)
@@ -593,7 +603,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			scroll_y = view_height - y2;
 		}
 	}
-	
+	//}
 	/// Replaces the current selection with the given ascii character
 	void replace(const int chr, const int scroll_to_caret=-1)
 	{
@@ -672,7 +682,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	// ///////////////////////////////////////////////////////////////////
 	// Helpers and various properties
 	// ///////////////////////////////////////////////////////////////////
-	
+	//{ DONE
 	int text_length
 	{
 		get const { return _text_length; }
@@ -700,7 +710,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	{
 		get const { return real_line_height * text_scale; }
 	}
-	
+	//}
+	//{ DONE
 	/// Finds the index of the nearest word boundary from start_index in direction dir.
 	int find_word_boundary(const int start_index, int dir)
 	{
@@ -725,9 +736,6 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 				chr_index += dir;
 				continue;
 			}
-			
-			if(new_chr_type == 3)
-				break;
 			
 			if(new_chr_type == 0)
 			{
@@ -780,7 +788,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			const int line_start_index = get_line_start(line_index);
 			const int line_end_index = get_line_end(line_index);
 			
-			// if we're at teh end of the line, instead expand based on the last non newline character on this line
+			// if we're at the end of the line, instead expand based on the last non newline character on this line
 			if(line_start_index != line_end_index)
 			{
 				chr_index = max(chr_index - 1, 0);
@@ -925,7 +933,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		
 		return line_end_indices[line_index];
 	}
-	
+	//}
+	//{ DONE
 	/// Returns the character index relative to the line containing it.
 	/// Returns -1 if index is not valid
 	int get_index_in_line(const int index)
@@ -995,8 +1004,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		}
 		
 		return width;
-	}
-	
+	}//}
+	//{ DONE
 	/// Returns the relative y position of the given line index.
 	float get_line_y(const int line_index)
 	{
@@ -1035,11 +1044,11 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	{
 		return @_navigation_parent != null ? _navigation_parent.next_navigable(@this) : null;
 	}
-	
+	//}
 	// ///////////////////////////////////////////////////////////////////
 	// Internal
 	// ///////////////////////////////////////////////////////////////////
-	
+	//{ DONE
 	bool ui_step() override
 	{
 		step_registered = false;
@@ -1079,7 +1088,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		
 		return step_registered;
 	}
-	
+	//}
 	void _do_layout(LayoutContext@ ctx) override
 	{
 		padding_left	= ui.style.spacing;
@@ -1333,7 +1342,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			num_visible_lines++;
 		}
 	}
-	
+	//{ DONE
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		const uint border_clr = style.get_interactive_element_border_colour(hovered, focused, focused, disabled);
@@ -1371,16 +1380,15 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			y = y1 + (_height - line_height) * 0.5;
 		}
 		
+		float dx, dy;
 		canvas@ c;
 		textfield@ text_field = style._initialise_text_field(
 			@c,
+			dx, dy,
 			style.text_clr,
-			text_scale, text_scale,
 			text_scale, text_scale, 0,
 			TextAlign::Left, TextAlign::Top,
 			_font, _size);
-		const float dx = style.text_offset_x * text_scale;
-		const float dy = style.text_offset_y * text_scale;
 		
 		for(int i = 0; i < num_visible_lines; i++)
 		{
@@ -1456,10 +1464,10 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		}
 		
 		// Debug
-		// style.outline(
-		// 	x1 + _scroll_x + padding_left, y1 + _scroll_y + padding_top,
-		// 	x1 + _scroll_x + padding_left + text_width, y1 + _scroll_y + padding_top + text_height,
-		// 	1, 0x99ff0000);
+//		 style.outline(
+//		 	x1 + _scroll_x + padding_left, y1 + _scroll_y + padding_top,
+//		 	x1 + _scroll_x + padding_left + text_width, y1 + _scroll_y + padding_top + text_height,
+//		 	1, 0x99ff0000);
 	}
 	
 	protected void update_line_endings()
@@ -1549,7 +1557,8 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		
 		return scroll;
 	}
-	
+	//}
+	//{ DONE
 	protected void do_drag_selection(const bool extend_selection=true)
 	{
 		const int index = get_index_at(ui.mouse.x, ui.mouse.y, true, false);
@@ -1621,16 +1630,17 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	{
 		persist_caret_time = ui.style.caret_blink_rate;
 	}
+	//}
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////////////////////////////
-	
-	void _mouse_press(const MouseButton button)
+	//{ DONE
+	void _mouse_press(EventInfo@ event)
 	{
 		@ui.focus = @this;
 		
-		if(button == ui.primary_button)
+		if(event.button == ui.primary_button)
 		{
 			if(ui.mouse.primary_double_click)
 			{
@@ -1644,7 +1654,7 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			
 			step_registered = ui._step_subscribe(this, step_registered);
 		}
-		else if(_drag_scroll && button == ui.secondary_button)
+		else if(_drag_scroll && event.button == ui.secondary_button)
 		{
 			drag_mouse_x_start = ui.mouse.x;
 			drag_mouse_y_start = ui.mouse.y;
@@ -1656,30 +1666,31 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		}
 	}
 	
-	void _mouse_release(const MouseButton button)
+	void _mouse_release(EventInfo@ event)
 	{
-		if(button == ui.primary_button)
+		if(event.button == ui.primary_button)
 		{
 			busy_drag_scroll = false;
 		}
 		
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		drag_selection = false;
 		double_click_start_index = -1;
 		double_click_end_index = -1;
 	}
-	
-	void _mouse_scroll(const int scroll_dir)
+	//}
+	//{ DONE
+	void _mouse_scroll(EventInfo@ event)
 	{
 		if(ui._has_editor && ui._editor.key_check_gvb(GVB::Shift))
 		{
-			scroll_x -= scroll_dir * (font_metrics[0] * 7);
+			scroll_x -= event.mouse.scroll * (font_metrics[0] * 7);
 		}
 		else
 		{
-			scroll_y -= scroll_dir * (real_line_height * text_scale + _line_spacing);
+			scroll_y -= event.mouse.scroll * (real_line_height * text_scale + _line_spacing);
 		}
 		
 		scrolled = true;
@@ -1689,16 +1700,16 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	{
 		focused = true;
 		keyboard.register_arrows_gvb();
-		keyboard.register_gvb(GVB::Delete, -1, ModifierKey::Ctrl);
-		keyboard.register_gvb(GVB::Back, -1, ModifierKey::Ctrl);
-		keyboard.register_vk(VK::End, VK::Home, ModifierKey::Ctrl | ModifierKey::Shift);
-		keyboard.register_vk(VK::Return, -1, ModifierKey::None);
-		keyboard.register_vk(VK::Numpad0, VK::Divide);
-		keyboard.register_vk(VK::Space, -1, ModifierKey::None);
-		keyboard.register_vk(VK::Digit0, VK::Digit9, ModifierKey::Shift);
-		keyboard.register_vk(VK::A, -1, ModifierKey::Ctrl | ModifierKey::Shift);
-		keyboard.register_vk(VK::B, VK::Z, ModifierKey::Shift);
-		keyboard.register_vk(VK::Oem1, VK::Oem7);
+		keyboard.register_gvb(GVB::Delete, ModifierKey::Ctrl);
+		keyboard.register_gvb(GVB::Back, ModifierKey::Ctrl);
+		keyboard.register_range_vk(VK::End, VK::Home, ModifierKey::Ctrl | ModifierKey::Shift);
+		keyboard.register_vk(VK::Return, ModifierKey::None);
+		keyboard.register_range_vk(VK::Numpad0, VK::Divide);
+		keyboard.register_vk(VK::Space, ModifierKey::None);
+		keyboard.register_range_vk(VK::Digit0, VK::Digit9, ModifierKey::Shift);
+		keyboard.register_vk(VK::A, ModifierKey::Ctrl | ModifierKey::Shift);
+		keyboard.register_range_vk(VK::B, VK::Z, ModifierKey::Shift);
+		keyboard.register_range_vk(VK::Oem1, VK::Oem7);
 	}
 	
 	void on_blur(Keyboard@ keyboard, const BlurAction type) override
@@ -1708,8 +1719,9 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 		// TODO: accept on accept
 		// TODO: reset text on cancel
 	}
-	
-	void on_key_press(Keyboard@ keyboard, const int key, const bool is_gvb)
+	//}
+	//{ DONE
+	void on_key_press(Keyboard@ keyboard, const int key, const bool is_gvb, const string text)
 	{
 		if(!is_gvb && key == VK::A && keyboard.ctrl)
 		{
@@ -1717,10 +1729,10 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 			return;
 		}
 		
-		on_key(keyboard, key, is_gvb);
+		on_key(keyboard, key, is_gvb, text);
 	}
 	
-	void on_key(Keyboard@ keyboard, const int key, const bool is_gvb)
+	void on_key(Keyboard@ keyboard, const int key, const bool is_gvb, const string text)
 	{
 		if(is_gvb)
 		{
@@ -1823,5 +1835,6 @@ class TextBox : Element, IStepHandler, IKeyboardFocus, INavigable
 	}
 	
 	void on_key_release(Keyboard@ keyboard, const int key, const bool is_gvb) { }
+	//}
 	
 }

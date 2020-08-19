@@ -4,6 +4,8 @@
 #include 'ScrollView.cpp';
 #include 'ListViewItem.cpp';
 
+namespace ListView { const string TYPE_NAME = 'ListView'; }
+
 class ListView : ScrollView
 {
 	
@@ -38,7 +40,7 @@ class ListView : ScrollView
 		@_content.layout = @grid_layout;
 	}
 	
-	string element_type { get const override { return 'ListView'; } }
+	string element_type { get const override { return ListView::TYPE_NAME; } }
 	
 	int num_items { get const { return _num_items; } }
 	
@@ -502,9 +504,9 @@ class ListView : ScrollView
 	
 	// Events
 	
-	void _mouse_press(const MouseButton button) override
+	void _mouse_press(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		if(drag_select)
@@ -520,7 +522,7 @@ class ListView : ScrollView
 		}
 	}
 	
-	void _mouse_move() override
+	void _mouse_move(EventInfo@ event) override
 	{
 		if(busy_drag_select)
 		{
@@ -540,9 +542,9 @@ class ListView : ScrollView
 		}
 	}
 	
-	void _mouse_release(const MouseButton button) override
+	void _mouse_release(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		busy_drag_select = false;

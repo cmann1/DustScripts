@@ -4,6 +4,8 @@
 #include '../utils/IOrientationParent.cpp';
 #include 'Element.cpp';
 
+namespace Divider { const string TYPE_NAME = 'Divider'; }
+
 class Divider : Element
 {
 	
@@ -30,7 +32,7 @@ class Divider : Element
 		mouse_enabled = false;
 	}
 	
-	string element_type { get const override { return 'Divider'; } }
+	string element_type { get const override { return Divider::TYPE_NAME; } }
 	
 	void fit()
 	{

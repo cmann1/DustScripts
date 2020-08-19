@@ -173,15 +173,15 @@ class Style
 	/// Don't manually change properties on the canvas or textfield.
 	textfield@ _initialise_text_field(
 		canvas@ &out c,
+		float &out out_dx, float &out out_dy,
 		uint colour,
-		float &out out_scale_x, float &out out_scale_y,
-		float scale_x=NAN, float scale_y=NAN,
+		float scale_x, float scale_y,
 		const float rotation=0,
 		const TextAlign align_h=TextAlign::Left, const TextAlign align_v=TextAlign::Top,
 		string font='', uint size=0)
 	{
-		out_scale_x = is_nan(scale_x) ? default_text_scale : scale_x;
-		out_scale_y = is_nan(scale_y) ? default_text_scale : scale_y;
+		out_dx = text_offset_x * scale_x;
+		out_dy = text_offset_y * scale_y;
 		
 		if(font == '')
 			font = default_font;

@@ -4,6 +4,8 @@
 #include 'SingleContainer.cpp';
 #include 'Scrollbar.cpp';
 
+namespace ScrollView { const string TYPE_NAME = 'ScrollView'; }
+
 class ScrollView : LockedContainer
 {
 	
@@ -40,7 +42,7 @@ class ScrollView : LockedContainer
 		_content.clip_contents = ClippingMode::Inside;
 	}
 	
-	string element_type { get const override { return 'ScrollView'; } }
+	string element_type { get const override { return ScrollView::TYPE_NAME; } }
 	
 	float scroll_x
 	{
@@ -357,16 +359,16 @@ class ScrollView : LockedContainer
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_scroll(const int scroll_dir)
+	void _mouse_scroll(EventInfo@ event)
 	{
 		if(@scrollbar_vertical != null && (_content.hovered || scrollbar_vertical.hovered))
 		{
-			scrollbar_vertical.position += scroll_dir * scroll_amount;
+			scrollbar_vertical.position += event.mouse.scroll * scroll_amount;
 			validate_layout = true;
 		}
 		else if(@scrollbar_horizontal != null && scrollbar_horizontal.hovered)
 		{
-			scrollbar_horizontal.position += scroll_dir * scroll_amount;
+			scrollbar_horizontal.position += event.mouse.scroll * scroll_amount;
 			validate_layout = true;
 		}
 	}

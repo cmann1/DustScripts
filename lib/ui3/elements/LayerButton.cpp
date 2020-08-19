@@ -6,6 +6,8 @@
 #include 'LockedContainer.cpp';
 #include 'Label.cpp';
 
+namespace LayerButton { const string TYPE_NAME = 'LayerButton'; }
+
 class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 {
 	
@@ -66,7 +68,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		on_layer_selector_type_change();
 	}
 	
-	string element_type { get const { return 'LayerButton'; } }
+	string element_type { get const { return LayerButton::TYPE_NAME; } }
 	
 	/// The layer and sublayer numbers can be displayed in a row or column
 	Orientation orientation
@@ -372,15 +374,15 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
-	void _mouse_press(const MouseButton button) override
+	void _mouse_press(EventInfo@ event) override
 	{
-		if(button != ui.primary_button)
+		if(event.button != ui.primary_button)
 			return;
 		
 		@ui._active_mouse_element = @this;
 	}
 	
-	void _mouse_click() override
+	void _mouse_click(EventInfo@ event) override
 	{
 		if(!_open)
 		{

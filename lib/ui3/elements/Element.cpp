@@ -132,6 +132,22 @@ abstract class Element
 		}
 	}
 	
+	Element@ find_closest(const string type_name)
+	{
+		Element@ element = @this;
+		
+		do
+		{
+			if(element.element_type == type_name)
+				return @element;
+			
+			@element = element.parent;
+		}
+		while(@element != null);
+		
+		return null;
+	}
+	
 	/// Shows the tooltip for this element if it has one.
 	void show_tooltip()
 	{
@@ -325,28 +341,28 @@ abstract class Element
 	// ///////////////////////////////////////////////////////////////////
 	
 	/// When the mouse enters this element
-	void _mouse_enter() { }
+	void _mouse_enter(EventInfo@ event) { }
 	
 	/// When the mouse exits this element
-	void _mouse_exit() { }
+	void _mouse_exit(EventInfo@ event) { }
 	
 	/// This element is pressed with any mouse button
-	void _mouse_press(const MouseButton button) { }
+	void _mouse_press(EventInfo@ event) { }
 	
 	/// The mouse moves within this element
-	void _mouse_move() { }
+	void _mouse_move(EventInfo@ event) { }
 	
 	/// The mouse is released within this element. Will also trigger for the active element
 	/// even when the mouse is outside
-	void _mouse_release(const MouseButton button) { }
+	void _mouse_release(EventInfo@ event) { }
 	
 	/// This element is clicked with any mouse button
-	void _mouse_button_click(const MouseButton button) { }
+	void _mouse_button_click(EventInfo@ event) { }
 	
 	/// This element is clicked with the primary mouse button
-	void _mouse_click() { }
+	void _mouse_click(EventInfo@ event) { }
 	
 	/// The mouse wheel is scroll while over this element
-	void _mouse_scroll(const int scroll_dir) { }
+	void _mouse_scroll(EventInfo@ event) { }
 	
 }

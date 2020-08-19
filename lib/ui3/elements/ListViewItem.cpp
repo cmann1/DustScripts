@@ -3,6 +3,8 @@
 #include 'Label.cpp';
 #include '../TextAlign.cpp';
 
+namespace ListViewItem { const string TYPE_NAME = 'ListViewItem'; }
+
 class ListViewItem : Container
 {
 	
@@ -15,7 +17,7 @@ class ListViewItem : Container
 	protected Label@ _label;
 	protected bool _has_custom_content;
 	
-	string element_type { get const override { return 'ListViewItem'; } }
+	string element_type { get const override { return ListViewItem::TYPE_NAME; } }
 	
 	ListViewItem(UI@ ui, const string value)
 	{
@@ -305,7 +307,7 @@ class ListViewItem : Container
 	
 	// Events
 	
-	void _mouse_click() override
+	void _mouse_click(EventInfo@ event) override
 	{
 		if(@_list_view == null || !_list_view.drag_select)
 		{

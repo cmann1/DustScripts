@@ -4,6 +4,8 @@
 #include '../popups/PopupOptions.cpp';
 #include 'SingleContainer.cpp';
 
+namespace Popup { const string TYPE_NAME = 'Popup'; }
+
 class Popup : SingleContainer, IStepHandler
 {
 	
@@ -40,7 +42,7 @@ class Popup : SingleContainer, IStepHandler
 		options._on_popup_show(this);
 	}
 	
-	string element_type { get const override { return 'Popup'; } }
+	string element_type { get const override { return Popup::TYPE_NAME; } }
 	
 	void update(PopupOptions@ options, Element@ target)
 	{
