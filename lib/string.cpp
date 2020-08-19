@@ -303,4 +303,11 @@ namespace string
 			(chr >= 97  && chr <= 122);
 	}
 	
+	string chr(const int x)
+	{
+		string s = ' ';
+		s[0] = x;
+		return s;
+	}
+	
 }
