@@ -22,6 +22,8 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	protected bool _smart_home = true;
 	protected bool _remove_lines_shortcut = true;
 	protected bool _accept_on_blur = true;
+	protected bool _select_all_on_focus;
+	protected bool _deselect_all_on_blur;
 	protected bool _drag_scroll = true;
 	
 	protected float padding_left;
@@ -85,8 +87,11 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		
 		_font = font;
 		_size = size;
-		_multi_line = text.findFirstOf('\n\r') != -1;
 		_text_scale = is_nan(text_scale) ? ui.style.default_text_scale : text_scale;
+		
+		_multi_line = text.findFirstOf('\n\r') != -1;
+		_select_all_on_focus = !_multi_line;
+		_deselect_all_on_blur = !_multi_line;
 		
 		ui.get_font_metrics(_font, _size, @font_metrics, unscaled_line_height);
 		
@@ -258,6 +263,20 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	{
 		get const { return _accept_on_blur; }
 		set { _accept_on_blur = value; }
+	}
+	
+	/// When this TextBox gains focus, all text will automatically be selected
+	bool select_all_on_focus
+	{
+		get const { return _select_all_on_focus; }
+		set { _select_all_on_focus = value; }
+	}
+	
+	/// When this TextBox loses focus, all text will be deselected
+	bool deselect_all_on_blur
+	{
+		get const { return _deselect_all_on_blur; }
+		set { _deselect_all_on_blur = value; }
 	}
 	
 	/// If true dragging with right mouse will scroll the TextBox
@@ -1152,8 +1171,6 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	// Character Utility
 	// ///////////////////////////////////////////////////////////////////
 	
-	// TODO: Take vertically centered single line text box position into account
-	
 	/// Returns the closest line index at the given y value.
 	/// If closest_boundary is false the closest index of the chracter at x,y is returned,
 	/// otherwise the index/boundary boundary between two characters is returned.
@@ -1334,12 +1351,10 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			_font, _size);
 		
 		const float x1 = this.x1;
-		const float y1 = this.y1;
+		const float y1 = this.y1 + (!_multi_line ? (view_height - line_height) * 0.5 : 0);
 		const float x = x1 + padding_left + scroll_x;
 		const float y = y1 + padding_top + scroll_y + first_visible_line * (line_height + _line_spacing);
 		float line_y;
-		
-		// TODO: Render centered vertically if single line
 		
 		////////////////////////////////////////
 		// Selection
@@ -2015,7 +2030,12 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	void _mouse_press(EventInfo@ event)
 	{
+		const bool was_focused = focused;
+		
 		@ui.focus = @this;
+		
+		if(_select_all_on_focus && !was_focused)
+			return;
 		
 		if(event.button == ui.primary_button)
 		{
@@ -2084,6 +2104,11 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			keyboard.register_vk(VK::D, ModifierKey::Ctrl | ModifierKey::Shift | ModifierKey::Only);
 		}
 		
+		if(_select_all_on_focus)
+		{
+			select_all();
+		}
+		
 		ui._step_subscribe(this);
 	}
 	
@@ -2094,6 +2119,11 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		// TODO: accept on unknown, or cancel if _accept_on_blur is false
 		// TODO: accept on accept
 		// TODO: reset text on cancel
+		
+		if(_deselect_all_on_blur)
+		{
+			select_none();
+		}
 	}
 	
 	void on_key_press(Keyboard@ keyboard, const int key, const bool is_gvb, const string text)
