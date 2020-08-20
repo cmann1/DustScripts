@@ -22,6 +22,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	protected bool _smart_home = true;
 	protected bool _remove_lines_shortcut = true;
 	protected bool _accept_on_blur = true;
+	protected bool _revert_on_cancel = true;
 	protected bool _select_all_on_focus;
 	protected bool _deselect_all_on_blur;
 	protected bool _drag_scroll = true;
@@ -38,6 +39,12 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	protected int _selection_start;
 	protected int _selection_end;
+	
+	/// Triggered anytime the text changes.
+	Event change;
+	/// Triggered when the value is accepted either with enter or ctrl+Enter.
+	/// The event type will be CANCEL when cancelled with esacpe
+	Event accept;
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Text related
@@ -78,6 +85,9 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	/// Only updated when the position within the line is explicitly changed, e.g. moving left/right, or selecting with the mouse.
 	protected int line_relative_caret_index = -1;
 	
+	protected bool suppress_change_event;
+	protected string previous_text;
+	
 	TextBox(UI@ ui, const string text='', const string font='', const uint size=0, const float text_scale=NAN)
 	{
 		super(ui);
@@ -107,6 +117,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		padding = ui.style.spacing;
 		_navigate_on = NavigateOn(_navigate_on | (_multi_line ? CtrlReturn : Return) | Escape);
 		
+		suppress_change_event = true;
 		this.text = text;
 	}
 	
@@ -263,6 +274,13 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	{
 		get const { return _accept_on_blur; }
 		set { _accept_on_blur = value; }
+	}
+	
+	/// If the escape key is pressed, the TextBox's contents will be reverted
+	bool revert_on_cancel
+	{
+		get const { return _revert_on_cancel; }
+		set { _revert_on_cancel = value; }
 	}
 	
 	/// When this TextBox gains focus, all text will automatically be selected
@@ -710,6 +728,8 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	/// Clears all text
 	void clear()
 	{
+		const bool changed = _text_length > 0;
+		
 		lines.resize(1);
 		line_end_indices.resize(1);
 		line_character_widths.resize(1);
@@ -723,8 +743,9 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		
 		_text_width = 0;
 		recalculate_text_height();
-		
 		validate_selection();
+		
+		dispatch_change_event(changed);
 	}
 	
 	/// Removes all selected text. Returns the number of removed characters.
@@ -817,6 +838,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		caret_index = new_caret_index;
 		this.scroll_to_caret(scroll_to_caret);
 		
+		dispatch_change_event();
 //		debug_lines(true);
 	}
 	
@@ -1804,6 +1826,9 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		// debug_lines();
 		
 		line_relative_caret_index = -1;
+		
+		dispatch_change_event();
+		
 		return (int64(insert_count) << 32) | remove_count;
 	}
 	
@@ -2024,6 +2049,20 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		return line_index;
 	}
 	
+	protected void dispatch_change_event(const bool changed=true)
+	{
+		if(suppress_change_event)
+		{
+			suppress_change_event = false;
+			return;
+		}
+		
+		if(!changed)
+			return;
+		
+		ui._dispatch_event(@change, EventType::CHANGE, @this);
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////////////////////////////
@@ -2109,6 +2148,11 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			select_all();
 		}
 		
+		if(_revert_on_cancel)
+		{
+			previous_text = text;
+		}
+		
 		ui._step_subscribe(this);
 	}
 	
@@ -2116,9 +2160,19 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	{
 		FocusableElement::on_blur(keyboard, type);
 		
-		// TODO: accept on unknown, or cancel if _accept_on_blur is false
-		// TODO: accept on accept
-		// TODO: reset text on cancel
+		if(
+			type == BlurAction::Accepted ||
+			type == BlurAction::None && _accept_on_blur ||
+			type == BlurAction::Cancelled && !_revert_on_cancel)
+		{
+			ui._dispatch_event(@accept, EventType::ACCEPT, @this);
+		}
+		else if(type == BlurAction::Cancelled && _revert_on_cancel)
+		{
+			suppress_change_event = true;
+			text = previous_text;
+			ui._dispatch_event(@accept, EventType::CANCEL, @this);
+		}
 		
 		if(_deselect_all_on_blur)
 		{

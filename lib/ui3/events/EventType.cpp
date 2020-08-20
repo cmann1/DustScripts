@@ -15,6 +15,7 @@ namespace EventType
 	const string SCROLL				= 'scroll';
 	const string SCROLL_CHANGE		= 'scroll_change';
 	const string SELECT 			= 'select';
+	const string ACCEPT 			= 'accept';
 	const string CANCEL 			= 'cancel';
 	const string CHANGE 			= 'change';
 	const string CHANGE_RANGE		= 'change_range';
