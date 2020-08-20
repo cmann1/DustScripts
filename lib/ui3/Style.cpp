@@ -84,8 +84,8 @@ class Style
 	
 	float caret_width = 2;
 	int caret_blink_rate = 60;
-	float selection_padding_top = 1;
-	float selection_padding_bottom = 3;
+	float selection_padding_top = 2;
+	float selection_padding_bottom = 2;
 	
 	private string current_font = default_font;
 	private uint current_text_size = default_text_size;

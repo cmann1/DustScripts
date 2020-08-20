@@ -838,6 +838,7 @@ class UI : IKeyboardFocusListener
 			queued_event_infos.resize(queued_events_size);
 		}
 		
+		@event_info.mouse = mouse;
 		@queued_events[num_queued_events]			= @event;
 		@queued_event_infos[num_queued_events++]	= event_info;
 	}
@@ -846,6 +847,7 @@ class UI : IKeyboardFocusListener
 	{
 		EventInfo@ event_info = _event_info_pool.get();
 		event_info.reset(type, target, value);
+		@event_info.mouse = mouse;
 		_queue_event(@event, @event_info);
 	}
 	
@@ -853,6 +855,7 @@ class UI : IKeyboardFocusListener
 	{
 		EventInfo@ event_info = _event_info_pool.get();
 		event_info.reset(type, null, generic_target, value);
+		@event_info.mouse = mouse;
 		_queue_event(@event, @event_info);
 	}
 	
@@ -860,6 +863,7 @@ class UI : IKeyboardFocusListener
 	{
 		EventInfo@ event_info = _event_info_pool.get();
 		event_info.reset(type, target, generic_target, value);
+		@event_info.mouse = mouse;
 		_queue_event(@event, @event_info);
 	}
 	
@@ -1197,8 +1201,8 @@ class UI : IKeyboardFocusListener
 		// 
 		
 		EventInfo@ event = _event_info_pool.get();
-		
 		event.reset(EventType::MOUSE_EXIT, MouseButton::None, mouse.x, mouse.y);
+		@event.mouse = mouse;
 		@event.src = @_mouse_over_element;
 		
 		const int num_elements_mouse_over = int(elements_mouse_over.size());
@@ -1515,6 +1519,7 @@ class UI : IKeyboardFocusListener
 	{
 		EventInfo@ event = _event_info_pool.get();
 		event.reset(EventType::MOUSE_RELEASE, primary_button, mouse.x, mouse.y);
+		@event.mouse = mouse;
 		@event.src = @_mouse_over_element;
 		
 		for(int i = int(elements_pressed_list.length()) - 1; i >= 0; i--)

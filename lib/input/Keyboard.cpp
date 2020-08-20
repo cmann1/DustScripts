@@ -48,6 +48,7 @@ class Keyboard
 	private bool pressed_gvb;
 	private int pressed_timer;
 	private int pressed_modifiers;
+	private bool pressed_only_modifier;
 	
 	Keyboard(IKeyboardFocusListener@ focus_listener=null)
 	{
@@ -74,6 +75,8 @@ class Keyboard
 		alt   = editor.key_check_gvb(GVB::Alt);
 		modifiers = (ctrl ? int(ModifierKey::Ctrl) : 0) | (shift ? int(ModifierKey::Shift) : 0) | (alt ? int(ModifierKey::Alt) : 0);
 		
+		bool key_consumed = false;
+		
 		if(allow_navigation && @_navigable != null)
 		{
 			const NavigateOn navigate_on = _navigable.navigate_on;
@@ -81,98 +84,113 @@ class Keyboard
 			if(navigation::consume(editor, navigate_on, Tab, GVB::Tab, consume_gvb))
 			{
 				navigate();
+				key_consumed = true;
 			}
 			else if(ctrl && navigation::consume(editor, navigate_on, CtrlReturn, GVB::Return, consume_gvb))
 			{
 				navigate(Accepted);
+				key_consumed = true;
 			}
 			else if(!ctrl && navigation::consume(editor, navigate_on, Return, GVB::Return, consume_gvb))
 			{
 				navigate(Accepted);
+				key_consumed = true;
 			}
 			else if(navigation::consume(editor, navigate_on, Escape, GVB::Escape, consume_gvb))
 			{
 				set_focus(null, Cancelled);
+				key_consumed = true;
 			}
 		}
 		
 		if(@focus == null)
 			return;
 		
-		for(int i = num_vk - 1; i >= 0; i--)
+		if(!key_consumed)
 		{
-			const int key = vk[i];
-			const int key_modifiers = vk_modifiers[i];
-			
-			if(!editor.key_check_pressed_vk(key))
-				continue;
-			
-			vk[i] = vk[num_vk - 1];
-			vk_modifiers[i] = vk_modifiers[--num_vk];
-			
-			if(pressed_key != -1)
+			for(int i = num_vk - 1; i >= 0; i--)
 			{
-				if(pressed_gvb)
+				const int key = vk[i];
+				const int key_modifiers = vk_modifiers[i];
+				
+				if(!editor.key_check_pressed_vk(key))
+					continue;
+				
+				vk[i] = vk[num_vk - 1];
+				vk_modifiers[i] = vk_modifiers[--num_vk];
+				
+				if(pressed_key != -1)
 				{
-					gvb[num_gvb] = pressed_key;
-					gvb_modifiers[num_gvb++] = pressed_modifiers;
+					if(pressed_gvb)
+					{
+						gvb[num_gvb] = pressed_key;
+						gvb_modifiers[num_gvb++] = pressed_modifiers;
+					}
+					else
+					{
+						vk[num_vk] = pressed_key;
+						vk_modifiers[num_vk++] = pressed_modifiers;
+					}
 				}
-				else
+				
+				pressed_key = key;
+				pressed_gvb = false;
+				pressed_timer = press_delay;
+				pressed_modifiers = key_modifiers;
+				pressed_only_modifier = (key_modifiers & ModifierKey::Only) != 0;
+				
+				if(pressed_only_modifier
+					? ((modifiers & pressed_modifiers) != 0)
+					: ((modifiers & ~pressed_modifiers) == 0)
+				)
 				{
-					vk[num_vk] = pressed_key;
-					vk_modifiers[num_vk++] = pressed_modifiers;
-				}
-			}
-			
-			pressed_key = key;
-			pressed_gvb = false;
-			pressed_timer = press_delay;
-			pressed_modifiers = key_modifiers;
-			
-			if((modifiers & ~pressed_modifiers) == 0)
-			{
-				focus.on_key_press(@this, key, false, process_input_key(key));
-			}
-		}
-		
-		for(int i = num_gvb - 1; i >= 0; i--)
-		{
-			const int key = gvb[i];
-			const int key_modifiers = gvb_modifiers[i];
-			
-			if(!editor.key_check_pressed_gvb(key))
-				continue;
-			
-			gvb[i] = gvb[num_gvb - 1];
-			gvb_modifiers[i] = gvb_modifiers[--num_gvb];
-			
-			if(pressed_key != -1)
-			{
-				if(pressed_gvb)
-				{
-					gvb[num_gvb] = pressed_key;
-					gvb_modifiers[num_gvb++] = pressed_modifiers;
-				}
-				else
-				{
-					vk[num_vk] = pressed_key;
-					vk_modifiers[num_vk++] = pressed_modifiers;
+					focus.on_key_press(@this, key, false, process_input_key(key));
 				}
 			}
 			
-			pressed_key = key;
-			pressed_gvb = true;
-			pressed_timer = press_delay;
-			pressed_modifiers = key_modifiers;
-			
-			if(consume_gvb)
+			for(int i = num_gvb - 1; i >= 0; i--)
 			{
-				editor.key_clear_gvb(key);
-			}
-			
-			if((modifiers & ~pressed_modifiers) == 0)
-			{
-				focus.on_key_press(@this, key, true, '');
+				const int key = gvb[i];
+				const int key_modifiers = gvb_modifiers[i];
+				
+				if(!editor.key_check_pressed_gvb(key))
+					continue;
+				
+				gvb[i] = gvb[num_gvb - 1];
+				gvb_modifiers[i] = gvb_modifiers[--num_gvb];
+				
+				if(pressed_key != -1)
+				{
+					if(pressed_gvb)
+					{
+						gvb[num_gvb] = pressed_key;
+						gvb_modifiers[num_gvb++] = pressed_modifiers;
+					}
+					else
+					{
+						vk[num_vk] = pressed_key;
+						vk_modifiers[num_vk++] = pressed_modifiers;
+					}
+				}
+				
+				pressed_key = key;
+				pressed_gvb = true;
+				pressed_timer = press_delay;
+				pressed_modifiers = key_modifiers;
+				pressed_only_modifier = (key_modifiers & ModifierKey::Only) != 0;
+				
+				if(consume_gvb)
+				{
+					editor.key_clear_gvb(key);
+				}
+				
+				if(pressed_only_modifier
+					? ((modifiers & pressed_modifiers) != 0)
+					: ((modifiers & ~pressed_modifiers) == 0)
+				)
+				{
+					focus.on_key_press(@this, key, true, '');
+				}
 			}
 		}
 		
