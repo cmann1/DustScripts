@@ -98,6 +98,7 @@ class UI : IKeyboardFocusListener
 	private array<Element@> elements_mouse_over();
 	
 	private Element@ _focused_element;
+	private string _clipboard;
 	
 	private Element@ debug_mouse_over_element;
 	private bool debug_draw_active;
@@ -336,6 +337,12 @@ class UI : IKeyboardFocusListener
 				@keyboard.focus = keyboard_focus;
 			}
 		}
+	}
+	
+	string clipboard
+	{
+		get const { return _clipboard; }
+		set { _clipboard = value; }
 	}
 	
 	bool add_child(Element@ child)

@@ -21,6 +21,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	protected bool _multi_line = true;
 	protected bool _smart_home = true;
 	protected bool _remove_lines_shortcut = true;
+	protected bool _clipboard_enabled = true;
 	protected bool _accept_on_blur = true;
 	protected bool _revert_on_cancel = true;
 	protected bool _select_all_on_focus;
@@ -267,6 +268,13 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	{
 		get const { return _remove_lines_shortcut; }
 		set { _remove_lines_shortcut = value; }
+	}
+	
+	/// Allow copy and paste with ctrl+C and ctrl+V. (Doesn't use the real clipboard for now)
+	bool clipboard_enabled
+	{
+		get const { return _clipboard_enabled; }
+		set { _clipboard_enabled = value; }
 	}
 	
 	/// When this TextBox loses focus, accept the changes if true, otherwise cancel and revert.
@@ -914,6 +922,44 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		do_replace(start_index, end_index, '');
 		caret_index = start_index;
 		this.scroll_to_caret(scroll_to_caret);
+	}
+	
+	/// Copies the current selection to the clipboard
+	void copy()
+	{
+		if(_selection_start == _selection_end)
+			return;
+		
+		ui.clipboard = get_selected_text();
+	}
+	
+	/// Cuts the current selection to the clipboard
+	void cut(const int scroll_to_caret=-1)
+	{
+		if(_selection_start == _selection_end)
+			return;
+		
+		ui.clipboard = get_selected_text();
+		do_replace(_selection_start, _selection_end, '');
+		caret_index = _selection_start;
+		this.scroll_to_caret(scroll_to_caret);
+	}
+	
+	/// Pastes from the clipboard into the current selection
+	void paste(const int scroll_to_caret=-1)
+	{
+		const string text = ui.clipboard;
+		
+		if(text == '')
+			return;
+		
+		const int64 count = do_replace(_selection_start, _selection_end, text);
+		
+		if(count != 0)
+		{
+			adjust_selection(min(_selection_start, _selection_end), (count >> 32) - (count & 0xffffffff), true);
+			this.scroll_to_caret(scroll_to_caret);
+		}
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -2143,6 +2189,13 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			keyboard.register_vk(VK::D, ModifierKey::Ctrl | ModifierKey::Shift | ModifierKey::Only);
 		}
 		
+		if(_clipboard_enabled)
+		{
+			keyboard.register_vk(VK::C, ModifierKey::Ctrl | ModifierKey::Only);
+			keyboard.register_vk(VK::X, ModifierKey::Ctrl | ModifierKey::Only);
+			keyboard.register_vk(VK::V, ModifierKey::Ctrl | ModifierKey::Only);
+		}
+		
 		if(_select_all_on_focus)
 		{
 			select_all();
@@ -2193,10 +2246,31 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	void on_key(Keyboard@ keyboard, const int key, const bool is_gvb, const string text)
 	{
-		if(!is_gvb && key == VK::D && keyboard.ctrl && keyboard.shift)
+		if(!is_gvb)
 		{
-			remove_lines(get_line_at_index(_selection_start), get_line_at_index(_selection_end), 0);
-			return;
+			if(key == VK::D && keyboard.ctrl && keyboard.shift)
+			{
+				remove_lines(get_line_at_index(_selection_start), get_line_at_index(_selection_end), 8);
+				return;
+			}
+			
+			if(key == VK::C && keyboard.ctrl)
+			{
+				copy();
+				return;
+			}
+			
+			if(key == VK::X && keyboard.ctrl)
+			{
+				cut(8);
+				return;
+			}
+			
+			if(key == VK::V && keyboard.ctrl)
+			{
+				paste(8);
+				return;
+			}
 		}
 		
 		if(is_gvb)
