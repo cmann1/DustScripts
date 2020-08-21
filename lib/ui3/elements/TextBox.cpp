@@ -143,6 +143,45 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		}
 	}
 	
+	/// Get or set this TextBox's content as a flaot value.
+	float float_value
+	{
+		get const { return parseFloat(lines[0]); }
+		set { text = value + ''; }
+	}
+	
+	/// Get or set this TextBox's content as an integer value.
+	/// If character_validation is set to Hex or the text starts with '#' or '0x' the text will be parsed as a hexidecimal string
+	int int_value
+	{
+		get const { return try_parse_int(lines[0]); }
+		set { text = try_convert_int(value); }
+	}
+	
+	/// Get or set this TextBox's content as an unsigned integer value.
+	/// If character_validation is set to Hex or the text starts with '#' or '0x' the text will be parsed as a hexidecimal string
+	uint uint_value
+	{
+		get const { return try_parse_uint(lines[0]); }
+		set { text = try_convert_uint(value); }
+	}
+	
+	/// Interpret the TextBox's content as hexidecimal, even if character_validation is not set to Hex
+	/// and the text does not start with '#' or '0x'
+	uint hex_value
+	{
+		get const { return try_parse_uint(lines[0], true); }
+		set { text = try_convert_uint(value, true); }
+	}
+	
+	/// Interpret the TextBox's content an RGB hexidecimal string with an option alpha.
+	/// This allows the short forms #ARGB and #RGB
+	uint rgb_value
+	{
+		get const { return try_parse_rgb(lines[0]); }
+		set { text = try_convert_uint(value, true); }
+	}
+	
 	/// The length of the text
 	int text_length
 	{
@@ -1693,13 +1732,13 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		const int end_line_index		= get_line_at_index(end_index);
 		const int remove_count			= end_index - start_index;
 		
-		// puts('== do_replace================================================');
-		// puts('=============================================================');
-		// puts('  with: "' + text + '"');
-		// puts('  range: ' + start_index + ' > ' + end_index);
-		// puts('  start_line_index: ' + start_line_index);
-		// puts('  end_line_index: ' + end_line_index);
-		// puts('  remove_count: ' + remove_count);
+//		 puts('== do_replace================================================');
+//		 puts('=============================================================');
+//		 puts('  with: "' + text + '"');
+//		 puts('  range: ' + start_index + ' > ' + end_index);
+//		 puts('  start_line_index: ' + start_line_index);
+//		 puts('  end_line_index: ' + end_line_index);
+//		 puts('  remove_count: ' + remove_count);
 		
 		int current_line_index			= start_line_index;
 		int current_line_start_index	= current_line_index > 0 ? line_end_indices[current_line_index - 1] + 1 : 0;
@@ -1717,10 +1756,10 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		// so that it can be merged with the start line.
 		const string end_line_text		= lines[end_line_index].substr(end_index - get_line_start_index(end_line_index));
 		
-		// puts('  chr_index: ' + chr_index);
-		// puts('  line_buffer: "' + line_buffer + '"');
-		// puts('  current_line_width: ' + current_line_width);
-		// puts('  end_line_text: "' + end_line_text + '"');
+//		 puts('  chr_index: ' + chr_index);
+//		 puts('  line_buffer: "' + line_buffer + '"');
+//		 puts('  current_line_width: ' + current_line_width);
+//		 puts('  end_line_text: "' + end_line_text + '"');
 		
 		int i = 0;
 		int insert_count = 0;
@@ -1790,7 +1829,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			} // END IF NEW LINE
 			
 			///////////////////////////////////////////
-			// TODO: Check if chr is valid based on settings
+			// Check if chr is valid based on settings
 			
 			switch(character_validation)
 			{
@@ -1854,9 +1893,6 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			}
 		}
 		
-		if(insert_count == 0 && remove_count == 0)
-			return 0;
-		
 		////////////////////////////////////////
 		// Merge end line
 		
@@ -1890,6 +1926,9 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 				text_width = current_line_width;
 			}
 		}
+		
+		if(insert_count == 0 && remove_count == 0)
+			return 0;
 		
 		////////////////////////////////////////
 		// Remove deleted lines
@@ -2187,6 +2226,81 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		}
 		
 		return line_index;
+	}
+	
+	string try_convert_int(const int value)
+	{
+		return _character_validation == Hex
+			? formatInt(value, 'H')
+			: value + '';
+	}
+	
+	string try_convert_uint(const uint value, const bool force_hex=false)
+	{
+		return force_hex || _character_validation == Hex
+			? formatInt(value, 'H')
+			: value + '';
+	}
+	
+	protected int try_parse_int(string text, const bool force_hex=false)
+	{
+		uint base = parse_hex_prefix(text, text) || force_hex ? 16 : 10;
+		return parseInt(text, base);
+	}
+	
+	protected uint try_parse_uint(string text, const bool force_hex=false)
+	{
+		uint base = parse_hex_prefix(text, text) || force_hex ? 16 : 10;
+		return parseUInt(text, base);
+	}
+	
+	protected uint try_parse_rgb(string text)
+	{
+		text = string::trim(text);
+		parse_hex_prefix(text, text);
+		
+		if(text.length() == 3)
+		{
+			text =
+				text.substr(0, 1) + text.substr(0, 1) +
+				text.substr(1, 1) + text.substr(1, 1) +
+				text.substr(2, 1) + text.substr(2, 1);
+		}
+		else if(text.length() == 4)
+		{
+			text =
+				text.substr(0, 1) + text.substr(0, 1) +
+				text.substr(1, 1) + text.substr(1, 1) +
+				text.substr(2, 1) + text.substr(2, 1) +
+				text.substr(3, 1) + text.substr(3, 1);
+		}
+		
+		return parseInt(text, 16);
+	}
+	
+	protected bool parse_hex_prefix(string text, string &out output)
+	{
+		text = string::trim(text);
+		bool is_hex = false;
+		
+		// 35 = #
+		if(text.length() > 1 && text[0] == 35)
+		{
+			output = text.substr(1);
+			is_hex = true;
+		}
+		// 48 = 0, 88 = X, 120 = x
+		else if(text.length() > 2 && text[0] == 48 && (text[1] == 88 || text[1] == 120))
+		{
+			output = text.substr(2);
+			is_hex = true;
+		}
+		else
+		{
+			output = text;
+		}
+		
+		return is_hex || _character_validation == Hex;
 	}
 	
 	protected void dispatch_change_event(const bool changed=true)
