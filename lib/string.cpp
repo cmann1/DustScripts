@@ -310,4 +310,18 @@ namespace string
 		return s;
 	}
 	
+	string trim(const string str)
+	{
+		const int first = str.findFirstNotOf('\n\r \t');
+		
+		if(first == -1)
+			return '';
+		
+		const int last = str.findLastNotOf('\n\r \t');
+		
+		return last != -1
+			? str.substr(first, last - first)
+			: str.substr(first);
+	}
+	
 }
