@@ -21,6 +21,7 @@ class Style
 	uint disabled_bg_clr				= 0xa6000000;
 	uint disabled_border_clr			= 0x26ffffff;
 	uint secondary_bg_clr				= 0x66864d48;
+	uint scrollbar_light_bg_clr			= 0xd9111111;
 	
 	uint popup_bg_clr					= normal_bg_clr;
 	uint popup_border_clr				= 0;

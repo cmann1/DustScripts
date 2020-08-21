@@ -77,6 +77,7 @@ class Scrollbar : Element, IStepHandler
 				return;
 			
 			_scroll_visible = value;
+			calculate_scroll_values();
 			step_subscribed = ui._step_subscribe(this, step_subscribed);
 			validate_layout = true;
 		}
@@ -91,6 +92,7 @@ class Scrollbar : Element, IStepHandler
 				return;
 			
 			_scroll_min = value;
+			calculate_scroll_values();
 			step_subscribed = ui._step_subscribe(this, step_subscribed);
 			validate_layout = true;
 		}
@@ -105,6 +107,7 @@ class Scrollbar : Element, IStepHandler
 				return;
 			
 			_scroll_max = value;
+			calculate_scroll_values();
 			step_subscribed = ui._step_subscribe(this, step_subscribed);
 			validate_layout = true;
 		}
@@ -124,6 +127,7 @@ class Scrollbar : Element, IStepHandler
 				return;
 			
 			_position = value;
+			calculate_scroll_values();
 			step_subscribed = ui._step_subscribe(this, step_subscribed);
 			validate_layout = true;
 		}
@@ -187,7 +191,10 @@ class Scrollbar : Element, IStepHandler
 		}
 	}
 	
-	bool busy_dragging { get const { return dragging_thumb; } }
+	bool busy_dragging
+	{
+		get const { return dragging_thumb; }
+	}
 	
 	bool ui_step() override
 	{
@@ -251,15 +258,6 @@ class Scrollbar : Element, IStepHandler
 		
 		calculate_scroll_values();
 		
-		thumb_size = scroll_range <= 0 ? 0 : max(0.0, round(_flexible_thumb_size
-			? size * (_scroll_visible / scroll_width)
-			: ui.style.scrollbar_fixed_size));
-		
-		const float min_size = min(size, is_horizontal ? _height : _width);
-		
-		if(thumb_size < min_size)
-			thumb_size = min_size;
-		
 		if(_position < scroll_min)
 		{
 			_position = scroll_min;
@@ -276,7 +274,7 @@ class Scrollbar : Element, IStepHandler
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
-		style.draw_rectangle(x1, y1, x2, y2, 0, style.normal_bg_clr);
+		style.draw_rectangle(x1, y1, x2, y2, 0, background_colour != 0 ? background_colour : style.normal_bg_clr);
 		
 		if(thumb_size > 0)
 		{
@@ -310,10 +308,22 @@ class Scrollbar : Element, IStepHandler
 	{
 		const float size = orientation == Horizontal ? _width : _height;
 		
+		thumb_size = scroll_range <= 0 ? 0 : max(0.0, round(_flexible_thumb_size
+			? size * (_scroll_visible / scroll_width)
+			: ui.style.scrollbar_fixed_size));
+		
+		const float min_size = min(size, orientation == Horizontal ? _height : _width);
+		
+		if(thumb_size < min_size && scroll_range > 0)
+			thumb_size = min_size;
+		
 		position_max = size - thumb_size;
 		scroll_width = scroll_max - scroll_min;
 		scroll_range = max(0.0, scroll_width - scroll_visible);
 		thumb_position = scroll_range > 0 ? position_max * ((position - scroll_min) / scroll_range) : 0;
+		
+		_position = clamp(_position, scroll_min, scroll_min + scroll_range);
+		update_position();
 	}
 	
 	protected void update_position()

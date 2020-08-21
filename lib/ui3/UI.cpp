@@ -1121,7 +1121,7 @@ class UI : IKeyboardFocusListener
 					ctx.mouse_active = false;
 				}
 				
-				if(@ctx.root == @element)
+				if(@ctx.root == @element && element._scroll_children)
 				{
 					ctx.scroll_x = element._scroll_x;
 					ctx.scroll_y = element._scroll_y;

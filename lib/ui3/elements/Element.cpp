@@ -58,6 +58,7 @@ abstract class Element
 	
 	float _scroll_x;
 	float _scroll_y;
+	bool _scroll_children = true;
 	
 	/// After do_layout, these will be the element's position in world/ui space
 	float x1, y1;
@@ -273,9 +274,7 @@ abstract class Element
 		hovered = false;
 	}
 	
-	/**
-	 * @brief Internal. Append all children of this element to the stack. Must be in reverse order
-	 */
+	/// Internal. Append all children of this element to the stack. Must be in reverse order
 	void _queue_children_for_layout(ElementStack@ stack)
 	{
 		

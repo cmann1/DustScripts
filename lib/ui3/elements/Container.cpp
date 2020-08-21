@@ -29,6 +29,8 @@ class Container : Element
 	protected array<Element@> children;
 	protected int num_children;
 	
+	protected bool auto_update_scrool_rect = true;
+	
 	Container(UI@ ui)
 	{
 		super(ui);
@@ -360,7 +362,7 @@ class Container : Element
 				ui._dispatch_event(@scroll_change, EventType::SCROLL_CHANGE, @this);
 			}
 		}
-		else
+		else if(auto_update_scrool_rect)
 		{
 			calculate_scroll_rect(false);
 		}
@@ -450,7 +452,7 @@ class Container : Element
 				ui._dispatch_event(@scroll_change, EventType::SCROLL_CHANGE, @this);
 			}
 		}
-		else
+		else if(auto_update_scrool_rect)
 		{
 			calculate_scroll_rect(fit_min);
 		}

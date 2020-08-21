@@ -4,11 +4,14 @@
 #include '../../input/Keyboard.cpp';
 #include '../../string.cpp';
 #include '../utils/CharacterValidation.cpp';
-#include 'FocusableElement.cpp';
+#include '../../input/navigation/INavigable.cpp';
+#include '../utils/Overflow.cpp';
+#include 'LockedContainer.cpp';
+#include 'Scrollbar.cpp';
 
 namespace TextBox { const string TYPE_NAME = 'TextBox'; }
 
-class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
+class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyboardFocus, INavigable
 {
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -29,6 +32,9 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	protected bool _deselect_all_on_blur;
 	protected bool _drag_scroll = true;
 	
+	protected Overflow _scrollbar_horizontal = Overflow::Auto;
+	protected Overflow _scrollbar_vertical = Overflow::Auto;
+	
 	protected CharacterValidation _character_validation = CharacterValidation::None;
 	protected string _allowed_characters = '';
 	protected array<bool> _allowed_characters_list;
@@ -40,8 +46,6 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	protected float _text_width;
 	protected float _text_height;
-	protected float scroll_max_x;
-	protected float scroll_max_y;
 	
 	protected int _selection_start;
 	protected int _selection_end;
@@ -71,6 +75,10 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	// Navigation and interaction
 	// ///////////////////////////////////////////////////////////////////
 	
+	protected bool focused;
+	protected NavigationGroup@ _navigation_parent;
+	protected NavigateOn _navigate_on = NavigateOn(Inherit | Tab);
+	
 	protected int persist_caret_time;
 	
 	protected bool busy_drag_scroll;
@@ -94,9 +102,18 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	protected bool suppress_change_event;
 	protected string previous_text;
 	
+	protected bool _scrollbar_horizontal_visible;
+	protected bool _scrollbar_vertical_visible;
+	protected Scrollbar@ _scrollbar_horizontal_element;
+	protected Scrollbar@ _scrollbar_vertical_element;
+	protected EventCallback@ scroll_delegate;
+	
 	TextBox(UI@ ui, const string text='', const string font='', const uint size=0, const float text_scale=NAN)
 	{
 		super(ui);
+		
+		auto_update_scrool_rect = false;
+		_scroll_children = false;
 		
 		_width  = _set_width  = 140;
 		_height = _set_height = 34;
@@ -121,13 +138,19 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		_text_length = 0;
 		
 		padding = ui.style.spacing;
-		_navigate_on = NavigateOn(_navigate_on | (_multi_line ? CtrlReturn : Return) | Escape);
+		_navigate_on = NavigateOn(_navigate_on | (_multi_line ? int(CtrlReturn) : (Return | CtrlReturn)) | Escape);
 		
 		suppress_change_event = true;
 		this.text = text;
 	}
 	
 	string element_type { get const { return TextBox::TYPE_NAME; } }
+	
+	Layout@ layout
+	{
+		get override { return null; }
+		set override {  }
+	}
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Basic properties
@@ -280,7 +303,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			}
 			else if((_navigate_on | NavigateOn::CtrlReturn) != 0)
 			{
-				_navigate_on = NavigateOn((_navigate_on & ~NavigateOn::CtrlReturn) | NavigateOn::Return);
+				_navigate_on = NavigateOn(_navigate_on | NavigateOn::Return);
 			}
 			
 			if(!_multi_line && _num_lines > 1)
@@ -354,6 +377,36 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	{
 		get const { return _drag_scroll; }
 		set { _drag_scroll = value; }
+	}
+	
+	/// When to show the vertical scrollbar
+	Overflow scrollbar_vertical
+	{
+		get const { return _scrollbar_vertical; }
+		set
+		{
+			if(_scrollbar_vertical == value)
+				return;
+			
+			_scrollbar_vertical = value;
+			update_scrollbars();
+			update_scroll_values();
+		}
+	}
+	
+	/// When to show horizontal scrollbar
+	Overflow scrollbar_horizontal
+	{
+		get const { return _scrollbar_horizontal; }
+		set
+		{
+			if(_scrollbar_horizontal == value)
+				return;
+			
+			_scrollbar_horizontal = value;
+			update_scrollbars();
+			update_scroll_values();
+		}
 	}
 	
 	/// Which types of characters are allowed.
@@ -437,7 +490,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	float scroll_x
 	{
-		set override
+		set override override
 		{
 			value = clamp_scroll(value, scroll_max_x);
 			
@@ -445,12 +498,13 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 				return;
 			
 			_scroll_x = value;
+			update_scrollbar_position_horizontal();
 		}
 	}
 	
 	float scroll_y
 	{
-		set override
+		set override override
 		{
 			value = clamp_scroll(value, scroll_max_y);
 			
@@ -458,6 +512,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 				return;
 			
 			_scroll_y = value;
+			update_scrollbar_position_vertical();
 		}
 	}
 	
@@ -607,7 +662,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		float x1, y1;
 		get_index_xy(_selection_end, x1 ,y1);
 		
-		scroll_into_view(
+		scroll_to(
 			x1 - ui.style.caret_width * 0.5,
 			y1 - ui.style.selection_padding_top,
 			x1 + ui.style.caret_width * 0.5,
@@ -617,10 +672,10 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	/// Scrolls the given rectangle into view. padding_x controls approximately how many extra characters
 	/// will be scrolled when the rect is not in view horizontally
-	void scroll_into_view(const float x1, const float y1, const float x2, const float y2, const int padding_x=0)
+	void scroll_to(const float x1, const float y1, const float x2, const float y2, const int padding_x=0)
 	{
-		const float view_width  = _width  - padding_left - padding_right;
-		const float view_height = _height - padding_top - padding_bottom;
+		float view_width, view_height;
+		get_view_size(view_width, view_height);
 		
 		if(_scroll_x + x1 < 0)
 		{
@@ -842,7 +897,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		recalculate_text_height();
 		validate_selection();
 		
-		dispatch_change_event(changed);
+		after_change();
 	}
 	
 	/// Removes all selected text. Returns the number of removed characters.
@@ -938,7 +993,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		caret_index = new_caret_index;
 		this.scroll_to_caret(scroll_to_caret);
 		
-		dispatch_change_event();
+		after_change();
 	}
 	
 	/// Replaces the current selection with the given ascii character.
@@ -1411,8 +1466,48 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
+	// INavigable
+	// ///////////////////////////////////////////////////////////////////
+	
+	/// Internal - don't set explicitly.
+	NavigationGroup@ navigation_parent
+	{
+		get { return @_navigation_parent; }
+		set { @_navigation_parent = @value; }
+	}
+	
+	NavigateOn navigate_on
+	{
+		get const { return navigation::get(_navigate_on, _navigation_parent); }
+		set { _navigate_on = value; }
+	}
+	
+	INavigable@ previous_navigable(INavigable@ from)
+	{
+		return @_navigation_parent != null ? _navigation_parent.previous_navigable(@this) : null;
+	}
+	
+	INavigable@ next_navigable(INavigable@ from)
+	{
+		return @_navigation_parent != null ? _navigation_parent.next_navigable(@this) : null;
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
 	// Element
 	// ///////////////////////////////////////////////////////////////////
+	
+	void _queue_children_for_layout(ElementStack@ stack)
+	{
+		if(_scrollbar_horizontal_visible)
+		{
+			stack.push(_scrollbar_horizontal_element);
+		}
+		
+		if(_scrollbar_vertical_visible)
+		{
+			stack.push(_scrollbar_vertical_element);
+		}
+	}
 	
 	bool ui_step() override
 	{
@@ -1454,7 +1549,22 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
+		update_scrollbars();
 		update_scroll_values();
+		
+		if(_scrollbar_vertical_visible)
+		{
+			_scrollbar_vertical_element.x = _width - _scrollbar_vertical_element._width - ui.style.spacing;
+			_scrollbar_vertical_element.y = ui.style.spacing;
+			_scrollbar_vertical_element.height = _height - ui.style.spacing * 2 - (_scrollbar_horizontal_visible ? _scrollbar_horizontal_element._height : 0);
+		}
+		
+		if(_scrollbar_horizontal_visible)
+		{
+			_scrollbar_horizontal_element.x = ui.style.spacing;
+			_scrollbar_horizontal_element.y = _height - _scrollbar_horizontal_element._height - ui.style.spacing;
+			_scrollbar_horizontal_element.width = _width - ui.style.spacing * 2 - (_scrollbar_vertical_visible ? _scrollbar_vertical_element._width : 0);
+		}
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
@@ -1487,8 +1597,9 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		////////////////////////////////////////
 		// Setup
 		
-		const float view_width  = _width  - padding_left - padding_right;
-		const float view_height = _height - padding_top - padding_bottom;
+		float view_width, view_height;
+		get_view_size(view_width, view_height);
+		
 		const float scroll_x = _scroll_x;
 		const float scroll_y = _scroll_y;
 		const float text_scale = _text_scale;
@@ -1881,7 +1992,6 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 				if(chr_index >= character_widths_size)
 				{
 					character_widths.resize(character_widths_size += 32);
-					character_widths[8] = (current_line_index);
 				}
 				
 				current_line_width += chr_width;
@@ -2006,7 +2116,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		
 		line_relative_caret_index = -1;
 		
-		dispatch_change_event();
+		after_change();
 		
 		return (int64(insert_count) << 32) | remove_count;
 	}
@@ -2108,14 +2218,16 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	protected void update_scroll_values()
 	{
-		const float view_width  = _width  - padding_left - padding_right;
-		const float view_height = _height - padding_top - padding_bottom;
+		update_scrollbars();
+		
+		float view_width, view_height;
+		get_view_size(view_width, view_height);
 		
 		scroll_max_x = max(0.0, _text_width  - view_width);
 		scroll_max_y = max(0.0, _text_height - view_height);
 		
-		_scroll_x = clamp_scroll(_scroll_x, scroll_max_x);
-		_scroll_y = clamp_scroll(_scroll_y, scroll_max_y);
+		scroll_x = clamp_scroll(_scroll_x, scroll_max_x);
+		scroll_y = clamp_scroll(_scroll_y, scroll_max_y);
 	}
 	
 	protected float clamp_scroll(const float scroll, const float max)
@@ -2127,6 +2239,110 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			return 0;
 		
 		return scroll;
+	}
+	
+	protected void update_scrollbars()
+	{
+		float view_width  = _width  - padding_left - padding_right;
+		float view_height = _height - padding_top - padding_bottom;
+		
+		_scrollbar_vertical_visible		= ((_text_height > view_height && _scrollbar_vertical != Overflow::Never) || _scrollbar_vertical == Overflow::Always) &&
+		// If there isn't enough space to accommodate the scrollbar then don't show it
+			(view_width - ui.style.default_scrollbar_size - ui.style.spacing > font_metrics[0]);
+		_scrollbar_horizontal_visible	= ((_text_width > view_width && _scrollbar_horizontal != Overflow::Never) || _scrollbar_horizontal == Overflow::Always) &&
+		// If there isn't enough space to accommodate the scrollbar then don't show it
+			(view_height - ui.style.default_scrollbar_size - ui.style.spacing > unscaled_line_height * _text_scale);
+		
+		// Create/show scrollbars
+		
+		if(@scroll_delegate == null && (_scrollbar_vertical_visible || _scrollbar_horizontal_visible))
+		{
+			@scroll_delegate = EventCallback(on_scrollbar_scroll);
+		}
+		
+		if(_scrollbar_vertical_visible)
+		{
+			if(@_scrollbar_vertical_element == null)
+			{
+				@_scrollbar_vertical_element = Scrollbar(ui, Orientation::Vertical);
+				_scrollbar_vertical_element.background_colour = ui.style.scrollbar_light_bg_clr;
+				_scrollbar_vertical_element.scroll.on(scroll_delegate);
+				Container::add_child(_scrollbar_vertical_element);
+			}
+			
+			view_width -= _scrollbar_vertical_element._width + ui.style.spacing;
+		}
+		else if(@_scrollbar_vertical_element != null)
+		{
+			_scrollbar_vertical_element.visible = false;
+		}
+		
+		if(_scrollbar_horizontal_visible)
+		{
+			if(@_scrollbar_horizontal_element == null)
+			{
+				@_scrollbar_horizontal_element = Scrollbar(ui, Orientation::Horizontal);
+				_scrollbar_horizontal_element.background_colour = ui.style.scrollbar_light_bg_clr;
+				_scrollbar_horizontal_element.scroll.on(scroll_delegate);
+				Container::add_child(_scrollbar_horizontal_element);
+			}
+			
+			view_height -= _scrollbar_horizontal_element._height + ui.style.spacing;
+		}
+		else if(@_scrollbar_horizontal_element != null)
+		{
+			_scrollbar_horizontal_element.visible = false;
+		}
+		
+		// Update
+		
+		if(_scrollbar_vertical_visible)
+		{
+			_scrollbar_vertical_element.visible = true;
+			_scrollbar_vertical_element.scroll_max = _text_height;
+			_scrollbar_vertical_element.scroll_visible = view_height;
+			update_scrollbar_position_vertical();
+		}
+		
+		if(_scrollbar_horizontal_visible)
+		{
+			_scrollbar_horizontal_element.visible = true;
+			_scrollbar_horizontal_element.scroll_max = _text_width;
+			_scrollbar_horizontal_element.scroll_visible = view_width;
+			update_scrollbar_position_horizontal();
+		}
+	}
+	
+	protected void update_scrollbar_position_vertical()
+	{
+		if(!_scrollbar_vertical_visible)
+			return;
+		
+		_scrollbar_vertical_element.position = -_scroll_y;
+	}
+	
+	protected void update_scrollbar_position_horizontal()
+	{
+		if(!_scrollbar_horizontal_visible)
+			return;
+		
+		_scrollbar_horizontal_element.position = -_scroll_x;
+	}
+	
+	protected void get_view_size(float &out view_width, float &out view_height)
+	{
+		view_width  = _width  - padding_left - padding_right;
+		view_height = _height - padding_top - padding_bottom;
+		
+		if(_scrollbar_vertical_visible)
+		{
+			view_width -= _scrollbar_vertical_element._width + ui.style.spacing;
+		}
+		
+		if(_scrollbar_horizontal_visible)
+		{
+			view_height -= _scrollbar_horizontal_element._height + ui.style.spacing;
+		}
 	}
 	
 	protected void persist_caret()
@@ -2178,7 +2394,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	{
 		float x, y;
 		get_local_xy(ui.mouse.x, ui.mouse.y, x, y);
-		scroll_into_view(x, y, x, y);
+		scroll_to(x, y, x, y);
 		this.scroll_to_caret(0);
 	}
 	
@@ -2303,6 +2519,17 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		return is_hex || _character_validation == Hex;
 	}
 	
+	protected void after_change(const bool changed=true)
+	{
+		dispatch_change_event(changed);
+		
+		if(!changed)
+			return;
+		
+		update_scrollbars();
+		validate_layout = true;
+	}
+	
 	protected void dispatch_change_event(const bool changed=true)
 	{
 		if(suppress_change_event)
@@ -2327,7 +2554,13 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		
 		@ui.focus = @this;
 		
-		if(_select_all_on_focus && !was_focused)
+		if(
+			_scrollbar_horizontal_visible && mouse_y >= _scrollbar_horizontal_element._y ||
+			_scrollbar_vertical_visible && mouse_x >= _scrollbar_vertical_element._x
+		)
+			return;
+		
+		if(_select_all_on_focus && !was_focused && event.button == ui.primary_button)
 			return;
 		
 		if(event.button == ui.primary_button)
@@ -2381,6 +2614,19 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		scrolled = true;
 	}
 	
+	void on_scrollbar_scroll(EventInfo@ event)
+	{
+		if(_scrollbar_vertical_visible)
+		{
+			scroll_y = -_scrollbar_vertical_element.position;
+		}
+		
+		if(_scrollbar_horizontal_visible)
+		{
+			scroll_x = -_scrollbar_horizontal_element.position;
+		}
+	}
+	
 	void on_focus(Keyboard@ keyboard) override
 	{
 		if(disabled)
@@ -2389,7 +2635,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			return;
 		}
 		
-		FocusableElement::on_focus(keyboard);
+		focused = true;
 		
 		keyboard.register_arrows_gvb();
 		keyboard.register_gvb(GVB::Delete, ModifierKey::Ctrl);
@@ -2425,7 +2671,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	void on_blur(Keyboard@ keyboard, const BlurAction type) override
 	{
-		FocusableElement::on_blur(keyboard, type);
+		focused = false;
 		
 		if(
 			type == BlurAction::Accepted ||
@@ -2536,5 +2782,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 				break;
 		}
 	}
+	
+	void on_key_release(Keyboard@ keyboard, const int key, const bool is_gvb) { }
 	
 }
