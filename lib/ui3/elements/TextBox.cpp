@@ -3,6 +3,7 @@
 #include '../../editor/common.cpp';
 #include '../../input/Keyboard.cpp';
 #include '../../string.cpp';
+#include '../utils/CharacterValidation.cpp';
 #include 'FocusableElement.cpp';
 
 namespace TextBox { const string TYPE_NAME = 'TextBox'; }
@@ -27,6 +28,10 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	protected bool _select_all_on_focus;
 	protected bool _deselect_all_on_blur;
 	protected bool _drag_scroll = true;
+	
+	protected CharacterValidation _character_validation = CharacterValidation::None;
+	protected string _allowed_characters = '';
+	protected array<bool> _allowed_characters_list;
 	
 	protected float padding_left;
 	protected float padding_right;
@@ -310,6 +315,51 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	{
 		get const { return _drag_scroll; }
 		set { _drag_scroll = value; }
+	}
+	
+	/// Which types of characters are allowed.
+	/// After changing validate_text can be called to remove invalid characters already in the text.
+	CharacterValidation character_validation
+	{
+		get const { return _character_validation; }
+		set
+		{
+			if(_character_validation == value)
+				return;
+			
+			_character_validation = value;
+		}
+	}
+	
+	/// Specify a custom set of allowed characters. Sets character_validation to Custom.
+	/// After changing validate_text can be called to remove invalid characters already in the text.
+	string allowed_characters
+	{
+		get const { return _allowed_characters; }
+		set
+		{
+			if(_allowed_characters == value)
+				return;
+			
+			_allowed_characters = value;
+			
+			if(_allowed_characters == '')
+				return;
+			
+			_character_validation = CharacterValidation::Custom;
+			array<bool>@ allowed_characters_list = @_allowed_characters_list;
+			allowed_characters_list.resize(256);
+			
+			for(int i = 0; i < 256; i++)
+			{
+				allowed_characters_list[i] = false;
+			}
+			
+			for(int i = int(value.length()) - 1; i >= 0; i--)
+			{
+				allowed_characters_list[value[i]] = true;
+			}
+		}
 	}
 	
 	/// The scaling around the inside of the TextBox
@@ -804,16 +854,17 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		
 		for(int line_index = start_line_index; line_index <= end_line_index; line_index++)
 		{
-			remove_length += lines[line_index].length() + 1;
+			remove_length += lines[line_index].length();
 		}
 		
+		const int previous_text_length = _text_length;
 		// Remove a character for each newline
 		_text_length -= _num_lines - 1;
-		
 		_num_lines -= remove_line_count;
 		_text_length -= remove_length;
 		// Add a character for each newline
 		_text_length += _num_lines - 1;
+		remove_length = previous_text_length - _text_length;
 		
 		// Remove lines from arrays
 		if(remove_line_count > 0)
@@ -841,13 +892,14 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			line_end_indices[i] -= remove_length;
 		}
 		
+//		debug_lines(false);
+		
 		recalculate_text_width(false);
 		recalculate_text_height();
 		caret_index = new_caret_index;
 		this.scroll_to_caret(scroll_to_caret);
 		
 		dispatch_change_event();
-//		debug_lines(true);
 	}
 	
 	/// Replaces the current selection with the given ascii character.
@@ -941,7 +993,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		
 		ui.clipboard = get_selected_text();
 		do_replace(_selection_start, _selection_end, '');
-		caret_index = _selection_start;
+		caret_index = min(_selection_start, _selection_end);
 		this.scroll_to_caret(scroll_to_caret);
 	}
 	
@@ -1109,6 +1161,12 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	{
 		x = local_x + x1 + padding_left + _scroll_x;
 		y = local_y + y1 + padding_top  + _scroll_y;
+	}
+	
+	/// Removes all invalid characters b ased on character_validation and allowed_characters
+	void validate_text()
+	{
+		this.text = text;
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -1319,17 +1377,15 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	bool ui_step() override
 	{
+		if(disabled)
+		{
+			@ui.focus = null;
+		}
+		
 		if(busy_drag_scroll)
 		{
-			if(ui.mouse.secondary_down)
-			{
-				scroll_x = drag_scroll_start_x + ui.mouse.x - drag_mouse_x_start;
-				scroll_y = drag_scroll_start_y + ui.mouse.y - drag_mouse_y_start;
-			}
-			else
-			{
-				busy_drag_scroll = false;
-			}
+			scroll_x = drag_scroll_start_x + ui.mouse.x - drag_mouse_x_start;
+			scroll_y = drag_scroll_start_y + ui.mouse.y - drag_mouse_y_start;
 		}
 		
 		if(drag_selection)
@@ -1434,7 +1490,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			const int selection_max_line_real = max(selection_start_line, selection_end_line);
 			const int selection_min_line = max(first_visible_line, min(selection_start_line, selection_end_line));
 			const int selection_max_line = min(last_visible_line, selection_max_line_real);
-			const uint select_clr = focused ? style.secondary_bg_clr : multiply_alpha(style.secondary_bg_clr, 0.5);
+			const uint select_clr = focused && !disabled ? style.secondary_bg_clr : multiply_alpha(style.secondary_bg_clr, 0.5);
 			
 			line_y = y + (selection_min_line - first_visible_line) * line_spacing;
 			
@@ -1567,7 +1623,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		// Caret
 		
 		if(
-			focused &&
+			focused && !disabled &&
 			selection_end_line >= first_visible_line && selection_end_line <= last_visible_line &&
 			(persist_caret_time > 0 || ((ui._frame % ui.style.caret_blink_rate) > ui.style.caret_blink_rate / 2))
 		)
@@ -1627,6 +1683,10 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		const float text_scale			 = _text_scale;
 		const int first_valid_char_index = ui.first_valid_char_index;
 		const int last_valid_char_index  = ui.last_valid_char_index;
+		const CharacterValidation character_validation = _character_validation == Custom && _allowed_characters == ''
+			? CharacterValidation::None
+			: _character_validation;
+		const array<bool>@ allowed_characters_list = @_allowed_characters_list;
 		
 		const int insert_text_length	= int(text.length());
 		const int start_line_index		= get_line_at_index(start_index);
@@ -1732,10 +1792,44 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 			///////////////////////////////////////////
 			// TODO: Check if chr is valid based on settings
 			
+			switch(character_validation)
+			{
+				case Integer:
+					// + - 0-9
+					if(
+						chr != 43 && chr != 45 &&
+						(chr < 48 || chr > 57)
+					)
+						chr = -1;
+					break;
+				case Decimal:
+					// + - . 0-9
+					if(
+						chr != 43 && chr != 45 && chr != 46 &&
+						(chr < 48 || chr > 57)
+					)
+						chr = -1;
+					break;
+				case Hex:
+					// 0-9 A-Z a-z X x #
+					if(
+						(chr < 48 || chr > 57) &&
+						(chr < 65 || chr > 70) &&
+						(chr < 97 || chr > 102) &&
+						chr != 88 && chr != 120 && chr != 35
+					)
+						chr = -1;
+					break;
+				case Custom:
+					if(!allowed_characters_list[chr])
+						chr = -1;
+					break;
+			}
 			
 			///////////////////////////////////////////
 			// Append char
-			//{
+			if(chr != -1)
+			{
 				const float chr_width = chr <= last_valid_char_index && chr >= first_valid_char_index
 					? font_metrics[chr - first_valid_char_index] * text_scale
 					: 0;
@@ -1757,7 +1851,7 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 				
 				insert_count++;
 				chr_index++;
-			//}
+			}
 		}
 		
 		if(insert_count == 0 && remove_count == 0)
@@ -2148,15 +2242,15 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	{
 		if(event.button == ui.primary_button)
 		{
-			busy_drag_scroll = false;
+			drag_selection = false;
+			double_click_start_index = -1;
+			double_click_end_index = -1;
 		}
 		
-		if(event.button != ui.primary_button)
-			return;
-		
-		drag_selection = false;
-		double_click_start_index = -1;
-		double_click_end_index = -1;
+		if(event.button == ui.secondary_button)
+		{
+			busy_drag_scroll = false;
+		}
 	}
 	
 	void _mouse_scroll(EventInfo@ event)
@@ -2175,6 +2269,12 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 	
 	void on_focus(Keyboard@ keyboard) override
 	{
+		if(disabled)
+		{
+			@ui.focus = null;
+			return;
+		}
+		
 		FocusableElement::on_focus(keyboard);
 		
 		keyboard.register_arrows_gvb();
@@ -2231,6 +2331,9 @@ class TextBox : FocusableElement, IStepHandler, IKeyboardFocus, INavigable
 		{
 			select_none();
 		}
+		
+		drag_selection = false;
+		busy_drag_scroll = false;
 	}
 	
 	void on_key_press(Keyboard@ keyboard, const int key, const bool is_gvb, const string text)

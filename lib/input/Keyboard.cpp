@@ -113,7 +113,15 @@ class Keyboard
 				const int key = vk[i];
 				const int key_modifiers = vk_modifiers[i];
 				
-				if(!editor.key_check_pressed_vk(key))
+				const bool only = (key_modifiers & ModifierKey::Only) != 0;
+				
+				if(only
+					? ((modifiers & key_modifiers) != (key_modifiers & ~ModifierKey::Only))
+					: ((modifiers & ~key_modifiers) != 0)
+				)
+					continue;
+				
+				if(!editor.key_check_pressed_vk(key) || !pressed_gvb && pressed_key == key)
 					continue;
 				
 				vk[i] = vk[num_vk - 1];
@@ -137,15 +145,9 @@ class Keyboard
 				pressed_gvb = false;
 				pressed_timer = press_delay;
 				pressed_modifiers = key_modifiers;
-				pressed_only_modifier = (key_modifiers & ModifierKey::Only) != 0;
+				pressed_only_modifier = only;
 				
-				if(pressed_only_modifier
-					? ((modifiers & pressed_modifiers) != 0)
-					: ((modifiers & ~pressed_modifiers) == 0)
-				)
-				{
-					focus.on_key_press(@this, key, false, process_input_key(key));
-				}
+				focus.on_key_press(@this, key, false, process_input_key(key));
 			}
 			
 			for(int i = num_gvb - 1; i >= 0; i--)
@@ -153,7 +155,15 @@ class Keyboard
 				const int key = gvb[i];
 				const int key_modifiers = gvb_modifiers[i];
 				
-				if(!editor.key_check_pressed_gvb(key))
+				const bool only = (key_modifiers & ModifierKey::Only) != 0;
+				
+				if(only
+					? ((modifiers & key_modifiers) != (key_modifiers & ~ModifierKey::Only))
+					: ((modifiers & ~key_modifiers) != 0)
+				)
+					continue;
+				
+				if(!editor.key_check_pressed_gvb(key) || pressed_gvb && pressed_key == key)
 					continue;
 				
 				gvb[i] = gvb[num_gvb - 1];
@@ -177,7 +187,7 @@ class Keyboard
 				pressed_gvb = true;
 				pressed_timer = press_delay;
 				pressed_modifiers = key_modifiers;
-				pressed_only_modifier = (key_modifiers & ModifierKey::Only) != 0;
+				pressed_only_modifier = only;
 				
 				if(consume_gvb)
 				{
@@ -185,7 +195,7 @@ class Keyboard
 				}
 				
 				if(pressed_only_modifier
-					? ((modifiers & pressed_modifiers) != 0)
+					? ((modifiers & pressed_modifiers) == (pressed_modifiers & ~ModifierKey::Only))
 					: ((modifiers & ~pressed_modifiers) == 0)
 				)
 				{
@@ -200,7 +210,10 @@ class Keyboard
 			{
 				if(pressed_timer-- == 0)
 				{
-					if((modifiers & ~pressed_modifiers) == 0)
+					if(pressed_only_modifier
+						? ((modifiers & pressed_modifiers) == (pressed_modifiers & ~ModifierKey::Only))
+						: ((modifiers & ~pressed_modifiers) == 0)
+					)
 					{
 						focus.on_key(@this, pressed_key, pressed_gvb, pressed_gvb ? '' : process_input_key(pressed_key));
 					}
@@ -210,7 +223,10 @@ class Keyboard
 			}
 			else
 			{
-				if((modifiers & ~pressed_modifiers) == 0)
+				if(pressed_only_modifier
+					? ((modifiers & pressed_modifiers) == (pressed_modifiers & ~ModifierKey::Only))
+					: ((modifiers & ~pressed_modifiers) == 0)
+				)
 				{
 					focus.on_key_release(@this, pressed_key, pressed_gvb);
 				}

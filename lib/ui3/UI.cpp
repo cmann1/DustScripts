@@ -109,7 +109,9 @@ class UI : IKeyboardFocusListener
 	private dictionary elements_left_pressed();
 	private dictionary elements_right_pressed();
 	private dictionary elements_middle_pressed();
-	private array<Element@> elements_pressed_list();
+	private array<Element@> elements_left_pressed_list();
+	private array<Element@> elements_right_pressed_list();
+	private array<Element@> elements_middle_pressed_list();
 	
 	private int num_queued_events;
 	private int queued_events_size = 16;
@@ -1296,6 +1298,8 @@ class UI : IKeyboardFocusListener
 				if(mouse.left_press)
 				{
 					elements_left_pressed[element._id] = true;
+					elements_left_pressed_list.insertLast(element);
+					
 					event.button = MouseButton::Left;
 					element._mouse_press(event);
 					element.mouse_press.dispatch(event);
@@ -1304,6 +1308,8 @@ class UI : IKeyboardFocusListener
 				if(mouse.right_press)
 				{
 					elements_right_pressed[element._id] = true;
+					elements_right_pressed_list.insertLast(element);
+					
 					event.button = MouseButton::Right;
 					element._mouse_press(event);
 					element.mouse_press.dispatch(event);
@@ -1312,6 +1318,8 @@ class UI : IKeyboardFocusListener
 				if(mouse.middle_press)
 				{
 					elements_middle_pressed[element._id] = true;
+					elements_middle_pressed_list.insertLast(element);
+					
 					event.button = MouseButton::Middle;
 					element._mouse_press(event);
 					element.mouse_press.dispatch(event);
@@ -1320,7 +1328,6 @@ class UI : IKeyboardFocusListener
 				if(mouse.primary_press)
 				{
 					element.pressed = true;
-					elements_pressed_list.insertLast(element);
 					
 					// Tooltip
 					if(@element.tooltip != null && element.tooltip.trigger_type == PopupTriggerType::MouseDown && @element == @_mouse_over_element)
@@ -1490,25 +1497,19 @@ class UI : IKeyboardFocusListener
 		if(mouse.left_release)
 		{
 			elements_left_pressed.deleteAll();
-			
-			if(primary_button == MouseButton::Left)
-				clear_press();
+			clear_press(MouseButton::Left, @elements_left_pressed_list);
 		}
 		
 		if(mouse.right_release)
 		{
 			elements_right_pressed.deleteAll();
-			
-			if(primary_button == MouseButton::Right)
-				clear_press();
+			clear_press(MouseButton::Right, @elements_right_pressed_list);
 		}
 		
 		if(mouse.middle_release)
 		{
 			elements_middle_pressed.deleteAll();
-			
-			if(primary_button == MouseButton::Middle)
-				clear_press();
+			clear_press(MouseButton::Middle, @elements_middle_pressed_list);
 		}
 		
 		// Hover tooltip
@@ -1522,10 +1523,10 @@ class UI : IKeyboardFocusListener
 		}
 	}
 	
-	private void clear_press()
+	private void clear_press(const MouseButton button, array<Element@>@ elements_pressed_list)
 	{
 		EventInfo@ event = _event_info_pool.get();
-		event.reset(EventType::MOUSE_RELEASE, primary_button, mouse.x, mouse.y);
+		event.reset(EventType::MOUSE_RELEASE, button, mouse.x, mouse.y);
 		@event.mouse = mouse;
 		@event.src = @_mouse_over_element;
 		
