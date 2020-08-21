@@ -64,12 +64,12 @@ class Popup : SingleContainer, IStepHandler
 			stepping = true;
 		}
 		
-		active = true;
-		update_fade();
-		
 		mouse_self = _options.mouse_self;
 		mouse_enabled = false;
 		children_mouse_enabled = false;
+		
+		active = true;
+		update_fade();
 	}
 	
 	void force_hide()
