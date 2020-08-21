@@ -225,37 +225,6 @@ class Scrollbar : Element, IStepHandler
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		const bool is_horizontal = _orientation == Horizontal;
-		const float size = is_horizontal ? _width : _height;
-		
-		if(@_container != null)
-		{
-			if(_scroll_container_at_origin)
-			{
-				_scroll_min = 0;
-				_scroll_max = is_horizontal ? _container.scroll_max_x - _container.scroll_min_x : _container.scroll_max_y - _container.scroll_min_y;
-			}
-			else
-			{
-				_scroll_min = is_horizontal ? _container.scroll_min_x : _container.scroll_min_y;
-				_scroll_max = is_horizontal ? _container.scroll_max_x : _container.scroll_max_y;
-			}
-			
-			_scroll_visible = is_horizontal ? _container._width : _container._height;
-			
-			if(_container._scrolled_into_view)
-			{
-				_position = is_horizontal ? -_container._scroll_x : -_container._scroll_y;
-			}
-		}
-		
-		if(_scroll_min > _scroll_max)
-		{
-			const float t = _scroll_min;
-			_scroll_min = _scroll_max;
-			_scroll_max = t;
-		}
-		
 		calculate_scroll_values();
 		
 		if(_position < scroll_min)
@@ -306,7 +275,44 @@ class Scrollbar : Element, IStepHandler
 	
 	protected void calculate_scroll_values()
 	{
-		const float size = orientation == Horizontal ? _width : _height;
+		const bool is_horizontal = _orientation == Horizontal;
+		const float size = is_horizontal ? _width : _height;
+		
+		if(@_container != null)
+		{
+			if(_scroll_container_at_origin)
+			{
+				_scroll_min = 0;
+				_scroll_max = is_horizontal ? _container.scroll_max_x - _container.scroll_min_x : _container.scroll_max_y - _container.scroll_min_y;
+			}
+			else
+			{
+				_scroll_min = is_horizontal ? _container.scroll_min_x : _container.scroll_min_y;
+				_scroll_max = is_horizontal ? _container.scroll_max_x : _container.scroll_max_y;
+			}
+			
+			_scroll_visible = is_horizontal ? _container._width : _container._height;
+			
+			if(_container._scrolled_into_view)
+			{
+				_position = is_horizontal ? -_container._scroll_x : -_container._scroll_y;
+			}
+		}
+		
+		if(_scroll_min > _scroll_max)
+		{
+			const float t = _scroll_min;
+			_scroll_min = _scroll_max;
+			_scroll_max = t;
+		}
+		
+		position_max = size - thumb_size;
+		scroll_width = scroll_max - scroll_min;
+		scroll_range = max(0.0, scroll_width - scroll_visible);
+		thumb_position = scroll_range > 0 ? position_max * ((position - scroll_min) / scroll_range) : 0;
+		
+		_position = clamp(_position, scroll_min, scroll_min + scroll_range);
+		update_position();
 		
 		thumb_size = scroll_range <= 0 ? 0 : max(0.0, round(_flexible_thumb_size
 			? size * (_scroll_visible / scroll_width)
@@ -316,14 +322,6 @@ class Scrollbar : Element, IStepHandler
 		
 		if(thumb_size < min_size && scroll_range > 0)
 			thumb_size = min_size;
-		
-		position_max = size - thumb_size;
-		scroll_width = scroll_max - scroll_min;
-		scroll_range = max(0.0, scroll_width - scroll_visible);
-		thumb_position = scroll_range > 0 ? position_max * ((position - scroll_min) / scroll_range) : 0;
-		
-		_position = clamp(_position, scroll_min, scroll_min + scroll_range);
-		update_position();
 	}
 	
 	protected void update_position()
