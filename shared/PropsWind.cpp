@@ -4,13 +4,18 @@ class script
 {
 	
 	[text] PropsWind props_wind;
-	array<controllable@> players;
+	array<camera@> players;
 	int num_players;
 	
 	script()
 	{
 		num_players = num_cameras();
 		players.resize(num_players);
+		
+		for(int i = 0; i < num_players; i++)
+		{
+			@players[i] = get_camera(i);
+		}
 	}
 	
 	void checkpoint_load()
@@ -20,18 +25,9 @@ class script
 	
 	void step(int entities)
 	{
-		controllable@ player;
 		for(int i = 0; i < num_players; i++)
 		{
-			if((@player = players[i]) != null)
-			{
-				props_wind.player(player);
-			}
-			else
-			{
-				entity@ e = controller_entity(i);
-				@players[i] = @player = (@e != null ? e.as_controllable() : null);
-			}
+			props_wind.player(players[i]);
 		}
 		
 		props_wind.step();
@@ -42,11 +38,12 @@ class script
 class PropsWind : callback_base
 {
 	
-	float cell_size = 32 * 48;
+	float cell_size = 12 * 48;
 	array<int> step_cells;
 	array<string> step_cells_hash;
 	
 	dictionary cells;
+	dictionary prop_ids;
 	
 	float t = 0;
 	[text] float wind_speed = 3;
@@ -81,13 +78,18 @@ class PropsWind : callback_base
 		target_strength_factor = msg.get_float("strength");
 	}
 	
-	void player(controllable@ player)
+	void player(camera@ player)
 	{
-		const int x = int(floor(player.x() / cell_size));
-		const int y = int(floor(player.y() / cell_size));
-		for(int ix = x - 1; ix <= x + 1; ix++)
+		const float width  = player.screen_width();
+		const float height = player.screen_height();
+		const int left   = int(floor((player.x() - width * 0.5 - 50) / cell_size));
+		const int right  = int(floor((player.x() + width * 0.5 + 50) / cell_size));
+		const int top    = int(floor((player.y() - height * 0.5 - 50) / cell_size));
+		const int bottom = int(floor((player.y() + height * 0.5 + 50) / cell_size));
+		
+		for(int ix = left; ix <= right; ix++)
 		{
-			for(int iy = y - 1; iy <= y + 1; iy++)
+			for(int iy = top; iy <= bottom; iy++)
 			{
 				const string key = ix + "," + iy;
 				if(step_cells_hash.find(key) < 0)
@@ -105,6 +107,7 @@ class PropsWind : callback_base
 		step_cells.resize(0);
 		step_cells_hash.resize(0);
 		cells.deleteAll();
+		prop_ids.deleteAll();
 	}
 	
 	void step()
@@ -116,9 +119,10 @@ class PropsWind : callback_base
 			
 			const string key = x + "," + y;
 			PropsWindCell@ cell = cast<PropsWindCell>(cells[key]);
+			
 			if(cell is null)
 			{
-				@cells[key] = @cell = PropsWindCell(x, y, cell_size, props);
+				@cells[key] = @cell = PropsWindCell(x, y, cell_size, @props, @prop_ids);
 			}
 			
 			cell.step(t, wind_strength * strength_factor);
@@ -138,7 +142,7 @@ class PropsWindCell
 {
 	array<PropData@> prop_list;
 	
-	PropsWindCell(int x, int y, float cell_size, dictionary props)
+	PropsWindCell(int x, int y, float cell_size, dictionary@ props, dictionary@ prop_ids)
 	{
 		scene@ g = get_scene();
 		const float cx = x * cell_size;
@@ -147,23 +151,29 @@ class PropsWindCell
 			cy, cy + cell_size,
 			cx, cx + cell_size 
 		);
+		
 		for(int i = 0; i < prop_count; i++)
 		{
 			prop@ p = g.get_prop_collision_index(i);
 			const string key = p.prop_set() + "/" + p.prop_group() + "/" + p.prop_index();
+			
+			if(prop_ids.exists(p.id() + ''))
+				continue;
+			
 			PropSettings@ settings = cast<PropSettings>(props[key]);
 			if(settings is null) continue;
 			
 			prop_list.insertLast(PropData(p, settings));
+			prop_ids[p.id() + ''] = true;
 		}
 	}
 	
 	void step(float t, float wind_strength)
 	{
 		const uint count = prop_list.length();
+		
 		for(uint i = 0; i < count; i++)
 		{
-			
 			PropData@ data = prop_list[i];
 			prop@ p = data.prop;
 			const float pr = (sin(p.x() + p.y()) * 0.25 + 1) * data.settings.wind_speed;
