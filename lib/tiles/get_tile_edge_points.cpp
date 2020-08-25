@@ -1,4 +1,5 @@
 #include 'TileShape.cpp';
+#include 'TileEdge.cpp';
 
 bool get_tile_top_edge_points(int shape, float &out x1, float &out y1, float &out x2, float &out y2, float x = 0, float y = 0)
 {
