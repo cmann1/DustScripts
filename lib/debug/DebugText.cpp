@@ -56,16 +56,16 @@ class DebugText : DebugItem
 			if(outline)
 			{
 				if(world)
-					outlined_text_world(state.text_field, layer, sub_layer, x, y, scale, scale, rotation, shadow_colour, width);
+					outlined_text_world(state.text_field, layer, sub_layer, x, y, scale, scale, rotation, shadow_colour, width * scale);
 				else
-					outlined_text_hud(state.text_field, layer, sub_layer, x, y, scale, scale, rotation, shadow_colour, width);
+					outlined_text_hud(state.text_field, layer, sub_layer, x, y, scale, scale, rotation, shadow_colour, width * scale);
 			}
 			else
 			{
 				if(world)
-					shadowed_text_world(state.text_field, layer, sub_layer, x, y, scale, scale, rotation, shadow_colour, width, width);
+					shadowed_text_world(state.text_field, layer, sub_layer, x, y, scale, scale, rotation, shadow_colour, width * scale, width * scale);
 				else
-					shadowed_text_hud(state.text_field, layer, sub_layer, x, y, scale, scale, rotation, shadow_colour, width, width);
+					shadowed_text_hud(state.text_field, layer, sub_layer, x, y, scale, scale, rotation, shadow_colour, width * scale, width * scale);
 			}
 		}
 		else
