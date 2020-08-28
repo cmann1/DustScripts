@@ -1,6 +1,6 @@
 #include '../lib/std.cpp';
 #include '../lib/math/math.cpp';
-#include '../lib/tiles/get_tile_edge.cpp';
+#include '../lib/tiles/get_tile_edge_points.cpp';
 #include '../lib/drawing/circle.cpp';
 
 const float ASPECT_RATIO = 1920.0 / 1080;
@@ -139,7 +139,7 @@ class script
 				
 				if(tile_info.edge_left() & 0x8 != 0)
 				{
-					get_tile_left_edge(type, x1, y1, x2, y2);
+					get_tile_left_edge_points(type, x1, y1, x2, y2);
 					x1 += x; x2 += x;
 					y1 += y; y2 += y;
 					
@@ -159,7 +159,7 @@ class script
 				
 				if(tile_info.edge_right() & 0x8 != 0)
 				{
-					get_tile_right_edge(type, x1, y1, x2, y2);
+					get_tile_right_edge_points(type, x1, y1, x2, y2);
 					x1 += x; x2 += x;
 					y1 += y; y2 += y;
 					
@@ -179,7 +179,7 @@ class script
 				
 				if(tile_info.edge_top() & 0x8 != 0)
 				{
-					get_tile_top_edge(type, x1, y1, x2, y2);
+					get_tile_top_edge_points(type, x1, y1, x2, y2);
 					x1 += x; x2 += x;
 					y1 += y; y2 += y;
 					
@@ -199,7 +199,7 @@ class script
 				
 				if(tile_info.edge_bottom() & 0x8 != 0)
 				{
-					get_tile_bottom_edge(type, x1, y1, x2, y2);
+					get_tile_bottom_edge_points(type, x1, y1, x2, y2);
 					x1 += x; x2 += x;
 					y1 += y; y2 += y;
 					
@@ -220,6 +220,7 @@ class script
 		}
 		
 		this.facing_edges_count = facing_edges_count;
+		this.facing_edges_size = facing_edges_size;
 		
 		// !! DEBUG !!
 //		this.debug_edges_count = debug_edges_count;

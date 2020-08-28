@@ -1,187 +1,187 @@
 namespace EmitterId
 {
 	
-	// Main
+	// const int Main
 	
-	DropletLong = 131,
-	Droplets = 113,
-	DustGround = 1,
-	Fireflies = 58,
-	FireflyDense = 66,
-	FireflySparse = 105,
-	KingZone = 122,
-	KingZoneBlue = 125,
-	KingZoneRed = 126,
-	LeafGround = 4,
-	PolygonsGround = 70,
-	Rain = 114,
-	SlimeGround = 10,
-	Sparks = 107,
-	TrashGround = 7,
-	Waterfall = 42,
-	WaterfallBack = 49,
-	WaterfallTop = 41,
+	const int DropletLong = 131;
+	const int Droplets = 113;
+	const int DustGround = 1;
+	const int Fireflies = 58;
+	const int FireflyDense = 66;
+	const int FireflySparse = 105;
+	const int KingZone = 122;
+	const int KingZoneBlue = 125;
+	const int KingZoneRed = 126;
+	const int LeafGround = 4;
+	const int PolygonsGround = 70;
+	const int Rain = 114;
+	const int SlimeGround = 10;
+	const int Sparks = 107;
+	const int TrashGround = 7;
+	const int Waterfall = 42;
+	const int WaterfallBack = 49;
+	const int WaterfallTop = 41;
 	
-	// The rest
+	// const int The const int rest
 	
-	NoName = 0,
-	// DustGround = 1,
-	DustRoof = 2,
-	DustWall = 3,
+	const int NoName = 0;
+	// const int DustGround = 1;
+	const int DustRoof = 2;
+	const int DustWall = 3;
 	 
-	// LeafGround = 4,
-	LeafRoof = 5,
-	LeafWall = 6,
+	// const int LeafGround = 4;
+	const int LeafRoof = 5;
+	const int LeafWall = 6;
 	 
-	// TrashGround = 7,
-	TrashRoof = 8,
-	TrashWall = 9,
+	// const int TrashGround = 7;
+	const int TrashRoof = 8;
+	const int TrashWall = 9;
 	 
-	// SlimeGround = 10,
-	SlimeRoof = 11,
-	SlimeWall = 12,
+	// const int SlimeGround = 10;
+	const int SlimeRoof = 11;
+	const int SlimeWall = 12;
 	 
-	DustGroundCreate = 13,
-	DustRoofCreate = 14,
-	DustWallCreate = 15,
+	const int DustGroundCreate = 13;
+	const int DustRoofCreate = 14;
+	const int DustWallCreate = 15;
 	 
-	LeafGroundCreate = 16,
-	LeafRoofCreate = 17,
-	LeafWallCreate = 18,
+	const int LeafGroundCreate = 16;
+	const int LeafRoofCreate = 17;
+	const int LeafWallCreate = 18;
 	 
-	TrashGroundCreate = 19,
-	TrashRoofCreate = 20,
-	TrashWallCreate = 21,
+	const int TrashGroundCreate = 19;
+	const int TrashRoofCreate = 20;
+	const int TrashWallCreate = 21;
 	 
-	SlimeGroundCreate = 22,
-	SlimeRoofCreate = 23,
-	SlimeWallCreate = 24,
+	const int SlimeGroundCreate = 22;
+	const int SlimeRoofCreate = 23;
+	const int SlimeWallCreate = 24;
 	 
-	DustGroundDestroy = 25,
-	DustRoofDestroy = 26,
-	DustWallDestroy = 27,
+	const int DustGroundDestroy = 25;
+	const int DustRoofDestroy = 26;
+	const int DustWallDestroy = 27;
 	 
-	LeafGroundDestroy = 28,
-	LeafRoofDestroy = 29,
-	LeafWallDestroy = 30,
+	const int LeafGroundDestroy = 28;
+	const int LeafRoofDestroy = 29;
+	const int LeafWallDestroy = 30;
 	 
-	TrashGroundDestroy = 31,
-	TrashRoofDestroy = 32,
-	TrashWallDestroy = 33,
+	const int TrashGroundDestroy = 31;
+	const int TrashRoofDestroy = 32;
+	const int TrashWallDestroy = 33;
 	 
-	SlimeGroundDestroy = 34,
-	SlimeRoofDestroy = 35,
-	SlimeWallDestroy = 36,
+	const int SlimeGroundDestroy = 34;
+	const int SlimeRoofDestroy = 35;
+	const int SlimeWallDestroy = 36;
 	 
-	GargoyleBig = 37,
-	Hit1 = 38,
-	Maid = 40,
-	// WaterfallTop = 41,
-	// Waterfall = 42,
-	NoName1 = 43,
-	Critter = 44,
-	Hit2 = 45,
-	Cleansed2 = 46,
-	Flag = 47,
-	Bear = 48,
-	// WaterfallBack = 49,
-	Wolf = 50,
-	Book = 51,
-	Stoneboss = 52,
-	GargoyleSmall = 53,
-	Stonebro = 54,
-	Porcupine = 55,
-	PorcupineSpike = 56,
-	Knight = 57,
-	// Fireflies = 58,
-	ChestScrolls = 59,
-	ChestTreasure = 60,
-	Key = 61,
-	Door = 62,
-	Scrolls = 63,
-	Treasure = 64,
-	GargoyleSmallFlap = 65,
-	// FireflyDense = 66,
-	CleansedFb2 = 67,
-	CleansedFb1 = 68,
-	Butler = 69,
+	const int GargoyleBig = 37;
+	const int Hit1 = 38;
+	const int Maid = 40;
+	// const int WaterfallTop = 41;
+	// const int Waterfall = 42;
+	const int NoName1 = 43;
+	const int Critter = 44;
+	const int Hit2 = 45;
+	const int Cleansed2 = 46;
+	const int Flag = 47;
+	const int Bear = 48;
+	// const int WaterfallBack = 49;
+	const int Wolf = 50;
+	const int Book = 51;
+	const int Stoneboss = 52;
+	const int GargoyleSmall = 53;
+	const int Stonebro = 54;
+	const int Porcupine = 55;
+	const int PorcupineSpike = 56;
+	const int Knight = 57;
+	// const int Fireflies = 58;
+	const int ChestScrolls = 59;
+	const int ChestTreasure = 60;
+	const int Key = 61;
+	const int Door = 62;
+	const int Scrolls = 63;
+	const int Treasure = 64;
+	const int GargoyleSmallFlap = 65;
+	// const int FireflyDense = 66;
+	const int CleansedFb2 = 67;
+	const int CleansedFb1 = 68;
+	const int Butler = 69;
 	 
-	// PolygonsGround = 70,
-	PlygonsRoof = 71,
-	PolygonsWall = 72,
-	PolygonsGroundCreate = 73,
-	PlygonsRoofCreate = 74,
-	PolygonsGroundDestroy = 76,
-	PolygonsRoofDestroy = 77,
-	PolygonsWallDestroy = 78,
+	// const int PolygonsGround = 70;
+	const int PlygonsRoof = 71;
+	const int PolygonsWall = 72;
+	const int PolygonsGroundCreate = 73;
+	const int PlygonsRoofCreate = 74;
+	const int PolygonsGroundDestroy = 76;
+	const int PolygonsRoofDestroy = 77;
+	const int PolygonsWallDestroy = 78;
 	 
-	CleansedFb5 = 79,
-	TutorialSquare = 80,
-	Cleansed5 = 81,
-	TutorialHexagon = 82,
-	LeafDev = 83,
-	Apple = 84,
-	SlimeBall = 85,
-	SlimeBallFlap = 86,
-	Hit4 = 87,
+	const int CleansedFb5 = 79;
+	const int TutorialSquare = 80;
+	const int Cleansed5 = 81;
+	const int TutorialHexagon = 82;
+	const int LeafDev = 83;
+	const int Apple = 84;
+	const int SlimeBall = 85;
+	const int SlimeBallFlap = 86;
+	const int Hit4 = 87;
 	 
-	SlimeBarrel = 88,
-	SlimeBarrelFlap = 89,
-	Cleansed4 = 90,
-	SlimeBeast = 91,
-	SlimWave = 92,
-	SlimeBarrelAttack = 93,
-	SlimeWave = 94,
+	const int SlimeBarrel = 88;
+	const int SlimeBarrelFlap = 89;
+	const int Cleansed4 = 90;
+	const int SlimeBeast = 91;
+	const int SlimWave = 92;
+	const int SlimeBarrelAttack = 93;
+	const int SlimeWave = 94;
 	 
-	TrashBall = 95,
-	TrashBallFlap = 96,
-	TrashCan = 97,
-	Hit3 = 98,
-	Cleansed3 = 99,
-	TrashBag = 100,
-	TrashBeast = 101,
-	TrashBeastAttack = 102,
-	TrashTire = 103,
+	const int TrashBall = 95;
+	const int TrashBallFlap = 96;
+	const int TrashCan = 97;
+	const int Hit3 = 98;
+	const int Cleansed3 = 99;
+	const int TrashBag = 100;
+	const int TrashBeast = 101;
+	const int TrashBeastAttack = 102;
+	const int TrashTire = 103;
 	 
-	CleansedFb4 = 104,
-	// FireflySparse = 105,
-	NoName2 = 106,
-	// Sparks = 107,
+	const int CleansedFb4 = 104;
+	// const int FireflySparse = 105;
+	const int NoName2 = 106;
+	// const int Sparks = 107;
 	 
-	DustManTrail = 108,
-	DustGirlTrail = 109,
-	DustKidTrail = 110,
-	DustWorthTrail = 111,
-	VDustManTrail = 112,
+	const int DustManTrail = 108;
+	const int DustGirlTrail = 109;
+	const int DustKidTrail = 110;
+	const int DustWorthTrail = 111;
+	const int VDustManTrail = 112;
 	 
-	// Droplets = 113,
-	// Rain = 114,
-	CleansedFb3 = 115,
-	SparksGround = 116,
-	SparksRoof = 117,
-	SparksWall = 118,
+	// const int Droplets = 113;
+	// const int Rain = 114;
+	const int CleansedFb3 = 115;
+	const int SparksGround = 116;
+	const int SparksRoof = 117;
+	const int SparksWall = 118;
 	 
-	LeafSpriteTrail = 119,
-	DustWraithTrail = 120,
-	NoName3 = 121,
-	// KingZone = 122,
-	SlimeBossTrail = 123,
-	TrashKingTrail = 124,
+	const int LeafSpriteTrail = 119;
+	const int DustWraithTrail = 120;
+	const int NoName3 = 121;
+	// const int KingZone = 122;
+	const int SlimeBossTrail = 123;
+	const int TrashKingTrail = 124;
 	 
-	// KingZoneBlue = 125,
-	// KingZoneRed = 126,
-	PlayerAttack2 = 127,
-	PlayerAttackH2 = 128,
-	PlayerAttack3 = 129,
-	PlayerAttackH3 = 130,
-	// DropletLong = 131,
+	// const int KingZoneBlue = 125;
+	// const int KingZoneRed = 126;
+	const int PlayerAttack2 = 127;
+	const int PlayerAttackH2 = 128;
+	const int PlayerAttack3 = 129;
+	const int PlayerAttackH3 = 130;
+	// const int DropletLong = 131;
 	
-	// Aliases for area tile emitters (Maybe)
+	// const int Aliases const int for const int area const int tile const int emitters (Maybe)
 	
-	TileCleansedMansion	= CleansedFb1,
-	TileCleansedForest	= CleansedFb2,
-	TileCleansedCity	= CleansedFb3,
-	TileCleansedLab		= CleansedFb4,
-	TileCleansedVirtual	= CleansedFb5,
+	const int TileCleansedMansion	= CleansedFb1;
+	const int TileCleansedForest	= CleansedFb2;
+	const int TileCleansedCity		= CleansedFb3;
+	const int TileCleansedLab		= CleansedFb4;
+	const int TileCleansedVirtual	= CleansedFb5;
 	
 }

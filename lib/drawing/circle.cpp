@@ -1,4 +1,5 @@
 #include '../std.cpp';
+#include 'common.cpp';
 
 void draw_circle(scene@ g, float x, float y, float radius, uint segments, uint layer, uint sub_layer, float thickness=2, uint colour=0xFFFFFFFF, bool world=true)
 {
