@@ -24,6 +24,7 @@ string str(float x)
 {
 	return formatFloat(x, '', 0, 3);
 }
+
 string str(float x, float y)
 {
 	return '<' + str(x) + ', ' + str(y) + '> ';
@@ -103,6 +104,7 @@ int rand_range(int min, int max)
 {
 	return min + (rand() % (max - min + 1));
 }
+
 float rand_range(float min, float max)
 {
 	return min + (max - min) * frand();
