@@ -13,7 +13,7 @@
 
 namespace NumberSlider { const string TYPE_NAME = 'NumberSlider'; }
 
-class NumberSlider : LockedContainer, IStepHandler
+class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 {
 	
 	float min_value;
@@ -22,6 +22,7 @@ class NumberSlider : LockedContainer, IStepHandler
 	float drag_sensitivity = 0.25;
 	bool drag_normalised = true;
 	bool drag_relative = true;
+	bool editable = true;
 	
 	bool show_fill;
 	uint fill_colour = 0x00000000;
@@ -52,6 +53,8 @@ class NumberSlider : LockedContainer, IStepHandler
 	protected Button@ _right_button;
 	protected Arrow@ _left_arrow;
 	protected Arrow@ _right_arrow;
+	
+	protected bool busy_editing;
 	
 	protected bool step_subscribed;
 	
@@ -362,7 +365,7 @@ class NumberSlider : LockedContainer, IStepHandler
 			x1, y1, x2, y2,
 			false, false, false, disabled);
 		
-		if(show_fill && !is_nan(min_value) && !is_nan(max_value))
+		if(show_fill && !is_nan(min_value) && !is_nan(max_value) && !busy_editing)
 		{
 			const float border_size = style.normal_border_clr != 0 && style.border_size > 0 ? style.border_size : 0;
 			const float x1 = this.x1 + border_size;
@@ -439,11 +442,68 @@ class NumberSlider : LockedContainer, IStepHandler
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
+	// ITextEditable
+	// ///////////////////////////////////////////////////////////////////
+	
+	void text_editable_start(TextBox@ text_box) override
+	{
+		Container::add_child(text_box);
+		
+		text_box.width = _width;
+		text_box.height = _height;
+		text_box.character_validation = floor(step) == step ? CharacterValidation::Integer : CharacterValidation::Decimal;
+		text_box.float_value = _value;
+		
+		@ui.focus = text_box;
+		
+		if(_show_text)
+		{
+			_label.visible = false;
+		}
+		
+		if(_show_buttons)
+		{
+			_left_button.visible = false;
+			_right_button.visible = false;
+		}
+		
+		busy_editing = true;
+		validate_layout = true;
+	}
+	
+	void text_editable_stop(TextBox@ text_box, const string event_type) override
+	{
+		Container::remove_child(text_box);
+		
+		if(_show_text)
+		{
+			_label.visible = true;
+		}
+		
+		if(_show_buttons)
+		{
+			_left_button.visible = true;
+			_right_button.visible = true;
+		}
+		
+		if(event_type == EventType::ACCEPT)
+		{
+			value = floor(step) == step ? float(text_box.int_value) : text_box.float_value;
+		}
+		
+		busy_editing = false;
+		validate_layout = true;
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
 	void _mouse_enter(EventInfo@ event) override
 	{
+		if(busy_editing)
+			return;
+		
 		if(fade_buttons >= 1)
 			return;
 		
@@ -452,6 +512,9 @@ class NumberSlider : LockedContainer, IStepHandler
 	
 	void _mouse_exit(EventInfo@ event) override
 	{
+		if(busy_editing)
+			return;
+		
 		if(fade_buttons >= 1)
 			return;
 		
@@ -460,6 +523,9 @@ class NumberSlider : LockedContainer, IStepHandler
 	
 	void _mouse_press(EventInfo@ event) override
 	{
+		if(busy_editing)
+			return;
+		
 		if(event.button != ui.primary_button)
 			return;
 		
@@ -471,6 +537,10 @@ class NumberSlider : LockedContainer, IStepHandler
 			
 			@ui._active_mouse_element = @this;
 			step_subscribed = ui._step_subscribe(@this, step_subscribed);
+		}
+		else if(editable && ui.mouse.primary_double_click)
+		{
+			ui._start_editing(this, true);
 		}
 		else if(drag_sensitivity > 0 || drag_normalised)
 		{
@@ -487,6 +557,9 @@ class NumberSlider : LockedContainer, IStepHandler
 	
 	void _mouse_scroll(EventInfo@ event) override
 	{
+		if(busy_editing)
+			return;
+		
 		value = _value - step * event.mouse.scroll;
 	}
 	

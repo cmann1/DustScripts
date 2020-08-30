@@ -9,9 +9,10 @@
 #include '../utils/colour.cpp';
 #include 'UIMouse.cpp';
 #include 'Style.cpp';
-#include 'utils/IStepHandler.cpp';
 #include 'utils/ClippingMode.cpp';
 #include 'utils/ElementStack.cpp';
+#include 'utils/ITextEditable.cpp';
+#include 'utils/IStepHandler.cpp';
 #include 'utils/LayoutContext.cpp';
 #include 'utils/DrawingContext.cpp';
 #include 'utils/pools/EventInfoPool.cpp';
@@ -22,6 +23,7 @@
 #include 'elements/Container.cpp';
 #include 'elements/Graphic.cpp';
 #include 'elements/Popup.cpp';
+#include 'elements/TextBox.cpp';
 #include 'layouts/flow/FlowLayout.cpp';
 
 class UI : IKeyboardFocusListener
@@ -44,6 +46,10 @@ class UI : IKeyboardFocusListener
 	/// Only relevant when hud = true. When true, certain drawing operations
 	/// will attempt to snap to whole pixels to give cleaner lines
 	bool pixel_perfect = true;
+	
+	Event mouse_press;
+	Event mouse_move;
+	Event mouse_release;
 	
 	/// Triggered when the UI size changes.
 	/// This could be when set_region is called explicitly, or when the game window is resized and auto_fit_screen and hud is enabled.
@@ -162,6 +168,11 @@ class UI : IKeyboardFocusListener
 	private int _first_valid_char_index = 32;
 	private int _last_valid_char_index  = 126;
 	private dictionary font_metrics;
+	
+	private TextBox@ _text_box;
+	private EventCallback@ _text_box_accept_delegate;
+	private ITextEditable@ text_editable;
+	private bool text_editable_accept_on_blur;
 	
 	camera@ _camera;
 	editor_api@ _editor;
@@ -917,9 +928,15 @@ class UI : IKeyboardFocusListener
 		layer_selector.show_all_sub_layers_toggle = false;
 	}
 	
-	int first_valid_char_index { get const { return _first_valid_char_index; } }
+	int first_valid_char_index
+	{
+		get const { return _first_valid_char_index; }
+	}
 	
-	int last_valid_char_index  { get const { return _last_valid_char_index;  } }
+	int last_valid_char_index 
+	{
+		get const { return _last_valid_char_index;  }
+	}
 	
 	void get_font_metrics(string font, uint size, array<float>@ &out widths, float &out line_height)
 	{
@@ -953,6 +970,44 @@ class UI : IKeyboardFocusListener
 		
 		@font_metrics[key] = @widths;
 		font_metrics[height_key] = line_height;
+	}
+	
+	/// The caller will be responsible for adding the TextBox to a container, and initialising all properties as
+	/// the text box is reset each time this is called.
+	/// @param accept_on_blur Will the event type triggered by CANCEL or ACCEPT when the text box loses focus
+	void _start_editing(ITextEditable@ editable, const bool accept_on_blur=true)
+	{
+		if(@_text_box == null)
+		{
+			@_text_box = TextBox(this);
+			@_text_box_accept_delegate = EventCallback(on_text_box_accept);
+		}
+		
+		_stop_editing(_text_box.accept_on_blur ? EventType::ACCEPT : EventType::CANCEL);
+		
+		_text_box.text = '';
+		_text_box.multi_line = false;
+		_text_box.allowed_characters = '';
+		_text_box.character_validation = None;
+		_text_box.select_none();
+		_text_box.width  = 140;
+		_text_box.height = 34;
+		_text_box.accept.on(_text_box_accept_delegate);
+		
+		@text_editable = editable;
+		text_editable_accept_on_blur = accept_on_blur;
+		
+		editable.text_editable_start(_text_box);
+	}
+	
+	void _stop_editing(const string event_type=EventType::ACCEPT)
+	{
+		if(@text_editable == null)
+			return;
+		
+		text_editable.text_editable_stop(@_text_box, event_type);
+		_text_box.accept.off(_text_box_accept_delegate);
+		@text_editable = null;
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -1336,6 +1391,8 @@ class UI : IKeyboardFocusListener
 					}
 				}
 			}
+			
+			dispatch_ui_mouse_button_events(@mouse_press, @event, mouse.left_press, mouse.right_press, mouse.middle_press);
 		}
 		
 		// /////////////////////////////////////////////////
@@ -1353,6 +1410,9 @@ class UI : IKeyboardFocusListener
 				element._mouse_move(event);
 				element.mouse_move.dispatch(event);
 			}
+			
+			@event.target = null;
+			mouse_move.dispatch(event);
 		}
 		
 		// /////////////////////////////////////////////////
@@ -1410,6 +1470,8 @@ class UI : IKeyboardFocusListener
 					element.mouse_release.dispatch(event);
 				}
 			}
+			
+			dispatch_ui_mouse_button_events(@mouse_release, @event, mouse.left_release, mouse.right_release, mouse.middle_release);
 			
 			// Click
 			
@@ -1520,6 +1582,29 @@ class UI : IKeyboardFocusListener
 			_mouse_over_element.tooltip.trigger_type == PopupTriggerType::MouseOver)
 		{
 			show_tooltip(_mouse_over_element);
+		}
+	}
+	
+	private void dispatch_ui_mouse_button_events(Event@ event, EventInfo@ event_info, const bool left, const bool right, const bool middle)
+	{
+		@event_info.target = _mouse_over_element;
+		
+		if(left)
+		{
+			event_info.button = MouseButton::Left;
+			event.dispatch(event_info);
+		}
+		
+		if(right)
+		{
+			event_info.button = MouseButton::Right;
+			event.dispatch(event_info);
+		}
+		
+		if(middle)
+		{
+			event_info.button = MouseButton::Middle;
+			event.dispatch(event_info);
 		}
 	}
 	
@@ -2097,6 +2182,11 @@ class UI : IKeyboardFocusListener
 		{
 			@_focused_element.parent.scroll_into_view = @_focused_element;
 		}
+	}
+	
+	private void on_text_box_accept(EventInfo@ event)
+	{
+		_stop_editing(event.type);
 	}
 	
 }
