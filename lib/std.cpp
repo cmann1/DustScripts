@@ -20,14 +20,14 @@ int tile_coord(float v)
 	return int(floor(v * PIXEL2TILE));
 }
 
-string str(float x)
+string str(float x, const uint precision=3)
 {
-	return formatFloat(x, '', 0, 3);
+	return formatFloat(x, '', 0, precision);
 }
 
-string str(float x, float y)
+string str(float x, float y, const uint precision=3)
 {
-	return '<' + str(x) + ', ' + str(y) + '> ';
+	return '<' + str(x, precision) + ', ' + str(y, precision) + '> ';
 }
 
 string bin(uint64 x, uint max_bits=32)
