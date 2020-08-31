@@ -4,6 +4,7 @@
 #include 'MoveableDialog.cpp';
 #include 'shapes/Cross.cpp';
 #include '../layouts/flow/FlowLayout.cpp';
+#include '../utils/WindowCloseType.cpp';
 
 namespace Window { const string TYPE_NAME = 'Window'; }
 
@@ -20,6 +21,7 @@ class Window : MoveableDialog
 	protected FlowLayout@ title_flow_layout;
 	protected Divider@ _title_divider;
 	protected bool _show_close_button;
+	protected bool _close_on_click_outside;
 	protected Button@ _close_button;
 	protected Container@ _contents;
 	protected Divider@ _buttons_divider;
@@ -34,6 +36,8 @@ class Window : MoveableDialog
 	
 	protected bool layout_buttons_left;
 	protected bool layout_buttons_right;
+	
+	protected EventCallback@ ui_mouse_press_delegate;
 	
 	Window(UI@ ui, const string title, bool show_close_button=true, bool draggable=true)
 	{
@@ -66,6 +70,11 @@ class Window : MoveableDialog
 		open = true;
 		visible = true;
 		
+		if(_close_on_click_outside)
+		{
+			toggle_ui_mouse_press(true);
+		}
+		
 		if(!fade)
 		{
 			alpha = 1;
@@ -80,7 +89,7 @@ class Window : MoveableDialog
 		}
 	}
 	
-	void hide(bool fade=true)
+	void hide(const string hide_type='user', bool fade=true)
 	{
 		if(!open)
 			return;
@@ -88,6 +97,11 @@ class Window : MoveableDialog
 		open = false;
 		mouse_enabled = false;
 		busy_dragging = false;
+		
+		if(_close_on_click_outside)
+		{
+			toggle_ui_mouse_press(false);
+		}
 		
 		if(!fade)
 		{
@@ -101,6 +115,8 @@ class Window : MoveableDialog
 			this.fade = ui.style.tooltip_fade_frames;
 			step_subscribed = ui._step_subscribe(@this, step_subscribed);
 		}
+		
+		ui._dispatch_event(@close, EventType::CLOSE, this, hide_type);
 	}
 	
 	Layout@ layout
@@ -214,6 +230,23 @@ class Window : MoveableDialog
 			}
 			
 			validate_layout = true;
+		}
+	}
+	
+	bool close_on_click_outside
+	{
+		get const { return _close_on_click_outside; }
+		set
+		{
+			if(_close_on_click_outside == value)
+				return;
+			
+			_close_on_click_outside = value;
+			
+			if(open)
+			{
+				toggle_ui_mouse_press(_close_on_click_outside);
+			}
 		}
 	}
 	
@@ -747,13 +780,36 @@ class Window : MoveableDialog
 		return hovered && ui.mouse.y <= y1 + _title_divider._y && @ui.mouse_over_element == @this;
 	}
 	
+	protected void toggle_ui_mouse_press(const bool on)
+	{
+		if(@ui_mouse_press_delegate == null)
+		{
+			@ui_mouse_press_delegate = EventCallback(on_ui_mouse_press);
+		}
+		
+		if(on)
+		{
+			ui.mouse_press.on(ui_mouse_press_delegate);
+		}
+		else
+		{
+			ui.mouse_press.off(ui_mouse_press_delegate);
+		}
+	}
+	
 	// Events
 	
-	private void on_close_button_click(EventInfo@ event)
+	protected void on_close_button_click(EventInfo@ event)
 	{
-		hide();
-		ui._event_info.reset(EventType::CLOSE, this);
-		close.dispatch(ui._event_info);
+		hide(WindowCloseType::Button);
+	}
+	
+	protected void on_ui_mouse_press(EventInfo@ event)
+	{
+		if(!hovered)
+		{
+			hide(WindowCloseType::Modal);
+		}
 	}
 	
 }

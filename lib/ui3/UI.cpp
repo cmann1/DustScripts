@@ -1341,7 +1341,7 @@ class UI : IKeyboardFocusListener
 		// Mouse press
 		// 
 		
-		if(is_mouse_over && mouse.left_press || mouse.middle_press || mouse.right_press)
+		if(mouse.left_press || mouse.middle_press || mouse.right_press)
 		{
 			event.reset(EventType::MOUSE_PRESS, MouseButton::None, mouse.x, mouse.y);
 			@event.src = @_mouse_over_element;
@@ -1438,7 +1438,7 @@ class UI : IKeyboardFocusListener
 		// Mouse release and click
 		// 
 		
-		if(is_mouse_over && mouse.left_release || mouse.middle_release || mouse.right_release)
+		if(mouse.left_release || mouse.middle_release || mouse.right_release)
 		{
 			// Release
 			
