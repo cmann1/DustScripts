@@ -81,6 +81,15 @@ float shortest_angle(float current, float target)
 //	return 2 * da % PI2 - da;
 }
 
+// current and target are in radians
+float shortest_angle_degress(float current, float target)
+{
+	const float num = repeat(target - current, 360);
+	return num > 180
+		? num - 360
+		: num;
+}
+
 float repeat(const float t, const float length)
 {
 	return clamp(t - floor(t / length) * length, 0.0f, length);
@@ -89,6 +98,11 @@ float repeat(const float t, const float length)
 float lerp_angle(float a0, float a1, float t)
 {
     return a0 + shortest_angle(a0, a1) * t;
+}
+
+float lerp_angle_degrees(float a0, float a1, float t)
+{
+    return a0 + shortest_angle_degress(a0, a1) * t;
 }
 
 void normalize(float x, float y, float &out out_x, float &out out_y)
