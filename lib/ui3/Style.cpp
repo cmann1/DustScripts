@@ -558,17 +558,19 @@ class Style
 		}
 	}
 	
-	void draw_gripper(const Orientation orientation, const float x, float start, float end)
+	void draw_gripper(const Orientation orientation, const float x, const float start, const float end,
+		const bool hovered=false, const bool selected=false)
 	{
+		const uint clr = get_interactive_element_border_colour(hovered, selected, false, false);
 		// Calculate how many whole dots will fit between start and end
 		const int num_dots = floor_int((end - start) / (gripper_thickness * 2));
 		
 		if(num_dots <= 1)
 		{
 			if(orientation == Orientation::Horizontal)
-				draw_rectangle(x + gripper_margin, start, x + gripper_margin + gripper_thickness, end, 0, normal_border_clr);
+				draw_rectangle(x + gripper_margin, start, x + gripper_margin + gripper_thickness, end, 0, clr);
 			else
-				draw_rectangle(start, x + gripper_margin, end, x + gripper_margin + gripper_thickness, 0, normal_border_clr);
+				draw_rectangle(start, x + gripper_margin, end, x + gripper_margin + gripper_thickness, 0, clr);
 		}
 		else
 		{
@@ -579,9 +581,9 @@ class Style
 			for(int i = 0; i < num_dots; i++)
 			{
 				if(orientation == Orientation::Horizontal)
-					draw_rectangle(x + gripper_margin, y, x + gripper_margin + gripper_thickness, y + gripper_thickness, 0, normal_border_clr);
+					draw_rectangle(x + gripper_margin, y, x + gripper_margin + gripper_thickness, y + gripper_thickness, 0, clr);
 				else
-					draw_rectangle(y, x + gripper_margin, y + gripper_thickness, x + gripper_margin + gripper_thickness, 0, normal_border_clr);
+					draw_rectangle(y, x + gripper_margin, y + gripper_thickness, x + gripper_margin + gripper_thickness, 0, clr);
 				
 				y += gripper_thickness * 2;
 			}

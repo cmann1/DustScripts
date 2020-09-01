@@ -70,6 +70,10 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 	
 	string element_type { get const { return LayerButton::TYPE_NAME; } }
 	
+	// ///////////////////////////////////////////////////////////////////
+	// Basic properties
+	// ///////////////////////////////////////////////////////////////////
+	
 	/// The layer and sublayer numbers can be displayed in a row or column
 	Orientation orientation
 	{
