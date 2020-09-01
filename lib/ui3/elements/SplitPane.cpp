@@ -185,6 +185,8 @@ class SplitPane : LockedContainer, IStepHandler
 		get const { return _left_min; }
 		set
 		{
+			value = clamp(value, 0, MAX_FLOAT);
+			
 			if(_left_min == value)
 				return;
 			
@@ -199,6 +201,8 @@ class SplitPane : LockedContainer, IStepHandler
 		get const { return _left_max; }
 		set
 		{
+			value = clamp(value, 0, MAX_FLOAT);
+			
 			if(_left_max == value)
 				return;
 			
@@ -213,6 +217,8 @@ class SplitPane : LockedContainer, IStepHandler
 		get const { return _right_min; }
 		set
 		{
+			value = clamp(value, 0, MAX_FLOAT);
+			
 			if(_right_min == value)
 				return;
 			
@@ -227,6 +233,8 @@ class SplitPane : LockedContainer, IStepHandler
 		get const { return _right_max; }
 		set
 		{
+			value = clamp(value, 0, MAX_FLOAT);
+			
 			if(_right_max == value)
 				return;
 			
@@ -331,21 +339,15 @@ class SplitPane : LockedContainer, IStepHandler
 			right = available_space - left;
 		}
 		
-		if(_behaviour == FixedLeft)
-		{
-			left  = max(min(min(available_space, _position), _left_max), min(_left_min, available_space));
-			right = available_space - left;
-			return;
-		}
-		
 		if(_behaviour == FixedRight)
 		{
-			right = max(min(min(available_space, _position), _right_max), min(_right_min, available_space));
+			right = clamp(_position, _right_min, min(max(_right_min, available_space - _left_min), available_space));
 			left  = available_space - right;
 			return;
 		}
 		
-		left  = max(min(available_space * _position, _left_max), _left_min);
+		left = clamp(_behaviour == FixedLeft ? _position : (available_space * _position),
+			_left_min, min(max(_left_min, available_space - _right_min), available_space));
 		right = available_space - left;
 	}
 	
