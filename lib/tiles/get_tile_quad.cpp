@@ -12,121 +12,121 @@ void get_tile_quad(int shape,
 			x3 = 48; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Big_1:
+		case TileShape::Big1:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 24;
 			x3 = 48; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Small_1:
+		case TileShape::Small1:
 			x1 = 0; y1 = 24;
 			x2 = 48; y2 = 48;
 			x3 = 0; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Big_2:
+		case TileShape::Big2:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 24; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Small_2:
+		case TileShape::Small2:
 			x1 = 0; y1 = 0;
 			x2 = 24; y2 = 0;
 			x3 = 0; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Big_3:
+		case TileShape::Big3:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 48; y3 = 48;
 			x4 = 0; y4 = 24;
 			break;
-		case TileShape::Small_3:
+		case TileShape::Small3:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 48; y3 = 24;
 			x4 = 48; y4 = 24;
 			break;
-		case TileShape::Big_4:
+		case TileShape::Big4:
 			x1 = 24; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 48; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Small_4:
+		case TileShape::Small4:
 			x1 = 48; y1 = 0;
 			x2 = 48; y2 = 48;
 			x3 = 24; y3 = 48;
 			x4 = 24; y4 = 48;
 			break;
-		case TileShape::Big_5:
+		case TileShape::Big5:
 			x1 = 0; y1 = 24;
 			x2 = 48; y2 = 0;
 			x3 = 48; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Small_5:
+		case TileShape::Small5:
 			x1 = 0; y1 = 48;
 			x2 = 48; y2 = 24;
 			x3 = 48; y3 = 48;
 			x4 = 48; y4 = 48;
 			break;
-		case TileShape::Big_6:
+		case TileShape::Big6:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 48; y3 = 48;
 			x4 = 24; y4 = 48;
 			break;
-		case TileShape::Small_6:
+		case TileShape::Small6:
 			x1 = 24; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 48; y3 = 48;
 			x4 = 48; y4 = 48;
 			break;
-		case TileShape::Big_7:
+		case TileShape::Big7:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 48; y3 = 24;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Small_7:
+		case TileShape::Small7:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 0; y3 = 24;
 			x4 = 0; y4 = 24;
 			break;
-		case TileShape::Big_8:
+		case TileShape::Big8:
 			x1 = 0; y1 = 0;
 			x2 = 24; y2 = 0;
 			x3 = 48; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Small_8:
+		case TileShape::Small8:
 			x1 = 0; y1 = 0;
 			x2 = 24; y2 = 48;
 			x3 = 0; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Half_A:
+		case TileShape::HalfA:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 48;
 			x3 = 0; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Half_B:
+		case TileShape::HalfB:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 0; y3 = 48;
 			x4 = 0; y4 = 48;
 			break;
-		case TileShape::Half_C:
+		case TileShape::HalfC:
 			x1 = 0; y1 = 0;
 			x2 = 48; y2 = 0;
 			x3 = 48; y3 = 48;
 			x4 = 48; y4 = 48;
 			break;
-		case TileShape::Half_D:
+		case TileShape::HalfD:
 			x1 = 0; y1 = 48;
 			x2 = 48; y2 = 0;
 			x3 = 48; y3 = 48;
