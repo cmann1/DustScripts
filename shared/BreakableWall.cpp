@@ -6,6 +6,8 @@
 #include '../lib/RemoveTimer.cpp';
 #include '../lib/Fx.cpp';
 
+class script { }
+
 class BreakableWall : trigger_base
 {
 	
@@ -98,7 +100,7 @@ class BreakableChunk
 	[hidden] float y1;
 	[position,mode:world,layer:19,y:y2] float x2;
 	[hidden] float y2;
-	[text] EmitterId emitter_id = EmitterId(-1);
+	[text] int emitter_id = -1;
 	
 	[hidden] array<int> tiles_health;
 	[hidden] int tile_count = 0;
@@ -197,7 +199,7 @@ class BreakableChunk
 								if(emitter_id != 0)
 								{
 									entity@ emitter = create_emitter(
-										emitter_id == -1 ? get_emitter_if_for_area(tile.sprite_set()) : emitter_id,
+										emitter_id == -1 ? get_emitter_id_for_area(tile.sprite_set()) : emitter_id,
 										x * 48 + 24, y * 48 + 24,
 										48, 48, 19, 12);
 									g.add_entity(emitter);
@@ -253,9 +255,9 @@ class BreakableChunk
 		g.draw_rectangle_world(22, 22,
 			tx1, ty1, tx2, ty2,
 			0, 0x44FF0000);
-		outline_rect(g,
+		outline_rect(g, 22, 22,
 			tx1, ty1, tx2, ty2,
-			22, 22, 1, 0x88FF0000);
+			1, 0x88FF0000);
 	}
 	
 }
