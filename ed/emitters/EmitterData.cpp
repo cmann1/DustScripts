@@ -345,7 +345,7 @@ class EmitterData
 			return;
 		
 		const float thickness = 1;
-		float radius = min(24, width * 0.5) * zoom;
+		float radius = min(24.0, width * 0.5) * zoom;
 		float outer_radius = radius * 1.5;
 		float angle = rotation * DEG2RAD;
 		
