@@ -225,7 +225,7 @@ class script
 				else
 				{
 					float x = g.mouse_x_world(0, 19);
-					size = max(1, drag_size_start + (x - drag_size_x));
+					size = max(1.0, drag_size_start + (x - drag_size_x));
 					
 					display_text_timer = 1;
 					display_text_content = int(size) + '';
