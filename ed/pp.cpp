@@ -1,4 +1,4 @@
-#include '../lib/props.cpp';
+#include '../lib/props/common.cpp';
 #include '../lib/std.cpp';
 #include '../lib/drawing/common.cpp';
 #include '../lib/camera.cpp';
@@ -14,6 +14,7 @@ enum OutputType
 {
 	SpriteGroup,
 	SpriteGroup2,
+	SpriteGroup3,
 	SpriteBatch,
 	Custom
 }
@@ -51,7 +52,7 @@ class script
 	dictionary include_map;
 	dictionary exclude_map;
 	
-	[option,0:SpriteGroup,1:SpriteGroup2,2:SpriteBatch,3:Custom]
+	[option,0:SpriteGroup,1:SpriteGroup2,2:SpriteGroup3,3:SpriteBatch,4:Custom]
 	OutputType output_type = SpriteBatch;
 	[text] string custom = 'PropStruct(0, %x;, %y;, %r;, %sx;, %sy;, %ps;, %pg;, %pi;, %p;, %l;, %sl;),';
 	[text] float custom_ox = 0.5;
@@ -248,6 +249,49 @@ class script
 		puts('========================================================================');
 	}
 	
+	void print_sprite_group3()
+	{
+		string sprite_set_name = '';
+		string layer_sub_layer = '';
+		string align_offset_rotation_scale = '';
+		string colour_frame_palette = '';
+		
+		for(int i = 0; i < num_selected_props; i++)
+		{
+			prop@ p = selected_props[i];
+			string sprite_set, sprite_name;
+			sprite_from_prop(p, sprite_set, sprite_name);
+			
+			float scale_x = p.scale_x();
+			float scale_y = p.scale_y();
+			float rot = p.rotation();
+			
+			const float align_x = 0.5;
+			const float align_y = 0.5;
+			
+			rectangle@ rect = get_sprites(sprite_set).get_sprite_rect(sprite_name, 0);
+			float ox = (rect.left() + rect.get_width() * align_x) * scale_x;
+			float oy = (rect.top() + rect.get_height() * align_y) * scale_y;
+			rotate(ox, oy, rot * DEG2RAD, ox, oy);
+			
+			float off_x = p.x() - origin_x + ox;
+			float off_y = p.y() - origin_y + oy;
+			
+			sprite_set_name += "'" + sprite_set + "','" + sprite_name + "',";
+			layer_sub_layer += p.layer() + ',' + p.sub_layer() + ',';
+			align_offset_rotation_scale += align_x + ',' + align_y + ',' + off_x + ',' + off_y + ',' + rot + ',' + scale_x + ',' + scale_y + ',';
+			colour_frame_palette += 0 + ',' + p.palette() + ',' + '0xFFFFFFFF' + ',';
+		}
+		
+		puts('========================================================================');
+		puts('SpriteGroup spr(\n' +
+			'array<string>={' + sprite_set_name + '},\n'
+			'array<int>={' + layer_sub_layer + '},\n'
+			'array<float>={' + align_offset_rotation_scale + '},\n'
+			'array<uint>={' + colour_frame_palette + '});');
+		puts('========================================================================');
+	}
+	
 	void print_sprite_batch()
 	{
 		string sprite_set_name = '';
@@ -399,7 +443,7 @@ class script
 				
 				int prop_count = g.get_prop_collision(y1, y2, x1, x2);
 				num_selected_props = 0;
-				selected_props.resize(int(max(prop_count, selected_props.length())));
+				selected_props.resize(int(max(prop_count, int(selected_props.length()))));
 				for(int i = 0; i < prop_count; i++)
 				{
 					prop@ p = g.get_prop_collision_index(i);
@@ -454,6 +498,7 @@ class script
 					{
 						case SpriteGroup: print_sprite_group(); break;
 						case SpriteGroup2: print_sprite_group2(); break;
+						case SpriteGroup3: print_sprite_group3(); break;
 						case SpriteBatch: print_sprite_batch(); break;
 						case Custom: print_custom(); break;
 					}
