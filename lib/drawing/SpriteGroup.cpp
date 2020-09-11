@@ -45,7 +45,7 @@ class SpriteGroup
 		float spr_width, spr_height;
 		
 		const int num_sprites = int(sprite_set_name.size());
-		for(int i = 0, j = 0, k = 0; i < num_sprites; i += 2, j += 8, k += 3)
+		for(int i = 0, j = 0, k = 0; i < num_sprites; i += 2, j += 7, k += 3)
 		{
 			const string sprite_set = sprite_set_name[i];
 			const string sprite_name = sprite_set_name[i + 1];
