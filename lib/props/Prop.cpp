@@ -7,6 +7,7 @@ class Prop
 	prop@ p;
 	float align_x, align_y;
 	float prop_left, prop_top;
+	float prop_width, prop_height;
 	float prop_offset_x, prop_offset_y;
 	float prop_scale_x, prop_scale_y;
 	float anchor_x, anchor_y;
@@ -27,12 +28,19 @@ class Prop
 		rectangle@ r = spr.get_sprite_rect(sprite_name, 0);
 		prop_left = r.left();
 		prop_top = r.top();
+		prop_width = r.get_width();
+		prop_height = r.get_height();
 		
+		init_anchors(g);
+	}
+	
+	private void init_anchors(scene@ g=null)
+	{
 		const float layer_scale = @g != null && p.layer() <= 5 ? g.layer_scale(p.layer()) : 1.0;
 		const float backdrop_scale = p.layer() <= 5 ? 2.0 : 1.0;
 		
-		prop_offset_x = prop_scale_x * (prop_left + r.get_width() * align_x)  / layer_scale * backdrop_scale;
-		prop_offset_y = prop_scale_y * (prop_top  + r.get_height() * align_y) / layer_scale * backdrop_scale;
+		prop_offset_x = prop_scale_x * (prop_left + prop_width * align_x)  / layer_scale * backdrop_scale;
+		prop_offset_y = prop_scale_y * (prop_top  + prop_height * align_y) / layer_scale * backdrop_scale;
 		
 		rotate(prop_offset_x, prop_offset_y, p.rotation() * DEG2RAD, anchor_x, anchor_y);
 		anchor_x += p.x();
@@ -47,6 +55,16 @@ class Prop
 		
 		p.x(anchor_x - ox);
 		p.y(anchor_y - oy);
+	}
+	
+	void anchor_world(float x, float y, scene@ g=null)
+	{
+		rotate(x - p.x(), y - p.y(), -p.rotation() * DEG2RAD, x, y);
+		
+		align_x = (x - prop_left) / prop_width;
+		align_y = (y - prop_top)  / prop_height;
+		
+		init_anchors(g);
 	}
 	
 }
