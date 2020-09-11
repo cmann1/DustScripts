@@ -10,22 +10,11 @@ void draw_circle(scene@ g, float x, float y, float radius, uint segments, uint l
 	
 	for(uint i = 0; i < segments; i++)
 	{
-		if(world)
-		{
-			g.draw_line(
-				layer, sub_layer, 
-				x + cos(angle) * radius, y + sin(angle) * radius,
-				x + cos(angle + angle_step) * radius, y + sin(angle + angle_step) * radius,
-				thickness, colour);
-		}
-		else
-		{
-			g.draw_line_hud(
-				layer, sub_layer, 
-				x + cos(angle) * radius, y + sin(angle) * radius,
-				x + cos(angle + angle_step) * radius, y + sin(angle + angle_step) * radius,
-				thickness, colour);
-		}
+		draw_line(g,
+			layer, sub_layer, 
+			x + cos(angle) * radius, y + sin(angle) * radius,
+			x + cos(angle + angle_step) * radius, y + sin(angle + angle_step) * radius,
+			thickness, colour, world);
 		
 		angle += angle_step;
 	}
