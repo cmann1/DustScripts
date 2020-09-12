@@ -45,6 +45,7 @@ float magnitude(float x, float y)
 {
 	return sqrt(x * x + y * y);
 }
+
 float distance(float x1, float y1, float x2, float y2)
 {
 	const float dx = x2 - x1;
@@ -149,6 +150,7 @@ float sign(float x)
 {
 	return x < -1e-9 ? -1 : (x > 1e-9 ? 1 : 0);
 }
+
 int sign(int x)
 {
 	return x < 0 ? -1 : (x > 0 ? 1 : 0);

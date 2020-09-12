@@ -1,5 +1,6 @@
 #include '../lib/std.cpp';
-#include '../lib/props.cpp';
+#include '../lib/props/common.cpp';
+#include '../lib/props/Prop.cpp';
 #include '../lib/drawing/common.cpp';
 #include '../lib/math/Bezier.cpp';
 #include '../lib/drawing/Sprite.cpp';
