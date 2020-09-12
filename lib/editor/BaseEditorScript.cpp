@@ -1,11 +1,13 @@
 #include '../std.cpp';
 #include '../drawing/common.cpp';
+#include '../drawing/circle.cpp';
 #include '../math/math.cpp';
 #include '../layer.cpp';
 #include '../enums/GVB.cpp';
 #include 'IEditable.cpp';
 #include 'EditorMouseResult.cpp';
 #include 'draw/EditorBox.cpp';
+#include 'draw/EditorCircleHandle.cpp';
 #include 'draw/EditorHandle.cpp';
 #include 'draw/EditorLine.cpp';
 
@@ -32,6 +34,10 @@ class BaseEditorScript
 	protected array<EditorHandle> ed_handles(ed_handles_size);
 	protected int ed_handles_count;
 	
+	protected int ed_circle_handles_size = 32;
+	protected array<EditorCircleHandle> ed_circle_handles(ed_circle_handles_size);
+	protected int ed_circle_handles_count;
+	
 	protected int ed_lines_size = 32;
 	protected array<EditorLine> ed_lines(ed_lines_size);
 	protected int ed_lines_count;
@@ -53,6 +59,7 @@ class BaseEditorScript
 	protected float ed_drag_box_ox, ed_drag_box_oy;
 	protected float ed_drag_box_x1, ed_drag_box_y1;
 	protected float ed_drag_box_x2, ed_drag_box_y2;
+	protected float ed_drag_radius_offset;
 	
 	BaseEditorScript()
 	{
@@ -81,6 +88,7 @@ class BaseEditorScript
 		ed_handles_count = 0;
 		ed_lines_count = 0;
 		ed_boxes_count = 0;
+		ed_circle_handles_count = 0;
 		
 		ed_left_press = can_press && mouse.left_press;
 		ed_right_press = can_press && mouse.right_press;
@@ -140,6 +148,15 @@ class BaseEditorScript
 			}
 			
 			outline_rect(g, 22, 20, x1, y1, x2, y2, box.thickness * ed_zoom, box.colour);
+		}
+		
+		for(int i = 0; i < ed_circle_handles_count; i++)
+		{
+			EditorCircleHandle@ circle = @ed_circle_handles[i];
+			
+			float x, y;
+			transform_layer_position(g, ed_view_x, ed_view_y, circle.x, circle.y, circle.layer, 22, x, y);
+			draw_circle(g, x, y, circle.radius, 32, 22, 20, circle.thickness * ed_zoom, circle.colour);
 		}
 	}
 	
@@ -252,7 +269,7 @@ class BaseEditorScript
 			return None;
 		}
 		
-		if(ed_boxes_count + 2 > ed_boxes_size)
+		if(ed_boxes_count + 3 > ed_boxes_size)
 		{
 			ed_boxes.resize(ed_boxes_size += 32);
 		}
@@ -372,6 +389,64 @@ class BaseEditorScript
 			y1 = mouse_y - ed_drag_oy - abs(ed_drag_box_y2 - ed_drag_box_y1) * 0.5 + ed_drag_box_ox;
 			y2 = mouse_y - ed_drag_oy + abs(ed_drag_box_y2 - ed_drag_box_y1) * 0.5 + ed_drag_box_oy;
 		}
+	}
+	
+	//
+	
+	EditorMouseResult ed_radius_handle(const float x, const float y, const float radius,
+		IEditable@ ref, const int index=0,
+		float thickness=-1, const int layer=19, const uint colour=0xffe46d35)
+	{
+		const float x1 = x - radius;
+		const float y1 = y - radius;
+		const float x2 = x + radius;
+		const float y2 = y + radius;
+		
+		if(thickness <= 0)
+		{
+			thickness = ed_default_thickness;
+		}
+		
+		if(
+			x2 + thickness * ed_zoom < ed_view_x1 || x1 - thickness * ed_zoom > ed_view_x2 ||
+			y2 + thickness * ed_zoom < ed_view_y1 || y1 - thickness * ed_zoom > ed_view_y2)
+		{
+			return None;
+		}
+		
+		if(ed_circle_handles_count + 32 > ed_circle_handles_size)
+		{
+			ed_circle_handles.resize(ed_circle_handles_size += 32);
+		}
+		
+		EditorCircleHandle@ circle = @ed_circle_handles[ed_circle_handles_count++];
+		circle.x = x;
+		circle.y = y;
+		circle.radius = radius;
+		circle.thickness = thickness;
+		circle.layer = layer;
+		circle.colour = colour;
+		
+		EditorMouseResult result = ed_handle(x + radius, y, ref, index, layer, colour, 0);
+		
+		if(result == LeftPress)
+		{
+			ed_drag_ox = x;
+			ed_drag_oy = y;
+			const float mouse_x = layer == mouse.layer ? mouse.x : g.mouse_x_world(0, layer);
+			const float mouse_y = layer == mouse.layer ? mouse.y : g.mouse_y_world(0, layer);
+			ed_drag_radius_offset = distance(mouse_x, mouse_y, x, y) - radius;
+		}
+		
+		return result;
+	}
+	
+	void ed_update_radius(float &out radius)
+	{
+		float x, y;
+		transform_layer_position(g, ed_view_x, ed_view_y, mouse.x, mouse.y, 22, ed_layer, x, y);
+		
+		radius = distance(x, y, ed_drag_ox,  ed_drag_oy) - ed_drag_radius_offset;
 	}
 	
 	//
