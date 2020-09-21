@@ -19,9 +19,12 @@
 #include 'utils/pools/ImagePool.cpp';
 #include 'utils/pools/LabelPool.cpp';
 #include 'events/Event.cpp';
+#include 'elements/layer_selector/LayerSelector.cpp';
 #include 'elements/Element.cpp';
 #include 'elements/Container.cpp';
+#include 'elements/Image.cpp';
 #include 'elements/Graphic.cpp';
+#include 'elements/Label.cpp';
 #include 'elements/Popup.cpp';
 #include 'elements/TextBox.cpp';
 #include 'layouts/flow/FlowLayout.cpp';

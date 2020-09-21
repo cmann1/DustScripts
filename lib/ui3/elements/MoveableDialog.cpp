@@ -4,8 +4,8 @@ abstract class MoveableDialog : Container, IStepHandler
 {
 	
 	bool draggable;
-	bool snap_to_screen;
-	bool snap_to_siblings;
+	bool snap_to_screen = true;
+	bool snap_to_siblings = true;
 	
 	Event move;
 	Event move_complete;

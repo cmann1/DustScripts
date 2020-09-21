@@ -306,17 +306,17 @@ class Scrollbar : Element, IStepHandler
 			_scroll_max = t;
 		}
 		
+		thumb_size = scroll_range <= 0 ? 0 : max(0.0, round(_flexible_thumb_size
+			? size * (_scroll_visible / scroll_width)
+			: ui.style.scrollbar_fixed_size));
 		position_max = size - thumb_size;
 		scroll_width = scroll_max - scroll_min;
 		scroll_range = max(0.0, scroll_width - scroll_visible);
-		thumb_position = scroll_range > 0 ? position_max * ((position - scroll_min) / scroll_range) : 0;
+		thumb_position = scroll_range > 0 ? position_max * ((_position - scroll_min) / scroll_range) : 0;
 		
 		_position = clamp(_position, scroll_min, scroll_min + scroll_range);
 		update_position();
 		
-		thumb_size = scroll_range <= 0 ? 0 : max(0.0, round(_flexible_thumb_size
-			? size * (_scroll_visible / scroll_width)
-			: ui.style.scrollbar_fixed_size));
 		
 		const float min_size = min(size, orientation == Horizontal ? _height : _width);
 		

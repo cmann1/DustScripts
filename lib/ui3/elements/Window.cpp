@@ -1,4 +1,5 @@
 #include 'Button.cpp';
+#include 'Divider.cpp';
 #include 'Image.cpp';
 #include 'Label.cpp';
 #include 'MoveableDialog.cpp';
