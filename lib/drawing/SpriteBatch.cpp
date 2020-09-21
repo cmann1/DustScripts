@@ -1,5 +1,3 @@
-#include '../props.cpp';
-
 /*
  * Simpler than SpriteGroup
  */
@@ -80,16 +78,7 @@ class SpriteBatch
 		return spr;
 	}
 	
-	void draw(float x, float y)
-	{
-		for(int i = 0; i < num_sprites; i++)
-		{
-			SpriteBatchSprite@ s = sprite_list[i];
-			s.spr.draw_world(s.layer, s.sub_layer, s.sprite_name, 0, s.palette, x + s.x, y + s.y, s.rotation, s.scale_x, s.scale_y, 0xFFFFFFFF);
-		}
-	}
-	
-	void draw_colour(float x, float y, uint colour)
+	void draw(float x, float y, uint colour=0xffffffff)
 	{
 		for(int i = 0; i < num_sprites; i++)
 		{
