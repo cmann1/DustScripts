@@ -6,6 +6,7 @@
 #include '../enums/GVB.cpp';
 #include 'IEditable.cpp';
 #include 'EditorMouseResult.cpp';
+#include 'draw/EditorArrow.cpp';
 #include 'draw/EditorBox.cpp';
 #include 'draw/EditorCircleHandle.cpp';
 #include 'draw/EditorHandle.cpp';
@@ -24,6 +25,8 @@ class BaseEditorScript
 	float ed_zoom = 1;
 	float ed_handle_size;
 	float ed_default_thickness = 1;
+	bool ed_disable_handles;
+	int ed_secondary_index = -1;
 	
 	protected float ed_view_x;
 	protected float ed_view_y;
@@ -46,13 +49,18 @@ class BaseEditorScript
 	protected array<EditorBox> ed_boxes(ed_boxes_size);
 	protected int ed_boxes_count;
 	
+	protected int ed_arrows_size = 32;
+	protected array<EditorArrow> ed_arrows(ed_arrows_size);
+	protected int ed_arrows_count;
+	
 	protected bool ed_press;
 	protected bool ed_left_press;
 	protected bool ed_right_press;
 	protected bool ed_middle_press;
 	protected int ed_layer;
 	protected IEditable@ ed_drag_handle_ref;
-	protected int ed_drag_handle_index;
+	protected int ed_drag_handle_index = -1;
+	protected int ed_drag_handle_secondary_index = -1;
 	protected float ed_drag_ox;
 	protected float ed_drag_oy;
 	protected int ed_drag_box_handle_index;
@@ -82,13 +90,14 @@ class BaseEditorScript
 		ed_view_x2 = max(view1_x + view1_w, view2_x + view2_w);
 		ed_view_y2 = max(view1_y + view1_h, view2_y + view2_h);
 		
-		const bool can_press = @editor == null || !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space) && editor.editor_tab() == 'Triggers';
-//		const bool can_press = !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space);
+//		const bool can_press = @editor == null || !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space) && editor.editor_tab() == 'Triggers';
+		const bool can_press = !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space) && (editor.editor_tab() == 'Triggers' || editor.editor_tab() == 'Scripts');
 		
 		ed_handles_count = 0;
 		ed_lines_count = 0;
 		ed_boxes_count = 0;
 		ed_circle_handles_count = 0;
+		ed_arrows_count = 0;
 		
 		ed_left_press = can_press && mouse.left_press;
 		ed_right_press = can_press && mouse.right_press;
@@ -101,62 +110,38 @@ class BaseEditorScript
 		{
 			@ed_drag_handle_ref = null;
 			ed_drag_handle_index = -1;
+			ed_drag_handle_secondary_index = -1;
 		}
 	}
 	
 	void editor_draw(float sub_frame)
 	{
+		if(ed_disable_handles)
+			return;
+		
 		for(int i = 0; i < ed_handles_count; i++)
 		{
-			EditorHandle@ handle = @ed_handles[i];
-			
-			float x, y;
-			transform_layer_position(g, ed_view_x, ed_view_y, handle.x, handle.y, handle.layer, 22, x, y);
-			
-			g.draw_rectangle_world(22, 22,
-				x - ed_handle_size, y - ed_handle_size,
-				x + ed_handle_size, y + ed_handle_size, handle.rotation, handle.colour);
+			ed_handles[i].draw(g, ed_view_x, ed_view_y, ed_handle_size);
 		}
 		
 		for(int i = 0; i < ed_lines_count; i++)
 		{
-			EditorLine@ line = @ed_lines[i];
-			
-			float x1, y1;
-			float x2, y2;
-			transform_layer_position(g, ed_view_x, ed_view_y, line.x1, line.y1, line.layer, 22, x1, y1);
-			transform_layer_position(g, ed_view_x, ed_view_y, line.x2, line.y2, line.layer, 22, x2, y2);
-			
-			draw_line(g, 22, 20, x1, y1, x2, y2, line.thickness * ed_zoom, line.colour);
+			ed_lines[i].draw(g, ed_view_x, ed_view_y, ed_zoom);
 		}
 		
 		for(int i = 0; i < ed_boxes_count; i++)
 		{
-			EditorBox@ box = @ed_boxes[i];
-			
-			float x1, y1;
-			float x2, y2;
-			transform_layer_position(g, ed_view_x, ed_view_y, box.x1, box.y1, box.layer, 22, x1, y1);
-			transform_layer_position(g, ed_view_x, ed_view_y, box.x2, box.y2, box.layer, 22, x2, y2);
-			
-			if(box.draw_snap_tiles)
-			{
-				x1 = floor(x1 / 48) * 48;
-				y1 = floor(y1 / 48) * 48;
-				x2 = floor(x2 / 48 + 1) * 48;
-				y2 = floor(y2 / 48 + 1) * 48;
-			}
-			
-			outline_rect(g, 22, 20, x1, y1, x2, y2, box.thickness * ed_zoom, box.colour);
+			ed_boxes[i].draw(g, ed_view_x, ed_view_y, ed_zoom);
 		}
 		
 		for(int i = 0; i < ed_circle_handles_count; i++)
 		{
-			EditorCircleHandle@ circle = @ed_circle_handles[i];
-			
-			float x, y;
-			transform_layer_position(g, ed_view_x, ed_view_y, circle.x, circle.y, circle.layer, 22, x, y);
-			draw_circle(g, x, y, circle.radius, 32, 22, 20, circle.thickness * ed_zoom, circle.colour);
+			ed_circle_handles[i].draw(g, ed_view_x, ed_view_y, ed_zoom);
+		}
+		
+		for(int i = 0; i < ed_arrows_count; i++)
+		{
+			ed_arrows[i].draw(g, ed_view_x, ed_view_y, ed_zoom);
 		}
 	}
 	
@@ -165,6 +150,9 @@ class BaseEditorScript
 	EditorMouseResult ed_handle(const float x, const float y, IEditable@ ref, const int index, const int layer=19,
 		const uint colour=0xffaaaa44, const float rotation=45)
 	{
+		if(ed_disable_handles)
+			return None;
+		
 		if(
 			x + ed_handle_size < ed_view_x1 || x - ed_handle_size > ed_view_x2 ||
 			y + ed_handle_size < ed_view_y1 || y - ed_handle_size > ed_view_y2)
@@ -184,9 +172,10 @@ class BaseEditorScript
 		handle.colour = colour;
 		handle.rotation = rotation;
 		
-		if(@ed_drag_handle_ref == @ref && ed_drag_handle_index == index)
+		if(@ed_drag_handle_ref == @ref && ed_drag_handle_index == index && ed_drag_handle_secondary_index == ed_secondary_index)
 		{
 			ed_layer = layer;
+			ed_secondary_index = -1;
 			return Move;
 		}
 		
@@ -201,9 +190,12 @@ class BaseEditorScript
 				{
 					@ed_drag_handle_ref = @ref;
 					ed_drag_handle_index = index;
+					ed_drag_handle_secondary_index = ed_secondary_index;
 					ed_drag_ox = mouse_x - x;
 					ed_drag_oy = mouse_y - y;
 					ed_press = false;
+					
+					ed_secondary_index = -1;
 					
 					editor.key_clear_gvb(GVB::LeftClick);
 					return LeftPress;
@@ -221,6 +213,7 @@ class BaseEditorScript
 			}
 		}
 		
+		ed_secondary_index = -1;
 		return None;
 	}
 	
@@ -239,6 +232,9 @@ class BaseEditorScript
 		const bool draw_snap_tiles=false,
 		float thickness=-1, const int layer=19, const uint colour=0xff44aaaa)
 	{
+		if(ed_disable_handles)
+			return None;
+		
 		float rx1 = x1;
 		float ry1 = y1;
 		float rx2 = x2;
@@ -290,8 +286,12 @@ class BaseEditorScript
 		ed_drag_box_x2 = x2;
 		ed_drag_box_y2 = y2;
 		
+		const int secondary = ed_secondary_index;
+		
 		for(int i = 0; i < 9; i++)
 		{
+			ed_secondary_index = secondary;
+			
 			switch(ed_box_handle(rx1, ry1, rx2, ry2, ref, index, i, layer, colour))
 			{
 				case LeftPress:
@@ -342,7 +342,7 @@ class BaseEditorScript
 		
 		ox *= ed_handle_size;
 		oy *= ed_handle_size;
-		const EditorMouseResult result = ed_handle(x - ox, y - oy, ref, -index * 9 + handle_index, layer, colour, 0);
+		const EditorMouseResult result = ed_handle(x - ox, y - oy, ref, -1 - index * 9 - handle_index, layer, colour, 0);
 		
 		if(result == Move || result == LeftPress)
 		{
@@ -397,6 +397,9 @@ class BaseEditorScript
 		IEditable@ ref, const int index=0,
 		float thickness=-1, const int layer=19, const uint colour=0xffe46d35)
 	{
+		if(ed_disable_handles)
+			return None;
+		
 		const float x1 = x - radius;
 		const float y1 = y - radius;
 		const float x2 = x + radius;
@@ -463,6 +466,9 @@ class BaseEditorScript
 	
 	void ed_line(const float x1, const float y1, const float x2, const float y2, float thickness=-1, const int layer=19, const uint colour=0xffffffff)
 	{
+		if(ed_disable_handles)
+			return;
+		
 		const float v_x1 = min(x1, x2);
 		const float v_y1 = min(y1, y2);
 		const float v_x2 = max(x1, x2);
@@ -493,6 +499,46 @@ class BaseEditorScript
 		line.thickness = thickness;
 		line.layer = layer;
 		line.colour = colour;
+	}
+	
+	void ed_arrow(const float x1, const float y1, const float x2, const float y2,
+		const float head_size, const float head_position, float thickness=-1, const int layer=19, const uint colour=0xffffffff)
+	{
+		if(ed_disable_handles)
+			return;
+		
+		const float v_x1 = min(x1, x2);
+		const float v_y1 = min(y1, y2);
+		const float v_x2 = max(x1, x2);
+		const float v_y2 = max(y1, y2);
+		
+		if(thickness <= 0)
+		{
+			thickness = ed_default_thickness;
+		}
+		
+		if(
+			v_x2 + (thickness + head_size) * ed_zoom < ed_view_x1 || v_x1 - (thickness + head_size) * ed_zoom > ed_view_x2 ||
+			v_y2 + (thickness + head_size) * ed_zoom < ed_view_y1 || v_y1 - (thickness + head_size) * ed_zoom > ed_view_y2)
+		{
+			return;
+		}
+		
+		if(ed_arrows_count + 2 > ed_arrows_size)
+		{
+			ed_arrows.resize(ed_arrows_size += 32);
+		}
+		
+		EditorArrow@ arrow = @ed_arrows[ed_arrows_count++];
+		arrow.x1 = x1;
+		arrow.y1 = y1;
+		arrow.x2 = x2;
+		arrow.y2 = y2;
+		arrow.thickness = thickness;
+		arrow.head_size = head_size;
+		arrow.head_position = head_position;
+		arrow.layer = layer;
+		arrow.colour = colour;
 	}
 	
 }
