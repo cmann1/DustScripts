@@ -287,18 +287,170 @@ int opposite_tile_edge(int edge)
 	return edge - (edge % 2) * 2 + 1;
 }
 
-/**
- * Returns the tile coordinates of the tile adjacent to **edge**.
- */
+/// Returns the coordinates of the tile potentially connected (on the left side clockwise) to the given one based on the side
+void get_left_tile(int tile_x, int tile_y, const int type, const int side, int &out out_x, int &out out_y)
+{
+	out_x = tile_x;
+	out_y = tile_y;
+	
+	switch(side)
+	{
+		case Top:
+		{
+			out_x--;
+			
+			if(type == TileShape::Big1 || type == TileShape::HalfA)
+			{
+				out_y--;
+			}
+			else if(type == TileShape::Small5 || type == TileShape::HalfD)
+			{
+				out_y++;
+			}
+		} break;
+		case Bottom:
+		{
+			out_x++;
+			
+			if(type == TileShape::Small7 || type == TileShape::HalfB)
+			{
+				out_y--;
+			}
+			else if(type == TileShape::Big3 || type == TileShape::HalfC)
+			{
+				out_y++;
+			}
+		} break;
+		case Left:
+		{
+			out_y++;
+			
+			if(type == TileShape::Big4)
+			{
+				out_x--;
+			}
+			else if(type == TileShape::Small6)
+			{
+				out_x++;
+			}
+		} break;
+		case Right:
+		{
+			out_y--;
+			
+			if(type == TileShape::Small8)
+			{
+				out_x--;
+			}
+			else if(type == TileShape::Big2)
+			{
+				out_x++;
+			}
+		} break;
+	}
+	
+	if(side == 0) // Top
+	{
+		
+	}
+	else if(side == 1) // Bottom
+	{
+		
+	}
+	else if(side == 2) // Left
+	{
+		
+	}
+	else if(side == 3) // Right
+	{
+		
+	}
+}
+
+/// Returns the coordinates of the tile potentially connected (on the right side clockwise) to the given one based on the side
+void get_right_tile(int tile_x, int tile_y, const uint8 type, const int side, int &out out_x, int &out out_y)
+{
+	out_x = tile_x;
+	out_y = tile_y;
+	
+	switch(side)
+	{
+		case Top:
+		{
+			out_x++;
+			
+			if(type == TileShape::Big5 || type == TileShape::HalfD)
+			{
+				out_y--;
+			}
+			else if(type == TileShape::Small1 || type == TileShape::HalfA)
+			{
+				out_y++;
+			}
+		} break;
+		case Bottom:
+		{
+			out_x--;
+			
+			if(type == TileShape::Small3 || type == TileShape::HalfC)
+			{
+				out_y--;
+			}
+			else if(type == TileShape::Big7 || type == TileShape::HalfB)
+			{
+				out_y++;
+			}
+		} break;
+		case Left:
+		{
+			out_y--;
+			
+			if(type == TileShape::Big6)
+			{
+				out_x--;
+			}
+			else if(type == TileShape::Small4)
+			{
+				out_x++;
+			}
+		} break;
+		case Right:
+		{
+			out_y++;
+			
+			if(type == TileShape::Small2)
+			{
+				out_x--;
+			}
+			else if(type == TileShape::Big8)
+			{
+				out_x++;
+			}
+		} break;
+	}
+}
+
+/// Returns the tile coordinates of the tile adjacent to **edge**.
 void edge_adjacent_tile(int edge, int tile_x, int tile_y, int &out out_tile_x, int &out out_tile_y)
 {
 	out_tile_x = tile_x + (edge >  TileEdge::Bottom ? (edge % 2) * 2 - 1 : 0);
 	out_tile_y = tile_y + (edge <= TileEdge::Bottom ? (edge % 2) * 2 - 1 : 0);
 }
 
-/**
- * If **check_sprite** is true, edge shared between tiles with different sprite sets will be considered external
- */
+/// For slanted tiles returns the matching type (e.g. Small2 <-> Big2), for all other types returns that same type.
+int get_matching_tile_type(int type)
+{
+	if(type > TileShape::Full and type <= TileShape::Small8)
+	{
+		return (type - 1) % 2 == 0
+			? type + 1
+			: type - 1;
+	}
+	
+	return type;
+}
+
+/// If **check_sprite** is true, edge shared between tiles with different sprite sets will be considered external
 bool is_external_edge(scene@ g, int layer, int tile_x, int tile_y, tileinfo@ tile, int type, int edge, bool check_sprite = false)
 {
 	if(!is_full_edge(type, edge))
