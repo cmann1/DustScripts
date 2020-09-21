@@ -14,6 +14,7 @@ class Window : MoveableDialog
 	
 	Event close;
 	
+	protected bool _show_title_bar = true;
 	protected string _title;
 	protected Image@ _title_icon;
 	protected Label@ _title_label;
@@ -154,6 +155,7 @@ class Window : MoveableDialog
 		}
 		
 		_title_icon.set_sprite(set, name, width, height, offset_x, offset_y);
+		_title_icon.visible = _show_title_bar;
 		validate_layout = true;
 	}
 	
@@ -164,6 +166,33 @@ class Window : MoveableDialog
 		
 		_title_icon.visible = false;
 		validate_layout = true;
+	}
+	
+	bool show_title_bar
+	{
+		get const { return _show_title_bar; }
+		set
+		{
+			if(_show_title_bar == value)
+				return;
+			
+			_show_title_bar = value;
+			
+			if(@_title_icon != null)
+				_title_icon.visible = _show_title_bar;
+			if(@_title_label != null)
+				_title_label.visible = _show_title_bar;
+			if(@_close_button != null)
+				_close_button.visible = _show_title_bar;
+			if(@_title_before != null)
+				_title_before.visible = _show_title_bar;
+			if(@_title_after != null)
+				_title_after.visible = _show_title_bar;
+			
+			_title_divider.visible = _show_title_bar;
+			
+			validate_layout = true;
+		}
 	}
 	
 	string title
@@ -187,7 +216,7 @@ class Window : MoveableDialog
 				}
 				
 				_title_label.text = _title;
-				_title_label.visible = true;
+				_title_label.visible = _show_title_bar;
 			}
 			else if(@_title_label != null)
 			{
@@ -223,7 +252,7 @@ class Window : MoveableDialog
 					Container::add_child(_close_button, 0);
 				}
 				
-				_close_button.visible = true;
+				_close_button.visible = _show_title_bar;
 			}
 			else if(@_close_button != null)
 			{
@@ -433,7 +462,12 @@ class Window : MoveableDialog
 		const bool has_buttons_right = @_buttons_right != null && _buttons_right.visible;
 		
 		_width = _set_width = _contents._width + spacing * 2;
-		_height = _contents._height + ui.style.titlebar_height + _title_divider._height + spacing * 2;
+		_height = _contents._height + spacing * 2;
+		
+		if(_show_title_bar)
+		{
+			_height += ui.style.titlebar_height + _title_divider._height;
+		}
 		
 		if(has_buttons_left || has_buttons_right)
 		{
@@ -646,11 +680,11 @@ class Window : MoveableDialog
 		const float title_width = _width - spacing * 2;
 		const float title_height = ui.style.titlebar_height;
 		const float title_item_height = title_height - spacing * 2;
-		const bool has_icon = @_title_icon != null && _title_icon.visible;
-		const bool has_label = @_title_label != null && _title_label.visible;
-		const bool has_close_button = @_close_button != null && _close_button.visible;
-		const bool has_title_before = @_title_before != null && _title_before.visible;
-		const bool has_title_after = @_title_after != null && _title_after.visible;
+		const bool has_icon = _show_title_bar && @_title_icon != null && _title_icon.visible;
+		const bool has_label = _show_title_bar && @_title_label != null && _title_label.visible;
+		const bool has_close_button = _show_title_bar && @_close_button != null && _close_button.visible;
+		const bool has_title_before = _show_title_bar && @_title_before != null && _title_before.visible;
+		const bool has_title_after = _show_title_bar && @_title_after != null && _title_after.visible;
 		const bool has_buttons_left = @_buttons_left != null && _buttons_left.visible;
 		const bool has_buttons_right = @_buttons_right != null && _buttons_right.visible;
 		
@@ -705,11 +739,19 @@ class Window : MoveableDialog
 			_close_button.height = title_item_height;
 		}
 		
-		_title_divider.x = spacing;
-		_title_divider.y = title_height;
-		_title_divider.width = title_width;
+		if(_show_title_bar)
+		{
+			_title_divider.x = spacing;
+			_title_divider.y = title_height;
+			_title_divider.width = title_width;
+		}
 		
-		float content_height = _height - (_title_divider._y + _title_divider._height) - spacing * 2;
+		float content_height = _height - spacing * 2;
+		
+		if(_show_title_bar)
+		{
+			content_height -= _title_divider._y + _title_divider._height;
+		}
 		
 		if(has_buttons_left || has_buttons_right)
 		{
@@ -748,7 +790,7 @@ class Window : MoveableDialog
 		}
 		
 		_contents.x = spacing;
-		_contents.y = _title_divider._y + _title_divider._height + spacing;
+		_contents.y = _show_title_bar ? _title_divider._y + _title_divider._height + spacing : spacing;
 		_contents.width = title_width;
 		_contents.height = content_height;
 		
@@ -786,6 +828,11 @@ class Window : MoveableDialog
 	protected bool is_mouse_over_draggable_region() override
 	{
 		return hovered && ui.mouse.y <= y1 + _title_divider._y && @ui.mouse_over_element == @this;
+	}
+	
+	protected bool is_drag_anywhere() override
+	{
+		return @ui.mouse_over_element == @_contents || MoveableDialog::is_drag_anywhere();
 	}
 	
 	protected void toggle_ui_mouse_press(const bool on)

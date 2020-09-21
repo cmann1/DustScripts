@@ -4,6 +4,7 @@ abstract class MoveableDialog : Container, IStepHandler
 {
 	
 	bool draggable;
+	bool drag_anywhere;
 	bool snap_to_screen = true;
 	bool snap_to_siblings = true;
 	
@@ -223,6 +224,11 @@ abstract class MoveableDialog : Container, IStepHandler
 		return false;
 	}
 	
+	protected bool is_drag_anywhere()
+	{
+		return @ui.mouse_over_element == @this;
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////////////////////////////
@@ -234,7 +240,7 @@ abstract class MoveableDialog : Container, IStepHandler
 		if(event.button != ui.primary_button)
 			return;
 		
-		if(draggable && is_mouse_over_draggable_region())
+		if(draggable && ((drag_anywhere && is_drag_anywhere()) || is_mouse_over_draggable_region()))
 		{
 			prev_drag_x = parent.mouse_x;
 			prev_drag_y = parent.mouse_y;
