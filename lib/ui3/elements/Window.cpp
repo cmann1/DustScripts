@@ -429,9 +429,16 @@ class Window : MoveableDialog
 		_contents.fit_to_contents(fit_min);
 		
 		const float spacing = ui.style.spacing;
+		const bool has_buttons_left = @_buttons_left != null && _buttons_left.visible;
+		const bool has_buttons_right = @_buttons_right != null && _buttons_right.visible;
 		
 		_width = _set_width = _contents._width + spacing * 2;
-		_height = _contents._height + ui.style.titlebar_height + _title_divider._height + spacing * 3;
+		_height = _contents._height + ui.style.titlebar_height + _title_divider._height + spacing * 2;
+		
+		if(has_buttons_left || has_buttons_right)
+		{
+			_height += spacing;
+		}
 		
 		if(@_buttons_left != null && _buttons_left.visible || @_buttons_right != null && _buttons_right.visible)
 		{
