@@ -119,6 +119,12 @@ class script {
   }
 }
 
+class trigger_base { }
+
+class enemy_base { }
+
+class callback_base { }
+
 /** A script-backed trigger. */
 class mytrigger : trigger_base {
   scripttrigger@ self;
