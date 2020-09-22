@@ -9,6 +9,10 @@ class MessageBroadcaster : trigger_base, callback_base, EnterExitTrigger
 	[text] bool apples	= true;
 	/// Can enemies trigger this.
 	[text] bool enemies	= true;
+	/// If true this trigger will remove itself after the first broadcast.
+	[text] bool once	= false;
+	/// If true the message won't broadcast when an entity enters if there is already another entity inside of the trigger area.
+	[text] bool group	= false;
 	/// The id of the message that will be broadcast.
 	[text] string id;
 	/// If not empty, an int will be set on the message when broadcast.
@@ -61,8 +65,12 @@ class MessageBroadcaster : trigger_base, callback_base, EnterExitTrigger
 	
 	void on_trigger_enter(controllable@ c)
 	{
+		if(group && entities_enter_exit_list_count > 1)
+			return;
+		
 		message@ msg = create_message();
 		msg.set_entity('broadcaster', self.as_entity());
+		msg.set_entity('entity', c.as_entity());
 		
 		if(key != '')
 		{
@@ -70,6 +78,11 @@ class MessageBroadcaster : trigger_base, callback_base, EnterExitTrigger
 		}
 		
 		broadcast_message(id, msg);
+		
+		if(once)
+		{
+			get_scene().remove_entity(self.as_entity());
+		}
 	}
 	
 	/*void on_trigger_exit(controllable@ c)
