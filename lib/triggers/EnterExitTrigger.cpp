@@ -55,7 +55,7 @@ mixin class EnterExitTrigger
 		}
 	}
 	
-	/// Can be implented to filter which entities will activate the trigger.
+	/// Can be implemented to filter which entities will activate the trigger.
 	bool can_trigger_enter_exit(controllable@ c)
 	{
 		return true;
