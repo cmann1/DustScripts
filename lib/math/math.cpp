@@ -14,10 +14,11 @@ float rand_rotation()
 
 float clamp01(float value)
 {
-	if(value < 0) value = 0;
-	if(value > 1) value = 1;
-	
-	return value;
+	return value < 0.0
+		? 0.0
+		: value > 1.0
+			? 1.0
+			: value;
 }
 
 float clamp(float value, float min, float max)

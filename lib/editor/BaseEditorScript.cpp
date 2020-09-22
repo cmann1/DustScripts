@@ -28,10 +28,10 @@ class BaseEditorScript
 	bool ed_disable_handles;
 	int ed_secondary_index = -1;
 	
-	protected float ed_view_x;
-	protected float ed_view_y;
-	protected float ed_view_x1, ed_view_y1;
-	protected float ed_view_x2, ed_view_y2;
+	float ed_view_x;
+	float ed_view_y;
+	float ed_view_x1, ed_view_y1;
+	float ed_view_x2, ed_view_y2;
 	
 	protected int ed_handles_size = 32;
 	protected array<EditorHandle> ed_handles(ed_handles_size);
@@ -53,6 +53,7 @@ class BaseEditorScript
 	protected array<EditorArrow> ed_arrows(ed_arrows_size);
 	protected int ed_arrows_count;
 	
+	protected float ed_rel_x, ed_rel_y;
 	protected bool ed_press;
 	protected bool ed_left_press;
 	protected bool ed_right_press;
@@ -93,6 +94,8 @@ class BaseEditorScript
 //		const bool can_press = @editor == null || !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space) && editor.editor_tab() == 'Triggers';
 		const bool can_press = !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space) && (editor.editor_tab() == 'Triggers' || editor.editor_tab() == 'Scripts');
 		
+		ed_rel_x = 0;
+		ed_rel_y = 0;
 		ed_handles_count = 0;
 		ed_lines_count = 0;
 		ed_boxes_count = 0;
@@ -121,37 +124,57 @@ class BaseEditorScript
 		
 		for(int i = 0; i < ed_handles_count; i++)
 		{
-			ed_handles[i].draw(g, ed_view_x, ed_view_y, ed_handle_size);
+			ed_handles[i].draw(this);
 		}
 		
 		for(int i = 0; i < ed_lines_count; i++)
 		{
-			ed_lines[i].draw(g, ed_view_x, ed_view_y, ed_zoom);
+			ed_lines[i].draw(this);
 		}
 		
 		for(int i = 0; i < ed_boxes_count; i++)
 		{
-			ed_boxes[i].draw(g, ed_view_x, ed_view_y, ed_zoom);
+			ed_boxes[i].draw(this);
 		}
 		
 		for(int i = 0; i < ed_circle_handles_count; i++)
 		{
-			ed_circle_handles[i].draw(g, ed_view_x, ed_view_y, ed_zoom);
+			ed_circle_handles[i].draw(this);
 		}
 		
 		for(int i = 0; i < ed_arrows_count; i++)
 		{
-			ed_arrows[i].draw(g, ed_view_x, ed_view_y, ed_zoom);
+			ed_arrows[i].draw(this);
 		}
 	}
 	
 	//
 	
-	EditorMouseResult ed_handle(const float x, const float y, IEditable@ ref, const int index, const int layer=19,
+	BaseEditorScript@ ed_rel(const float x, const float y)
+	{
+		ed_rel_x = x;
+		ed_rel_y = y;
+		
+		return this;
+	}
+	
+	BaseEditorScript@ ed_abs()
+	{
+		ed_rel_x = ed_rel_y = 0;
+		
+		return this;
+	}
+	
+	//
+	
+	EditorMouseResult ed_handle(float x, float y, IEditable@ ref, const int index, const int layer=19,
 		const uint colour=0xffaaaa44, const float rotation=45)
 	{
 		if(ed_disable_handles)
 			return None;
+		
+		x += ed_rel_x;
+		y += ed_rel_y;
 		
 		if(
 			x + ed_handle_size < ed_view_x1 || x - ed_handle_size > ed_view_x2 ||
@@ -221,19 +244,24 @@ class BaseEditorScript
 	{
 		transform_layer_position(g, ed_view_x, ed_view_y, mouse.x, mouse.y, 22, ed_layer, x, y);
 		
-		x -= ed_drag_ox;
-		y -= ed_drag_oy;
+		x -= ed_drag_ox + ed_rel_x;
+		y -= ed_drag_oy + ed_rel_y;
 	}
 	
 	//
 	
-	EditorMouseResult ed_box(const float x1, const float y1, const float x2, const float y2,
+	EditorMouseResult ed_box(float x1, float y1, float x2, float y2,
 		IEditable@ ref, const int index=0,
 		const bool draw_snap_tiles=false,
 		float thickness=-1, const int layer=19, const uint colour=0xff44aaaa)
 	{
 		if(ed_disable_handles)
 			return None;
+		
+		x1 += ed_rel_x;
+		y1 += ed_rel_y;
+		x2 += ed_rel_x;
+		y2 += ed_rel_y;
 		
 		float rx1 = x1;
 		float ry1 = y1;
@@ -247,11 +275,6 @@ class BaseEditorScript
 			rx2 = floor(x2 / 48 + 1) * 48;
 			ry2 = floor(y2 / 48 + 1) * 48;
 		}
-		
-		float v_x1 = min(x1, x2);
-		float v_y1 = min(y1, y2);
-		float v_x2 = max(x1, x2);
-		float v_y2 = max(y1, y2);
 		
 		if(thickness <= 0)
 		{
@@ -288,6 +311,11 @@ class BaseEditorScript
 		
 		const int secondary = ed_secondary_index;
 		
+		const float rel_x = ed_rel_x;
+		const float rel_y = ed_rel_y;
+		ed_rel_x = 0;
+		ed_rel_y = 0;
+		
 		for(int i = 0; i < 9; i++)
 		{
 			ed_secondary_index = secondary;
@@ -315,6 +343,9 @@ class BaseEditorScript
 					break;
 			}
 		}
+		
+		ed_rel_x = rel_x;
+		ed_rel_y = rel_y;
 		
 		return result;
 	}
@@ -352,7 +383,7 @@ class BaseEditorScript
 		return result;
 	}
 	
-	void ed_update_box(float &out x1, float &out y1, float &out x2, float &out y2)
+	void ed_update_box(float &out x1, float &out y1, float &out x2, float &out y2, const float rx=0, const float ry=0)
 	{
 		float mouse_x = 0, mouse_y = 0;
 		transform_layer_position(g, ed_view_x, ed_view_y, mouse.x, mouse.y, 22, ed_layer, mouse_x, mouse_y);
@@ -389,16 +420,24 @@ class BaseEditorScript
 			y1 = mouse_y - ed_drag_oy - abs(ed_drag_box_y2 - ed_drag_box_y1) * 0.5 + ed_drag_box_ox;
 			y2 = mouse_y - ed_drag_oy + abs(ed_drag_box_y2 - ed_drag_box_y1) * 0.5 + ed_drag_box_oy;
 		}
+		
+		x1 -= ed_rel_x;
+		y1 -= ed_rel_y;
+		x2 -= ed_rel_x;
+		y2 -= ed_rel_y;
 	}
 	
 	//
 	
-	EditorMouseResult ed_radius_handle(const float x, const float y, const float radius,
+	EditorMouseResult ed_radius_handle(float x, float y, const float radius,
 		IEditable@ ref, const int index=0,
 		float thickness=-1, const int layer=19, const uint colour=0xffe46d35)
 	{
 		if(ed_disable_handles)
 			return None;
+		
+		x += ed_rel_x;
+		y += ed_rel_y;
 		
 		const float x1 = x - radius;
 		const float y1 = y - radius;
@@ -430,6 +469,11 @@ class BaseEditorScript
 		circle.layer = layer;
 		circle.colour = colour;
 		
+		const float rel_x = ed_rel_x;
+		const float rel_y = ed_rel_y;
+		ed_rel_x = 0;
+		ed_rel_y = 0;
+		
 		EditorMouseResult result = ed_handle(x + radius, y, ref, index, layer, colour, 0);
 		
 		if(result == LeftPress)
@@ -440,6 +484,9 @@ class BaseEditorScript
 			const float mouse_y = layer == mouse.layer ? mouse.y : g.mouse_y_world(0, layer);
 			ed_drag_radius_offset = distance(mouse_x, mouse_y, x, y) - radius;
 		}
+		
+		ed_rel_x = rel_x;
+		ed_rel_y = rel_y;
 		
 		return result;
 	}
@@ -464,10 +511,15 @@ class BaseEditorScript
 		ed_line(enemy.x(), enemy.y(), x, y, thickness, layer, colour);
 	}
 	
-	void ed_line(const float x1, const float y1, const float x2, const float y2, float thickness=-1, const int layer=19, const uint colour=0xffffffff)
+	void ed_line(float x1, float y1, float x2, float y2, float thickness=-1, const int layer=19, const uint colour=0xffffffff)
 	{
 		if(ed_disable_handles)
 			return;
+		
+		x1 += ed_rel_x;
+		y1 += ed_rel_y;
+		x2 += ed_rel_x;
+		y2 += ed_rel_y;
 		
 		const float v_x1 = min(x1, x2);
 		const float v_y1 = min(y1, y2);
@@ -501,11 +553,16 @@ class BaseEditorScript
 		line.colour = colour;
 	}
 	
-	void ed_arrow(const float x1, const float y1, const float x2, const float y2,
+	void ed_arrow(float x1, float y1, float x2, float y2,
 		const float head_size, const float head_position, float thickness=-1, const int layer=19, const uint colour=0xffffffff)
 	{
 		if(ed_disable_handles)
 			return;
+		
+		x1 += ed_rel_x;
+		y1 += ed_rel_y;
+		x2 += ed_rel_x;
+		y2 += ed_rel_y;
 		
 		const float v_x1 = min(x1, x2);
 		const float v_y1 = min(y1, y2);
@@ -539,6 +596,13 @@ class BaseEditorScript
 		arrow.head_position = head_position;
 		arrow.layer = layer;
 		arrow.colour = colour;
+	}
+	
+	//
+	
+	int ed_circle_segments(const float radius)
+	{
+		return ceil_int(map_clamped(radius / ed_zoom, 0, 850, 14, 64));
 	}
 	
 }
