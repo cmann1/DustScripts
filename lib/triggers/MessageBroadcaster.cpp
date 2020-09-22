@@ -7,7 +7,7 @@ class MessageBroadcaster : trigger_base, EnterExitTrigger
 	[text] bool apples	= true;
 	[text] bool ememies	= true;
 	[text] string id;
-	[text] string key = 'value';
+	[text] string key;
 	[text] int value;
 	
 	void activate(controllable@ c)
@@ -42,7 +42,12 @@ class MessageBroadcaster : trigger_base, EnterExitTrigger
 	void on_trigger_enter(controllable@ c)
 	{
 		message@ msg = create_message();
-		msg.set_int(key, value);
+		
+		if(key != '')
+		{
+			msg.set_int(key, value);
+		}
+		
 		broadcast_message(id, msg);
 	}
 	
