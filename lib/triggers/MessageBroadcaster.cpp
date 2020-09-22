@@ -1,5 +1,6 @@
 #include 'EnterExitTrigger.cpp';
 
+/// Provides some options for broadcasting messages when the trigger is activated.
 class MessageBroadcaster : trigger_base, callback_base, EnterExitTrigger
 {
 	
