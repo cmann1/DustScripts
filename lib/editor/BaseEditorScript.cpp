@@ -594,6 +594,7 @@ class BaseEditorScript
 			  editor.key_check_gvb(GVB::Alt)   ? PI / 180
 			: editor.key_check_gvb(GVB::Control)  ? PI / 36
 			: editor.key_check_gvb(GVB::Shift)  ? PI / 8 : 0;
+		
 		if(snap != 0)
 		{
 			angle = round(angle / snap) * snap;
@@ -601,7 +602,7 @@ class BaseEditorScript
 		
 		if(!ed_drag_radians)
 		{
-			angle *= DEG2RAD;
+			angle *= RAD2DEG;
 		}
 	}
 	
