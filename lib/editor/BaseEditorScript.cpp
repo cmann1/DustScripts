@@ -1,6 +1,7 @@
 #include '../std.cpp';
 #include '../drawing/common.cpp';
 #include '../drawing/circle.cpp';
+#include '../drawing/Sprite.cpp';
 #include '../math/math.cpp';
 #include '../layer.cpp';
 #include '../enums/GVB.cpp';
@@ -55,6 +56,8 @@ class BaseEditorScript
 	protected array<EditorArrow> ed_arrows(ed_arrows_size);
 	protected int ed_arrows_count;
 	
+	protected EditorHandle@ ed_last_handle;
+	
 	protected float ed_rel_x, ed_rel_y;
 	protected bool ed_press;
 	protected bool ed_left_press;
@@ -71,6 +74,7 @@ class BaseEditorScript
 	protected float ed_drag_box_x1, ed_drag_box_y1;
 	protected float ed_drag_box_x2, ed_drag_box_y2;
 	protected float ed_drag_radius_offset;
+	protected bool ed_drag_radians;
 	
 	BaseEditorScript()
 	{
@@ -201,6 +205,8 @@ class BaseEditorScript
 		handle.layer = layer;
 		handle.colour = colour;
 		handle.rotation = rotation;
+		handle.circle = false;
+		@ed_last_handle = @handle;
 		
 		if(@ed_drag_handle_ref == @ref && ed_drag_handle_index == index && ed_drag_handle_secondary_index == ed_secondary_index)
 		{
@@ -504,6 +510,99 @@ class BaseEditorScript
 		transform_layer_position(g, ed_view_x, ed_view_y, mouse.x, mouse.y, 22, ed_layer, x, y);
 		
 		radius = distance(x, y, ed_drag_ox,  ed_drag_oy) - ed_drag_radius_offset;
+	}
+	
+	//
+	
+	EditorMouseResult ed_angle_handle(float x, float y, const float angle, const float radius,
+		IEditable@ ref, const int index=0, const bool is_radians=true,
+		float thickness=-1, const int layer=19, const uint colour=0xffaa44a7)
+	{
+		if(ed_disable_handles)
+			return None;
+		
+		x += ed_rel_x;
+		y += ed_rel_y;
+		
+		const float x1 = x - radius;
+		const float y1 = y - radius;
+		const float x2 = x + radius;
+		const float y2 = y + radius;
+		
+		if(thickness <= 0)
+		{
+			thickness = ed_default_thickness;
+		}
+		
+		if(
+			x2 + thickness * ed_zoom < ed_view_x1 || x1 - thickness * ed_zoom > ed_view_x2 ||
+			y2 + thickness * ed_zoom < ed_view_y1 || y1 - thickness * ed_zoom > ed_view_y2)
+		{
+			return None;
+		}
+		
+		if(ed_lines_count + 32 > ed_lines_size)
+		{
+			ed_lines.resize(ed_lines_size += 32);
+		}
+		
+		ed_drag_radians = is_radians;
+		const float radians = is_radians ? angle : angle * DEG2RAD;
+		const float handle_x = x + cos(radians) * radius;
+		const float handle_y = y + sin(radians) * radius;
+		
+		EditorLine@ line = @ed_lines[ed_lines_count++];
+		line.x1 = x;
+		line.y1 = y;
+		line.x2 = handle_x;
+		line.y2 = handle_y;
+		line.thickness = thickness;
+		line.layer = layer;
+		line.colour = colour;
+		
+		const float rel_x = ed_rel_x;
+		const float rel_y = ed_rel_y;
+		ed_rel_x = 0;
+		ed_rel_y = 0;
+		
+		EditorMouseResult result = ed_handle(handle_x, handle_y, ref, index, layer, colour, 0);
+		ed_last_handle.circle = true;
+		
+		if(result == LeftPress)
+		{
+			const float mouse_x = layer == mouse.layer ? mouse.x : g.mouse_x_world(0, layer);
+			const float mouse_y = layer == mouse.layer ? mouse.y : g.mouse_y_world(0, layer);
+			ed_drag_ox = x;
+			ed_drag_oy = y;
+			ed_drag_radius_offset = shortest_angle(atan2(mouse_y - y, mouse_x - x), radians);
+		}
+		
+		ed_rel_x = rel_x;
+		ed_rel_y = rel_y;
+		
+		return result;
+	}
+	
+	void ed_update_angle(float &out angle)
+	{
+		float x, y;
+		transform_layer_position(g, ed_view_x, ed_view_y, mouse.x, mouse.y, 22, ed_layer, x, y);
+		
+		angle = atan2(y - ed_drag_oy, x - ed_drag_ox) + ed_drag_radius_offset;
+		
+		const float snap =
+			  editor.key_check_gvb(GVB::Alt)   ? PI / 180
+			: editor.key_check_gvb(GVB::Control)  ? PI / 36
+			: editor.key_check_gvb(GVB::Shift)  ? PI / 8 : 0;
+		if(snap != 0)
+		{
+			angle = round(angle / snap) * snap;
+		}
+		
+		if(!ed_drag_radians)
+		{
+			angle *= DEG2RAD;
+		}
 	}
 	
 	//
