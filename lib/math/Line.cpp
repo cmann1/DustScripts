@@ -16,7 +16,7 @@ class Line
 		this.y2 = y2;
 	}
 	
-	bool intersection(Line other, float &out x, float &out y, float & out t)
+	bool intersection(const Line &in other, float &out x, float &out y, float & out t)
 	{
 		const float dx = x2 - x1;
 		const float dy = y2 - y1;
@@ -50,6 +50,32 @@ class Line
 			y = 0;
 			return false;
 		}
+		
+		x = x1 + dx * t;
+		y = y1 + dy * t;
+		return true;
+	}
+	
+	bool intersection_rays(const Line &in other, float &out x, float &out y, float & out t)
+	{
+		const float dx = x2 - x1;
+		const float dy = y2 - y1;
+		const float other_dx = other.x2 - other.x1;
+		const float other_dy = other.y2 - other.y1;
+		
+		float det = (-other_dx * dy + dx * other_dy);
+		
+		if(det < EPSILON && det > -EPSILON)
+		{
+			x = 0;
+			y = 0;
+			t = 0;
+			return false;
+		}
+		
+		t = (other_dx * (y1 - other.y1) - other_dy * (x1 - other.x1)) / det;
+
+		float s = (-dy * (x1 - other.x1) + dx * (y1 - other.y1)) / det;
 		
 		x = x1 + dx * t;
 		y = y1 + dy * t;

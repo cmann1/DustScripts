@@ -32,6 +32,8 @@ class BaseEditorScript
 	float ed_view_y;
 	float ed_view_x1, ed_view_y1;
 	float ed_view_x2, ed_view_y2;
+	Line ed_line1;
+	Line ed_line2;
 	
 	protected int ed_handles_size = 32;
 	protected array<EditorHandle> ed_handles(ed_handles_size);
@@ -102,12 +104,12 @@ class BaseEditorScript
 		ed_circle_handles_count = 0;
 		ed_arrows_count = 0;
 		
+		mouse.step();
+		
 		ed_left_press = can_press && mouse.left_press;
 		ed_right_press = can_press && mouse.right_press;
 		ed_middle_press = can_press && mouse.middle_press;
 		ed_press = ed_left_press || ed_right_press || ed_middle_press;
-		
-		mouse.step();
 		
 		if(!mouse.left_down)
 		{
@@ -163,6 +165,11 @@ class BaseEditorScript
 		ed_rel_x = ed_rel_y = 0;
 		
 		return this;
+	}
+	
+	void ed_set_drag_handle_index(const int index)
+	{
+		ed_drag_handle_index = index;
 	}
 	
 	//

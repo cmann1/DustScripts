@@ -6,12 +6,12 @@
  */
 void draw_line(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness, uint colour, bool world=true)
 {
-	float dx = x2 - x1;
-	float dy = y2 - y1;
-	float length = sqrt(dx * dx + dy * dy);
+	const float dx = x2 - x1;
+	const float dy = y2 - y1;
+	const float length = sqrt(dx * dx + dy * dy);
 	
-	float mx = (x1 + x2) * 0.5;
-	float my = (y1 + y2) * 0.5;
+	const float mx = (x1 + x2) * 0.5;
+	const float my = (y1 + y2) * 0.5;
 	
 	if(world)
 		g.draw_rectangle_world(layer, sub_layer,
@@ -27,7 +27,7 @@ void draw_arrow(scene@ g, uint layer, uint sub_layer, float x1, float y1, float 
 {
 	float dx = x2 - x1;
 	float dy = y2 - y1;
-	float length = sqrt(dx * dx + dy * dy);
+	const float length = sqrt(dx * dx + dy * dy);
 	
 	if(length <= 0)
 		return;
