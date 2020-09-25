@@ -15,7 +15,7 @@ enum ColType
 	Camera_node		= 12,
 	Emitter			= 13,
 	Cleansed		= 14,
-	Ai_controller	= 15,
+	AIController	= 15,
 	Trigger			= 16,
 	CheckPoint		= 17,
 	LevelBoundary	= 18,
