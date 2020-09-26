@@ -2,6 +2,7 @@
 #include '../drawing/common.cpp';
 #include '../drawing/circle.cpp';
 #include '../drawing/Sprite.cpp';
+#include '../fonts.cpp';
 #include '../math/math.cpp';
 #include '../layer.cpp';
 #include '../enums/GVB.cpp';
@@ -12,6 +13,7 @@
 #include 'draw/EditorCircleHandle.cpp';
 #include 'draw/EditorHandle.cpp';
 #include 'draw/EditorLine.cpp';
+#include 'draw/EditorText.cpp';
 
 namespace BaseEditorScript { const float ED_HANDLE_SIZE = 5; }
 
@@ -21,6 +23,7 @@ class BaseEditorScript
 	scene@ g;
 	camera@ cam;
 	editor_api@ editor;
+	textfield@ text_field;
 	
 	Mouse mouse(false);
 	float ed_zoom = 1;
@@ -35,6 +38,11 @@ class BaseEditorScript
 	float ed_view_x2, ed_view_y2;
 	Line ed_line1;
 	Line ed_line2;
+	
+	bool ed_press_control;
+	bool ed_press_shift;
+	bool ed_press_alt;
+	float ed_float_val;
 	
 	protected int ed_handles_size = 32;
 	protected array<EditorHandle> ed_handles(ed_handles_size);
@@ -55,6 +63,10 @@ class BaseEditorScript
 	protected int ed_arrows_size = 32;
 	protected array<EditorArrow> ed_arrows(ed_arrows_size);
 	protected int ed_arrows_count;
+	
+	protected int ed_texts_size = 32;
+	protected array<EditorText> ed_texts(ed_texts_size);
+	protected int ed_texts_count;
 	
 	protected EditorHandle@ ed_last_handle;
 	
@@ -79,6 +91,8 @@ class BaseEditorScript
 	BaseEditorScript()
 	{
 		@cam = get_active_camera();
+		@text_field = create_textfield();
+		text_field.set_font(font::ENVY_BOLD, 20);
 	}
 	
 	void editor_step()
@@ -107,6 +121,7 @@ class BaseEditorScript
 		ed_boxes_count = 0;
 		ed_circle_handles_count = 0;
 		ed_arrows_count = 0;
+		ed_texts_count = 0;
 		
 		mouse.step();
 		
@@ -151,6 +166,11 @@ class BaseEditorScript
 		for(int i = 0; i < ed_arrows_count; i++)
 		{
 			ed_arrows[i].draw(this);
+		}
+		
+		for(int i = 0; i < ed_texts_count; i++)
+		{
+			ed_texts[i].draw(this);
 		}
 	}
 	
@@ -219,6 +239,10 @@ class BaseEditorScript
 		{
 			const float mouse_x = layer == mouse.layer ? mouse.x : g.mouse_x_world(0, layer);
 			const float mouse_y = layer == mouse.layer ? mouse.y : g.mouse_y_world(0, layer);
+			
+			ed_press_control = editor.key_check_gvb(GVB::Control);
+			ed_press_shift = editor.key_check_gvb(GVB::Shift);
+			ed_press_alt = editor.key_check_gvb(GVB::Alt);
 			
 			if(dist_sqr(x, y, mouse_x, mouse_y) <= (ed_handle_size * ed_handle_size))
 			{
@@ -438,6 +462,59 @@ class BaseEditorScript
 		y1 -= ed_rel_y;
 		x2 -= ed_rel_x;
 		y2 -= ed_rel_y;
+	}
+	
+	void ed_outline(float x1, float y1, float x2, float y2,
+		const bool draw_snap_tiles=false,
+		float thickness=-1, const int layer=19, const uint colour=0xff44aaaa)
+	{
+		if(ed_disable_handles)
+			return;
+		
+		x1 += ed_rel_x;
+		y1 += ed_rel_y;
+		x2 += ed_rel_x;
+		y2 += ed_rel_y;
+		
+		float rx1 = x1;
+		float ry1 = y1;
+		float rx2 = x2;
+		float ry2 = y2;
+		
+		if(draw_snap_tiles)
+		{
+			rx1 = floor(x1 / 48) * 48;
+			ry1 = floor(y1 / 48) * 48;
+			rx2 = floor(x2 / 48 + 1) * 48;
+			ry2 = floor(y2 / 48 + 1) * 48;
+		}
+		
+		if(thickness <= 0)
+		{
+			thickness = ed_default_thickness;
+		}
+		
+		if(
+			x2 + thickness * ed_zoom < ed_view_x1 || x1 - thickness * ed_zoom > ed_view_x2 ||
+			y2 + thickness * ed_zoom < ed_view_y1 || y1 - thickness * ed_zoom > ed_view_y2)
+		{
+			return;
+		}
+		
+		if(ed_boxes_count + 3 > ed_boxes_size)
+		{
+			ed_boxes.resize(ed_boxes_size += 32);
+		}
+		
+		EditorBox@ box = @ed_boxes[ed_boxes_count++];
+		box.x1 = x1;
+		box.y1 = y1;
+		box.x2 = x2;
+		box.y2 = y2;
+		box.thickness = thickness;
+		box.layer = layer;
+		box.colour = colour;
+		box.draw_snap_tiles = draw_snap_tiles;
 	}
 	
 	//
@@ -703,6 +780,37 @@ class BaseEditorScript
 		arrow.head_position = head_position;
 		arrow.layer = layer;
 		arrow.colour = colour;
+	}
+	
+	void ed_text(float x, float y, const string text, const float scale=1, const float rotation=0,
+		const int layer=19, const uint colour=0xffffffff)
+	{
+		if(ed_disable_handles)
+			return;
+		
+		x += ed_rel_x;
+		y += ed_rel_y;
+		
+		if(
+			x < ed_view_x1 || x > ed_view_x2 ||
+			y < ed_view_y1 || y > ed_view_y2)
+		{
+			return;
+		}
+		
+		if(ed_texts_count + 2 > ed_texts_size)
+		{
+			ed_texts.resize(ed_texts_size += 32);
+		}
+		
+		EditorText@ txt = @ed_texts[ed_texts_count++];
+		txt.x = x;
+		txt.y = y;
+		txt.text = text;
+		txt.scale = scale;
+		txt.rotation = rotation;
+		txt.layer = layer;
+		txt.colour = colour;
 	}
 	
 	//
