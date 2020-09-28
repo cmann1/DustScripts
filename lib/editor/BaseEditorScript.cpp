@@ -31,6 +31,7 @@ class BaseEditorScript
 	float ed_default_thickness = 1;
 	bool ed_disable_handles;
 	int ed_secondary_index = -1;
+	int ed_box_handle_index = -1;
 	
 	float ed_view_x;
 	float ed_view_y;
@@ -235,6 +236,9 @@ class BaseEditorScript
 			return Move;
 		}
 		
+		if(@ed_drag_handle_ref != null && @ed_drag_handle_ref != @ref && ed_drag_handle_index != -1 && ed_drag_handle_index != index)
+			return None;
+		
 		if(ed_press)
 		{
 			const float mouse_x = layer == mouse.layer ? mouse.x : g.mouse_x_world(0, layer);
@@ -357,27 +361,29 @@ class BaseEditorScript
 		{
 			ed_secondary_index = secondary;
 			
-			switch(ed_box_handle(rx1, ry1, rx2, ry2, ref, index, i, layer, colour))
+			EditorMouseResult handle_result = ed_box_handle(rx1, ry1, rx2, ry2, ref, index, i, layer, colour);
+			
+			if(handle_result == LeftPress)
 			{
-				case LeftPress:
-					if(ed_drag_box_handle_index == 0 || ed_drag_box_handle_index == 6 || ed_drag_box_handle_index == 7)
-						ed_drag_box_ox = x1 - rx1;
-					else if(ed_drag_box_handle_index == 2 || ed_drag_box_handle_index == 3 || ed_drag_box_handle_index == 4)
-						ed_drag_box_ox = x2 - rx2;
-					else
-						ed_drag_box_ox = 0;
-					
-					if(ed_drag_box_handle_index == 0 || ed_drag_box_handle_index == 1 || ed_drag_box_handle_index == 2)
-						ed_drag_box_oy = y1 - ry1;
-					else if(ed_drag_box_handle_index == 4 || ed_drag_box_handle_index == 5 || ed_drag_box_handle_index == 6)
-						ed_drag_box_oy = y2 - ry2;
-					else
-						ed_drag_box_oy = 0;
-					
-					break;
-				case Move:
-					result = Move;
-					break;
+				if(ed_drag_box_handle_index == 0 || ed_drag_box_handle_index == 6 || ed_drag_box_handle_index == 7)
+					ed_drag_box_ox = x1 - rx1;
+				else if(ed_drag_box_handle_index == 2 || ed_drag_box_handle_index == 3 || ed_drag_box_handle_index == 4)
+					ed_drag_box_ox = x2 - rx2;
+				else
+					ed_drag_box_ox = 0;
+				
+				if(ed_drag_box_handle_index == 0 || ed_drag_box_handle_index == 1 || ed_drag_box_handle_index == 2)
+					ed_drag_box_oy = y1 - ry1;
+				else if(ed_drag_box_handle_index == 4 || ed_drag_box_handle_index == 5 || ed_drag_box_handle_index == 6)
+					ed_drag_box_oy = y2 - ry2;
+				else
+					ed_drag_box_oy = 0;
+			}
+			
+			if(handle_result != None)
+			{
+				ed_box_handle_index = i;
+				result = handle_result;
 			}
 		}
 		
