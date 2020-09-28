@@ -236,9 +236,6 @@ class BaseEditorScript
 			return Move;
 		}
 		
-		if(@ed_drag_handle_ref != null && @ed_drag_handle_ref != @ref && ed_drag_handle_index != -1 && ed_drag_handle_index != index)
-			return None;
-		
 		if(ed_press)
 		{
 			const float mouse_x = layer == mouse.layer ? mouse.x : g.mouse_x_world(0, layer);
@@ -649,7 +646,11 @@ class BaseEditorScript
 		ed_rel_y = 0;
 		
 		EditorMouseResult result = ed_handle(handle_x, handle_y, ref, index, layer, colour, 0);
-		ed_last_handle.circle = true;
+		
+		if(@ed_last_handle != null)
+		{
+			ed_last_handle.circle = true;
+		}
 		
 		if(result == LeftPress)
 		{
