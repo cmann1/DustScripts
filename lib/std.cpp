@@ -140,12 +140,12 @@ int max(const int a, const int b)
 	return a > b ? a : b;
 }
 
-int min(const uint a, const uint b)
+uint min(const uint a, const uint b)
 {
 	return a < b ? a : b;
 }
 
-int max(const uint a, const uint b)
+uint max(const uint a, const uint b)
 {
 	return a > b ? a : b;
 }
