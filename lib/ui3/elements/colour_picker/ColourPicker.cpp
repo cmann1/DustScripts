@@ -474,19 +474,19 @@ class ColourPicker : LockedContainer, IStepHandler
 		
 		if(name == 'R')
 		{
-			update_from_rgb(value / 255, R, updated_from);
+			update_from_rgb(value, R, updated_from);
 		}
 		else if(name == 'G')
 		{
-			update_from_rgb(value / 255, G, updated_from);
+			update_from_rgb(value, G, updated_from);
 		}
 		else if(name == 'B')
 		{
-			update_from_rgb(value / 255, B, updated_from);
+			update_from_rgb(value, B, updated_from);
 		}
 		else if(name == 'A')
 		{
-			update_from_rgb(value / 255, A, updated_from);
+			update_from_rgb(value, A, updated_from);
 		}
 	}
 	
@@ -508,11 +508,11 @@ class ColourPicker : LockedContainer, IStepHandler
 	
 	bool ui_step()
 	{
-		if(ui._editor.key_check_gvb(GVB::Escape) && @ui.focused_element == null && !contains(ui.focused_element))
+		if(ui._editor.key_check_pressed_gvb(GVB::Escape) && @ui.focused_element == null && !contains(ui.focused_element))
 		{
 			ui._dispatch_event(@accept, EventType::CANCEL, this);
 		}
-		else if(ui._editor.key_check_gvb(GVB::Return) && @ui.focused_element == null && !contains(ui.focused_element))
+		else if(ui._editor.key_check_pressed_gvb(GVB::Return) && @ui.focused_element == null && !contains(ui.focused_element))
 		{
 			ui._dispatch_event(@accept, EventType::ACCEPT, this);
 		}

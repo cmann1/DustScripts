@@ -287,7 +287,7 @@ abstract class Element
 	
 	void _draw(Style@ style, DrawingContext@ ctx)
 	{
-		bool has_border = border_colour != 0 && border_size != 0;
+		const bool has_border = border_colour != 0 && border_size != 0;
 		
 		if(background_blur)
 		{
