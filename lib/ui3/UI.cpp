@@ -166,6 +166,8 @@ class UI : IKeyboardFocusListener
 	/*private*/ array<int> _int_array(16);
 	/*private*/ array<Element@> _element_array(16);
 	
+	/*private*/ sprites@ editor_spr;
+	
 	uint _frame;
 	
 	private int _first_valid_char_index = 32;
@@ -192,6 +194,9 @@ class UI : IKeyboardFocusListener
 		@overlays = Container(this);
 		contents.name = '_ROOT_';
 		overlays.name = '_OVERLAYS_';
+		
+		@editor_spr = create_sprites();
+		editor_spr.add_sprite_set('editor');
 		
 		if(hud)
 		{
