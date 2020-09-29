@@ -302,28 +302,56 @@ class UI : IKeyboardFocusListener
 	float auto_fit_padding_left
 	{
 		get const { return _auto_fit_padding_left; }
-		set { _auto_fit_padding_left = update_auto_fit_padding(_auto_fit_padding_left, value); }
+		set
+		{
+			if(value != _auto_fit_padding_left)
+			{
+				_auto_fit_padding_left = value;
+				update_auto_fit_padding();
+			}
+		}
 	}
 	
 	/// Same as auto_fit_padding_left
 	float auto_fit_padding_right
 	{
 		get const { return _auto_fit_padding_right; }
-		set { _auto_fit_padding_right = update_auto_fit_padding(_auto_fit_padding_right, value); }
+		set
+		{
+			if(value != _auto_fit_padding_right)
+			{
+				_auto_fit_padding_right = value;
+				update_auto_fit_padding();
+			}
+		}
 	}
 	
 	/// Same as auto_fit_padding_left
 	float auto_fit_padding_top
 	{
 		get const { return _auto_fit_padding_top; }
-		set { _auto_fit_padding_top = update_auto_fit_padding(_auto_fit_padding_top, value); }
+		set
+		{
+			if(value != _auto_fit_padding_top)
+			{
+				_auto_fit_padding_top = value;
+				update_auto_fit_padding();
+			}
+		}
 	}
 	
 	/// Same as auto_fit_padding_left
 	float auto_fit_padding_bottom
 	{
 		get const { return _auto_fit_padding_bottom; }
-		set { _auto_fit_padding_bottom = update_auto_fit_padding(_auto_fit_padding_bottom, value); }
+		set
+		{
+			if(value != _auto_fit_padding_bottom)
+			{
+				_auto_fit_padding_bottom = value;
+				update_auto_fit_padding();
+			}
+		}
 	}
 	
 	IKeyboardFocus@ focus
@@ -2022,17 +2050,12 @@ class UI : IKeyboardFocusListener
 			 new_screen_width * 0.5 - auto_fit_padding_right,  new_screen_height * 0.5 - auto_fit_padding_bottom);
 	}
 	
-	private float update_auto_fit_padding(const float current, const float new_value)
+	private void update_auto_fit_padding()
 	{
-		if(current == new_value)
-			return current;
-		
 		if(_hud && _auto_fit_screen)
 		{
 			fit_to_screen_internal();
 		}
-		
-		return new_value;
 	}
 	
 	private void show_tooltip(const string id, PopupOptions@ options, Element@ element)
