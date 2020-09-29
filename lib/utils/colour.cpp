@@ -62,6 +62,85 @@ float hue_to_rgb(float p, float q, float t)
 	return p;
 }
 
+/// https://stackoverflow.com/a/17243070/153844
+uint hsv_to_rgb(const float h, const float s, const float v)
+{
+	float r, g, b;
+	
+	const float i = floor(h * 6);
+	const float f = h * 6 - i;
+	const float p = v * (1 - s);
+	const float q = v * (1 - f * s);
+	const float t = v * (1 - (1 - f) * s);
+	
+	switch(int(i) % 6)
+	{
+		case 0: r = v; g = t; b = p; break;
+		case 1: r = q; g = v; b = p; break;
+		case 2: r = p; g = v; b = t; break;
+		case 3: r = p; g = q; b = v; break;
+		case 4: r = t; g = p; b = v; break;
+		case 5: r = v; g = p; b = q; break;
+	}
+	
+	return
+		(uint(round(r * 255)) << 16) |
+		(uint(round(g * 255)) << 8) |
+		(uint(round(b * 255)));
+}
+
+/// https://stackoverflow.com/a/17243070/153844
+void rgb_to_hsv(const int r, const int g, const int b, float &out h, float &out s, float &out v)
+{
+	const int rgb_min = min(min(r, g), b);
+	const int rgb_max = max(max(r, g), b);
+	const int d = rgb_max - rgb_min;
+	h = 0;
+	s = (rgb_max == 0 ? 0 : float(d) / rgb_max);
+	v = rgb_max / 255.0;
+	
+	if(rgb_max == rgb_min)
+	{
+		h = 0;
+	}
+	else if(rgb_max == r)
+	{
+		h = (g - b) + d * (g < b ? 6.0 : 0.0);
+		h /= 6 * d;
+	}
+	else if(rgb_max == g)
+	{
+		h = (b - r) + d * 2;
+		h /= 6 * d;
+	}
+	else if(rgb_max == b)
+	{
+		h = (r - g) + d * 4;
+		h /= 6 * d;
+	}
+}
+
+/// https://stackoverflow.com/a/17243070/153844
+void hsv_to_hsl(const float h, const float s, const float v, float &out out_h, float &out out_s, float &out out_l)
+{
+	out_h = h;
+	out_s = s * v;
+	out_l = (2 - s) * v;
+	out_s /= (out_l <= 1) ? out_l : 2 - out_l;
+	out_l /= 2;
+}
+
+/// https://stackoverflow.com/a/17243070/153844
+void hsl_to_hsv(const float h, float s, float l, float &out out_h, float &out out_s, float &out out_v)
+{
+	out_h = h;
+
+	l *= 2;
+	s *= (l <= 1) ? l : 2 - l;
+	out_v = (l + s) / 2;
+	out_s = (2 * s) / (l + s);
+}
+
 uint rgba(int r, int g, int b, int a = 255)
 {
 	return (uint(a) << 24) + (uint(r) << 16) + (uint(g) << 8) + uint(b);
