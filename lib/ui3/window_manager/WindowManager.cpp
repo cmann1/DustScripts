@@ -205,13 +205,17 @@ class WindowManager
 	
 	private void reposition_all()
 	{
-		const float width = ui.region_width;
+		const float width  = ui.region_width;
 		const float height = ui.region_height;
 		
 		for(int i = int(anchors.length()) - 1; i >= 0; i--)
 		{
 			WindowAnchor@ anchor = @anchors[i];
-			anchor.reposition(width, height, relative);
+			
+			if(@anchor.element != null)
+			{
+				anchor.reposition(width, height, relative);
+			}
 		}
 		
 		pending_reposition_all = false;
