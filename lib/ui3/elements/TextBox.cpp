@@ -36,6 +36,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 	protected Overflow _scrollbar_vertical = Overflow::Auto;
 	
 	protected CharacterValidation _character_validation = CharacterValidation::None;
+	protected bool _allow_negative = true;
 	protected string _allowed_characters = '';
 	protected array<bool> _allowed_characters_list;
 	
@@ -420,6 +421,19 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 				return;
 			
 			_character_validation = value;
+		}
+	}
+	
+	/// Only relevant for Integer and Decimal validation.
+	bool allow_negative
+	{
+		get const { return _allow_negative; }
+		set
+		{
+			if(_allow_negative == value)
+				return;
+			
+			_allow_negative = value;
 		}
 	}
 	
@@ -1263,6 +1277,12 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 		this.text = text;
 	}
 	
+	/// The next change to this TextBox's text will not trigger a change event
+	void ignore_next_change()
+	{
+		suppress_change_event = true;
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Line Utility
 	// ///////////////////////////////////////////////////////////////////
@@ -1947,7 +1967,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 				case Integer:
 					// + - 0-9
 					if(
-						chr != 43 && chr != 45 &&
+						chr != 43 && (chr != 45 || !_allow_negative && chr == 45) &&
 						(chr < 48 || chr > 57)
 					)
 						chr = -1;
@@ -1955,7 +1975,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 				case Decimal:
 					// + - . 0-9
 					if(
-						chr != 43 && chr != 45 && chr != 46 &&
+						chr != 43 && (chr != 45 || !_allow_negative && chr == 45) && chr != 46 &&
 						(chr < 48 || chr > 57)
 					)
 						chr = -1;
