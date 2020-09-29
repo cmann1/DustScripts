@@ -20,6 +20,7 @@ class WindowAnchor
 	float size_v;
 	
 	Element@ element;
+	bool pending_reposition;
 	
 	void initialise()
 	{

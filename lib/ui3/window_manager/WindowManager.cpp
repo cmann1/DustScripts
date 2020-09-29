@@ -6,8 +6,7 @@
 /// be adjusted to attempt to keep the relative distance to that edge. Elements will also be clamped inside of the screen bounds
 /// to ensure they are always visible.
 /// 
-/// To use add the [hidden] annotation, call the initialise method  during startup, register elements with the register_element method, and
-/// make sure to finish by calling complete_registration.
+/// To use, add the [hidden] annotation, call the `initialise` method during startup, then register elements with the `register_element` method.
 /// 
 /// Elements are tracked across sessions based on their id. As ids may change based on the number and order elements are created in, giving
 /// unique names to elements before registering them is recommended.
@@ -24,21 +23,16 @@ class WindowManager
 	private UI@ ui;
 	
 	[hidden]
-	private array<WindowAnchor> stored_anchors;
+	private array<WindowAnchor> anchors;
 	
-	private array<WindowAnchor> pending_anchors;
 	private dictionary anchor_map;
-	private int num_anchors;
+	private array<WindowAnchor@> pending_anchors;
 	
 	private bool started_initalisation;
 	private bool initalised;
 	
 	private bool pending_reposition_all;
-	private bool pending_initialise;
-	private bool pending_update_all;
-	private array<int> pending_update;
 	private int num_pending_update;
-	private int size_pending_update;
 	private bool waiting_for_layout;
 	
 	private EventCallback@ after_layout_delegate;
@@ -53,21 +47,23 @@ class WindowManager
 			return;
 		}
 		
+		for(int i = int(anchors.length()) - 1; i >= 0; i--)
+		{
+			WindowAnchor@ anchor = @anchors[i];
+			anchor_map[anchor.id] = i;
+		}
+		
 		@after_layout_delegate = EventCallback(on_after_layout);
-		started_initalisation= true;
+		ui.screen_resize.on(EventCallback(on_screen_resize));
+		
+		initalised = true;
 	}
 	
 	void register_element(Element@ element)
 	{
-		if(!started_initalisation)
+		if(!initalised)
 		{
 			puts('WindowManager: Call initialise before registering elements.');
-			return;
-		}
-		
-		if(initalised)
-		{
-			puts('WindowManager: register_element must be called before complete_registration.');
 			return;
 		}
 		
@@ -76,25 +72,37 @@ class WindowManager
 		
 		const string id = element.name != '' ? element.name : element._id;
 		
-		WindowAnchor anchor;
-		anchor.id = id;
-		@anchor.element = element;
-		pending_anchors.insertLast(anchor);
-	}
-	
-	void complete_registration()
-	{
-		initalised = true;
-		pending_initialise = true;
+		WindowAnchor@ anchor;
 		
-		ui.screen_resize.on(EventCallback(on_screen_resize));
+		if(anchor_map.exists(id))
+		{
+			@anchor = anchors[int(anchor_map[id])];
+			anchor.pending_reposition = true;
+		}
+		else
+		{
+			anchors.insertLast(WindowAnchor());
+			@anchor = @anchors[anchors.length() - 1];
+			anchor.id = id;
+		}
+		
+		@anchor.element = element;
+		anchor.initialise();
+		pending_anchors.insertLast(anchor);
+		num_pending_update++;
 		wait_for_layout();
 	}
 	
 	void update_all_anchors()
 	{
-		pending_update_all = true;
-		num_pending_update = 0;
+		num_pending_update = int(anchors.length());
+		pending_anchors.resize(num_pending_update);
+		
+		for(int i = 0; i < num_pending_update; i++)
+		{
+			@pending_anchors[i] = @anchors[i];
+		}
+		
 		wait_for_layout();
 	}
 	
@@ -108,12 +116,9 @@ class WindowManager
 		if(!anchor_map.exists(id))
 			return;
 		
-		if(num_pending_update == size_pending_update)
-		{
-			pending_update.resize(size_pending_update += 16);
-		}
-		
-		pending_update[num_pending_update++] = int(anchor_map[id]);
+		pending_anchors.insertLast(@anchors[int(anchor_map[id])]);
+		num_pending_update++;
+		wait_for_layout();
 	}
 	
 	private void wait_for_layout()
@@ -125,75 +130,6 @@ class WindowManager
 		waiting_for_layout = true;
 	}
 	
-	private void initialise_all_anchors()
-	{
-		const float width = ui.region_width;
-		const float height = ui.region_height;
-		
-		// Step 1.
-		
-		dictionary stored_anchors_map;
-		
-		if(restore_positions)
-		{
-			const int num_stored = int(stored_anchors.length());
-			
-			for(int i = 0; i < num_stored; i++)
-			{
-				WindowAnchor@ anchor = @stored_anchors[i];
-				stored_anchors_map[anchor.id] = anchor;
-			}
-		}
-		
-		// Step 2.
-		
-		num_anchors = int(pending_anchors.length());
-		stored_anchors.resize(num_anchors);
-		
-		for(int i = num_anchors - 1; i >= 0; i--)
-		{
-			WindowAnchor@ anchor;
-			
-			if(restore_positions && stored_anchors_map.exists(pending_anchors[i].id))
-			{
-				stored_anchors[i] = cast<WindowAnchor>(stored_anchors_map[pending_anchors[i].id]);
-				@anchor = @stored_anchors[i];
-				@anchor.element = @pending_anchors[i].element;
-				anchor.initialise();
-				anchor.reposition(width, height, relative);
-			}
-			else
-			{
-				stored_anchors[i] = pending_anchors[i];
-				@anchor = @stored_anchors[i];
-				@anchor.element = @pending_anchors[i].element;
-				anchor.initialise();
-				anchor.update(width, height);
-			}
-		}
-		
-		pending_initialise = false;
-	}
-	
-	private void update_all_anchors_impl()
-	{
-		const float width = ui.region_width;
-		const float height = ui.region_height;
-		
-		num_anchors = int(pending_anchors.length());
-		stored_anchors.resize(num_anchors);
-		
-		for(int i = num_anchors - 1; i >= 0; i--)
-		{
-			WindowAnchor@ anchor = @pending_anchors[i];
-			anchor.update(width, height);
-			stored_anchors[i] = anchor;
-			anchor_map[anchor.id] = i;
-		}
-		
-		pending_update_all = false;
-	}
-	
 	private void update_pending_anchors()
 	{
 		const float width = ui.region_width;
@@ -201,10 +137,20 @@ class WindowManager
 		
 		for(int i = num_pending_update - 1; i >= 0; i--)
 		{
-			WindowAnchor@ anchor = @stored_anchors[pending_update[i]];
-			anchor.update(width, height);
+			WindowAnchor@ anchor = @pending_anchors[i];
+			
+			if(anchor.pending_reposition)
+			{
+				anchor.reposition(width, height, relative);
+				anchor.pending_reposition = false;
+			}
+			else
+			{
+				anchor.update(width, height);
+			}
 		}
 		
+		pending_anchors.resize(0);
 		num_pending_update = 0;
 	}
 	
@@ -213,9 +159,9 @@ class WindowManager
 		const float width = ui.region_width;
 		const float height = ui.region_height;
 		
-		for(int i = num_anchors - 1; i >= 0; i--)
+		for(int i = int(anchors.length()) - 1; i >= 0; i--)
 		{
-			WindowAnchor@ anchor = @stored_anchors[i];
+			WindowAnchor@ anchor = @anchors[i];
 			anchor.reposition(width, height, relative);
 		}
 		
@@ -234,15 +180,6 @@ class WindowManager
 	
 	private void on_after_layout(EventInfo@ event)
 	{
-		if(pending_initialise)
-		{
-			initialise_all_anchors();
-		}
-		else if(pending_update_all)
-		{
-			update_all_anchors_impl();
-		}
-		
 		if(pending_reposition_all)
 		{
 			reposition_all();
