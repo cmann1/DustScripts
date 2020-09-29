@@ -59,6 +59,8 @@ class WindowManager
 		initalised = true;
 	}
 	
+	/// Registers the element with the WindowManager and automatically repositions it if the has been
+	/// registered before.
 	void register_element(Element@ element)
 	{
 		if(!initalised)
@@ -93,6 +95,7 @@ class WindowManager
 		wait_for_layout();
 	}
 	
+	/// Resets anchor positions for all registered windows
 	void update_all_anchors()
 	{
 		num_pending_update = int(anchors.length());
@@ -106,6 +109,7 @@ class WindowManager
 		wait_for_layout();
 	}
 	
+	/// Resets the anchor position for the specified element
 	void update_anchors(Element@ element)
 	{
 		if(@element == null)
@@ -119,6 +123,51 @@ class WindowManager
 		pending_anchors.insertLast(@anchors[int(anchor_map[id])]);
 		num_pending_update++;
 		wait_for_layout();
+	}
+	
+	/// Clears all stored anchors.
+	void clear()
+	{
+		for(int i = int(anchors.length()) - 1; i >= 0; i--)
+		{
+			anchors[i].clear();
+		}
+	}
+	
+	/// Clears all stored positions for windows that have not yet been registered.
+	void clear_unused()
+	{
+		for(int i = int(anchors.length()) - 1; i >= 0; i--)
+		{
+			WindowAnchor@ anchor = @anchors[i];
+			
+			if(@anchor.element != null)
+				continue;
+			
+			anchors.removeAt(i);
+			
+			if(anchor_map.exists(anchor.id))
+			{
+				anchor_map.delete(anchor.id);
+			}
+		}
+	}
+	
+	/// Clears the stored position for the given element
+	void clear(Element@ element)
+	{
+		if(@element == null)
+			return;
+		
+		const string id = element.name != '' ? element.name : element._id;
+		
+		if(!anchor_map.exists(id))
+			return;
+		
+		const int index = int(anchor_map[id]);
+		
+		anchors.removeAt(index);
+		anchor_map.delete(id);
 	}
 	
 	private void wait_for_layout()

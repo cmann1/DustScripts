@@ -20,6 +20,7 @@ class WindowAnchor
 	float size_v;
 	
 	Element@ element;
+	EventCallback@ on_moved_delegate;
 	bool pending_reposition;
 	
 	void initialise()
@@ -28,7 +29,8 @@ class WindowAnchor
 		
 		if(@moveable != null)
 		{
-			moveable.move_complete.on(EventCallback(on_moved));
+			@on_moved_delegate = EventCallback(on_moved);
+			moveable.move_complete.on(on_moved_delegate);
 		}
 	}
 	
@@ -110,6 +112,21 @@ class WindowAnchor
 		
 		element.x = x;
 		element.y = y;
+	}
+	
+	void clear()
+	{
+		if(@on_moved_delegate == null)
+		{
+			MoveableDialog@ moveable = cast<MoveableDialog@>(element);
+			
+			if(@moveable != null)
+			{
+				moveable.move_complete.off(on_moved_delegate);
+			}
+		}
+		
+		@element = null;
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
