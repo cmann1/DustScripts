@@ -20,6 +20,7 @@
 #include 'utils/pools/LabelPool.cpp';
 #include 'events/Event.cpp';
 #include 'elements/layer_selector/LayerSelector.cpp';
+#include 'elements/colour_picker/ColourPicker.cpp';
 #include 'elements/Element.cpp';
 #include 'elements/Container.cpp';
 #include 'elements/Image.cpp';
@@ -28,6 +29,7 @@
 #include 'elements/Popup.cpp';
 #include 'elements/TextBox.cpp';
 #include 'layouts/flow/FlowLayout.cpp';
+#include 'window_manager/WindowManager.cpp';
 
 class UI : IKeyboardFocusListener
 {
@@ -45,6 +47,7 @@ class UI : IKeyboardFocusListener
 	UIMouse@ mouse;
 	Keyboard@ keyboard;
 	bool block_editor_input = true;
+	WindowManager@ window_manager;
 	
 	/// Only relevant when hud = true. When true, certain drawing operations
 	/// will attempt to snap to whole pixels to give cleaner lines
@@ -150,6 +153,88 @@ class UI : IKeyboardFocusListener
 	private EventCallback@ on_sub_layer_select_callback;
 	private EventCallback@ on_layer_select_close_callback;
 	private bool close_layer_selector_on_select;
+	
+	// ColourPicker
+	
+	private Window@ colour_picker_window;
+	private ColourPicker@ colour_picker;
+	private EventCallback@ on_colour_picker_change_callback;
+	private EventCallback@ on_colour_picker_accept_callback;
+	
+	void show_colour_picker(
+		const uint colour,
+		EventCallback@ on_colour_picker_change_callback,
+		EventCallback@ on_colour_picker_accept_callback,
+		const bool show_alpha=true,
+		const bool close_on_click_outside=true)
+	{
+		if(@colour_picker == null)
+		{
+			@colour_picker_window = Window(this, '', false, true);
+			colour_picker_window.name = '__ui_colour_picker__';
+			colour_picker_window.show_title_bar = false;
+			colour_picker_window.drag_anywhere = true;
+			colour_picker_window.close.on(EventCallback(on_colour_picker_accept));
+			add_child(colour_picker_window);
+			
+			@colour_picker = ColourPicker(this);
+			colour_picker.change.on(EventCallback(on_colour_picker_change));
+			colour_picker.accept.on(EventCallback(on_colour_picker_accept));
+			colour_picker_window.add_child(colour_picker);
+			
+			colour_picker_window.fit_to_contents(true);
+			colour_picker_window.centre();
+			
+			if(@window_manager != null)
+			{
+				window_manager.register_element(colour_picker_window);
+			}
+		}
+		
+		colour_picker.colour = colour;
+		colour_picker.previous_colour = colour;
+		colour_picker.show_alpha = show_alpha;
+		colour_picker_window.close_on_click_outside = close_on_click_outside;
+		colour_picker_window.fit_to_contents(true);
+		colour_picker.visible = true;
+		colour_picker.accept_on_keybaord = true;
+		
+		@this.on_colour_picker_change_callback = @on_colour_picker_change_callback;
+		@this.on_colour_picker_accept_callback = @on_colour_picker_accept_callback;
+		
+		move_to_front(colour_picker_window);
+		colour_picker_window.show();
+	}
+	
+	void hide_colour_picker()
+	{
+		@on_colour_picker_change_callback = null;
+		@on_colour_picker_accept_callback = null;
+		
+		colour_picker.accept_on_keybaord = false;
+		
+		colour_picker_window.hide();
+	}
+	
+	private void on_colour_picker_change(EventInfo@ event)
+	{
+		if(@on_colour_picker_change_callback != null)
+		{
+			@event.target = colour_picker;
+			on_colour_picker_change_callback(event);
+		}
+	}
+	
+	private void on_colour_picker_accept(EventInfo@ event)
+	{
+		if(@on_colour_picker_accept_callback != null)
+		{
+			@event.target = colour_picker;
+			on_colour_picker_accept_callback(event);
+		}
+		
+		hide_colour_picker();
+	}
 	
 	// ///////////////////////////////////////////////////////////////
 	// Common reusable things
