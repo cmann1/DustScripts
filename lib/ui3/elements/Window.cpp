@@ -64,6 +64,15 @@ class Window : MoveableDialog
 	
 	string element_type { get const override { return Window::TYPE_NAME; } }
 	
+	void centre()
+	{
+		const float x = @parent != null ? parent._width  : ui.region_width;
+		const float y = @parent != null ? parent._height : ui.region_height;
+		
+		this.x = (x - _width)  * 0.5;
+		this.y = (y - _height) * 0.5;
+	}
+	
 	void show(bool fade=true)
 	{
 		if(open)
