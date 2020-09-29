@@ -9,7 +9,7 @@
 
 namespace ColourPicker { const string TYPE_NAME = 'ColourPicker'; }
 
-class ColourPicker : LockedContainer
+class ColourPicker : LockedContainer, IStepHandler
 {
 	
 	Event change;
@@ -35,9 +35,11 @@ class ColourPicker : LockedContainer
 	protected float _h, _s, _l;
 	protected bool _show_alpha = true;
 	protected bool _show_buttons = true;
+	protected bool _accept_on_keybaord = false;
 	
 	protected EventCallback@ on_slider_change_delegate;
 	protected EventCallback@ on_input_change_delegate;
+	protected EventCallback@ on_input_accept_delegate;
 	protected EventCallback@ on_button_click_delegate;
 	
 	ColourPicker(UI@ ui)
@@ -47,6 +49,7 @@ class ColourPicker : LockedContainer
 		@navigation_group = NavigationGroup(ui);
 		@on_slider_change_delegate = EventCallback(on_slider_change);
 		@on_input_change_delegate = EventCallback(on_input_change);
+		@on_input_accept_delegate = EventCallback(on_input_accept);
 		@on_button_click_delegate = EventCallback(on_button_click);
 		
 		@label_h = create_label('H');
@@ -106,6 +109,7 @@ class ColourPicker : LockedContainer
 	// Basic properties
 	// ///////////////////////////////////////////////////////////////////
 	
+	/// Returns the current colours as an AARRGGBB interger
 	uint colour
 	{
 		get const { return _colour; }
@@ -122,6 +126,7 @@ class ColourPicker : LockedContainer
 		}
 	}
 	
+	/// Returns the previous colours as an AARRGGBB interger
 	uint previous_colour
 	{
 		get const { return _previous_colour; }
@@ -132,48 +137,56 @@ class ColourPicker : LockedContainer
 		}
 	}
 	
+	/// Returns the current hue in the range 0 ... 1
 	float h
 	{
 		get const { return _h; }
 		set { if(_h != value) update_from_hsl(value, H); }
 	}
 	
+	/// Returns the current saturation in the range 0 ... 1
 	float s
 	{
 		get const { return _s; }
 		set { if(_s != value) update_from_hsl(value, S); }
 	}
 	
+	/// Returns the current value in the range 0 ... 1
 	float l
 	{
 		get const { return _l; }
 		set { if(_l != value) update_from_hsl(value, L); }
 	}
 	
+	/// Returns the current red in the range 0 ... 255
 	int r
 	{
 		get const { return _r; }
 		set { if(_r != value) update_from_rgb(value, R); }
 	}
 	
+	/// Returns the current green in the range 0 ... 255
 	int g
 	{
 		get const { return _g; }
 		set { if(_g != value) update_from_rgb(value, G); }
 	}
 	
+	/// Returns the current blue in the range 0 ... 255
 	int b
 	{
 		get const { return _b; }
 		set { if(_b != value) update_from_rgb(value, B); }
 	}
 	
+	/// Returns the current alpha in the range 0 ... 255
 	int a
 	{
 		get const { return _a; }
 		set { if(_a != value) update_from_rgb(value, A); }
 	}
 	
+	/// Whether or not to show the alpha slider and input
 	bool show_alpha
 	{
 		get const { return _show_alpha; }
@@ -203,6 +216,7 @@ class ColourPicker : LockedContainer
 		}
 	}
 	
+	/// Whether or not to show the ok and cancel buttons
 	bool show_buttons
 	{
 		get const { return _show_buttons; }
@@ -218,6 +232,25 @@ class ColourPicker : LockedContainer
 			_do_layout(null);
 			validate_layout = true;
 			fit_to_contents(true);
+		}
+	}
+	
+	/// Set to true to start listening for the enter and escape key, and false to stop.
+	/// The accept/cancel event will trigger when an input does not have focus, and the enter or escape key is pressed.
+	bool accept_on_keybaord
+	{
+		get const { return _accept_on_keybaord; }
+		set
+		{
+			if(_accept_on_keybaord == value)
+				return;
+			
+			_accept_on_keybaord = value;
+			
+			if(ui._has_editor && _accept_on_keybaord)
+			{
+				ui._step_subscribe(this);
+			}
 		}
 	}
 	
@@ -260,6 +293,7 @@ class ColourPicker : LockedContainer
 		text_box.character_validation = validation;
 		text_box.allow_negative = false;
 		text_box.change.on(on_input_change_delegate);
+		text_box.accept.on(on_input_accept_delegate);
 		Container::add_child(text_box);
 		
 		navigation_group.add_last(text_box);
@@ -440,19 +474,19 @@ class ColourPicker : LockedContainer
 		
 		if(name == 'R')
 		{
-			update_from_rgb(value, R, updated_from);
+			update_from_rgb(value / 255, R, updated_from);
 		}
 		else if(name == 'G')
 		{
-			update_from_rgb(value, G, updated_from);
+			update_from_rgb(value / 255, G, updated_from);
 		}
 		else if(name == 'B')
 		{
-			update_from_rgb(value, B, updated_from);
+			update_from_rgb(value / 255, B, updated_from);
 		}
 		else if(name == 'A')
 		{
-			update_from_rgb(value, A, updated_from);
+			update_from_rgb(value / 255, A, updated_from);
 		}
 	}
 	
@@ -471,6 +505,20 @@ class ColourPicker : LockedContainer
 	// ///////////////////////////////////////////////////////////////////
 	// Internal
 	// ///////////////////////////////////////////////////////////////////
+	
+	bool ui_step()
+	{
+		if(ui._editor.key_check_gvb(GVB::Escape) && @ui.focused_element == null && !contains(ui.focused_element))
+		{
+			ui._dispatch_event(@accept, EventType::CANCEL, this);
+		}
+		else if(ui._editor.key_check_gvb(GVB::Return) && @ui.focused_element == null && !contains(ui.focused_element))
+		{
+			ui._dispatch_event(@accept, EventType::ACCEPT, this);
+		}
+		
+		return _accept_on_keybaord;
+	}
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
@@ -582,8 +630,16 @@ class ColourPicker : LockedContainer
 		}
 		else
 		{
-			update_from_value(input.name, input.float_value / 255, input);
+			update_from_value(input.name, input.float_value, input);
 		}
+	}
+	
+	void on_input_accept(EventInfo@ event)
+	{
+		if(event.type != EventType::CANCEL)
+			return;
+		
+		on_input_change(event);
 	}
 	
 	void on_button_click(EventInfo@ event)
