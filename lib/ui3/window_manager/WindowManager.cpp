@@ -23,7 +23,7 @@ class WindowManager
 	private UI@ ui;
 	
 	[hidden]
-	private array<WindowAnchor> anchors;
+	array<WindowAnchor> anchors;
 	
 	private dictionary anchor_map;
 	private array<WindowAnchor@> pending_anchors;
