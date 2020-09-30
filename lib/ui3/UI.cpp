@@ -836,6 +836,32 @@ class UI : IKeyboardFocusListener
 		return overlays.contains(element);
 	}
 	
+	/// Returns true if this element and all parents are visible and added to the ui
+	bool is_visible_in_hierarchy(Element@ element)
+	{
+		if(@element == null)
+			return false;
+		
+		bool is_in_hierarchy = false;
+		
+		do
+		{
+			if(!element.visible)
+				return false;
+			
+			if(@element == @contents || @element == @overlays)
+			{
+				is_in_hierarchy = true;
+				break;
+			}
+			
+			@element = @element.parent;
+		}
+		while(@element != null);
+		
+		return is_in_hierarchy;
+	}
+	
 	/// Shows a layer selection popup. If target is null, will be displayed at the current mouse position.
 	/// The returned LayerSelector can be used to adjust the layer selector properties.
 	LayerSelector@ pick_layer(Element@ target, EventCallback@ callback, EventCallback@ close_callback=null,

@@ -21,6 +21,8 @@ class PopupOptions : IGenericEventTarget
 	/// If this is set to true, this tooltip will trigger when the mouse is over
 	/// this element or any of its descendants
 	bool trigger_when_hovered;
+	/// If true and hide_type == MouseLeave, the popup will hide if the target becomes invisible or is removed from the hierarchy
+	bool hide_when_target_removed = true;
 	/// If true and the hide type is MouseLeave, the tooltip will not close until after the mouse enters it for the first time.
 	bool wait_for_mouse;
 	bool interactable;

@@ -116,7 +116,11 @@ class Popup : SingleContainer, IStepHandler
 		
 		bool active = !_force_hide;
 		
-		if(_options.hide_type == PopupHideType::MouseLeave)
+		if(_options.hide_when_target_removed && !ui.is_visible_in_hierarchy(_target))
+		{
+			active = false;
+		}
+		else if(_options.hide_type == PopupHideType::MouseLeave)
 		{
 			// Also check the pressed to allow interactive or active elements inside the tooltip to prevent the tooltip from disappearing
 			active = !_force_hide && (
