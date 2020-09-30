@@ -20,6 +20,7 @@
 #include 'misc/ToolListenerInterfaces.cpp';
 #include 'tools/PropTool.cpp';
 #include 'tools/TextTool.cpp';
+#include 'tools/ExtendedTriggerTool.cpp';
 #include 'tools/HelpTool.cpp';
 
 const string SCRIPT_BASE			= 'ed/adv_tools/';
@@ -159,6 +160,7 @@ class AdvToolScript
 		
 		add_tool('Props',		PropTool());
 		add_tool('Triggers',	TextTool());
+		add_tool('Triggers',	ExtendedTriggerTool());
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -287,6 +289,29 @@ class AdvToolScript
 		}
 	}
 	
+	entity@ pick_trigger()
+	{
+		int i = g.get_entity_collision(mouse.y - 10, mouse.y + 10, mouse.x - 10, mouse.x + 10, ColType::Trigger);
+		
+		entity@ closest = null;
+		float closest_dist = 10 * 10;
+		
+		while(i-- > 0)
+		{
+			entity@ e = g.get_entity_collision_index(i);
+			
+			const float dist = dist_sqr(e.x(), e.y(), mouse.x, mouse.y);
+			
+			if(dist < closest_dist)
+			{
+				closest_dist = dist;
+				@closest = e;
+			}
+		}
+		
+		return closest;
+	}
+	
 	// //////////////////////////////////////////////////////////
 	// Private Methods
 	// //////////////////////////////////////////////////////////
@@ -375,46 +400,6 @@ class AdvToolScript
 //		toolbar.y = ui.region_height - toolbar.height;
 		toolbar.y = 60;
 	}
-	
-	// //////////////////////////////////////////////////////////
-	// -- OUTDATED --------------------------
-	// //////////////////////////////////////////////////////////
-	
-	/*void state_disabled()
-	{
-		if(!ui.mouse.primary_double_click || selected_tab != 'Triggers' || !editor.key_check_gvb(GVB::Control))
-			return;
-			
-		scene@ g = @this.g;
-		const float mouse_x = g.mouse_x_world(0, 19);
-		const float mouse_y = g.mouse_y_world(0, 19);
-		
-		if(g.get_entity_collision(mouse_y - 5, mouse_y + 5, mouse_x - 5, mouse_x + 5, ColType::Trigger) == 0)
-			return;
-		
-		entity@ e = g.get_entity_collision_index(0);
-		entity@ copy = create_entity(e.type_name());
-		copy.set_xy(e.x() - 48, e.y());
-		copy_vars(e, copy);
-		g.add_entity(copy);
-	}
-	
-	void state_idle()
-	{
-		if(!ui.mouse.primary_press || editor.key_check_gvb(GVB::Space))
-			return;
-		
-		pick_text_trigger();
-	}
-	
-	void state_active()
-	{
-		if(ui.is_mouse_over_ui || !ui.mouse.primary_press || editor.key_check_gvb(GVB::Space))
-			return;
-		
-		pick_text_trigger();
-	}
-	*/
 	
 	// ///////////////////////////////////////////
 	// Events
