@@ -197,6 +197,7 @@ class Container : Element
 	void clear()
 	{
 		children.resize(0);
+		num_children = 0;
 		validate_layout = true;
 	}
 	
