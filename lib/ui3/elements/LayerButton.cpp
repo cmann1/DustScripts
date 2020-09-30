@@ -38,6 +38,9 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 	protected Label@ layer_label;
 	protected Label@ sub_layer_label;
 	
+	protected bool has_selected_layer;
+	protected bool has_selected_sublayer;
+	
 	LayerButton(UI@ ui, const Orientation orientation=Orientation::Horizontal)
 	{
 		super(ui);
@@ -137,6 +140,9 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		ui.show_tooltip(popup_options, this);
 		
 		_open = ui._step_subscribe(this, _open);
+		
+		has_selected_sublayer = false;
+		has_selected_layer = false;
 	}
 	
 	/// Hides the layer selection popup if it is open
@@ -403,6 +409,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		if(!_open)
 			return;
 		
+		has_selected_layer = true;
 		ui._dispatch_event(@change, EventType::CHANGE, this);
 		
 		auto_hide_layer_selector();
@@ -413,6 +420,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		if(!_open)
 			return;
 		
+		has_selected_sublayer = true;
 		ui._dispatch_event(@change, EventType::CHANGE, this);
 		
 		auto_hide_layer_selector();
@@ -456,7 +464,14 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		
 		if(_layer_select.type == LayerSelectorType::Both)
 		{
-			if(_layer_select.num_layers_selected() > 0 && _layer_select.num_sub_layers_selected() > 0)
+			if(!_layer_select.multi_select)
+			{
+				if(has_selected_layer && has_selected_sublayer)
+				{
+					hide();
+				}
+			}
+			else if(_layer_select.num_layers_selected() > 0 && _layer_select.num_sub_layers_selected() > 0)
 			{
 				hide();
 			}
