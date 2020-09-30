@@ -269,7 +269,7 @@ class UI : IKeyboardFocusListener
 	editor_api@ _editor;
 	bool _has_editor;
 	
-	UI(bool hud=true, int layer=10, int sub_layer=0, int player=0)
+	UI(bool hud=true, int layer=14, int sub_layer=15, int player=0)
 	{
 		@on_tooltip_hide_delegate = EventCallback(this.on_tooltip_hide);
 		
