@@ -486,9 +486,14 @@ class Window : MoveableDialog
 		if(@_buttons_left != null && _buttons_left.visible || @_buttons_right != null && _buttons_right.visible)
 		{
 			if(@_buttons_left != null)
+			{
 				_buttons_left.fit_to_contents(fit_min);
+			}
+			
 			if(@_buttons_right != null)
+			{
 				_buttons_right.fit_to_contents(fit_min);
+			}
 			
 			_height += _buttons_divider._height + spacing;
 			_height += max(@_buttons_left != null ? _buttons_left._height : 0, @_buttons_right != null ? _buttons_right._height : 0);

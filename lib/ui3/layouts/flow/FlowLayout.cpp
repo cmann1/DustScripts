@@ -32,6 +32,7 @@ class FlowLayout : Layout
 		this.expand_cross_axis	= expand_cross_axis;
 	}
 	
+	
 	void do_layout(const array<Element@>@ elements,
 		const float x1, const float y1, const float x2, const float y2,
 		float &out out_x1, float &out out_y1, float &out out_x2, float &out out_y2) override
@@ -269,9 +270,9 @@ class FlowLayout : Layout
 				}
 			}
 			
-			const float el_main_size  = is_horizontal ? element._set_width  : element._set_height;
-			const float el_cross_size = is_horizontal ? element._set_height : element._set_width;
-			const float main_x_final = is_reversed ? (main_axis_end - main_x + main_axis_start - el_main_size) : main_x;
+			const float el_main_size  = max(0.0, is_horizontal ? element._set_width  : element._set_height);
+			const float el_cross_size = max(0.0, is_horizontal ? element._set_height : element._set_width);
+			const float main_x_final = max(0.0, is_reversed ? (main_axis_end - main_x + main_axis_start - el_main_size) : main_x);
 			float cross_x_final = cross_x;
 			
 			switch(align)
