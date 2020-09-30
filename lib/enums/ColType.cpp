@@ -12,7 +12,7 @@ enum ColType
 	Poi				= 9,
 	PoiArea			= 10,
 	Projectile		= 11,
-	Camera_node		= 12,
+	CameraNode		= 12,
 	Emitter			= 13,
 	Cleansed		= 14,
 	AIController	= 15,
