@@ -60,7 +60,7 @@ class Popup : SingleContainer, IStepHandler
 		
 		if(!stepping)
 		{
-			ui._pre_overlay_step_subscribe(this);
+			ui._step_subscribe(this);
 			stepping = true;
 		}
 		

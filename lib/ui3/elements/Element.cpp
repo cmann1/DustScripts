@@ -133,6 +133,15 @@ abstract class Element
 		}
 	}
 	
+	/// Forces calculation of this element's global bounding box. Useful for example if an element is moved
+	/// on the same frame a tooltip is shown to prevent it from popping up in the element's previous location for a single frame.
+	void force_calculate_bounds()
+	{
+		to_global(_x, _y, x1, y1);
+		x2 = x1 + _width;
+		y2 = y1 + _height;
+	}
+	
 	Element@ find_closest(const string type_name)
 	{
 		Element@ element = @this;

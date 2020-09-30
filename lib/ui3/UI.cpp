@@ -135,10 +135,6 @@ class UI : IKeyboardFocusListener
 	private array<IStepHandler@> step_listeners(step_listeners_size);
 	private int num_step_listeners;
 	
-	private int pre_overlay_step_listeners_size = 16;
-	private array<IStepHandler@> pre_overlay_step_listeners(step_listeners_size);
-	private int num_pre_overlay_step_listeners;
-	
 	private dictionary tooltips;
 	
 	private textfield@ debug_text_field;
@@ -664,16 +660,6 @@ class UI : IKeyboardFocusListener
 		Element@ mouse_over_main = update_layout(contents, mouse_in_ui);
 		@_mouse_over_element = mouse_over_main;
 		
-		// Pre overlay layout step
-		
-		for(int i = num_pre_overlay_step_listeners - 1; i >= 0; i--)
-		{
-			if(!pre_overlay_step_listeners[i].ui_step())
-			{
-				@pre_overlay_step_listeners[i] = pre_overlay_step_listeners[--num_pre_overlay_step_listeners];
-			}
-		}
-		
 		@mouse_over_overlays = update_layout(overlays, mouse_in_ui);
 		
 		if(@mouse_over_overlays != null)
@@ -958,20 +944,6 @@ class UI : IKeyboardFocusListener
 		}
 		
 		@step_listeners[num_step_listeners++] = @listener;
-		return true;
-	}
-	
-	bool _pre_overlay_step_subscribe(IStepHandler@ listener, const bool already_subscribed=false)
-	{
-		if(already_subscribed)
-			return true;
-		
-		if(num_pre_overlay_step_listeners == pre_overlay_step_listeners_size)
-		{
-			pre_overlay_step_listeners.resize(pre_overlay_step_listeners_size += 16);
-		}
-		
-		@pre_overlay_step_listeners[num_pre_overlay_step_listeners++] = @listener;
 		return true;
 	}
 	
