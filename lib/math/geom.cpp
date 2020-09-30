@@ -1,3 +1,4 @@
+#include 'math.cpp';
 #include 'Line.cpp';
 
 void calculate_rotated_rectangle(
@@ -129,4 +130,62 @@ float distance_to_polygon_sqr(const float x, const float y, const array<float>@ 
 	}
 	
 	return min_distance;
+}
+
+void closest_point_to_rect(const float x, const float y, const float x1, const float y1, const float x2, const float y2, float &out out_x, float &out out_y)
+{
+	// Top
+	
+	Line side(x1,  y1, x2, y1);
+	side.closest_point(x, y, out_x, out_y);
+	float dist = length_sqr(x - out_x, y - out_y);
+	
+	// Right
+	
+	side.x1 = x2;
+	side.y1 = y1;
+	side.x2 = x2;
+	side.y2 = y2;
+	float new_x, new_y;
+	side.closest_point(x, y, new_x, new_y);
+	float new_dist = length_sqr(x - new_x, y - new_y);
+	
+	if(new_dist < dist)
+	{
+		dist = new_dist;
+		out_x = new_x;
+		out_y = new_y;
+	}
+	
+	// Bottom
+	
+	side.x1 = x2;
+	side.y1 = y2;
+	side.x2 = x1;
+	side.y2 = y2;
+	side.closest_point(x, y, new_x, new_y);
+	new_dist = length_sqr(x - new_x, y - new_y);
+	
+	if(new_dist < dist)
+	{
+		dist = new_dist;
+		out_x = new_x;
+		out_y = new_y;
+	}
+	
+	// Left
+	
+	side.x1 = x1;
+	side.y1 = y2;
+	side.x2 = x1;
+	side.y2 = y1;
+	side.closest_point(x, y, new_x, new_y);
+	new_dist = length_sqr(x - new_x, y - new_y);
+	
+	if(new_dist < dist)
+	{
+		dist = new_dist;
+		out_x = new_x;
+		out_y = new_y;
+	}
 }
