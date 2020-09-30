@@ -431,6 +431,11 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 	
 	protected float get_mouse_normalised_value()
 	{
+		if(is_nan(min_value) || is_nan(max_value))
+		{
+			return _value;
+		}
+		
 		return min_value + (orientation == Orientation::Horizontal
 			? (x2 - x1 > 0 ? ( ui.mouse.x - x1) / (x2 - x1) : 0)
 			: (y2 - y1 > 0 ? (-ui.mouse.y + y2) / (y2 - y1) : 0)) * (max_value - min_value);
@@ -545,9 +550,10 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 		else if(drag_sensitivity > 0 || drag_normalised)
 		{
 			busy_dragging = true;
-			drag_value = drag_normalised
+			drag_value = drag_normalised && !(is_nan(min_value) || is_nan(max_value))
 				? value - get_mouse_normalised_value()
 				: _value;
+			
 			children_mouse_enabled = false;
 			
 			@ui._active_mouse_element = @this;
