@@ -40,6 +40,7 @@ class ColourSwatch : BasicColourSwatch
 				return;
 			
 			_colour = value;
+			background_colour = _colour;
 			
 			if(selected)
 			{
@@ -73,6 +74,7 @@ class ColourSwatch : BasicColourSwatch
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{
 		border_colour = style.get_interactive_element_border_colour(hovered, selected, false, disabled);
+		border_size = selected ? style.selected_border_size : style.border_size;
 		BasicColourSwatch::_draw(style, ctx);
 	}
 	
