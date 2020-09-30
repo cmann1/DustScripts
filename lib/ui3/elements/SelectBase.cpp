@@ -107,12 +107,7 @@ abstract class SelectBase : LockedContainer
 		get const { return _selected_index; }
 		set
 		{
-			if(_num_values == 0)
-				return;
-			
-			if(value < 0)
-				value = 0;
-			else if(value > _num_values - 1)
+			if(value > _num_values - 1)
 				value = _num_values - 1;
 			
 			if(_selected_index == value)
