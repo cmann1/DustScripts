@@ -53,4 +53,9 @@ abstract class LockedContainer : Container
 		puts('move_down not supported');
 	}
 	
+	void clear() override
+	{
+		puts('clear not supported');
+	}
+	
 }

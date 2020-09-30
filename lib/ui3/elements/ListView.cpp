@@ -99,9 +99,7 @@ class ListView : ScrollView
 			return null;
 		
 		if(@item._list_view == @this)
-		{
 			return set_item_index(@item, _num_items);
-		}
 		
 		if(@item._list_view != null)
 		{
@@ -327,6 +325,16 @@ class ListView : ScrollView
 		}
 		
 		return @item;
+	}
+	
+	void clear() override
+	{
+		_content.clear();
+		
+		_items.resize(0);
+		_selected_items.resize(0);
+		_num_items = 0;
+		_num_selected_items = 0;
 	}
 	
 	int get_item_index(ListViewItem@ item)
