@@ -37,8 +37,7 @@ class Image : Graphic
 		
 		this._sprite_set = _sprite_set;
 		this._sprite_name = _sprite_name;
-		@sprite = @sprite == null ? ui.style.get_sprite_for_set(_sprite_set) : @sprite;
-		sprite.add_sprite_set(_sprite_set);
+		@sprite = ui.style.get_sprite_for_set(_sprite_set);
 		
 		if(width <= 0 || height <= 0)
 		{
