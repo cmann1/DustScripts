@@ -193,6 +193,15 @@ class PropData
 		prop.y(y);
 	}
 	
+	void cancel_drag()
+	{
+		x = drag_start_x;
+		y = drag_start_y;
+		
+		prop.x(x);
+		prop.y(y);
+	}
+	
 	private void init_prop()
 	{
 		rectangle@ r = spr.get_sprite_rect(sprite_name, 0);

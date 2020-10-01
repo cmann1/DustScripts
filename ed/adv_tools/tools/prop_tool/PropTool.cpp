@@ -222,8 +222,16 @@ class PropTool : Tool
 	
 	private void state_moving()
 	{
-		if(script.space || !mouse.left_down)
+		if(script.space || script.escape_press || !mouse.left_down)
 		{
+			if(script.escape_press)
+			{
+				for(int i = 0; i < selected_props_count; i++)
+				{
+					selected_props[i].cancel_drag();
+				}
+			}
+			
 			if(temporary_selection)
 			{
 				select_none();
