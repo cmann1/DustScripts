@@ -28,6 +28,19 @@ namespace PropToolSettings
 	const uint SelectedOutlineColour	= 0xaa44eeff;
 	const float SelectedOutlineWidth	= 0.75;
 	
+	const uint PendingAddOverlayColour		= 0x3344ff44;
+	const uint PendingAddOutlineColour		= 0xaa44ff44;
+	const float PendingAddOutlineWidth		= 1;
+	
+	const uint PendingRemoveOverlayColour	= 0x33ff4444;
+	const uint PendingRemoveOutlineColour	= 0xaaff4444;
+	const float PendingRemoveOutlineWidth	= 1;
+	
+	const float BoundingBoxLineWidth	= 1.5;
+	const uint BoundingBoxColour		= 0x55ffffff;
+	
 	const float SelectRectLineWidth		= 1.5;
+	const uint SelectRectFillColour		= 0x1144ff44;
+	const uint SelectRectLineColour		= 0x5544ff44;
 	
 }

@@ -6,6 +6,7 @@ class PropData
 	string key;
 	bool hovered;
 	bool selected;
+	int pending;
 	
 	const array<array<float>>@ outline;
 	
@@ -66,19 +67,25 @@ class PropData
 	
 	void draw()
 	{
+		if(pending == -2)
+			return;
+		
 		spr.draw_world(22, 22, sprite_name, 0, prop.palette(),
 			collision_x, collision_y, prop.rotation(),
 			draw_scale_x, draw_scale_y,
-			hovered
-				? PropToolSettings::HighlightOverlayColour
-				: PropToolSettings::SelectOverlayColour);
+			pending == 1 ? PropToolSettings::PendingAddOverlayColour : pending == -1 ? PropToolSettings::PendingRemoveOverlayColour
+				: hovered
+					? PropToolSettings::HighlightOverlayColour
+					: PropToolSettings::SelectOverlayColour);
 		
-		const float width = (hovered
-			? PropToolSettings::HighlightOutlineWidth
-			: PropToolSettings::SelectedOutlineWidth) / script.zoom;
-		const uint colour = hovered
-			? PropToolSettings::HighlightOutlineColour
-			: PropToolSettings::SelectedOutlineColour;
+		const float width = (pending == 1 ? PropToolSettings::PendingAddOutlineWidth : pending == -1 ? PropToolSettings::PendingRemoveOutlineWidth
+			: hovered
+				? PropToolSettings::HighlightOutlineWidth
+				: PropToolSettings::SelectedOutlineWidth) / script.zoom;
+		const uint colour = pending == 1 ? PropToolSettings::PendingAddOutlineColour : pending == -1 ? PropToolSettings::PendingRemoveOutlineColour
+			: hovered
+				? PropToolSettings::HighlightOutlineColour
+				: PropToolSettings::SelectedOutlineColour;
 		
 		for(int i = lines_count - 4; i >= 0; i -= 4)
 		{

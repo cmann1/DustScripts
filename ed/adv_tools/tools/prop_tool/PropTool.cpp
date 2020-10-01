@@ -44,6 +44,7 @@ class PropTool : Tool
 	private FloatSetting@ pick_radius;
 	
 	private float drag_start_x, drag_start_y;
+	private int select_rect_pending;
 	
 	PropTool()
 	{
@@ -132,7 +133,7 @@ class PropTool : Tool
 	
 	protected void draw_impl(const float sub_frame) override
 	{
-		if(state != Idle)
+		if(state != Idle && state != Selecting)
 			return;
 		
 		float x1, y1, x2, y2;
@@ -165,7 +166,19 @@ class PropTool : Tool
 		
 		if(select_index > 0)
 		{
-			outline_rect(script.g, 22, 22, x1, y1, x2, y2, PropToolSettings::SelectRectLineWidth / script.zoom, 0x55ffffff);
+			outline_rect(script.g, 22, 22, x1, y1, x2, y2, PropToolSettings::BoundingBoxLineWidth / script.zoom, PropToolSettings::BoundingBoxColour);
+		}
+		
+		if(state == Selecting)
+		{
+			script.g.draw_rectangle_world(
+				22, 22,
+				drag_start_x, drag_start_y, mouse.x, mouse.y,
+				0, PropToolSettings::SelectRectFillColour);
+			
+			outline_rect(script.g, 22, 22,
+				drag_start_x, drag_start_y, mouse.x, mouse.y,
+				PropToolSettings::SelectRectLineWidth / script.zoom, PropToolSettings::SelectRectLineColour);
 		}
 	}
 	
@@ -183,6 +196,26 @@ class PropTool : Tool
 		}
 		
 		@hovered_prop = null;
+		
+		// Start dragging selection
+		
+		if(script.alt && mouse.left_press)
+		{
+			if(!script.shift && !script.ctrl)
+			{
+				select_none();
+			}
+			
+			select_rect_pending = script.shift ? 1 : script.ctrl ? -1 : 0;
+			
+			drag_start_x = mouse.x;
+			drag_start_y = mouse.y;
+			state = Selecting;
+			clear_highlighted_props();
+			return;
+		}
+		
+		// Start moving
 		
 		if(@pressed_prop != null && (mouse.delta_x != 0 || mouse.delta_y != 0))
 		{
@@ -206,6 +239,8 @@ class PropTool : Tool
 			state = Moving;
 			return;
 		}
+		
+		// Pick props
 		
 		if(!script.space)
 		{
@@ -265,7 +300,75 @@ class PropTool : Tool
 	
 	private void state_selecting()
 	{
+		clear_highlighted_props(true);
 		
+		if(script.escape_press)
+		{
+			state = Idle;
+			return;
+		}
+		
+		// Find props in selection rect
+		
+		const float y1 = min(drag_start_y, mouse.y);
+		const float y2 = max(drag_start_y, mouse.y);
+		const float x1 = min(drag_start_x, mouse.x);
+		const float x2 = max(drag_start_x, mouse.x);
+		
+		int i = script.g.get_prop_collision(y1, y2, x1, x2);
+		
+		while(i-- > 0)
+		{
+			prop@ p = script.g.get_prop_collision_index(i);
+			const array<array<float>>@ outline = @PROP_OUTLINES[p.prop_set() - 1][p.prop_group()][p.prop_index() - 1];
+			PropData@ prop_data = highlight_prop(p, outline);
+			
+			if(select_rect_pending == 0)
+			{
+				if(mouse.left_down)
+				{
+					prop_data.pending = 1;
+				}
+				else
+				{
+					select_prop(prop_data, SelectAction::Add);
+				}
+			}
+			else if(select_rect_pending == 1)
+			{
+				if(!prop_data.selected)
+				{
+					if(mouse.left_down)
+					{
+						prop_data.pending = 1;
+					}
+					else
+					{
+						select_prop(prop_data, SelectAction::Add);
+					}
+				}
+			}
+			else if(select_rect_pending == -1)
+			{
+				if(mouse.left_down)
+				{
+					prop_data.pending = prop_data.selected ? -1 : -2;
+				}
+				else
+				{
+					select_prop(prop_data, SelectAction::Remove);
+				}
+			}
+		}
+		
+		// Complete selection
+		
+		if(!mouse.left_down)
+		{
+			// Select
+			state = Idle;
+			return;
+		}
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -355,6 +458,7 @@ class PropTool : Tool
 		
 		@prop_data.prop = prop;
 		prop_data.key = key;
+		prop_data.pending = 0;
 		@prop_data.outline = @outline;
 		
 		if(highlighted_props_count >= highlighted_props_size)
@@ -371,14 +475,23 @@ class PropTool : Tool
 	}
 	
 	/// Return PropData that is no longer higlighted to the pool
-	private void clear_highlighted_props()
+	private void clear_highlighted_props(const bool clear_pending=false)
 	{
 		for(int i = highlighted_props_count - 1; i >= 0; i--)
 		{
 			PropData@ prop_data = @highlighted_props[i];
 			
-			if(prop_data.hovered || prop_data.selected)
+			if(clear_pending)
+			{
+				prop_data.pending = 0;
+				
+				if(prop_data.selected)
+					continue;
+			}
+			else if(prop_data.hovered || prop_data.selected)
+			{
 				continue;
+			}
 			
 			if(prop_data_pool_count >= prop_data_pool_size)
 			{
