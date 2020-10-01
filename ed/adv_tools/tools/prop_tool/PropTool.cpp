@@ -46,6 +46,9 @@ class PropTool : Tool
 	private float drag_start_x, drag_start_y;
 	private int select_rect_pending;
 	
+	private float selection_x1, selection_y1;
+	private float selection_x2, selection_y2;
+	
 	PropTool()
 	{
 		super('Prop Tool');
@@ -125,9 +128,31 @@ class PropTool : Tool
 			case Selecting: state_selecting(); break;
 		}
 		
+		int select_index = 0;
+		
 		for(int i = highlighted_props_count - 1; i >= 0; i--)
 		{
-			highlighted_props[i].step();
+			PropData@ prop_data = @highlighted_props[i];
+			prop_data.step();
+			
+			if(!prop_data.selected)
+				continue;
+			
+			if(select_index == 0)
+			{
+				selection_x1 = prop_data.collision_x + prop_data.x1;
+				selection_y1 = prop_data.collision_y + prop_data.y1;
+				selection_x2 = prop_data.collision_x + prop_data.x2;
+				selection_y2 = prop_data.collision_y + prop_data.y2;
+				select_index++;
+			}
+			else
+			{
+				if(prop_data.collision_x + prop_data.x1 < selection_x1) selection_x1 = prop_data.collision_x + prop_data.x1;
+				if(prop_data.collision_y + prop_data.y1 < selection_y1) selection_y1 = prop_data.collision_y + prop_data.y1;
+				if(prop_data.collision_x + prop_data.x2 > selection_x2) selection_x2 = prop_data.collision_x + prop_data.x2;
+				if(prop_data.collision_y + prop_data.y2 > selection_y2) selection_y2 = prop_data.collision_y + prop_data.y2;
+			}
 		}
 	}
 	
@@ -136,37 +161,17 @@ class PropTool : Tool
 		if(state != Idle && state != Selecting)
 			return;
 		
-		float x1, y1, x2, y2;
-		int select_index = 0;
-		
 		for(int i = 0; i < highlighted_props_count; i++)
 		{
-			PropData@ prop_data = @highlighted_props[i];
-			prop_data.draw();
-			
-			if(!prop_data.selected)
-				continue;
-			
-			if(select_index == 0)
-			{
-				x1 = prop_data.collision_x + prop_data.x1;
-				y1 = prop_data.collision_y + prop_data.y1;
-				x2 = prop_data.collision_x + prop_data.x2;
-				y2 = prop_data.collision_y + prop_data.y2;
-				select_index++;
-			}
-			else
-			{
-				if(prop_data.collision_x + prop_data.x1 < x1) x1 = prop_data.collision_x + prop_data.x1;
-				if(prop_data.collision_y + prop_data.y1 < y1) y1 = prop_data.collision_y + prop_data.y1;
-				if(prop_data.collision_x + prop_data.x2 > x2) x2 = prop_data.collision_x + prop_data.x2;
-				if(prop_data.collision_y + prop_data.y2 > y2) y2 = prop_data.collision_y + prop_data.y2;
-			}
+			highlighted_props[i].draw();
 		}
 		
-		if(select_index > 0)
+		if(selected_props_count > 0)
 		{
-			outline_rect(script.g, 22, 22, x1, y1, x2, y2, PropToolSettings::BoundingBoxLineWidth / script.zoom, PropToolSettings::BoundingBoxColour);
+			outline_rect(script.g, 22, 22,
+				selection_x1, selection_y1,
+				selection_x2, selection_y2,
+				PropToolSettings::BoundingBoxLineWidth / script.zoom, PropToolSettings::BoundingBoxColour);
 		}
 		
 		if(state == Selecting)
@@ -250,6 +255,42 @@ class PropTool : Tool
 		else
 		{
 			@pressed_prop = null;
+		}
+		
+		if(mouse.scroll != 0)
+		{
+			PropData@ prop_data = null;
+			float x1, y1, x2, y2;
+			
+			if(script.shift)
+			{
+				for(int i = 0; i < selected_props_count; i++)
+				{
+					@prop_data = @selected_props[i];
+					prop_data.shift_layer(mouse.scroll, script.alt);
+				}
+				
+				x1 = selection_x1;
+				y1 = selection_y1;
+				x2 = selection_x2;
+				y2 = selection_y2;
+			}
+			else if(@hovered_prop != null)
+			{
+				@prop_data = hovered_prop;
+				hovered_prop.shift_layer(mouse.scroll, script.alt);
+				x1 = prop_data.collision_x + prop_data.x1;
+				y1 = prop_data.collision_y + prop_data.y1;
+				x2 = prop_data.collision_x + prop_data.x2;
+				y2 = prop_data.collision_y + prop_data.y2;
+			}
+			
+			if(@prop_data != null)
+			{
+				script.info_overlay.show(
+					x1, y1, x2, y2,
+					prop_data.prop.layer() + '.' + prop_data.prop.sub_layer(), 0.75);
+			}
 		}
 		
 		clear_highlighted_props();

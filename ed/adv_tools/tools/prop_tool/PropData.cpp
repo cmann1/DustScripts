@@ -102,6 +102,8 @@ class PropData
 		x = prop.x();
 		y = prop.y();
 		
+		transform_layer_position(script.g, script.view_x, script.view_y, this.x, this.y, prop.layer(), 22, collision_x, collision_y);
+		
 		angle = prop.rotation() * DEG2RAD * sign(prop_scale_x) * sign(prop_scale_y);
 		layer_scale = prop.layer() <= 5 ? script.g.layer_scale(prop.layer()) : 1.0;
 		backdrop_scale = prop.layer() <= 5 ? 2.0 : 1.0;
@@ -207,6 +209,20 @@ class PropData
 		
 		prop.x(x);
 		prop.y(y);
+	}
+	
+	void shift_layer(const int dir, const bool sublayer=false)
+	{
+		if(sublayer)
+		{
+			prop.sub_layer(clamp(prop.sub_layer() + dir, 0, 24));
+		}
+		else
+		{
+			prop.layer(clamp(prop.layer() + dir, 0, 20));
+		}
+		
+		update();
 	}
 	
 	private void init_prop()
