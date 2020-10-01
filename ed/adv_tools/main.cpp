@@ -262,14 +262,25 @@ class AdvToolScript
 		
 		if(@ui.focus == null)
 		{
-			for(int i = num_tools_shortcut - 1; i >= 0; i--)
+			if(shift && editor.key_check_pressed_vk(VK::W))
 			{
-				Tool@ tool = @tools_shortcut[i];
-				
-				if(editor.key_check_pressed_vk(tool.shortcut_key))
+				select_next_tool(-1);
+			}
+			else if(shift && editor.key_check_pressed_vk(VK::E))
+			{
+				select_next_tool(1);
+			}
+			else if(!shift && !ctrl && !alt)
+			{
+				for(int i = num_tools_shortcut - 1; i >= 0; i--)
 				{
-					select_tool(tool.on_shortcut_key());
-					break;
+					Tool@ tool = @tools_shortcut[i];
+					
+					if(editor.key_check_pressed_vk(tool.shortcut_key))
+					{
+						select_tool(tool.on_shortcut_key());
+						break;
+					}
 				}
 			}
 		}
@@ -334,6 +345,47 @@ class AdvToolScript
 		select_tool(cast<Tool@>(tools_map[name]));
 		
 		return true;
+	}
+	
+	void select_next_tool(const int dir=1)
+	{
+		if(@selected_tool == null)
+		{
+			select_tool(tools[0]);
+			return;
+		}
+		
+		ToolGroup@ group = selected_tool.group;
+		Tool@ next_tool = selected_tool;
+		
+		do
+		{
+			if(@next_tool != null)
+			{
+				@next_tool = group.get_next_selectable_tool(next_tool, dir);
+			}
+			
+			if(@next_tool != null)
+				break;
+			
+			const int index = tool_groups.findByRef(group);
+			
+			if(index == -1)
+			{
+				@group = tool_groups[0];
+			}
+			else
+			{
+				@group = tool_groups[mod(index + (dir >= 0 ? 1 : -1), tool_groups.length())];
+			}
+			
+			@next_tool = dir >= 1
+				? group.get_first_selectable_tool()
+				: group.get_last_selectable_tool();
+		}
+		while(@next_tool == null);
+		
+		select_tool(next_tool);
 	}
 	
 	void track_tool_group_popups(const bool open)

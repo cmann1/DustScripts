@@ -14,6 +14,7 @@ class ToolGroup
 	
 	private ButtonGroup@ button_group;
 	private Tool@ current_tool;
+	private array<Tool@> selectable_tools;
 	private int num_selectable_tools;
 	
 	private PopupOptions@ popup;
@@ -86,6 +87,7 @@ class ToolGroup
 		
 		if(tool.selectable)
 		{
+			selectable_tools.insertLast(tool);
 			num_selectable_tools++;
 		}
 		
@@ -121,6 +123,39 @@ class ToolGroup
 		icon.height = Settings::ToolbarIconSize;
 		
 		update_popup_buttons();
+	}
+	
+	Tool@ get_next_selectable_tool(Tool@ tool, const int dir=1)
+	{
+		if(num_selectable_tools == 0)
+			return null;
+		
+		if(@tool == null)
+			return selectable_tools[0];
+		
+		int index = selectable_tools.findByRef(tool);
+		
+		if(index == -1)
+			return selectable_tools[0];
+		
+		index += dir >= 0 ? 1 : -1;
+		
+		if(index < 0 || index >= num_selectable_tools)
+			return null;
+		
+		return selectable_tools[index];
+	}
+	
+	Tool@ get_first_selectable_tool()
+	{
+		return num_selectable_tools > 0
+			? selectable_tools[0] : null;
+	}
+	
+	Tool@ get_last_selectable_tool()
+	{
+		return num_selectable_tools > 0
+			? selectable_tools[num_selectable_tools - 1] : null;
 	}
 	
 	void on_select()

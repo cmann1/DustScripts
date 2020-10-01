@@ -4,6 +4,8 @@ class HelpTool : Tool
 	HelpTool(const string name)
 	{
 		super(name);
+		
+		selectable = false;
 	}
 	
 	// //////////////////////////////////////////////////////////
