@@ -157,6 +157,11 @@ int sign(int x)
 	return x < 0 ? -1 : (x > 0 ? 1 : 0);
 }
 
+int mod(const int x, const int m)
+{
+	return (x % m + m) % m;
+}
+
 bool approximately(const float a, const float b)
 {
 	return abs(b - a) < EPSILON;
