@@ -16,6 +16,7 @@ class Tool
 	Button@ toolbar_button;
 	
 	int shortcut_key = -1;
+	bool register_shortcut_key = true;
 	
 	protected array<IToolSelectListener@> select_listeners;
 	protected array<IToolStepListener@> step_listeners;
@@ -64,9 +65,10 @@ class Tool
 		return this;
 	}
 	
-	Tool@ init_shortcut_key(const int shortcut_key)
+	Tool@ init_shortcut_key(const int shortcut_key, bool register_shortcut_key=true)
 	{
 		this.shortcut_key = shortcut_key;
+		this.register_shortcut_key = register_shortcut_key;
 		
 		return @this;
 	}

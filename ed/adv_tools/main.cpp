@@ -197,9 +197,9 @@ class AdvToolScript
 		
 		add_tool(Tool('Select')			.set_icon('editor',  'selecticon'));
 		add_tool(Tool('Tiles')			.set_icon('editor',  'tilesicon'));
-		add_tool(Tool('Props')			.set_icon('editor',  'propsicon'));
-		add_tool(Tool('Entities')		.set_icon('editor',  'entityicon'));
-		add_tool(Tool('Triggers')		.set_icon('editor',  'triggersicon'));
+		add_tool(Tool('Props')			.set_icon('editor',  'propsicon').init_shortcut_key(VK::Q, false));
+		add_tool(Tool('Entities')		.set_icon('editor',  'entityicon').init_shortcut_key(VK::E));
+		add_tool(Tool('Triggers')		.set_icon('editor',  'triggersicon').init_shortcut_key(VK::T));
 		add_tool(Tool('Camera')			.set_icon('editor',  'cameraicon'));
 		add_tool(Tool('Emitters')		.set_icon('editor',  'emittericon'));
 		add_tool(Tool('Level Settings')	.set_icon('editor',  'settingsicon'));
@@ -478,7 +478,7 @@ class AdvToolScript
 		@tools_map[tool.name] = tool;
 		tools.insertLast(tool);
 		
-		if(tool.shortcut_key > 0)
+		if(tool.shortcut_key > 0 && tool.register_shortcut_key)
 		{
 			tools_shortcut.insertLast(@tool);
 			num_tools_shortcut++;
