@@ -24,7 +24,7 @@ class ToolGroup
 		
 	}
 	
-	void init(AdvToolScript@ script, const string name, ButtonGroup@ button_group)
+	void create(AdvToolScript@ script, const string name, ButtonGroup@ button_group)
 	{
 		@this.script = script;
 		this.name = name;
@@ -34,6 +34,31 @@ class ToolGroup
 		button.mouse_enter.on(EventCallback(on_button_enter));
 		
 		@icon = cast<Image@>(button.content);
+	}
+	
+	void init_ui()
+	{
+		for(uint i = 0; i < tools.length(); i++)
+		{
+			Tool@ tool = @tools[i];
+			
+			if(@tool.toolbar_button == null)
+				continue;
+			
+			Image@ icon = cast<Image@>(tool.toolbar_button.content);
+			
+			icon.set_sprite(tool.icon_sprite_set,
+				tool.icon_sprite_name, tool.icon_width, tool.icon_height,
+				tool.icon_offset_x, tool.icon_offset_y);
+		}
+	}
+	
+	void on_init()
+	{
+		for(uint i = 0; i < tools.length(); i++)
+		{
+			tools[i].on_init();
+		}
 	}
 	
 	Button@ create_button(const string name,
@@ -76,7 +101,7 @@ class ToolGroup
 			}
 		}
 		
-		tool.on_init(script, this);
+		tool.create(script, this);
 		
 		if(@current_tool == null)
 		{
@@ -98,9 +123,16 @@ class ToolGroup
 		update_popup_buttons();
 	}
 	
-	void select()
+	void on_select()
 	{
 		button.selected = true;
+		button.override_alpha = 1;
+	}
+	
+	void on_deselect()
+	{
+		button.selected = false;
+		button.override_alpha = -1;
 	}
 	
 	private void create_popup()

@@ -48,10 +48,8 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		selectable = false;
 	}
 	
-	void on_init(AdvToolScript@ script, ToolGroup@ group) override
+	void on_init() override
 	{
-		Tool::on_init(script, group);
-		
 		Tool@ tool = group.script.get_tool('Triggers');
 		
 		if(@tool != null)
@@ -235,24 +233,25 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	{
 		if(@script.ui.focus == null)
 		{
-			if(script.editor.key_check_pressed_gvb(GVB::Escape))
+			if(script.escape_press)
 			{
 				on_cancel_click(null);
 			}
-			else if(script.editor.key_check_pressed_gvb(GVB::Return))
+			else if(script.return_press)
 			{
 				select(null);
 			}
 		}
 		
-		if(@selected_trigger != null && @entity_by_id(selected_trigger.id()) == null)
+		if(script.mouse.left_down || @selected_trigger != null && @entity_by_id(selected_trigger.id()) == null)
 		{
 			select(null);
 		}
 		
-		if(@hovered_trigger != null && @entity_by_id(hovered_trigger.id()) == null)
+		if(script.mouse.left_down || @hovered_trigger != null && @entity_by_id(hovered_trigger.id()) == null)
 		{
 			@hovered_trigger = null;
+			show_edit_button(null);
 		}
 		
 		if(@hovered_trigger != null)
@@ -260,7 +259,10 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 			update_popup();
 		}
 		
-		pick_trigger();
+		if(!script.mouse.left_down)
+		{
+			pick_trigger();
+		}
 	}
 	
 	void tool_draw(Tool@ tool, const float sub_frame) override

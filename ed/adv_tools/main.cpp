@@ -1,6 +1,8 @@
 #include '../../lib/std.cpp';
+#include '../../lib/layer.cpp';
 #include '../../lib/math/math.cpp';
 #include '../../lib/enums/GVB.cpp';
+#include '../../lib/enums/VK.cpp';
 #include '../../lib/embed_utils.cpp';
 #include '../../lib/drawing/common.cpp';
 #include '../../lib/debug/Debug.cpp';
@@ -15,10 +17,10 @@
 #include '../../lib/ui3/elements/Toolbar.cpp';
 #include '../../lib/ui3/window_manager/WindowManager.cpp';
 
-#include 'Settings.cpp';
 #include 'ToolGroup.cpp';
 #include 'misc/ToolListenerInterfaces.cpp';
-#include 'tools/PropTool.cpp';
+#include 'settings/Settings.cpp';
+#include 'tools/prop_tool/PropTool.cpp';
 #include 'tools/TextTool.cpp';
 #include 'tools/ExtendedTriggerTool.cpp';
 #include 'tools/HelpTool.cpp';
@@ -40,14 +42,25 @@ class AdvToolScript
 	Debug debug();
 	Line line;
 	
+	float zoom;
+	bool ctrl, shift, alt, space;
+	bool return_press, escape_press;
+	
 	[text] bool debug_ui;
+	[hidden] string clipboard;
 	[hidden] WindowManager window_manager;
+	[hidden] array<BoolSetting> bool_settings;
+	[hidden] array<FloatSetting> float_settings;
+	
+	private dictionary settings;
 	
 	private bool initialised;
 	
 	private Toolbar@ toolbar;
 	private array<ToolGroup> tool_groups;
 	private array<Tool@> tools;
+	private array<Tool@> tools_shortcut;
+	private int num_tools_shortcut;
 	private dictionary tool_groups_map;
 	private dictionary tools_map;
 	private ButtonGroup@ button_group = ButtonGroup(ui, false);
@@ -60,10 +73,11 @@ class AdvToolScript
 	
 	//
 	
-	private float view_x1, view_y1;
-	private float view_x2, view_y2;
-	private float view_w, view_h;
-	private float screen_w, screen_h;
+	float view_x, view_y;
+	float view_x1, view_y1;
+	float view_x2, view_y2;
+	float view_w, view_h;
+	float screen_w, screen_h;
 	
 	private int size_onscreen_triggers = 32;
 	private int num_onscreen_triggers = -1;
@@ -80,8 +94,12 @@ class AdvToolScript
 		@cam = get_active_camera();
 		
 		if(@editor == null)
+		{
+			initialised = true;
 			return;
+		}
 		
+		editor.hide_gui(false);
 		create_tools();
 	}
 	
@@ -97,7 +115,31 @@ class AdvToolScript
 	
 	private void initialise()
 	{
+		initialise_settings();
+		initialise_ui();
+		initialise_tools();
+		
+		select_tool(editor.editor_tab());
+	}
+	
+	private void initialise_settings()
+	{
+		for(uint i = 0; i < bool_settings.length(); i++)
+		{
+			@settings[bool_settings[i].key] = @bool_settings[i];
+		}
+		
+		for(uint i = 0; i < float_settings.length(); i++)
+		{
+			@settings[float_settings[i].key] = @float_settings[i];
+		}
+	}
+	
+	private void initialise_ui()
+	{
 		@ui.debug = debug;
+		ui.clipboard = clipboard;
+		ui.clipboard_change.on(EventCallback(on_clipboard_change));
 		ui.auto_fit_screen = true;
 		
 //		ui.style.text_clr                        = 0xffffffff;
@@ -127,7 +169,9 @@ class AdvToolScript
 		
 		for(uint i = 0; i < tool_groups.length(); i++)
 		{
-			toolbar.add_child(tool_groups[i].button);
+			ToolGroup@ group = @tool_groups[i];
+			group.init_ui();
+			toolbar.add_child(group.button);
 		}
 		
 		ui.add_child(toolbar);
@@ -137,8 +181,14 @@ class AdvToolScript
 		ui.after_layout.on(on_after_layout_delegate);
 		
 		ui.screen_resize.on(EventCallback(on_screen_resize));
-		
-		select_tool(editor.editor_tab());
+	}
+	
+	private void initialise_tools()
+	{
+		for(uint i = 0; i < tool_groups.length(); i++)
+		{
+			tool_groups[i].on_init();
+		}
 	}
 	
 	private void create_tools()
@@ -169,6 +219,9 @@ class AdvToolScript
 	
 	void editor_step()
 	{
+		if(@editor == null)
+			return;
+		
 		if(!initialised)
 		{
 			initialise();
@@ -178,13 +231,28 @@ class AdvToolScript
 		screen_w = g.hud_screen_width(false);
 		screen_h = g.hud_screen_height(false);
 		
+		view_x = cam.x();
+		view_y = cam.y();
+		
 		cam.get_layer_draw_rect(0, 19, view_x1, view_y1, view_w, view_h);
 		view_x2 = view_x1 + view_w;
 		view_y2 = view_y1 + view_h;
 		
+		zoom = cam.editor_zoom();
+		
 		const string new_tab = editor.editor_tab();
 //		debug.print('selected_tab: ' + new_tab, 'selected_tab');
 //		debug.print('selected_tool: ' + selected_tool.name, 'selected_tool');
+		
+		mouse.step(ui.is_mouse_over_ui || editor.mouse_in_gui());
+		
+		ctrl	= editor.key_check_gvb(GVB::Control);
+		shift	= editor.key_check_gvb(GVB::Shift);
+		alt		= editor.key_check_gvb(GVB::Alt);
+		space	= editor.key_check_gvb(GVB::Space);
+		
+		return_press = editor.key_check_pressed_gvb(GVB::Return);
+		escape_press = editor.key_check_pressed_gvb(GVB::Escape);
 		
 		if(new_tab != selected_tab)
 		{
@@ -192,7 +260,19 @@ class AdvToolScript
 			select_tool(selected_tab);
 		}
 		
-		mouse.step(ui.is_mouse_over_ui || editor.mouse_in_gui());
+		if(@ui.focus == null)
+		{
+			for(int i = num_tools_shortcut - 1; i >= 0; i--)
+			{
+				Tool@ tool = @tools_shortcut[i];
+				
+				if(editor.key_check_pressed_vk(tool.shortcut_key))
+				{
+					select_tool(tool.on_shortcut_key());
+					break;
+				}
+			}
+		}
 		
 		if(@selected_tool != null)
 		{
@@ -312,6 +392,40 @@ class AdvToolScript
 		return closest;
 	}
 	
+	BoolSetting@ get_bool(Tool@ tool, const string name, const bool default_value=false)
+	{
+		const string key = tool.name + '.bool.' + name;
+		
+		if(!settings.exists(key))
+		{
+			bool_settings.resize(bool_settings.length() + 1);
+			BoolSetting@ setting = @bool_settings[bool_settings.length() - 1];
+			setting.key = key;
+			setting.value = default_value;
+			@settings[key] = @setting;
+			return setting;
+		}
+		
+		return cast<BoolSetting@>(settings[key]);
+	}
+	
+	FloatSetting@ get_float(Tool@ tool, string name, const float default_value=0)
+	{
+		const string key = tool.name + '.float.' + name;
+		
+		if(!settings.exists(key))
+		{
+			float_settings.resize(float_settings.length() + 1);
+			FloatSetting@ setting = @float_settings[float_settings.length() - 1];
+			setting.key = key;
+			setting.value = default_value;
+			@settings[key] = @setting;
+			return setting;
+		}
+		
+		return cast<FloatSetting@>(settings[key]);
+	}
+	
 	// //////////////////////////////////////////////////////////
 	// Private Methods
 	// //////////////////////////////////////////////////////////
@@ -331,7 +445,7 @@ class AdvToolScript
 		{
 			tool_groups.resize(tool_groups.length() + 1);
 			@group = @tool_groups[tool_groups.length() - 1];
-			group.init(this, group_name, button_group);
+			group.create(this, group_name, button_group);
 			@tool_groups_map[group_name] = group;
 		}
 		else
@@ -357,6 +471,12 @@ class AdvToolScript
 		group.add_tool(tool);
 		@tools_map[tool.name] = tool;
 		tools.insertLast(tool);
+		
+		if(tool.shortcut_key > 0)
+		{
+			tools_shortcut.insertLast(@tool);
+			num_tools_shortcut++;
+		}
 	}
 	
 	/// Select the specified tool and call the relevant callbacks. Cannot be null.
@@ -369,7 +489,7 @@ class AdvToolScript
 		{
 			if(@selected_tool != null)
 			{
-				selected_tool.group.select();
+				selected_tool.group.on_select();
 			}
 			
 			return;
@@ -378,6 +498,7 @@ class AdvToolScript
 		if(@selected_tool != null)
 		{
 			selected_tool.on_deselect();
+			selected_tool.group.on_deselect();
 		}
 		
 		editor.editor_tab(tool.name);
@@ -389,21 +510,25 @@ class AdvToolScript
 		
 		@selected_tool = tool;
 		selected_tool.on_select();
-		selected_tool.group.select();
-		
-		// TODO: Change event
+		selected_tool.group.on_select();
 	}
 	
 	private void position_toolbar()
 	{
 		toolbar.x = (ui.region_width - toolbar.width) * 0.5;
 //		toolbar.y = ui.region_height - toolbar.height;
-		toolbar.y = 60;
+//		toolbar.y = 60;
+		toolbar.y = 0;
 	}
 	
 	// ///////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////
+	
+	private void on_clipboard_change(EventInfo@ event)
+	{
+		clipboard = event.value;
+	}
 	
 	private void on_tool_button_select(EventInfo@ event)
 	{

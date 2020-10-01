@@ -8,10 +8,8 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 		selectable = false;
 	}
 	
-	void on_init(AdvToolScript@ script, ToolGroup@ group) override
+	void on_init() override
 	{
-		Tool::on_init(script, group);
-		
 		Tool@ tool = group.script.get_tool('Triggers');
 		
 		if(@tool != null)
@@ -26,7 +24,7 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 	
 	void tool_step(Tool@ tool) override
 	{
-		if(script.mouse.left_double_click && script.editor.key_check_gvb(GVB::Shift))
+		if(script.mouse.left_double_click && script.shift)
 		{
 			copy_trigger();
 		}

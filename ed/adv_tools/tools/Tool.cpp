@@ -15,12 +15,16 @@ class Tool
 	ToolGroup@ group;
 	Button@ toolbar_button;
 	
-	array<IToolSelectListener@> select_listeners;
-	array<IToolStepListener@> step_listeners;
-	array<IToolDrawListener@> draw_listeners;
-	int num_select_listeners;
-	int num_step_listeners;
-	int num_draw_listeners;
+	int shortcut_key = -1;
+	
+	protected array<IToolSelectListener@> select_listeners;
+	protected array<IToolStepListener@> step_listeners;
+	protected array<IToolDrawListener@> draw_listeners;
+	protected int num_select_listeners;
+	protected int num_step_listeners;
+	protected int num_draw_listeners;
+	
+	protected bool selected = false;
 	
 	Tool()
 	{
@@ -30,6 +34,22 @@ class Tool
 	Tool(const string name)
 	{
 		this.name = name;
+	}
+	
+	void create(AdvToolScript@ script, ToolGroup@ group)
+	{
+		@this.script = script;
+		@this.group = group;
+	}
+	
+	void on_init()
+	{
+		
+	}
+	
+	void build_sprites(message@ msg)
+	{
+		
 	}
 	
 	Tool@ set_icon(const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
@@ -44,15 +64,11 @@ class Tool
 		return this;
 	}
 	
-	void on_init(AdvToolScript@ script, ToolGroup@ group)
+	Tool@ init_shortcut_key(const int shortcut_key)
 	{
-		@this.script = script;
-		@this.group = group;
-	}
-	
-	void build_sprites(message@ msg)
-	{
+		this.shortcut_key = shortcut_key;
 		
+		return @this;
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -129,34 +145,27 @@ class Tool
 	// Callbacks
 	// //////////////////////////////////////////////////////////
 	
-	void step()
+	Tool@ on_shortcut_key()
 	{
-		for(int i = num_step_listeners - 1; i >= 0; i--)
-		{
-			step_listeners[i].tool_step(this);
-		}
+		return @this;
 	}
-	
-	void draw(const float sub_frame)
-	{
-		for(int i = num_draw_listeners - 1; i >= 0; i--)
-		{
-			draw_listeners[i].tool_draw(this, sub_frame);
-		}
-	}
-	
-	// //////////////////////////////////////////////////////////
-	// Events
-	// //////////////////////////////////////////////////////////
 	
 	bool on_before_select()
 	{
 		return true;
 	}
 	
-	void on_select()
+	void on_select() final
 	{
+		selected = true;
 		group.set_tool(this);
+		
+		if(@toolbar_button != null)
+		{
+			toolbar_button.override_alpha = 1;
+		}
+		
+		on_select_impl();
 		
 		for(int i = num_select_listeners - 1; i >= 0; i--)
 		{
@@ -164,12 +173,61 @@ class Tool
 		}
 	}
 	
-	void on_deselect()
+	void on_deselect() final
 	{
+		selected = false;
+		
+		if(@toolbar_button != null)
+		{
+			toolbar_button.override_alpha = -1;
+		}
+		
+		on_deselect_impl();
+		
 		for(int i = num_select_listeners - 1; i >= 0; i--)
 		{
 			select_listeners[i].tool_deselect(this);
 		}
+	}
+	
+	protected void on_select_impl()
+	{
+		
+	}
+	
+	void on_deselect_impl()
+	{
+		
+	}
+	
+	void step() final
+	{
+		step_impl();
+		
+		for(int i = num_step_listeners - 1; i >= 0; i--)
+		{
+			step_listeners[i].tool_step(this);
+		}
+	}
+	
+	void draw(const float sub_frame) final
+	{
+		draw_impl(sub_frame);
+		
+		for(int i = num_draw_listeners - 1; i >= 0; i--)
+		{
+			draw_listeners[i].tool_draw(this, sub_frame);
+		}
+	}
+	
+	protected void draw_impl(const float sub_frame)
+	{
+		
+	}
+	
+	protected void step_impl()
+	{
+		
 	}
 	
 }
