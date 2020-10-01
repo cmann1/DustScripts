@@ -18,6 +18,7 @@
 #include '../../lib/ui3/window_manager/WindowManager.cpp';
 
 #include 'ToolGroup.cpp';
+#include 'misc/InfoOverlay.cpp';
 #include 'misc/ToolListenerInterfaces.cpp';
 #include 'settings/Settings.cpp';
 #include 'tools/prop_tool/PropTool.cpp';
@@ -45,6 +46,8 @@ class AdvToolScript
 	float zoom;
 	bool ctrl, shift, alt, space;
 	bool return_press, escape_press;
+	
+	InfoOverlay info_overlay;
 	
 	[text] bool debug_ui;
 	[hidden] string clipboard;
@@ -120,6 +123,8 @@ class AdvToolScript
 		initialise_tools();
 		
 		select_tool(editor.editor_tab());
+		
+		info_overlay.init(this);
 	}
 	
 	private void initialise_settings()
@@ -291,6 +296,8 @@ class AdvToolScript
 		}
 		
 		num_onscreen_triggers = -1;
+		
+		info_overlay.step();
 		
 		ui.step();
 		debug.step();
@@ -610,5 +617,3 @@ class AdvToolScript
 	}
 	
 }
-
-//enum TextToolState { Disabled, Idle, Active, }
