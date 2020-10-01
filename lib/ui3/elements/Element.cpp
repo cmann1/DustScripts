@@ -44,6 +44,7 @@ abstract class Element
 	
 	int clip_contents = ClippingMode::None;
 	float alpha = 1;
+	float override_alpha = -1;
 	
 	float _x;
 	float _y;

@@ -258,7 +258,7 @@ class Style
 		@new_ctx.parent = @ctx;
 		@new_ctx.root = @new_root;
 		new_ctx.num_children = num_children;
-		new_ctx.alpha = ctx.alpha;
+		new_ctx.alpha = new_root.override_alpha >= 0 ? new_root.override_alpha : ctx.alpha;
 		
 		new_ctx.clipping_mode = ctx.clipping_mode;
 		new_ctx.x1 = ctx.x1;
