@@ -503,6 +503,15 @@ class PropTool : Tool
 		select_prop(null, SelectAction::Set);
 	}
 	
+	private PropData@ is_prop_highlighted(prop@ prop)
+	{
+		const string key = prop.id() + '';
+		
+		return highlighted_props_map.exists(key)
+			? cast<PropData@>(highlighted_props_map[key])
+			: null;
+	}
+	
 	private PropData@ highlight_prop(prop@ prop, const array<array<float>>@ outline)
 	{
 		const string key = prop.id() + '';
@@ -634,9 +643,11 @@ class PropTool : Tool
 				(layer_my - prop_y) / scale_y,
 				-rotation, local_x, local_y);
 			
-			// Check for overlap with tiles
+			// Check for overlap with tiles, but allow interacting with selected props through tiles
 			
-			if(!pick_through_tiles.value && hittest_tiles(p.layer(), p.sub_layer()))
+			PropData@ prop_data = is_prop_highlighted(p);
+			
+			if((@prop_data == null || !prop_data.selected) && !pick_through_tiles.value && hittest_tiles(p.layer(), p.sub_layer()))
 				continue;
 			
 			// Check if the mouse is inside to the prop
