@@ -295,7 +295,7 @@ void get_left_tile(int tile_x, int tile_y, const int type, const int side, int &
 	
 	switch(side)
 	{
-		case Top:
+		case TileEdge::Top:
 		{
 			out_x--;
 			
@@ -308,7 +308,7 @@ void get_left_tile(int tile_x, int tile_y, const int type, const int side, int &
 				out_y++;
 			}
 		} break;
-		case Bottom:
+		case TileEdge::Bottom:
 		{
 			out_x++;
 			
@@ -321,7 +321,7 @@ void get_left_tile(int tile_x, int tile_y, const int type, const int side, int &
 				out_y++;
 			}
 		} break;
-		case Left:
+		case TileEdge::Left:
 		{
 			out_y++;
 			
@@ -334,7 +334,7 @@ void get_left_tile(int tile_x, int tile_y, const int type, const int side, int &
 				out_x++;
 			}
 		} break;
-		case Right:
+		case TileEdge::Right:
 		{
 			out_y--;
 			
@@ -348,23 +348,6 @@ void get_left_tile(int tile_x, int tile_y, const int type, const int side, int &
 			}
 		} break;
 	}
-	
-	if(side == 0) // Top
-	{
-		
-	}
-	else if(side == 1) // Bottom
-	{
-		
-	}
-	else if(side == 2) // Left
-	{
-		
-	}
-	else if(side == 3) // Right
-	{
-		
-	}
 }
 
 /// Returns the coordinates of the tile potentially connected (on the right side clockwise) to the given one based on the side
@@ -375,7 +358,7 @@ void get_right_tile(int tile_x, int tile_y, const uint8 type, const int side, in
 	
 	switch(side)
 	{
-		case Top:
+		case TileEdge::Top:
 		{
 			out_x++;
 			
@@ -388,7 +371,7 @@ void get_right_tile(int tile_x, int tile_y, const uint8 type, const int side, in
 				out_y++;
 			}
 		} break;
-		case Bottom:
+		case TileEdge::Bottom:
 		{
 			out_x--;
 			
@@ -401,7 +384,7 @@ void get_right_tile(int tile_x, int tile_y, const uint8 type, const int side, in
 				out_y++;
 			}
 		} break;
-		case Left:
+		case TileEdge::Left:
 		{
 			out_y--;
 			
@@ -414,7 +397,7 @@ void get_right_tile(int tile_x, int tile_y, const uint8 type, const int side, in
 				out_x++;
 			}
 		} break;
-		case Right:
+		case TileEdge::Right:
 		{
 			out_y++;
 			
