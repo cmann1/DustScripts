@@ -345,7 +345,7 @@ class RotationWheel : Image, IStepHandler
 	{
 		if(event.button == ui.primary_button || event.button == ui.secondary_button)
 		{
-			if(event.button == ui.primary_button)
+			if(event.button == ui.primary_button || !allow_range)
 			{
 				drag_angle = true;
 			}
