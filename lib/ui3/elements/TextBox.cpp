@@ -24,6 +24,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 	protected float _line_spacing = 6;
 	protected bool _multi_line = true;
 	protected bool _smart_home = true;
+	protected bool _smart_new_line = true;
 	protected bool _remove_lines_shortcut = true;
 	protected bool _clipboard_enabled = true;
 	protected bool _accept_on_blur = true;
@@ -329,6 +330,13 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 	{
 		get const { return _smart_home; }
 		set { _smart_home = value; }
+	}
+	
+	/// If true indentation will be maintained from the previous line when hitting enter.
+	bool smart_new_line
+	{
+		get const { return _smart_new_line; }
+		set { _smart_new_line = value; }
 	}
 	
 	/// Allow removing lines with Ctrl+Shift+D
@@ -1269,6 +1277,24 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 	{
 		x = local_x + x1 + padding_left + _scroll_x;
 		y = local_y + y1 + padding_top  + _scroll_y;
+	}
+	
+	/// Returns the whitespace at the beginning of the  given line
+	string get_line_indentation(const int line_index)
+	{
+		if(line_index < 0 || line_index >= _num_lines)
+			return '';
+
+		const string line = lines[line_index];
+		const int length = line.length();
+		
+		for(int i = 0; i < length; i++)
+		{
+			if(!string::is_whitespace(line[i]))
+				return line.substr(0, i);
+		}
+		
+		return line;
 	}
 	
 	/// Removes all invalid characters b ased on character_validation and allowed_characters
@@ -2787,7 +2813,11 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 		
 		if(text != '')
 		{
-			replace(text, true, 8);
+			const string replacement_text = text == '\n'
+				? text + get_line_indentation(get_line_at_index(_selection_start))
+				: text;
+			
+			replace(replacement_text, true, 8);
 			persist_caret();
 			return;
 		}
