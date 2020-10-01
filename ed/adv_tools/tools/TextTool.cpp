@@ -227,6 +227,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	void tool_deselect(Tool@ tool) override
 	{
 		select(null);
+		show_edit_button(null, true);
 	}
 	
 	void tool_step(Tool@ tool) override
@@ -243,15 +244,16 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 			}
 		}
 		
-		if(script.mouse.left_down || @selected_trigger != null && @entity_by_id(selected_trigger.id()) == null)
+		if(@selected_trigger != null && @entity_by_id(selected_trigger.id()) == null)
 		{
 			select(null);
+			show_edit_button(null, true);
 		}
 		
-		if(script.mouse.left_down || @hovered_trigger != null && @entity_by_id(hovered_trigger.id()) == null)
+		if(@hovered_trigger != null && @entity_by_id(hovered_trigger.id()) == null)
 		{
 			@hovered_trigger = null;
-			show_edit_button(null);
+			show_edit_button(null, true);
 		}
 		
 		if(@hovered_trigger != null)
@@ -325,15 +327,16 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		show_edit_button(closest);
 	}
 	
-	private void show_edit_button(entity@ e)
+	private void show_edit_button(entity@ e, const bool force=false)
 	{
 		if(@e == null)
 		{
 			if(@dummy_overlay == null || !dummy_overlay.visible)
 				return;
 			
-			if(@hovered_trigger == null || !dummy_overlay.check_mouse() || script.ui.is_mouse_over_ui && !popup.content_element.check_mouse())
+			if(force || @hovered_trigger == null || !dummy_overlay.check_mouse() || script.ui.is_mouse_over_ui && !popup.content_element.check_mouse())
 			{
+				
 				dummy_overlay.visible = false;
 				@hovered_trigger = null;
 				script.ui.hide_tooltip(popup);
