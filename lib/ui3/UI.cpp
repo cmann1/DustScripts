@@ -32,7 +32,7 @@
 #include 'layouts/flow/FlowLayout.cpp';
 #include 'window_manager/WindowManager.cpp';
 
-class UI : IKeyboardFocusListener
+class UI : IKeyboardFocusListener, IGenericEventTarget
 {
 	
 	int NEXT_ID;
@@ -57,6 +57,8 @@ class UI : IKeyboardFocusListener
 	Event mouse_press;
 	Event mouse_move;
 	Event mouse_release;
+	
+	Event clipboard_change;
 	
 	/// Triggered when the UI size changes.
 	/// This could be when set_region is called explicitly, or when the game window is resized and auto_fit_screen and hud is enabled.
@@ -162,81 +164,6 @@ class UI : IKeyboardFocusListener
 	private EventCallback@ on_colour_picker_change_callback;
 	private EventCallback@ on_colour_picker_accept_callback;
 	
-	void show_colour_picker(
-		const uint colour,
-		EventCallback@ on_colour_picker_change_callback,
-		EventCallback@ on_colour_picker_accept_callback,
-		const bool show_alpha=true,
-		const bool close_on_click_outside=true)
-	{
-		if(@colour_picker == null)
-		{
-			@colour_picker_window = Window(this, '', false, true);
-			colour_picker_window.name = '__ui_colour_picker__';
-			colour_picker_window.show_title_bar = false;
-			colour_picker_window.drag_anywhere = true;
-			colour_picker_window.close.on(EventCallback(on_colour_picker_accept));
-			add_child(colour_picker_window);
-			
-			@colour_picker = ColourPicker(this);
-			colour_picker.change.on(EventCallback(on_colour_picker_change));
-			colour_picker.accept.on(EventCallback(on_colour_picker_accept));
-			colour_picker_window.add_child(colour_picker);
-			
-			colour_picker_window.fit_to_contents(true);
-			colour_picker_window.centre();
-			
-			if(@window_manager != null)
-			{
-				window_manager.register_element(colour_picker_window);
-			}
-		}
-		
-		colour_picker.colour = colour;
-		colour_picker.previous_colour = colour;
-		colour_picker.show_alpha = show_alpha;
-		colour_picker_window.close_on_click_outside = close_on_click_outside;
-		colour_picker_window.fit_to_contents(true);
-		colour_picker.visible = true;
-		colour_picker.accept_on_keybaord = true;
-		
-		@this.on_colour_picker_change_callback = @on_colour_picker_change_callback;
-		@this.on_colour_picker_accept_callback = @on_colour_picker_accept_callback;
-		
-		move_to_front(colour_picker_window);
-		colour_picker_window.show();
-	}
-	
-	void hide_colour_picker()
-	{
-		@on_colour_picker_change_callback = null;
-		@on_colour_picker_accept_callback = null;
-		
-		colour_picker.accept_on_keybaord = false;
-		
-		colour_picker_window.hide();
-	}
-	
-	private void on_colour_picker_change(EventInfo@ event)
-	{
-		if(@on_colour_picker_change_callback != null)
-		{
-			@event.target = colour_picker;
-			on_colour_picker_change_callback(event);
-		}
-	}
-	
-	private void on_colour_picker_accept(EventInfo@ event)
-	{
-		if(@on_colour_picker_accept_callback != null)
-		{
-			@event.target = colour_picker;
-			on_colour_picker_accept_callback(event);
-		}
-		
-		hide_colour_picker();
-	}
-	
 	// ///////////////////////////////////////////////////////////////
 	// Common reusable things
 	
@@ -326,6 +253,8 @@ class UI : IKeyboardFocusListener
 			fit_to_screen_internal();
 		}
 	}
+	
+	string name { get const { return 'UI'; } }
 	
 	/// The top most element the mouse is over
 	Element@ mouse_over_element { get { return @_mouse_over_element; } }
@@ -477,7 +406,11 @@ class UI : IKeyboardFocusListener
 	string clipboard
 	{
 		get const { return _clipboard; }
-		set { _clipboard = value; }
+		set
+		{
+			_clipboard = value;
+			_dispatch_event(@clipboard_change, EventType::CHANGE, this, _clipboard);
+		}
 	}
 	
 	bool add_child(Element@ child)
@@ -749,6 +682,8 @@ class UI : IKeyboardFocusListener
 	
 	float screen_height { get const{ return _screen_height; } }
 	
+	// Util
+	
 	void fit_to_screen()
 	{
 		fit_to_screen_internal();
@@ -862,6 +797,86 @@ class UI : IKeyboardFocusListener
 		return is_in_hierarchy;
 	}
 	
+	// ColourPicker
+	
+	void show_colour_picker(
+		const uint colour,
+		EventCallback@ on_colour_picker_change_callback,
+		EventCallback@ on_colour_picker_accept_callback,
+		const bool show_alpha=true,
+		const bool close_on_click_outside=true)
+	{
+		if(@colour_picker == null)
+		{
+			@colour_picker_window = Window(this, '', false, true);
+			colour_picker_window.name = '__ui_colour_picker__';
+			colour_picker_window.show_title_bar = false;
+			colour_picker_window.drag_anywhere = true;
+			colour_picker_window.close.on(EventCallback(on_colour_picker_accept));
+			add_child(colour_picker_window);
+			
+			@colour_picker = ColourPicker(this);
+			colour_picker.change.on(EventCallback(on_colour_picker_change));
+			colour_picker.accept.on(EventCallback(on_colour_picker_accept));
+			colour_picker_window.add_child(colour_picker);
+			
+			colour_picker_window.fit_to_contents(true);
+			colour_picker_window.centre();
+			
+			if(@window_manager != null)
+			{
+				window_manager.register_element(colour_picker_window);
+			}
+		}
+		
+		colour_picker.colour = colour;
+		colour_picker.previous_colour = colour;
+		colour_picker.show_alpha = show_alpha;
+		colour_picker_window.close_on_click_outside = close_on_click_outside;
+		colour_picker_window.fit_to_contents(true);
+		colour_picker.visible = true;
+		colour_picker.accept_on_keybaord = true;
+		
+		@this.on_colour_picker_change_callback = @on_colour_picker_change_callback;
+		@this.on_colour_picker_accept_callback = @on_colour_picker_accept_callback;
+		
+		move_to_front(colour_picker_window);
+		colour_picker_window.show();
+	}
+	
+	void hide_colour_picker()
+	{
+		@on_colour_picker_change_callback = null;
+		@on_colour_picker_accept_callback = null;
+		
+		colour_picker.accept_on_keybaord = false;
+		
+		colour_picker_window.hide();
+	}
+	
+	private void on_colour_picker_change(EventInfo@ event)
+	{
+		if(@on_colour_picker_change_callback != null)
+		{
+			@event.target = colour_picker;
+			on_colour_picker_change_callback(event);
+		}
+	}
+	
+	private void on_colour_picker_accept(EventInfo@ event)
+	{
+		if(@on_colour_picker_accept_callback != null)
+		{
+			@event.target = colour_picker;
+			on_colour_picker_accept_callback(event);
+		}
+		
+		hide_colour_picker();
+	}
+	
+	
+	// Layer Selector
+	
 	/// Shows a layer selection popup. If target is null, will be displayed at the current mouse position.
 	/// The returned LayerSelector can be used to adjust the layer selector properties.
 	LayerSelector@ pick_layer(Element@ target, EventCallback@ callback, EventCallback@ close_callback=null,
@@ -931,6 +946,8 @@ class UI : IKeyboardFocusListener
 	{
 		close_layer_selector_on_select = auto_close;
 	}
+	
+	// Other
 	
 	/// Make sure to setup a Debug instance before calling this
 	void debug_draw(bool just_outline=false, bool show_ids=false, bool show_element_data=true, const float id_scale=1)
