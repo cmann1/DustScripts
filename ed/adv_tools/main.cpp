@@ -203,7 +203,7 @@ class AdvToolScript
 		add_tool(Tool('Camera')			.set_icon('editor',  'cameraicon'));
 		add_tool(Tool('Emitters')		.set_icon('editor',  'emittericon'));
 		add_tool(Tool('Level Settings')	.set_icon('editor',  'settingsicon'));
-		add_tool(Tool('Scripts')		.set_icon('dustmod', 'scripticon'));
+		add_tool(Tool('Scripts')		.set_icon('dustmod', 'scripticon').init_shortcut_key(VK::S));
 		add_tool(HelpTool('Help')		.set_icon('editor',  'helpicon'));
 		
 		// Custom
@@ -392,6 +392,12 @@ class AdvToolScript
 		return closest;
 	}
 	
+	void hide_gui(const bool hide=true)
+	{
+		editor.hide_gui(hide);
+		position_toolbar();
+	}
+	
 	BoolSetting@ get_bool(Tool@ tool, const string name, const bool default_value=false)
 	{
 		const string key = tool.name + '.bool.' + name;
@@ -517,8 +523,8 @@ class AdvToolScript
 	{
 		toolbar.x = (ui.region_width - toolbar.width) * 0.5;
 //		toolbar.y = ui.region_height - toolbar.height;
-//		toolbar.y = 60;
-		toolbar.y = 0;
+		toolbar.y = editor.hide_gui() ? 0 : 60;
+//		toolbar.y = 0;
 	}
 	
 	// ///////////////////////////////////////////

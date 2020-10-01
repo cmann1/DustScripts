@@ -84,12 +84,12 @@ class PropTool : Tool
 	
 	protected void on_select_impl()
 	{
-		script.editor.hide_gui(true);
+		script.hide_gui(true);
 	}
 	
 	void on_deselect_impl()
 	{
-		script.editor.hide_gui(false);
+		script.hide_gui(false);
 		
 		select_none();
 		state = Idle;

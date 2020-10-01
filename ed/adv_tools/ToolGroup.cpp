@@ -30,7 +30,7 @@ class ToolGroup
 		this.name = name;
 		@this.button_group = button_group;
 		
-		@button = create_button(name, '', '');
+		@button = create_button(name, -1, '', '');
 		button.mouse_enter.on(EventCallback(on_button_enter));
 		
 		@icon = cast<Image@>(button.content);
@@ -61,7 +61,7 @@ class ToolGroup
 		}
 	}
 	
-	Button@ create_button(const string name,
+	Button@ create_button(const string name, const int shortcut_key,
 		const string sprite_set, const string sprite_name,
 		const float width=-1, const float height=-1,
 		const float offset_x=0, const float offset_y=0)
@@ -75,7 +75,7 @@ class ToolGroup
 		button.selectable = true;
 		button.fit_to_contents();
 		@button.group = button_group;
-		@button.tooltip = PopupOptions(script.ui, name, false, PopupPosition::Below);
+		@button.tooltip = PopupOptions(script.ui, get_tooltip(name, shortcut_key), false, PopupPosition::Below);
 		
 		return button;
 	}
@@ -113,7 +113,7 @@ class ToolGroup
 	{
 		@current_tool = tool;
 		
-		button.tooltip.content_string = tool.name;
+		button.tooltip.content_string = get_tooltip(tool.name, tool.shortcut_key);
 		button.name = tool.name;
 		
 		icon.set_sprite(tool.icon_sprite_set, tool.icon_sprite_name, tool.icon_width, tool.icon_height, tool.icon_offset_x, tool.icon_offset_y);
@@ -162,7 +162,7 @@ class ToolGroup
 		if(!tool.selectable)
 			return;
 		
-		@tool.toolbar_button = create_button(tool.name,
+		@tool.toolbar_button = create_button(tool.name, tool.shortcut_key,
 			tool.icon_sprite_set, tool.icon_sprite_name, tool.icon_width, tool.icon_height,
 			tool.icon_offset_x, tool.icon_offset_y);
 		popup_content.add_child(tool.toolbar_button);
@@ -190,6 +190,17 @@ class ToolGroup
 		}
 		
 		popup_content.fit_to_contents(true);
+	}
+	
+	private string get_tooltip(const string name, const int shortcut_key)
+	{
+		if(shortcut_key == -1)
+			return name;
+		
+		string s = ' ';
+		s[0] = shortcut_key;
+		
+		return name + ' [' + s + ']';
 	}
 	
 	// //////////////////////////////////////////////////////////
