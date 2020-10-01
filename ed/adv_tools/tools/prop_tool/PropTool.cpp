@@ -257,7 +257,7 @@ class PropTool : Tool
 			@pressed_prop = null;
 		}
 		
-		if(mouse.scroll != 0)
+		if(mouse.scroll != 0 && (script.ctrl || script.alt))
 		{
 			PropData@ prop_data = null;
 			float x1, y1, x2, y2;
@@ -291,6 +291,24 @@ class PropTool : Tool
 					x1, y1, x2, y2,
 					prop_data.prop.layer() + '.' + prop_data.prop.sub_layer(), 0.75);
 			}
+		}
+		
+		if(script.editor.key_check_gvb(GVB::Delete))
+		{
+			for(int i = 0; i < selected_props_count; i++)
+			{
+				script.g.remove_prop(selected_props[i].prop);
+			}
+			
+			select_none();
+		}
+		
+		if(@hovered_prop != null && mouse.right_press)
+		{
+			script.g.remove_prop(hovered_prop.prop);
+			hovered_prop.hovered = false;
+			hovered_prop.selected = false;
+			@hovered_prop = null;
 		}
 		
 		clear_highlighted_props();
