@@ -439,7 +439,7 @@ class PropTool : Tool
 		if(selected_props_count == 1 && temporary_selection)
 		{
 			selection_layer = hovered_prop.prop.layer();
-			selection_angle = 0;
+			selection_angle = hovered_prop.prop.rotation() * DEG2RAD;
 		}
 		
 		selection_drag_start_angle = selection_angle;
@@ -559,6 +559,7 @@ class PropTool : Tool
 		script.transform(mouse.x, mouse.y, 22, selection_layer, mouse_x, mouse_y);
 		const float angle = atan2(selection_y - mouse_y, selection_x - mouse_x);
 		selection_angle = angle - drag_offset_angle;
+		snap(selection_angle, selection_angle);
 		
 		for(int i = 0; i < selected_props_count; i++)
 		{
@@ -1032,7 +1033,7 @@ class PropTool : Tool
 	}
 	
 	// //////////////////////////////////////////////////////////
-	// Selection
+	// Other
 	// //////////////////////////////////////////////////////////
 	
 	private void snap(const float x, const float y, float &out out_x, float &out out_y)
@@ -1051,19 +1052,44 @@ class PropTool : Tool
 		}
 	}
 	
+	void snap(const float angle, float &out out_angle)
+	{
+		const float snap = get_snap_angle() * DEG2RAD;
+		
+		if(snap != 0)
+		{
+			out_angle = round(angle / snap) * snap;
+		}
+		else
+		{
+			out_angle = angle;
+		}
+	}
+	
 	private float get_snap_size()
 	{
 		if(script.shift)
 			return 48;
 		
-		if(script.ctrl && script.alt)
-			return 5;
-		
 		if(script.ctrl)
 			return 24;
 		
 		if(script.alt)
-			return 1;
+			return 5;
+		
+		return 0;
+	}
+	
+	private float get_snap_angle()
+	{
+		if(script.shift)
+			return 45;
+		
+		if(script.ctrl)
+			return 22.5;
+		
+		if(script.alt)
+			return 5;
 		
 		return 0;
 	}
