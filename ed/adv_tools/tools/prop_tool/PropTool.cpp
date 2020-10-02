@@ -63,6 +63,11 @@ class PropTool : Tool
 	private float selection_drag_start_x, selection_drag_start_y;
 	private float selection_drag_start_angle;
 	
+	private bool has_custom_anchor;
+	private int custom_anchor_layer = 19;
+	private float custom_anchor_x, custom_anchor_y;
+	private float custom_anchor_offset_x, custom_anchor_offset_y;
+	
 	// UI
 	
 	private Toolbar@ toolbar;
@@ -142,6 +147,8 @@ class PropTool : Tool
 		
 		create_ui();
 		script.ui.add_child(toolbar);
+		
+		has_custom_anchor = false;
 	}
 	
 	void on_deselect_impl()
@@ -218,54 +225,37 @@ class PropTool : Tool
 			
 			if(selected_props_count > 0 && !temporary_selection)
 			{
-				float sx, sy, sx1, sy1, sx2, sy2;
-				float x1, y1, x2, y2, x3, y3, x4, y4;
-				script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
-				script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
-				script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
-				rotate(sx1, sy1, selection_angle, x1, y1);
-				rotate(sx2, sy1, selection_angle, x2, y2);
-				rotate(sx2, sy2, selection_angle, x3, y3);
-				rotate(sx1, sy2, selection_angle, x4, y4);
-				x1 += sx;
-				y1 += sy;
-				x2 += sx;
-				y2 += sy;
-				x3 += sx;
-				y3 += sy;
-				x4 += sx;
-				y4 += sy;
-				
-				const float thickness = PropToolSettings::BoundingBoxLineWidth / script.zoom;
-				
-				draw_line(script.g, 22, 22, x1, y1, x2, y2, thickness, PropToolSettings::BoundingBoxColour);
-				draw_line(script.g, 22, 22, x2, y2, x3, y3, thickness, PropToolSettings::BoundingBoxColour);
-				draw_line(script.g, 22, 22, x3, y3, x4, y4, thickness, PropToolSettings::BoundingBoxColour);
-				draw_line(script.g, 22, 22, x4, y4, x1, y1, thickness, PropToolSettings::BoundingBoxColour);
-				const float mx = (x1 + x2) * 0.5;
-				const float my = (y1 + y2) * 0.5;
-				
-				const float nx = cos(selection_angle - HALF_PI);
-				const float ny = sin(selection_angle - HALF_PI);
-				const float oh = (PropToolSettings::RotationHandleOffset - PropToolSettings::RotateHandleSize) / script.zoom;
-				
-				draw_line(script.g, 22, 22,
-					mx, my,
-					mx + nx * oh, my + ny * oh,
-					PropToolSettings::BoundingBoxLineWidth / script.zoom, PropToolSettings::BoundingBoxColour);
+				draw_selection_bounding_box();
 			}
 		}
 		
 		// Anchor points
 		
-		if(highlight && selected_props_count > 0)
+		if(highlight && !has_custom_anchor && selected_props_count > 0)
 		{
 			draw_rotation_anchor(selection_x, selection_y, selection_layer);
 		}
 		
-		if(highlight && @hovered_prop != null && !hovered_prop.selected)
+		if(highlight && !has_custom_anchor && @hovered_prop != null && !hovered_prop.selected)
 		{
 			draw_rotation_anchor(hovered_prop.anchor_x, hovered_prop.anchor_y, hovered_prop.prop.layer());
+		}
+		
+		if(has_custom_anchor)
+		{
+			draw_rotation_anchor(custom_anchor_x, custom_anchor_y, custom_anchor_layer, true);
+			
+			if(selected_props_count > 0 && !is_same_parallax(custom_anchor_layer, selection_layer))
+			{
+				const uint clr = multiply_alpha(PropToolSettings::BoundingBoxColour, 0.5);
+				float x1, y1, x2, y2;
+				
+				script.transform(custom_anchor_x, custom_anchor_y, custom_anchor_layer, 22, x1, y1);
+				script.transform(custom_anchor_x, custom_anchor_y, selection_layer, 22, x2, y2);
+				
+				draw_line(script.g, 22, 22, x1, y1, x2, y2, 1 / script.zoom, clr);
+				draw_rotation_anchor(custom_anchor_x, custom_anchor_y, selection_layer, true, 1, clr);
+			}
 		}
 		
 		// Selection rect
@@ -283,16 +273,64 @@ class PropTool : Tool
 		}
 	}
 	
-	private void draw_rotation_anchor(float x, float y, const int from_layer)
+	private void draw_selection_bounding_box()
+	{
+		float sx, sy, sx1, sy1, sx2, sy2;
+		float x1, y1, x2, y2, x3, y3, x4, y4;
+		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
+		script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
+		script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
+		
+		rotate(sx1, sy1, selection_angle, x1, y1);
+		rotate(sx2, sy1, selection_angle, x2, y2);
+		rotate(sx2, sy2, selection_angle, x3, y3);
+		rotate(sx1, sy2, selection_angle, x4, y4);
+		
+		x1 += sx;
+		y1 += sy;
+		x2 += sx;
+		y2 += sy;
+		x3 += sx;
+		y3 += sy;
+		x4 += sx;
+		y4 += sy;
+		
+		const float thickness = PropToolSettings::BoundingBoxLineWidth / script.zoom;
+		
+		draw_line(script.g, 22, 22, x1, y1, x2, y2, thickness, PropToolSettings::BoundingBoxColour);
+		draw_line(script.g, 22, 22, x2, y2, x3, y3, thickness, PropToolSettings::BoundingBoxColour);
+		draw_line(script.g, 22, 22, x3, y3, x4, y4, thickness, PropToolSettings::BoundingBoxColour);
+		draw_line(script.g, 22, 22, x4, y4, x1, y1, thickness, PropToolSettings::BoundingBoxColour);
+		const float mx = (x1 + x2) * 0.5;
+		const float my = (y1 + y2) * 0.5;
+		
+		const float nx = cos(selection_angle - HALF_PI);
+		const float ny = sin(selection_angle - HALF_PI);
+		const float oh = (PropToolSettings::RotationHandleOffset - PropToolSettings::RotateHandleSize) / script.zoom;
+		
+		draw_line(script.g, 22, 22,
+			mx, my,
+			mx + nx * oh, my + ny * oh,
+			PropToolSettings::BoundingBoxLineWidth / script.zoom, PropToolSettings::BoundingBoxColour);
+	}
+	
+	private void draw_rotation_anchor(float x, float y, const int from_layer, const bool lock=false, const float size = 1.4, const uint clr=PropToolSettings::BoundingBoxColour)
 	{
 		script.transform(x, y, from_layer, 22, x, y);
 		
+		const float length = (!lock ? 5 : 8) * size / script.zoom;
+		
 		script.g.draw_rectangle_world(22, 22,
-			x - 5 / script.zoom, y - 1 / script.zoom,
-			x + 5 / script.zoom, y + 1 / script.zoom, 0, PropToolSettings::BoundingBoxColour);
+			x - length, y - 1 / script.zoom,
+			x + length, y + 1 / script.zoom, 0, clr);
 		script.g.draw_rectangle_world(22, 22,
-			x - 5 / script.zoom, y - 1 / script.zoom,
-			x + 5 / script.zoom, y + 1 / script.zoom, 90, PropToolSettings::BoundingBoxColour);
+			x - length, y - 1 / script.zoom,
+			x + length, y + 1 / script.zoom, 90, clr);
+		
+		if(lock)
+		{
+			draw_circle(script.g, x, y, 4 * size / script.zoom, 12, 22, 22, 1 / script.zoom, clr);
+		}
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -359,23 +397,56 @@ class PropTool : Tool
 		
 		// Start rotating from hovered prop
 		
-		if(@hovered_prop != null && mouse.middle_press)
+		if(@hovered_prop != null && !script.shift && !script.alt && mouse.middle_press)
 		{
 			drag_rotation_handle = false;
 			idle_start_rotating();
 			return;
 		}
 		
+		// Set or clear custom anchor position, or set custom anchor layer
+		
+		if(script.shift && mouse.scroll != 0 && has_custom_anchor)
+		{
+			adjust_custom_anchor_layer(mouse.scroll);
+			show_custom_anchor_info();
+		}
+		
+		if(mouse.middle_press)
+		{
+			if(script.shift)
+			{
+				if(!has_custom_anchor)
+				{
+					if(selected_props_count > 0)
+					{
+						custom_anchor_layer = selection_layer;
+					}
+					else if(@hovered_prop != null)
+					{
+						custom_anchor_layer = hovered_prop.prop.layer();
+					}
+				}
+				
+				script.transform(mouse.x, mouse.y, 22, custom_anchor_layer, custom_anchor_x, custom_anchor_y);
+				has_custom_anchor = true;
+			}
+			else if(script.alt)
+			{
+				has_custom_anchor = false;
+			}
+		}
+		
 		// Scroll hover index offset
 		
-		if(mouse.scroll != 0 && !script.space && !script.ctrl && !script.alt)
+		if(mouse.scroll != 0 && !script.space && !script.ctrl && !script.alt && !script.shift)
 		{
 			hover_index_offset -= mouse.scroll;
 		}
 		
 		// Adjust layer/sublayer
 		
-		if(mouse.scroll != 0 && (script.ctrl || script.alt))
+		if(mouse.scroll != 0 && (script.ctrl || script.alt) && !script.shift)
 		{
 			idle_adjust_layer();
 		}
@@ -452,14 +523,24 @@ class PropTool : Tool
 		
 		selection_drag_start_angle = selection_angle;
 		
+		const float anchor_x = has_custom_anchor ? custom_anchor_x : selection_x;
+		const float anchor_y = has_custom_anchor ? custom_anchor_y : selection_y;
+		const int anchor_layer = has_custom_anchor ? custom_anchor_layer : selection_layer;
+		
 		for(int i = 0; i < selected_props_count; i++)
 		{
-			selected_props[i].start_rotate(selection_x, selection_y, selection_angle * RAD2DEG);
+			selected_props[i].start_rotate(anchor_x, anchor_y, selection_angle * RAD2DEG);
 		}
 		
-		float mouse_x, mouse_y;
-		script.transform(mouse.x, mouse.y, 22, selection_layer, mouse_x, mouse_y);
-		drag_offset_angle = atan2(selection_y - mouse_y, selection_x - mouse_x) - selection_angle;
+		float x, y;
+		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
+		drag_offset_angle = atan2(anchor_y - y, anchor_x - x) - selection_angle;
+		
+		if(has_custom_anchor)
+		{
+			custom_anchor_offset_x = selection_x - custom_anchor_x;
+			custom_anchor_offset_y = selection_y - custom_anchor_y;
+		}
 		
 		clear_highlighted_props();
 		state = Rotating;
@@ -512,7 +593,7 @@ class PropTool : Tool
 	
 	private void state_moving()
 	{
-		if(script.space || script.escape_press || !mouse.left_down)
+		if(script.escape_press || !mouse.left_down)
 		{
 			if(script.escape_press)
 			{
@@ -579,15 +660,28 @@ class PropTool : Tool
 			return;
 		}
 		
-		float mouse_x, mouse_y;
-		script.transform(mouse.x, mouse.y, 22, selection_layer, mouse_x, mouse_y);
-		const float angle = atan2(selection_y - mouse_y, selection_x - mouse_x);
+		const float anchor_x = has_custom_anchor ? custom_anchor_x : selection_x;
+		const float anchor_y = has_custom_anchor ? custom_anchor_y : selection_y;
+		const int anchor_layer = has_custom_anchor ? custom_anchor_layer : selection_layer;
+		
+		float x, y;
+		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
+		const float angle = atan2(anchor_y - y, anchor_x - x);
 		selection_angle = angle - drag_offset_angle;
 		snap(selection_angle, selection_angle);
 		
 		for(int i = 0; i < selected_props_count; i++)
 		{
 			selected_props[i].do_rotation(selection_angle * RAD2DEG);
+		}
+		
+		if(has_custom_anchor)
+		{
+			float ax, ay;
+			script.transform(custom_anchor_x, custom_anchor_y, custom_anchor_layer, 22, x, y);
+			rotate(custom_anchor_offset_x, custom_anchor_offset_y, selection_angle - selection_drag_start_angle, ax, ay);
+			selection_x = custom_anchor_x + ax;
+			selection_y = custom_anchor_y + ay;
 		}
 		
 		if(!hide_selection_highlight.value || drag_rotation_handle)
@@ -707,6 +801,35 @@ class PropTool : Tool
 			PropToolSettings::RotateHandleSize, PropToolSettings::RotateHandleColour, PropToolSettings::RotateHandleHighlightColour, force_highlight);
 	}
 	
+	private void show_custom_anchor_info()
+	{
+		float x, y;
+		script.transform(custom_anchor_x, custom_anchor_y, custom_anchor_layer, 22, x, y);
+		
+		script.info_overlay.show(
+			x - 5 / script.zoom, y - 5 / script.zoom,
+			x + 5 / script.zoom, y + 5 / script.zoom,
+			'Custom Anchor Layer: ' + custom_anchor_layer, 0.75);
+	}
+	
+	private void adjust_custom_anchor_layer(int dir)
+	{
+		dir = sign(dir * 2 + 1);
+		
+		if(custom_anchor_layer >= 12)
+		{
+			custom_anchor_layer = dir == 1 ? 0 : 11;
+		}
+		else if(custom_anchor_layer == 0 && dir == -1 || custom_anchor_layer == 11 && dir == 1)
+		{
+			custom_anchor_layer = 19;
+		}
+		else
+		{
+			custom_anchor_layer = mod(custom_anchor_layer + mouse.scroll, 20);
+		}
+	}
+	
 	// //////////////////////////////////////////////////////////
 	// Selection
 	// //////////////////////////////////////////////////////////
@@ -751,6 +874,7 @@ class PropTool : Tool
 			
 			selection_layer = 0;
 			selection_angle = 0;
+			has_custom_anchor = false;
 		}
 		
 		if(
@@ -1106,7 +1230,7 @@ class PropTool : Tool
 		}
 	}
 	
-	void snap(const float angle, float &out out_angle)
+	private void snap(const float angle, float &out out_angle)
 	{
 		const float snap = get_snap_angle() * DEG2RAD;
 		
@@ -1146,6 +1270,11 @@ class PropTool : Tool
 			return 5;
 		
 		return 0;
+	}
+	
+	private bool is_same_parallax(const int layer1, const int layer2)
+	{
+		return layer1 >= 12 && layer2 >= 12 || layer1 == layer2;
 	}
 	
 }
