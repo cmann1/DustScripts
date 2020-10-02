@@ -107,7 +107,7 @@ class PropTool : Tool
 		
 		@hide_selection_highlight	= script.get_bool(this, 'hide_selection_highlight', true);
 		// TODO: REMOVE
-		hide_selection_highlight.value = false;
+		hide_selection_highlight.value = true;
 	}
 	
 	private void create_ui()
@@ -153,6 +153,7 @@ class PropTool : Tool
 		script.ui.add_child(toolbar);
 		
 		has_custom_anchor = false;
+		drag_rotation_handle = false;
 	}
 	
 	void on_deselect_impl()
@@ -216,7 +217,7 @@ class PropTool : Tool
 	{
 		const bool highlight = !performing_action || !hide_selection_highlight.value;
 		
-		if(highlight || drag_rotation_handle)
+		if(highlight)
 		{
 			// Highlights
 			
@@ -709,6 +710,7 @@ class PropTool : Tool
 				check_scale_handle();
 			}
 			
+			drag_rotation_handle = false;
 			clear_temporary_selection();
 			state = Idle;
 			return;
@@ -742,15 +744,8 @@ class PropTool : Tool
 			{
 				selected_props[i].update();
 			}
-		}
-		
-		if(!hide_selection_highlight.value || drag_rotation_handle)
-		{
+			
 			check_rotation_handle(true);
-		}
-		
-		if(!hide_selection_highlight.value)
-		{
 			check_scale_handle();
 		}
 	}
@@ -790,7 +785,6 @@ class PropTool : Tool
 		
 		if(has_custom_anchor)
 		{
-//			rotate(custom_anchor_offset_x, custom_anchor_offset_y, selection_angle, x, y);
 			selection_x = custom_anchor_x + custom_anchor_offset_x * scale;
 			selection_y = custom_anchor_y + custom_anchor_offset_y * scale;
 		}
