@@ -605,6 +605,9 @@ class PropTool : Tool
 				{
 					selected_props[i].cancel_drag();
 				}
+				
+				selection_x = selection_drag_start_x;
+				selection_y = selection_drag_start_y;
 			}
 			
 			clear_temporary_selection();
