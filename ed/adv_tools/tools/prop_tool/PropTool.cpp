@@ -465,9 +465,13 @@ class PropTool : Tool
 		
 		if(@hovered_prop != null && mouse.right_press)
 		{
+			if(hovered_prop.selected)
+			{
+				select_prop(hovered_prop, SelectAction::Remove);
+			}
+			
 			script.g.remove_prop(hovered_prop.prop);
 			hovered_prop.hovered = false;
-			hovered_prop.selected = false;
 			@hovered_prop = null;
 		}
 		
