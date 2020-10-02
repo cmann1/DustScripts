@@ -45,9 +45,8 @@ namespace PropToolSettings
 	
 	const float	RotationHandleOffset		= 18;
 	const float	RotateHandleSize			= 7;
-//	const uint RotateHandleColour			= 0xffd51756;
-//	const uint RotateHandleHighlightColour	= 0xffea3f78;
 	const uint RotateHandleColour			= 0xaaffffff;
 	const uint RotateHandleHighlightColour	= 0xaaea9c3f;
+	const float	ScaleHandleSize				= 5;
 	
 }

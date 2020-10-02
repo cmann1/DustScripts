@@ -18,6 +18,7 @@ class PropData
 	private float drag_start_x, drag_start_y;
 	private float rotate_start_angle;
 	private float rotate_offset_angle;
+	private float drag_start_scale_x, drag_start_scale_y;
 	
 	float anchor_x, anchor_y;
 	
@@ -55,9 +56,6 @@ class PropData
 		
 		align_x = 0.5;
 		align_y = 0.5;
-		
-		prop_scale_x = prop.scale_x();
-		prop_scale_y = prop.scale_y();
 		
 		update();
 		init_prop();
@@ -102,6 +100,8 @@ class PropData
 	
 	void update()
 	{
+		prop_scale_x = prop.scale_x();
+		prop_scale_y = prop.scale_y();
 		x = prop.x();
 		y = prop.y();
 		
@@ -192,7 +192,7 @@ class PropData
 		prop.y(y);
 	}
 	
-	void anchor_world(float world_x, float world_y, scene@ g=null)
+	void anchor_world(float world_x, float world_y)
 	{
 		const float scale_x = prop_scale_x / layer_scale * backdrop_scale;
 		const float scale_y = prop_scale_y / layer_scale * backdrop_scale;
@@ -272,11 +272,11 @@ class PropData
 	
 	void start_rotate(const float anchor_x, const float anchor_y, const float base_rotation)
 	{
-		drag_start_x = x;
-		drag_start_y = y;
 		rotate_start_angle = prop.rotation();
 		rotate_offset_angle = prop.rotation() - base_rotation;
 		anchor_world(anchor_x, anchor_y);
+		
+		start_drag();
 	}
 	
 	void do_rotation(const float angle)
@@ -289,6 +289,50 @@ class PropData
 		if(cancel)
 		{
 			prop.rotation(rotate_start_angle);
+			cancel_drag();
+		}
+		
+		align_x = 0.5;
+		align_y = 0.5;
+		init_anchors();
+		
+		update();
+	}
+	
+	//
+	
+	void start_scale(const float anchor_x, const float anchor_y)
+	{
+		drag_start_scale_x = prop.scale_x();
+		drag_start_scale_y = prop.scale_y();
+		anchor_world(anchor_x, anchor_y);
+		
+		start_drag();
+	}
+	
+	void do_scale(const float scale)
+	{
+		prop_scale_x = max(drag_start_scale_x * scale, 0.001);
+		prop_scale_y = max(drag_start_scale_y * scale, 0.001);
+		prop.scale_x(prop_scale_x);
+		prop.scale_y(prop_scale_y);
+		
+		float ox, oy;
+		rotate(prop_offset_x * scale, prop_offset_y * scale, prop.rotation() * DEG2RAD, ox, oy);
+		
+		x = anchor_x - ox;
+		y = anchor_y - oy;
+		
+		prop.x(x);
+		prop.y(y);
+	}
+	
+	void stop_scale(const bool cancel)
+	{
+		if(cancel)
+		{
+			prop.scale_x(drag_start_scale_x);
+			prop.scale_y(drag_start_scale_y);
 			cancel_drag();
 		}
 		

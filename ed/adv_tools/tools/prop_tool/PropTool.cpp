@@ -52,6 +52,10 @@ class PropTool : Tool
 	private float drag_start_x, drag_start_y;
 	private float drag_offset_angle;
 	private bool drag_rotation_handle;
+	private float drag_scale_start_distance;
+	private float drag_selection_x1, drag_selection_y1;
+	private float drag_selection_x2, drag_selection_y2;
+	
 	private int select_rect_pending;
 	private int action_layer;
 	
@@ -348,12 +352,23 @@ class PropTool : Tool
 		
 		@hovered_prop = null;
 		
+		const bool start_rotating = check_rotation_handle();
+		const bool start_scaling   = check_scale_handle();
+		
 		// Start rotating from handle
 		
-		if(check_rotation_handle())
+		if(start_rotating)
 		{
 			drag_rotation_handle = true;
 			idle_start_rotating();
+			return;
+		}
+		
+		// Start scaling from handle
+		
+		if(start_scaling)
+		{
+			idle_start_scaling();
 			return;
 		}
 		
@@ -550,6 +565,36 @@ class PropTool : Tool
 		state = Rotating;
 	}
 	
+	private void idle_start_scaling()
+	{
+		const float anchor_x = has_custom_anchor ? custom_anchor_x : selection_x;
+		const float anchor_y = has_custom_anchor ? custom_anchor_y : selection_y;
+		const int anchor_layer = has_custom_anchor ? custom_anchor_layer : selection_layer;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			selected_props[i].start_scale(anchor_x, anchor_y);
+		}
+		
+		drag_selection_x1 = selection_x1;
+		drag_selection_y1 = selection_y1;
+		drag_selection_x2 = selection_x2;
+		drag_selection_y2 = selection_y2;
+		
+		float x, y;
+		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
+		drag_scale_start_distance = distance(x, y, anchor_x, anchor_y);
+		
+		if(has_custom_anchor)
+		{
+			custom_anchor_offset_x = selection_x - custom_anchor_x;
+			custom_anchor_offset_y = selection_y - custom_anchor_y;
+		}
+		
+		clear_highlighted_props();
+		state = Scaling;
+	}
+	
 	private void idle_adjust_layer()
 	{
 		PropData@ prop_data = null;
@@ -640,6 +685,7 @@ class PropTool : Tool
 		if(!hide_selection_highlight.value)
 		{
 			check_rotation_handle();
+			check_scale_handle();
 		}
 	}
 	
@@ -657,9 +703,10 @@ class PropTool : Tool
 				selection_angle = selection_drag_start_angle;
 			}
 			
-			if(!temporary_selection)
+			if(!temporary_selection && !hide_selection_highlight.value)
 			{
 				check_rotation_handle();
+				check_scale_handle();
 			}
 			
 			clear_temporary_selection();
@@ -684,26 +731,85 @@ class PropTool : Tool
 		
 		if(has_custom_anchor)
 		{
-			float ax, ay;
-			script.transform(custom_anchor_x, custom_anchor_y, custom_anchor_layer, 22, x, y);
-			rotate(custom_anchor_offset_x, custom_anchor_offset_y, selection_angle - selection_drag_start_angle, ax, ay);
-			selection_x = custom_anchor_x + ax;
-			selection_y = custom_anchor_y + ay;
+			rotate(custom_anchor_offset_x, custom_anchor_offset_y, selection_angle - selection_drag_start_angle, x, y);
+			selection_x = custom_anchor_x + x;
+			selection_y = custom_anchor_y + y;
+		}
+		
+		if(!hide_selection_highlight.value)
+		{
+			for(int i = 0; i < selected_props_count; i++)
+			{
+				selected_props[i].update();
+			}
 		}
 		
 		if(!hide_selection_highlight.value || drag_rotation_handle)
+		{
+			check_rotation_handle(true);
+		}
+		
+		if(!hide_selection_highlight.value)
+		{
+			check_scale_handle();
+		}
+	}
+	
+	private void state_scaling()
+	{
+		if(script.space || script.escape_press || !mouse.left_down)
+		{
+			for(int i = 0; i < selected_props_count; i++)
+			{
+				selected_props[i].stop_scale(script.escape_press);
+			}
+			
+			if(!temporary_selection && !hide_selection_highlight.value)
+			{
+				check_rotation_handle();
+				check_scale_handle();
+			}
+			
+			clear_temporary_selection();
+			state = Idle;
+			return;
+		}
+		
+		const float anchor_x = has_custom_anchor ? custom_anchor_x : selection_x;
+		const float anchor_y = has_custom_anchor ? custom_anchor_y : selection_y;
+		const int anchor_layer = has_custom_anchor ? custom_anchor_layer : selection_layer;
+		
+		float x, y;
+		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
+		const float scale = distance(x, y, anchor_x, anchor_y) / drag_scale_start_distance;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			selected_props[i].do_scale(scale);
+		}
+		
+		if(has_custom_anchor)
+		{
+//			rotate(custom_anchor_offset_x, custom_anchor_offset_y, selection_angle, x, y);
+			selection_x = custom_anchor_x + custom_anchor_offset_x * scale;
+			selection_y = custom_anchor_y + custom_anchor_offset_y * scale;
+		}
+		
+		selection_x1 = drag_selection_x1 * scale;
+		selection_y1 = drag_selection_y1 * scale;
+		selection_x2 = drag_selection_x2 * scale;
+		selection_y2 = drag_selection_y2 * scale;
+		
+		if(!hide_selection_highlight.value)
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
 				selected_props[i].update();
 			}
 			
-			check_rotation_handle(true);
+			check_rotation_handle();
+			check_scale_handle(true);
 		}
-	}
-	
-	private void state_scaling()
-	{
 	}
 	
 	private void state_selecting()
@@ -769,29 +875,28 @@ class PropTool : Tool
 			}
 		}
 		
+		check_rotation_handle();
+		check_scale_handle();
+		
 		// Complete selection
 		
 		if(!mouse.left_down)
 		{
 			// Select
 			state = Idle;
-			return;
 		}
 	}
 	
 	//
 	
-	private bool check_rotation_handle(const bool force_highlight=false)
+	private void get_handle_position(const bool vertical, const float offset, float &out x, float &out y)
 	{
-		if(selected_props_count == 0 || temporary_selection)
-			return false;
-		
 		float sx, sy, sx1, sy1, sx2, sy2;
 		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
 		script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
 		script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
 		
-		const float height = (sy2 - sy1) * 0.5;
+		const float distance = (vertical ? (sy2 - sy1) : (sx2 - sx1)) * 0.5;
 		
 		if(selected_props_count == 1)
 		{
@@ -802,10 +907,37 @@ class PropTool : Tool
 			sy += s1y;
 		}
 		
+		const float angle = vertical ? selection_angle - HALF_PI : selection_angle;
+		
+		x = sx + cos(angle) * (distance + offset / script.zoom);
+		y = sy + sin(angle) * (distance + offset / script.zoom);
+	}
+	
+	private bool check_rotation_handle(const bool force_highlight=false)
+	{
+		if(selected_props_count == 0 || temporary_selection)
+			return false;
+		
+		float x, y;
+		get_handle_position(true, PropToolSettings::RotationHandleOffset, x, y);
+		
 		return script.handles.circle(
-			sx + cos(selection_angle - HALF_PI) * (height + PropToolSettings::RotationHandleOffset / script.zoom),
-			sy + sin(selection_angle - HALF_PI) * (height + PropToolSettings::RotationHandleOffset / script.zoom),
+			x, y,
 			PropToolSettings::RotateHandleSize, PropToolSettings::RotateHandleColour, PropToolSettings::RotateHandleHighlightColour, force_highlight);
+	}
+	
+	private bool check_scale_handle(const bool force_highlight=false)
+	{
+		if(selected_props_count == 0 || temporary_selection)
+			return false;
+		
+		float x, y;
+		get_handle_position(false, 0, x, y);
+		
+		return script.handles.square(
+			x, y,
+			PropToolSettings::ScaleHandleSize, selection_angle * RAD2DEG,
+			PropToolSettings::RotateHandleColour, PropToolSettings::RotateHandleHighlightColour, force_highlight);
 	}
 	
 	private void show_custom_anchor_info()
