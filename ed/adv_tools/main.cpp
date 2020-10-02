@@ -18,7 +18,7 @@
 #include '../../lib/ui3/elements/Toolbar.cpp';
 #include '../../lib/ui3/window_manager/WindowManager.cpp';
 
-#include 'ToolGroup.cpp';
+#include 'handles/Handles.cpp';
 #include 'misc/InfoOverlay.cpp';
 #include 'misc/ToolListenerInterfaces.cpp';
 #include 'settings/Settings.cpp';
@@ -26,6 +26,7 @@
 #include 'tools/TextTool.cpp';
 #include 'tools/ExtendedTriggerTool.cpp';
 #include 'tools/HelpTool.cpp';
+#include 'ToolGroup.cpp';
 
 const string SCRIPT_BASE			= 'ed/adv_tools/';
 const string SPRITES_BASE			= SCRIPT_BASE + 'sprites/';
@@ -41,6 +42,7 @@ class AdvToolScript
 	camera@ cam;
 	UI@ ui = UI(true);
 	Mouse mouse(false);
+	Handles handles;
 	Debug debug();
 	Line line;
 	sprites@ editor_spr;
@@ -133,6 +135,7 @@ class AdvToolScript
 		select_tool(editor.editor_tab());
 		
 		info_overlay.init(this);
+		handles.init(this);
 	}
 	
 	private void initialise_settings()
@@ -257,6 +260,7 @@ class AdvToolScript
 //		debug.print('selected_tab: ' + new_tab, 'selected_tab');
 //		debug.print('selected_tool: ' + selected_tool.name, 'selected_tool');
 		
+		handles.step();
 		mouse.step(ui.is_mouse_over_ui || editor.mouse_in_gui());
 		
 		ctrl	= editor.key_check_gvb(GVB::Control);
@@ -330,6 +334,7 @@ class AdvToolScript
 			selected_tool.draw(sub_frame);
 		}
 		
+		handles.draw();
 		ui.draw();
 		
 		if(debug_ui)

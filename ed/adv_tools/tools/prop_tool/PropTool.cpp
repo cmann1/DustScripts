@@ -51,6 +51,7 @@ class PropTool : Tool
 	
 	private float drag_start_x, drag_start_y;
 	private float drag_offset_angle;
+	private bool drag_rotation_handle;
 	private int select_rect_pending;
 	private int action_layer;
 	
@@ -204,7 +205,7 @@ class PropTool : Tool
 	{
 		const bool highlight = !performing_action || !hide_selection_highlight.value;
 		
-		if(highlight)
+		if(highlight || drag_rotation_handle)
 		{
 			// Highlights
 			
@@ -246,15 +247,12 @@ class PropTool : Tool
 				
 				const float nx = cos(selection_angle - HALF_PI);
 				const float ny = sin(selection_angle - HALF_PI);
-				const float oh = 18 / script.zoom;
+				const float oh = PropToolSettings::RotationHandleOffset / script.zoom;
 				
 				draw_line(script.g, 22, 22,
 					mx, my,
 					mx + nx * oh, my + ny * oh,
 					PropToolSettings::BoundingBoxLineWidth / script.zoom, PropToolSettings::BoundingBoxColour);
-				fill_circle(script.g, 22, 22,
-					mx + nx * oh, my + ny * oh,
-					7 / script.zoom, 12, PropToolSettings::RotateHandleColour, PropToolSettings::RotateHandleColour);
 			}
 		}
 		
@@ -312,6 +310,15 @@ class PropTool : Tool
 		
 		@hovered_prop = null;
 		
+		// Start rotating from handle
+		
+		if(check_rotation_handle())
+		{
+			drag_rotation_handle = true;
+			idle_start_rotating();
+			return;
+		}
+		
 		// Start dragging selection
 		
 		if(script.alt && mouse.left_press)
@@ -340,7 +347,7 @@ class PropTool : Tool
 		
 		// Pick props
 		
-		if(!script.space)
+		if(!script.space && !script.handles.mouse_over && !script.ui.is_mouse_over_ui)
 		{
 			pick_props();
 			do_mouse_selection();
@@ -350,19 +357,20 @@ class PropTool : Tool
 			@pressed_prop = null;
 		}
 		
+		// Start rotating from hovered prop
+		
+		if(@hovered_prop != null && mouse.middle_press)
+		{
+			drag_rotation_handle = false;
+			idle_start_rotating();
+			return;
+		}
+		
 		// Scroll hover index offset
 		
 		if(mouse.scroll != 0 && !script.space && !script.ctrl && !script.alt)
 		{
 			hover_index_offset -= mouse.scroll;
-		}
-		
-		// Start rotating
-		
-		if(@hovered_prop != null && mouse.middle_press)
-		{
-			idle_start_rotating();
-			return;
 		}
 		
 		// Adjust layer/sublayer
@@ -429,7 +437,7 @@ class PropTool : Tool
 	
 	private void idle_start_rotating()
 	{
-		if(!hovered_prop.selected)
+		if(!drag_rotation_handle && !hovered_prop.selected)
 		{
 			select_prop(hovered_prop, SelectAction::Set);
 			clear_highlighted_props();
@@ -497,6 +505,7 @@ class PropTool : Tool
 			show_prop_info(hovered_prop);
 		}
 		
+		selection_angle = 0;
 		update_selection_bounds();
 		update_selection_layer();
 	}
@@ -514,6 +523,11 @@ class PropTool : Tool
 			}
 			
 			clear_temporary_selection();
+			
+			if(!hide_selection_highlight.value)
+			{
+				check_rotation_handle();
+			}
 			
 			state = Idle;
 			return;
@@ -534,11 +548,16 @@ class PropTool : Tool
 		
 		selection_x = selection_drag_start_x + drag_delta_x;
 		selection_y = selection_drag_start_y + drag_delta_y;
+		
+		if(!hide_selection_highlight.value)
+		{
+			check_rotation_handle();
+		}
 	}
 	
 	private void state_rotating()
 	{
-		if(script.space || script.escape_press || !mouse.middle_down)
+		if(script.space || script.escape_press || (drag_rotation_handle ? !mouse.left_down : !mouse.middle_down))
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
@@ -548,6 +567,11 @@ class PropTool : Tool
 			if(script.escape_press)
 			{
 				selection_angle = selection_drag_start_angle;
+			}
+			
+			if(!temporary_selection)
+			{
+				check_rotation_handle();
 			}
 			
 			clear_temporary_selection();
@@ -566,12 +590,14 @@ class PropTool : Tool
 			selected_props[i].do_rotation(selection_angle * RAD2DEG);
 		}
 		
-		if(!hide_selection_highlight.value)
+		if(!hide_selection_highlight.value || drag_rotation_handle)
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
 				selected_props[i].update();
 			}
+			
+			check_rotation_handle(true);
 		}
 	}
 	
@@ -650,6 +676,32 @@ class PropTool : Tool
 			state = Idle;
 			return;
 		}
+	}
+	
+	//
+	
+	private bool check_rotation_handle(const bool force_highlight=false)
+	{
+		if(selected_props_count == 0 || temporary_selection)
+			return false;
+		
+		float sx, sy, sx1, sy1, sx2, sy2;
+		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
+		script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
+		script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
+		
+		const float height = (sy2 - sy1) * 0.5;
+		
+		if(selected_props_count == 1)
+		{
+			sx = (sx + sx1 + sx + sx2) * 0.5;
+			sy = (sy + sy1 + sy + sy2) * 0.5;
+		}
+		
+		return script.handles.circle(
+			sx + cos(selection_angle - HALF_PI) * (height + PropToolSettings::RotationHandleOffset / script.zoom),
+			sy + sin(selection_angle - HALF_PI) * (height + PropToolSettings::RotationHandleOffset / script.zoom),
+			PropToolSettings::RotateHandleSize, PropToolSettings::RotateHandleColour, PropToolSettings::RotateHandleHighlightColour, force_highlight);
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -850,7 +902,6 @@ class PropTool : Tool
 		return prop_data;
 	}
 	
-	/// Return PropData that is no longer higlighted to the pool
 	private void clear_highlighted_props(const bool clear_pending=false)
 	{
 		for(int i = highlighted_props_count - 1; i >= 0; i--)
