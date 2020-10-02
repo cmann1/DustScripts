@@ -49,4 +49,14 @@ prop@ create_prop(uint set, uint group, uint index, float x=0, float y=0, int la
 	return p;
 }
 
-
+float get_valid_prop_scale(const float scale)
+{
+	int scale_lg = int(round(log(scale) / log(50.0) * 24.0)) + 32;
+	int x_scale = (scale_lg / 7) ^ 0x4;
+	int y_scale = (scale_lg % 7) ^ 0x4;
+	x_scale = (x_scale & 0x7) ^ 0x4;
+	y_scale = (y_scale & 0x7) ^ 0x4;
+	scale_lg = x_scale * 7 + y_scale;
+	
+	return pow(50.0, (scale_lg - 32.0) / 24.0);
+}
