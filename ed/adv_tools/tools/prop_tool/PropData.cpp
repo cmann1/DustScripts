@@ -10,12 +10,16 @@ class PropData
 	
 	const array<array<float>>@ outline;
 	
-	float collision_x, collision_y;
+	float draw_x, draw_y;
 	float x, y;
 	float x1, y1;
 	float x2, y2;
 	
-	float drag_start_x, drag_start_y;
+	private float drag_start_x, drag_start_y;
+	private float rotate_start_angle;
+	private float rotate_offset_angle;
+	
+	float anchor_x, anchor_y;
 	
 	private sprites@ spr;
 	
@@ -31,7 +35,6 @@ class PropData
 	private float prop_width, prop_height;
 	private float prop_offset_x, prop_offset_y;
 	private float prop_scale_x, prop_scale_y;
-	private float anchor_x, anchor_y;
 	
 	private int lines_size = 32;
 	private int lines_count;
@@ -62,7 +65,7 @@ class PropData
 	
 	void step()
 	{
-		transform_layer_position(script.g, script.view_x, script.view_y, this.x, this.y, prop.layer(), 22, collision_x, collision_y);
+		transform_layer_position(script.g, script.view_x, script.view_y, this.x, this.y, prop.layer(), 22, draw_x, draw_y);
 	}
 	
 	void draw()
@@ -71,7 +74,7 @@ class PropData
 			return;
 		
 		spr.draw_world(22, 22, sprite_name, 0, prop.palette(),
-			collision_x, collision_y, prop.rotation(),
+			draw_x, draw_y, prop.rotation(),
 			draw_scale_x, draw_scale_y,
 			pending == 1 ? PropToolSettings::PendingAddOverlayColour : pending == -1 ? PropToolSettings::PendingRemoveOverlayColour
 				: hovered
@@ -90,8 +93,8 @@ class PropData
 		for(int i = lines_count - 4; i >= 0; i -= 4)
 		{
 			script.g.draw_rectangle_world(22, 22,
-				collision_x + lines[i] - width, collision_y + lines[i + 1] - lines[i + 2] * 0.5,
-				collision_x + lines[i] + width, collision_y + lines[i + 1] + lines[i + 2] * 0.5,
+				draw_x + lines[i] - width, draw_y + lines[i + 1] - lines[i + 2] * 0.5,
+				draw_x + lines[i] + width, draw_y + lines[i + 1] + lines[i + 2] * 0.5,
 				lines[i + 3],
 				colour);
 		}
@@ -102,7 +105,7 @@ class PropData
 		x = prop.x();
 		y = prop.y();
 		
-		transform_layer_position(script.g, script.view_x, script.view_y, this.x, this.y, prop.layer(), 22, collision_x, collision_y);
+		transform_layer_position(script.g, script.view_x, script.view_y, this.x, this.y, prop.layer(), 22, draw_x, draw_y);
 		
 		angle = prop.rotation() * DEG2RAD * sign(prop_scale_x) * sign(prop_scale_y);
 		layer_scale = prop.layer() <= 5 ? script.g.layer_scale(prop.layer()) : 1.0;
@@ -112,8 +115,8 @@ class PropData
 		const float cos_angle = cos(angle);
 		const float sin_angle = sin(angle);
 		
-		draw_scale_x = prop_scale_x / layer_scale * backdrop_scale * draw_scale;
-		draw_scale_y = prop_scale_y / layer_scale * backdrop_scale * draw_scale;
+		draw_scale_x = prop_scale_x / layer_scale * backdrop_scale;
+		draw_scale_y = prop_scale_y / layer_scale * backdrop_scale;
 		
 		lines_count = 0;
 		
@@ -141,6 +144,9 @@ class PropData
 				y1 = y2 = prev_y;
 			}
 			
+			prev_x *= draw_scale;
+			prev_y *= draw_scale;
+			
 			for(int j = 0, k = count - 2; j < count; k = j, j += 2)
 			{
 				p_x = path[j];
@@ -148,6 +154,14 @@ class PropData
 				
 				float x = (cos_angle * p_x - sin_angle * p_y) * draw_scale_x;
 				float y = (sin_angle * p_x + cos_angle * p_y) * draw_scale_y;
+				
+				if(x < x1) x1 = x;
+				if(x > x2) x2 = x;
+				if(y < y1) y1 = y;
+				if(y > y2) y2 = y;
+				
+				x *= draw_scale;
+				y *= draw_scale;
 				const float dx = x - prev_x;
 				const float dy = y - prev_y;
 				
@@ -158,13 +172,11 @@ class PropData
 				
 				prev_x = x;
 				prev_y = y;
-				
-				if(x < x1) x1 = x;
-				if(x > x2) x2 = x;
-				if(y < y1) y1 = y;
-				if(y > y2) y2 = y;
 			}
 		}
+		
+		draw_scale_x *= draw_scale;
+		draw_scale_y *= draw_scale;
 	}
 	
 	void set_prop_rotation(const float rotation)
@@ -172,43 +184,24 @@ class PropData
 		float ox, oy;
 		rotate(prop_offset_x, prop_offset_y, rotation * DEG2RAD, ox, oy);
 		
-		prop.rotation(rotation);
-		prop.x(anchor_x - ox);
-		prop.y(anchor_y - oy);
+		x = anchor_x - ox;
+		y = anchor_y - oy;
+		
+		prop.rotation(rotation % 360);
+		prop.x(x);
+		prop.y(y);
 	}
 	
 	void anchor_world(float world_x, float world_y, scene@ g=null)
 	{
-		rotate(world_x - x, world_y - y, -prop.rotation() * DEG2RAD, world_x, world_y);
+		const float scale_x = prop_scale_x / layer_scale * backdrop_scale;
+		const float scale_y = prop_scale_y / layer_scale * backdrop_scale;
 		
-		align_x = (world_x - prop_left) / prop_width;
-		align_y = (world_y - prop_top)  / prop_height;
+		rotate(world_x - x, world_y - y, -prop.rotation() * DEG2RAD, world_x, world_y);
+		align_x = (world_x - prop_left * scale_x) / (prop_width * scale_x);
+		align_y = (world_y - prop_top * scale_y)  / (prop_height * scale_y);
 		
 		init_anchors();
-	}
-	
-	void start_drag()
-	{
-		drag_start_x = x;
-		drag_start_y = y;
-	}
-	
-	void do_drag(const float drag_delta_x, const float drag_delta_y)
-	{
-		x = drag_start_x + drag_delta_x;
-		y = drag_start_y + drag_delta_y;
-		
-		prop.x(x);
-		prop.y(y);
-	}
-	
-	void cancel_drag()
-	{
-		x = drag_start_x;
-		y = drag_start_y;
-		
-		prop.x(x);
-		prop.y(y);
 	}
 	
 	void shift_layer(const int dir, const bool sublayer=false)
@@ -242,8 +235,68 @@ class PropData
 		prop_offset_y = (prop_top  + prop_height * align_y) * prop_scale_y / layer_scale * backdrop_scale;
 		
 		rotate(prop_offset_x, prop_offset_y, prop.rotation() * DEG2RAD, anchor_x, anchor_y);
+		
 		anchor_x += x;
 		anchor_y += y;
+	}
+	
+	//
+	
+	void start_drag()
+	{
+		drag_start_x = x;
+		drag_start_y = y;
+	}
+	
+	void do_drag(const float drag_delta_x, const float drag_delta_y)
+	{
+		x = drag_start_x + drag_delta_x;
+		y = drag_start_y + drag_delta_y;
+		
+		init_anchors();
+		
+		prop.x(x);
+		prop.y(y);
+	}
+	
+	void cancel_drag()
+	{
+		x = drag_start_x;
+		y = drag_start_y;
+		
+		prop.x(x);
+		prop.y(y);
+	}
+	
+	//
+	
+	void start_rotate(const float anchor_x, const float anchor_y, const float base_rotation)
+	{
+		drag_start_x = x;
+		drag_start_y = y;
+		rotate_start_angle = prop.rotation();
+		rotate_offset_angle = prop.rotation() - base_rotation;
+		anchor_world(anchor_x, anchor_y);
+	}
+	
+	void do_rotation(const float angle)
+	{
+		set_prop_rotation(rotate_offset_angle + angle);
+	}
+	
+	void stop_rotate(const bool cancel)
+	{
+		if(cancel)
+		{
+			prop.rotation(rotate_start_angle);
+			cancel_drag();
+		}
+		
+		align_x = 0.5;
+		align_y = 0.5;
+		init_anchors();
+		
+		update();
 	}
 	
 }

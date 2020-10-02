@@ -5,6 +5,7 @@
 #include '../../lib/enums/VK.cpp';
 #include '../../lib/embed_utils.cpp';
 #include '../../lib/drawing/common.cpp';
+#include '../../lib/drawing/circle.cpp';
 #include '../../lib/debug/Debug.cpp';
 #include '../../lib/enums/ColType.cpp';
 #include '../../lib/input/Mouse.cpp';
@@ -42,6 +43,8 @@ class AdvToolScript
 	Mouse mouse(false);
 	Debug debug();
 	Line line;
+	sprites@ editor_spr;
+	sprites@ script_spr;
 	
 	float zoom;
 	bool ctrl, shift, alt, space;
@@ -118,6 +121,11 @@ class AdvToolScript
 	
 	private void initialise()
 	{
+		@editor_spr = create_sprites();
+		editor_spr.add_sprite_set('editor');
+		@script_spr = create_sprites();
+		script_spr.add_sprite_set('script');
+		
 		initialise_settings();
 		initialise_ui();
 		initialise_tools();
@@ -426,6 +434,18 @@ class AdvToolScript
 			hud_x -= screen_w * 0.5;
 			hud_y -= screen_h * 0.5;
 		}
+	}
+	
+	void transform(const float x, const float y, const int from_layer, const int to_layer, float &out out_x, float &out out_y)
+	{
+		transform_layer_position(g, view_x, view_y, x, y, from_layer, to_layer, out_x, out_y);
+	}
+	
+	void transform_size(const float x, const float y, const int from_layer, const int to_layer, float &out out_x, float &out out_y)
+	{
+		const float scale = get_layer_scale(g, from_layer, to_layer);
+		out_x = x * scale;
+		out_y = y * scale;
 	}
 	
 	entity@ pick_trigger()

@@ -1,11 +1,14 @@
-#include 'PropToolState.cpp';
-#include 'PropSortingData.cpp';
-#include 'PropData.cpp';
 #include '../../misc/SelectAction.cpp';
 #include '../../settings/PropToolSettings.cpp';
 #include '../../../../lib/tiles/common.cpp';
 #include '../../../../lib/props/common.cpp';
+#include '../../../../lib/props/data.cpp';
 #include '../../../../lib/props/outlines.cpp';
+#include '../../../../lib/ui3/elements/Toolbar.cpp';
+
+#include 'PropToolState.cpp';
+#include 'PropSortingData.cpp';
+#include 'PropData.cpp';
 
 const string EMBED_spr_icon_prop_tool = SPRITES_BASE + 'icon_prop_tool.png';
 
@@ -13,6 +16,7 @@ class PropTool : Tool
 {
 	
 	private PropToolState state = Idle;
+	private bool performing_action;
 	
 	private Mouse@ mouse;
 	private bool mouse_press_moved;
@@ -30,6 +34,7 @@ class PropTool : Tool
 	private array<PropData@> highlighted_props(highlighted_props_size);
 	private dictionary highlighted_props_map;
 	
+	private PropData@ previous_hovered_prop;
 	private PropData@ hovered_prop;
 	private PropData@ pressed_prop;
 	private int selected_props_size = 32;
@@ -42,12 +47,26 @@ class PropTool : Tool
 	private BoolSetting@ pick_through_tiles;
 	private BoolSetting@ pick_ignore_holes;
 	private FloatSetting@ pick_radius;
+	private BoolSetting@ hide_selection_highlight;
 	
 	private float drag_start_x, drag_start_y;
+	private float drag_offset_angle;
 	private int select_rect_pending;
+	private int action_layer;
 	
+	private int selection_layer;
+	private float selection_x, selection_y;
 	private float selection_x1, selection_y1;
 	private float selection_x2, selection_y2;
+	private float selection_angle;
+	private float selection_drag_start_x, selection_drag_start_y;
+	private float selection_drag_start_angle;
+	
+	// UI
+	
+	private Toolbar@ toolbar;
+	private PopupOptions@ info_popup;
+	private Label@ info_label;
 	
 	PropTool()
 	{
@@ -75,6 +94,36 @@ class PropTool : Tool
 		@pick_through_tiles	= script.get_bool(this, 'pick_through_tiles', false);
 		@pick_ignore_holes	= script.get_bool(this, 'pick_ignore_holes', true);
 		@pick_radius		= script.get_float(this, 'pick_radius', 2);
+		
+		@hide_selection_highlight	= script.get_bool(this, 'hide_selection_highlight', true);
+		// TODO: REMOVE
+		hide_selection_highlight.value = false;
+	}
+	
+	private void create_ui()
+	{
+		if(@toolbar != null)
+			return;
+		
+		UI@ ui = script.ui;
+		Style@ style = ui.style;
+		
+		@toolbar = Toolbar(ui, true, true);
+		toolbar.name = 'PropToolToolbar';
+		toolbar.x = 20;
+		toolbar.y = 20;
+		
+		toolbar.add_button('PropTool');
+		
+		@info_label = Label(ui, '', true, font::SANS_BOLD, 20);
+		info_label.scale_x = 0.75;
+		info_label.scale_y = 0.75;
+		
+		@info_popup = PopupOptions(ui, info_label, false, PopupPosition::BelowLeft, PopupTriggerType::Manual, PopupHideType::Manual);
+		info_popup.spacing = 0;
+		info_popup.background_colour = multiply_alpha(style.normal_bg_clr, 0.5);
+		
+		script.window_manager.register_element(toolbar);
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -89,6 +138,9 @@ class PropTool : Tool
 	protected void on_select_impl()
 	{
 		script.hide_gui(true);
+		
+		create_ui();
+		script.ui.add_child(toolbar);
 	}
 	
 	void on_deselect_impl()
@@ -98,6 +150,8 @@ class PropTool : Tool
 		select_none();
 		state = Idle;
 		temporary_selection = false;
+		
+		script.ui.remove_child(toolbar);
 	}
 	
 	protected void step_impl() override
@@ -108,10 +162,6 @@ class PropTool : Tool
 		{
 			hover_index_offset = 0;
 			mouse_press_moved = true;
-		}
-		else if(mouse.scroll != 0 && !script.space)
-		{
-			hover_index_offset -= mouse.scroll;
 		}
 		
 		if(mouse.left_press)
@@ -128,51 +178,99 @@ class PropTool : Tool
 			case Selecting: state_selecting(); break;
 		}
 		
-		int select_index = 0;
-		
 		for(int i = highlighted_props_count - 1; i >= 0; i--)
 		{
-			PropData@ prop_data = @highlighted_props[i];
-			prop_data.step();
-			
-			if(!prop_data.selected)
-				continue;
-			
-			if(select_index == 0)
+			highlighted_props[i].step();
+		}
+		
+		if(@hovered_prop != null)
+		{
+			if(@hovered_prop != @previous_hovered_prop)
 			{
-				selection_x1 = prop_data.collision_x + prop_data.x1;
-				selection_y1 = prop_data.collision_y + prop_data.y1;
-				selection_x2 = prop_data.collision_x + prop_data.x2;
-				selection_y2 = prop_data.collision_y + prop_data.y2;
-				select_index++;
-			}
-			else
-			{
-				if(prop_data.collision_x + prop_data.x1 < selection_x1) selection_x1 = prop_data.collision_x + prop_data.x1;
-				if(prop_data.collision_y + prop_data.y1 < selection_y1) selection_y1 = prop_data.collision_y + prop_data.y1;
-				if(prop_data.collision_x + prop_data.x2 > selection_x2) selection_x2 = prop_data.collision_x + prop_data.x2;
-				if(prop_data.collision_y + prop_data.y2 > selection_y2) selection_y2 = prop_data.collision_y + prop_data.y2;
+				show_prop_info(hovered_prop);
+				@previous_hovered_prop = hovered_prop;
 			}
 		}
+		else
+		{
+			script.ui.hide_tooltip(info_popup);
+			@previous_hovered_prop = null;
+		}
+		
+		performing_action = state != Idle && state != Selecting;
 	}
 	
 	protected void draw_impl(const float sub_frame) override
 	{
-		if(state != Idle && state != Selecting)
-			return;
+		const bool highlight = !performing_action || !hide_selection_highlight.value;
 		
-		for(int i = 0; i < highlighted_props_count; i++)
+		if(highlight)
 		{
-			highlighted_props[i].draw();
+			// Highlights
+			
+			for(int i = 0; i < highlighted_props_count; i++)
+			{
+				highlighted_props[i].draw();
+			}
+			
+			// Bounding box
+			
+			if(selected_props_count > 0 && !temporary_selection)
+			{
+				float sx, sy, sx1, sy1, sx2, sy2;
+				float x1, y1, x2, y2, x3, y3, x4, y4;
+				script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
+				script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
+				script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
+				rotate(sx1, sy1, selection_angle, x1, y1);
+				rotate(sx2, sy1, selection_angle, x2, y2);
+				rotate(sx2, sy2, selection_angle, x3, y3);
+				rotate(sx1, sy2, selection_angle, x4, y4);
+				x1 += sx;
+				y1 += sy;
+				x2 += sx;
+				y2 += sy;
+				x3 += sx;
+				y3 += sy;
+				x4 += sx;
+				y4 += sy;
+				
+				const float thickness = PropToolSettings::BoundingBoxLineWidth / script.zoom;
+				
+				draw_line(script.g, 22, 22, x1, y1, x2, y2, thickness, PropToolSettings::BoundingBoxColour);
+				draw_line(script.g, 22, 22, x2, y2, x3, y3, thickness, PropToolSettings::BoundingBoxColour);
+				draw_line(script.g, 22, 22, x3, y3, x4, y4, thickness, PropToolSettings::BoundingBoxColour);
+				draw_line(script.g, 22, 22, x4, y4, x1, y1, thickness, PropToolSettings::BoundingBoxColour);
+				const float mx = (x1 + x2) * 0.5;
+				const float my = (y1 + y2) * 0.5;
+				
+				const float nx = cos(selection_angle - HALF_PI);
+				const float ny = sin(selection_angle - HALF_PI);
+				const float oh = 18 / script.zoom;
+				
+				draw_line(script.g, 22, 22,
+					mx, my,
+					mx + nx * oh, my + ny * oh,
+					PropToolSettings::BoundingBoxLineWidth / script.zoom, PropToolSettings::BoundingBoxColour);
+				fill_circle(script.g, 22, 22,
+					mx + nx * oh, my + ny * oh,
+					7 / script.zoom, 12, PropToolSettings::RotateHandleColour, PropToolSettings::RotateHandleColour);
+			}
 		}
 		
-		if(selected_props_count > 0)
+		// Anchor points
+		
+		if(highlight && selected_props_count > 0)
 		{
-			outline_rect(script.g, 22, 22,
-				selection_x1, selection_y1,
-				selection_x2, selection_y2,
-				PropToolSettings::BoundingBoxLineWidth / script.zoom, PropToolSettings::BoundingBoxColour);
+			draw_rotation_anchor(selection_x, selection_y, selection_layer);
 		}
+		
+		if(highlight && @hovered_prop != null && !hovered_prop.selected)
+		{
+			draw_rotation_anchor(hovered_prop.anchor_x, hovered_prop.anchor_y, hovered_prop.prop.layer());
+		}
+		
+		// Selection rect
 		
 		if(state == Selecting)
 		{
@@ -185,6 +283,18 @@ class PropTool : Tool
 				drag_start_x, drag_start_y, mouse.x, mouse.y,
 				PropToolSettings::SelectRectLineWidth / script.zoom, PropToolSettings::SelectRectLineColour);
 		}
+	}
+	
+	private void draw_rotation_anchor(float x, float y, const int from_layer)
+	{
+		script.transform(x, y, from_layer, 22, x, y);
+		
+		script.g.draw_rectangle_world(22, 22,
+			x - 5 / script.zoom, y - 1 / script.zoom,
+			x + 5 / script.zoom, y + 1 / script.zoom, 0, PropToolSettings::BoundingBoxColour);
+		script.g.draw_rectangle_world(22, 22,
+			x - 5 / script.zoom, y - 1 / script.zoom,
+			x + 5 / script.zoom, y + 1 / script.zoom, 90, PropToolSettings::BoundingBoxColour);
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -224,24 +334,7 @@ class PropTool : Tool
 		
 		if(@pressed_prop != null && (mouse.delta_x != 0 || mouse.delta_y != 0))
 		{
-			if(!pressed_prop.selected)
-			{
-				select_prop(pressed_prop, SelectAction::Set);
-				clear_highlighted_props();
-				temporary_selection = true;
-			}
-			
-			drag_start_x = mouse.x;
-			drag_start_y = mouse.y;
-			
-			for(int i = 0; i < selected_props_count; i++)
-			{
-				selected_props[i].start_drag();
-			}
-			
-			pressed_prop.hovered = true;
-			@pressed_prop = null;
-			state = Moving;
+			idle_start_move();
 			return;
 		}
 		
@@ -257,41 +350,29 @@ class PropTool : Tool
 			@pressed_prop = null;
 		}
 		
+		// Scroll hover index offset
+		
+		if(mouse.scroll != 0 && !script.space && !script.ctrl && !script.alt)
+		{
+			hover_index_offset -= mouse.scroll;
+		}
+		
+		// Start rotating
+		
+		if(@hovered_prop != null && mouse.middle_press)
+		{
+			idle_start_rotating();
+			return;
+		}
+		
+		// Adjust layer/sublayer
+		
 		if(mouse.scroll != 0 && (script.ctrl || script.alt))
 		{
-			PropData@ prop_data = null;
-			float x1, y1, x2, y2;
-			
-			if(script.shift)
-			{
-				for(int i = 0; i < selected_props_count; i++)
-				{
-					@prop_data = @selected_props[i];
-					prop_data.shift_layer(mouse.scroll, script.alt);
-				}
-				
-				x1 = selection_x1;
-				y1 = selection_y1;
-				x2 = selection_x2;
-				y2 = selection_y2;
-			}
-			else if(@hovered_prop != null)
-			{
-				@prop_data = hovered_prop;
-				hovered_prop.shift_layer(mouse.scroll, script.alt);
-				x1 = prop_data.collision_x + prop_data.x1;
-				y1 = prop_data.collision_y + prop_data.y1;
-				x2 = prop_data.collision_x + prop_data.x2;
-				y2 = prop_data.collision_y + prop_data.y2;
-			}
-			
-			if(@prop_data != null)
-			{
-				script.info_overlay.show(
-					x1, y1, x2, y2,
-					prop_data.prop.layer() + '.' + prop_data.prop.sub_layer(), 0.75);
-			}
+			idle_adjust_layer();
 		}
+		
+		// Delete
 		
 		if(script.editor.key_check_gvb(GVB::Delete))
 		{
@@ -314,6 +395,112 @@ class PropTool : Tool
 		clear_highlighted_props();
 	}
 	
+	private void idle_start_move()
+	{
+		if(!pressed_prop.selected)
+		{
+			select_prop(pressed_prop, SelectAction::Set);
+			clear_highlighted_props();
+			temporary_selection = true;
+		}
+		
+		if(selected_props_count == 0)
+		{
+			selection_layer = pressed_prop.prop.layer();
+		}
+		
+		action_layer = pressed_prop.prop.layer();
+		
+		drag_start_x = mouse.x;
+		drag_start_y = mouse.y;
+		script.transform(drag_start_x, drag_start_y, 22, action_layer, drag_start_x, drag_start_y);
+		selection_drag_start_x = selection_x;
+		selection_drag_start_y = selection_y;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			selected_props[i].start_drag();
+		}
+		
+		pressed_prop.hovered = true;
+		@pressed_prop = null;
+		state = Moving;
+	}
+	
+	private void idle_start_rotating()
+	{
+		if(!hovered_prop.selected)
+		{
+			select_prop(hovered_prop, SelectAction::Set);
+			clear_highlighted_props();
+			temporary_selection = true;
+		}
+		
+		if(selected_props_count == 1 && temporary_selection)
+		{
+			selection_layer = hovered_prop.prop.layer();
+			selection_angle = 0;
+		}
+		
+		selection_drag_start_angle = selection_angle;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			selected_props[i].start_rotate(selection_x, selection_y, selection_angle * RAD2DEG);
+		}
+		
+		float mouse_x, mouse_y;
+		script.transform(mouse.x, mouse.y, 22, selection_layer, mouse_x, mouse_y);
+		drag_offset_angle = atan2(selection_y - mouse_y, selection_x - mouse_x) - selection_angle;
+		
+		clear_highlighted_props();
+		state = Rotating;
+	}
+	
+	private void idle_adjust_layer()
+	{
+		PropData@ prop_data = null;
+		float x1, y1, x2, y2;
+		
+		if(script.shift)
+		{
+			for(int i = 0; i < selected_props_count; i++)
+			{
+				@prop_data = @selected_props[i];
+				prop_data.shift_layer(mouse.scroll, script.alt);
+			}
+			
+			x1 = selection_x + selection_x1;
+			y1 = selection_y + selection_y1;
+			x2 = selection_x + selection_x2;
+			y2 = selection_y + selection_y2;
+		}
+		else if(@hovered_prop != null)
+		{
+			@prop_data = hovered_prop;
+			hovered_prop.shift_layer(mouse.scroll, script.alt);
+			x1 = prop_data.draw_x + prop_data.x1;
+			y1 = prop_data.draw_y + prop_data.y1;
+			x2 = prop_data.draw_x + prop_data.x2;
+			y2 = prop_data.draw_y + prop_data.y2;
+		}
+		
+		if(@prop_data != null)
+		{
+			script.info_overlay.show(
+				x1, y1, x2, y2,
+				prop_data.prop.layer() + '.' + prop_data.prop.sub_layer(), 0.75);
+		}
+		
+		if(@hovered_prop != null)
+		{
+			show_prop_info(hovered_prop);
+		}
+		
+		update_selection_bounds();
+		update_selection_layer();
+	}
+	
 	private void state_moving()
 	{
 		if(script.space || script.escape_press || !mouse.left_down)
@@ -326,11 +513,7 @@ class PropTool : Tool
 				}
 			}
 			
-			if(temporary_selection)
-			{
-				select_none();
-				temporary_selection = false;
-			}
+			clear_temporary_selection();
 			
 			state = Idle;
 			return;
@@ -338,8 +521,9 @@ class PropTool : Tool
 		
 		float start_x, start_y;
 		float mouse_x, mouse_y;
+		script.transform(mouse.x, mouse.y, 22, action_layer, mouse_x, mouse_y);
 		snap(drag_start_x, drag_start_y, start_x, start_y);
-		snap(mouse.x, mouse.y, mouse_x, mouse_y);
+		snap(mouse_x, mouse_y, mouse_x, mouse_y);
 		const float drag_delta_x = mouse_x - start_x;
 		const float drag_delta_y = mouse_y - start_y;
 		
@@ -347,10 +531,47 @@ class PropTool : Tool
 		{
 			selected_props[i].do_drag(drag_delta_x, drag_delta_y);
 		}
+		
+		selection_x = selection_drag_start_x + drag_delta_x;
+		selection_y = selection_drag_start_y + drag_delta_y;
 	}
 	
 	private void state_rotating()
 	{
+		if(script.space || script.escape_press || !mouse.middle_down)
+		{
+			for(int i = 0; i < selected_props_count; i++)
+			{
+				selected_props[i].stop_rotate(script.escape_press);
+			}
+			
+			if(script.escape_press)
+			{
+				selection_angle = selection_drag_start_angle;
+			}
+			
+			clear_temporary_selection();
+			state = Idle;
+			return;
+		}
+		
+		float mouse_x, mouse_y;
+		script.transform(mouse.x, mouse.y, 22, selection_layer, mouse_x, mouse_y);
+		const float angle = atan2(selection_y - mouse_y, selection_x - mouse_x);
+		selection_angle = angle - drag_offset_angle;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			selected_props[i].do_rotation(selection_angle * RAD2DEG);
+		}
+		
+		if(!hide_selection_highlight.value)
+		{
+			for(int i = 0; i < selected_props_count; i++)
+			{
+				selected_props[i].update();
+			}
+		}
 	}
 	
 	private void state_scaling()
@@ -431,7 +652,7 @@ class PropTool : Tool
 	}
 	
 	// //////////////////////////////////////////////////////////
-	// Private Methods
+	// Selection
 	// //////////////////////////////////////////////////////////
 	
 	private void do_mouse_selection()
@@ -471,6 +692,9 @@ class PropTool : Tool
 				PropData@ selected_pro_data = @selected_props[--selected_props_count];
 				selected_pro_data.selected = false;
 			}
+			
+			selection_layer = 0;
+			selection_angle = 0;
 		}
 		
 		if(
@@ -489,18 +713,101 @@ class PropTool : Tool
 			
 			@selected_props[selected_props_count++] = prop_data;
 			prop_data.selected = true;
+			
+			if(int(prop_data.prop.layer()) > selection_layer)
+			{
+				selection_layer = prop_data.prop.layer();
+			}
 		}
 		else
 		{
 			selected_props.removeAt(selected_props.findByRef(@prop_data));
 			prop_data.selected = false;
 			selected_props_count--;
+			
+			if(int(prop_data.prop.layer()) >= selection_layer)
+			{
+				update_selection_layer();
+			}
 		}
+		
+		selection_angle = 0;
+		update_selection_bounds();
 	}
 	
 	private void select_none()
 	{
 		select_prop(null, SelectAction::Set);
+	}
+	
+	private void update_selection_bounds()
+	{
+		if(selected_props_count == 0)
+			return;
+		
+		PropData@ prop_data = @selected_props[0];
+		selection_x1 = prop_data.x + prop_data.x1;
+		selection_y1 = prop_data.y + prop_data.y1;
+		selection_x2 = prop_data.x + prop_data.x2;
+		selection_y2 = prop_data.y + prop_data.y2;
+		
+		for(int i = selected_props_count - 1; i >= 1; i--)
+		{
+			@prop_data = @selected_props[i];
+			
+			if(prop_data.x + prop_data.x1 < selection_x1) selection_x1 = prop_data.x + prop_data.x1;
+			if(prop_data.y + prop_data.y1 < selection_y1) selection_y1 = prop_data.y + prop_data.y1;
+			if(prop_data.x + prop_data.x2 > selection_x2) selection_x2 = prop_data.x + prop_data.x2;
+			if(prop_data.y + prop_data.y2 > selection_y2) selection_y2 = prop_data.y + prop_data.y2;
+		}
+		
+		selection_x = selected_props_count > 1 ? (selection_x1 + selection_x2) * 0.5 : prop_data.anchor_x;
+		selection_y = selected_props_count > 1 ? (selection_y1 + selection_y2) * 0.5 : prop_data.anchor_y;
+		selection_x1 -= selection_x;
+		selection_y1 -= selection_y;
+		selection_x2 -= selection_x;
+		selection_y2 -= selection_y;
+	}
+	
+	private void update_selection_layer()
+	{
+		selection_layer = 0;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			prop@ p = selected_props[i].prop;
+			
+			if(int(p.layer()) > selection_layer)
+			{
+				selection_layer = p.layer();
+			}
+		}
+	}
+	
+	private void clear_temporary_selection()
+	{
+		if(!temporary_selection)
+			return;
+		
+		select_none();
+		temporary_selection = false;
+	}
+	
+	// Highligts
+	
+	private void show_prop_info(PropData@ prop_data)
+	{
+		prop@ p = prop_data.prop;
+		int index = prop_index_to_array_index(p.prop_set(), p.prop_group(), p.prop_index());
+		const PropIndex@ prop_index = @PROP_INDICES[p.prop_group()][index];
+		
+		info_label.text =
+			// Group and name
+			string::nice(PROP_GROUP_NAMES[p.prop_group()]) + '::' + prop_index.name + '\n' +
+			// Layer
+			p.layer() + '.' + p.sub_layer();
+		
+		script.ui.show_tooltip(info_popup, toolbar);
 	}
 	
 	private PropData@ is_prop_highlighted(prop@ prop)
@@ -572,38 +879,9 @@ class PropTool : Tool
 		}
 	}
 	
-	private void snap(const float x, const float y, float &out out_x, float &out out_y)
-	{
-		const float snap = get_snap_size();
-		
-		if(snap != 0)
-		{
-			out_x = round(x / snap) * snap;
-			out_y = round(y / snap) * snap;
-		}
-		else
-		{
-			out_x = x;
-			out_y = y;
-		}
-	}
-	
-	private float get_snap_size()
-	{
-		if(script.shift)
-			return 48;
-		
-		if(script.ctrl && script.alt)
-			return 5;
-		
-		if(script.ctrl)
-			return 24;
-		
-		if(script.alt)
-			return 1;
-		
-		return 0;
-	}
+	// //////////////////////////////////////////////////////////
+	// Picking
+	// //////////////////////////////////////////////////////////
 	
 	private void pick_props()
 	{
@@ -751,6 +1029,43 @@ class PropTool : Tool
 		}
 		
 		return false;
+	}
+	
+	// //////////////////////////////////////////////////////////
+	// Selection
+	// //////////////////////////////////////////////////////////
+	
+	private void snap(const float x, const float y, float &out out_x, float &out out_y)
+	{
+		const float snap = get_snap_size();
+		
+		if(snap != 0)
+		{
+			out_x = round(x / snap) * snap;
+			out_y = round(y / snap) * snap;
+		}
+		else
+		{
+			out_x = x;
+			out_y = y;
+		}
+	}
+	
+	private float get_snap_size()
+	{
+		if(script.shift)
+			return 48;
+		
+		if(script.ctrl && script.alt)
+			return 5;
+		
+		if(script.ctrl)
+			return 24;
+		
+		if(script.alt)
+			return 1;
+		
+		return 0;
 	}
 	
 }

@@ -22,11 +22,11 @@ namespace PropToolSettings
 	
 	const uint HighlightOverlayColour	= 0x5500eeff;
 	const uint HighlightOutlineColour	= 0xff00eeff;
-	const float HighlightOutlineWidth	= 1;
+	const float HighlightOutlineWidth	= 1.5;
 	
 	const uint SelectOverlayColour		= 0x3344eeff;
 	const uint SelectedOutlineColour	= 0xaa44eeff;
-	const float SelectedOutlineWidth	= 0.75;
+	const float SelectedOutlineWidth	= 1;
 	
 	const uint PendingAddOverlayColour		= 0x3344ff44;
 	const uint PendingAddOutlineColour		= 0xaa44ff44;
@@ -42,5 +42,7 @@ namespace PropToolSettings
 	const float SelectRectLineWidth		= 1.5;
 	const uint SelectRectFillColour		= 0x1144ff44;
 	const uint SelectRectLineColour		= 0x5544ff44;
+	
+	const uint RotateHandleColour		= 0xffd51756;
 	
 }
