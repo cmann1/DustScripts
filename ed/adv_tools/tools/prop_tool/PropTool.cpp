@@ -247,7 +247,7 @@ class PropTool : Tool
 				
 				const float nx = cos(selection_angle - HALF_PI);
 				const float ny = sin(selection_angle - HALF_PI);
-				const float oh = PropToolSettings::RotationHandleOffset / script.zoom;
+				const float oh = (PropToolSettings::RotationHandleOffset - PropToolSettings::RotateHandleSize) / script.zoom;
 				
 				draw_line(script.g, 22, 22,
 					mx, my,
@@ -694,8 +694,11 @@ class PropTool : Tool
 		
 		if(selected_props_count == 1)
 		{
-			sx = (sx + sx1 + sx + sx2) * 0.5;
-			sy = (sy + sy1 + sy + sy2) * 0.5;
+			float s1x = (sx1 + sx2) * 0.5;
+			float s1y = (sy1 + sy2) * 0.5;
+			rotate(s1x, s1y, selection_angle, s1x, s1y);
+			sx += s1x;
+			sy += s1y;
 		}
 		
 		return script.handles.circle(
