@@ -500,7 +500,7 @@ class PropToolToolbar
 		
 		script.ui.hide_tooltip(origin_popup);
 		default_origin.value = event.value;
-		tool.update_alignments_from_origin();
+		tool.update_alignments_from_origin(true);
 		
 		update_origin_icon();
 		update_origin_tooltip();

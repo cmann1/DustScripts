@@ -61,6 +61,7 @@ class AdvToolScript
 	[hidden] array<BoolSetting> bool_settings;
 	[hidden] array<FloatSetting> float_settings;
 	[hidden] array<StringSetting> string_settings;
+	[hidden] PropsClipboardData props_clipboard;
 	
 	private dictionary settings;
 	

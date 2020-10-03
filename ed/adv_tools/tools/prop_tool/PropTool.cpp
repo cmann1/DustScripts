@@ -11,6 +11,7 @@
 #include 'PropAlignData.cpp';
 #include 'PropData.cpp';
 #include 'PropToolToolbar.cpp';
+#include 'PropsClipboardData.cpp';
 
 const string PROP_TOOL_SPRITES_BASE = SPRITES_BASE + 'prop_tool/';
 const string EMBED_spr_icon_prop_tool = SPRITES_BASE + 'icon_prop_tool.png';
@@ -420,9 +421,9 @@ class PropTool : Tool
 		
 		if(mouse.middle_press)
 		{
-			if(script.shift)
+			if(script.shift || script.ctrl)
 			{
-				if(!has_custom_anchor)
+				if(!has_custom_anchor || script.ctrl)
 				{
 					if(selected_props_count > 0)
 					{
@@ -434,7 +435,16 @@ class PropTool : Tool
 					}
 				}
 				
-				script.transform(mouse.x, mouse.y, 22, custom_anchor_layer, custom_anchor_x, custom_anchor_y);
+				if(!script.ctrl)
+				{
+					script.transform(mouse.x, mouse.y, 22, custom_anchor_layer, custom_anchor_x, custom_anchor_y);
+				}
+				else
+				{
+					custom_anchor_x = selection_x;
+					custom_anchor_y = selection_y;
+				}
+				
 				has_custom_anchor = true;
 			}
 			else if(script.alt)
@@ -479,6 +489,18 @@ class PropTool : Tool
 			script.g.remove_prop(hovered_prop.prop);
 			hovered_prop.hovered = false;
 			@hovered_prop = null;
+		}
+		
+		// Copy
+		
+		if(selected_props_count > 0 && script.ctrl && script.editor.key_check_pressed_vk(VK::C))
+		{
+			copy_selected_props();
+		}
+		
+		if(script.ctrl && script.editor.key_check_pressed_vk(VK::V))
+		{
+			paste(script.shift);
 		}
 		
 		clear_highlighted_props();
@@ -1110,6 +1132,116 @@ class PropTool : Tool
 		temporary_selection = false;
 	}
 	
+	private void copy_selected_props(const bool show_overlay=false)
+	{
+		PropsClipboardData@ props_clipboard = @script.props_clipboard;
+		array<PropClipboardData>@ props = @props_clipboard.props;
+		props.resize(selected_props_count);
+		
+		float ox = has_custom_anchor ? custom_anchor_x : selection_x;
+		float oy = has_custom_anchor ? custom_anchor_y : selection_y;
+		
+		if(has_custom_anchor)
+		{
+			script.transform(ox, oy, custom_anchor_layer, selection_layer, ox, oy);
+		}
+		
+		props_clipboard.x = ox;
+		props_clipboard.y = oy;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			PropData@ prop_data = @selected_props[i];
+			PropClipboardData@ copy_data = @props[i];
+			
+			copy_data.prop_set		= prop_data.prop.prop_set();
+			copy_data.prop_group	= prop_data.prop.prop_group();
+			copy_data.prop_index	= prop_data.prop.prop_index();
+			copy_data.palette		= prop_data.prop.palette();
+			copy_data.layer			= prop_data.prop.layer();
+			copy_data.sub_layer		= prop_data.prop.sub_layer();
+			copy_data.x				= prop_data.x - ox;
+			copy_data.y				= prop_data.y - oy;
+			copy_data.rotation		= prop_data.prop.rotation();
+			copy_data.scale_x		= prop_data.prop.scale_x();
+			copy_data.scale_y		= prop_data.prop.scale_y();
+			
+			if(i == 0)
+			{
+				props_clipboard.x1 = prop_data.x + prop_data.x1 - ox;
+				props_clipboard.y1 = prop_data.y + prop_data.y1 - oy;
+				props_clipboard.x2 = prop_data.x + prop_data.x2 - ox;
+				props_clipboard.y2 = prop_data.y + prop_data.y2 - oy;
+			}
+			else
+			{
+				if(prop_data.x + prop_data.x1 - ox < props_clipboard.x1) props_clipboard.x1 = prop_data.x + prop_data.x1 - ox;
+				if(prop_data.y + prop_data.y1 - oy < props_clipboard.y1) props_clipboard.y1 = prop_data.y + prop_data.y1 - oy;
+				if(prop_data.x + prop_data.x2 - ox > props_clipboard.x2) props_clipboard.x2 = prop_data.x + prop_data.x2 - ox;
+				if(prop_data.y + prop_data.y2 - oy > props_clipboard.y2) props_clipboard.y2 = prop_data.y + prop_data.y2 - oy;
+			}
+		}
+		
+		if(show_overlay)
+		{
+			script.info_overlay.show(
+				selection_x + selection_x1, selection_y + selection_y1,
+				selection_x + selection_x2, selection_y + selection_y2,
+				selected_props_count + ' prop' + (selected_props_count != 1 ? 's' : '') + ' copied', 0.75);
+		}
+	}
+	
+	private void paste(const bool into_place=false)
+	{
+		PropsClipboardData@ props_clipboard = @script.props_clipboard;
+		array<PropClipboardData>@ props = @props_clipboard.props;
+		const int count = int(props.length());
+		
+		if(count == 0)
+			return;
+		
+		float x, y;
+		
+		if(into_place)
+		{
+			x = props_clipboard.x;
+			y = props_clipboard.y;
+		}
+		else
+		{
+			x = script.view_x - props_clipboard.x1 - (props_clipboard.x2 - props_clipboard.x1) * 0.5;
+			y = script.view_y - props_clipboard.y1 - (props_clipboard.y2 - props_clipboard.y1) * 0.5;
+		}
+		
+		select_none();
+		origin_align_x = -props_clipboard.x1 / (props_clipboard.x2 - props_clipboard.x1);
+		origin_align_y = -props_clipboard.y1 / (props_clipboard.y2 - props_clipboard.y1);
+		
+		for(int i = 0; i < count; i++)
+		{
+			PropClipboardData@ copy_data = @props[i];
+			prop@ p = create_prop();
+			p.prop_set       (copy_data.prop_set);
+			p.prop_group     (copy_data.prop_group);
+			p.prop_index     (copy_data.prop_index);
+			p.palette        (copy_data.palette);
+			p.layer          (copy_data.layer);
+			p.sub_layer      (copy_data.sub_layer);
+			p.x              (copy_data.x + x);
+			p.y              (copy_data.y + y);
+			p.rotation       (copy_data.rotation);
+			p.scale_x        (copy_data.scale_x);
+			p.scale_y        (copy_data.scale_y);
+			
+			const array<array<float>>@ outline = @PROP_OUTLINES[copy_data.prop_set - 1][copy_data.prop_group][copy_data.prop_index - 1];
+			
+			script.g.add_prop(p);
+			select_prop(highlight_prop(p, @outline), SelectAction::Add);
+		}
+		
+		update_alignments_from_origin();
+	}
+	
 	// Highligts
 	
 	private PropData@ is_prop_highlighted(prop@ prop)
@@ -1411,7 +1543,7 @@ class PropTool : Tool
 	// Other
 	// //////////////////////////////////////////////////////////
 	
-	void update_alignments_from_origin()
+	void update_alignments_from_origin(const bool force_selection_update=false)
 	{
 		if(default_origin.value == 'top_left')
 		{
@@ -1459,8 +1591,11 @@ class PropTool : Tool
 			origin_align_y = 0.5;
 		}
 		
-		selection_angle = 0;
-		update_selection_bounds();
+		if(force_selection_update)
+		{
+			selection_angle = 0;
+			update_selection_bounds();
+		}
 	}
 	
 	void align(const AlignmentEdge align)
