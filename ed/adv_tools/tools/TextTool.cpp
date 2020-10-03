@@ -297,31 +297,31 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	{
 		entity@ closest = null;
 		
-		if(!script.ui.is_mouse_over_ui){
-		int i = script.g.get_entity_collision(script.mouse.y - 20, script.mouse.y + 20,
-			script.mouse.x - 20, script.mouse.x + 20, ColType::Trigger);
-		
-		float closest_dist = MAX_FLOAT;
-		
-		while(i-- > 0)
+		if(!script.ui.is_mouse_over_ui && !script.mouse_in_gui)
 		{
-			entity@ e = script.g.get_entity_collision_index(i);
+			int i = script.g.get_entity_collision(script.mouse.y - 20, script.mouse.y + 20,
+				script.mouse.x - 20, script.mouse.x + 20, ColType::Trigger);
 			
-			if(e.type_name() != 'text_trigger' && e.type_name() != 'z_text_prop_trigger')
-				continue;
+			float closest_dist = MAX_FLOAT;
 			
-			if(e.is_same(selected_trigger))
-				continue;
-			
-			const float dist = dist_sqr(e.x(), e.y(), script.mouse.x, script.mouse.y);
-			
-			if(dist < closest_dist)
+			while(i-- > 0)
 			{
-				closest_dist = dist;
-				@closest = e;
+				entity@ e = script.g.get_entity_collision_index(i);
+				
+				if(e.type_name() != 'text_trigger' && e.type_name() != 'z_text_prop_trigger')
+					continue;
+				
+				if(e.is_same(selected_trigger))
+					continue;
+				
+				const float dist = dist_sqr(e.x(), e.y(), script.mouse.x, script.mouse.y);
+				
+				if(dist < closest_dist)
+				{
+					closest_dist = dist;
+					@closest = e;
+				}
 			}
-		}
-		
 		}
 		
 		show_edit_button(closest);

@@ -49,6 +49,7 @@ class AdvToolScript
 	sprites@ script_spr;
 	
 	float zoom;
+	bool mouse_in_gui;
 	bool ctrl, shift, alt, space;
 	bool return_press, escape_press;
 	
@@ -266,8 +267,10 @@ class AdvToolScript
 //		debug.print('selected_tab: ' + new_tab, 'selected_tab');
 //		debug.print('selected_tool: ' + selected_tool.name, 'selected_tool');
 		
+		mouse_in_gui = editor.mouse_in_gui();
+		
 		handles.step();
-		mouse.step(ui.is_mouse_over_ui || editor.mouse_in_gui());
+		mouse.step(ui.is_mouse_over_ui || mouse_in_gui);
 		
 		ctrl	= editor.key_check_gvb(GVB::Control);
 		shift	= editor.key_check_gvb(GVB::Shift);
