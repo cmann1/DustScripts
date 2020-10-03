@@ -1,11 +1,10 @@
 #include '../../misc/SelectAction.cpp';
+#include '../../misc/AlignmentEdge.cpp';
 #include '../../settings/PropToolSettings.cpp';
 #include '../../../../lib/tiles/common.cpp';
 #include '../../../../lib/props/common.cpp';
 #include '../../../../lib/props/data.cpp';
 #include '../../../../lib/props/outlines.cpp';
-#include '../../../../lib/ui3/elements/Toolbar.cpp';
-#include '../../../../lib/ui3/elements/NumberSlider.cpp';
 
 #include 'PropToolState.cpp';
 #include 'PropSortingData.cpp';
@@ -260,6 +259,13 @@ class PropTool : Tool
 				draw_line(script.g, 22, 22, x1, y1, x2, y2, 1 / script.zoom, clr);
 				draw_rotation_anchor(custom_anchor_x, custom_anchor_y, selection_layer, true, 1, clr);
 			}
+		}
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			PropData@ p = @selected_props[i];
+			outline_rect(script.g,22,22,
+				p.x + p.x1, p.y + p.y1, p.x + p.x2, p.y + p.y2, 1 / script.zoom, 0xaaff0000);
 		}
 		
 		// Selection rect
@@ -1009,8 +1015,13 @@ class PropTool : Tool
 			clear_custom_anchor();
 		}
 		
+		if(@prop_data == null)
+		{
+			toolbar.update_buttons(selected_props_count);
+			return;
+		}
+		
 		if(
-			@prop_data == null ||
 			action == SelectAction::Remove && !prop_data.selected ||
 			action == SelectAction::Add && prop_data.selected
 		)
@@ -1045,6 +1056,8 @@ class PropTool : Tool
 		
 		selection_angle = 0;
 		update_selection_bounds();
+		
+		toolbar.update_buttons(selected_props_count);
 	}
 	
 	private void select_none()
@@ -1394,6 +1407,18 @@ class PropTool : Tool
 		return layer1 >= 12 && layer2 >= 12 || layer1 == layer2;
 	}
 	
+	private void clear_custom_anchor()
+	{
+		if(custom_anchor_lock.value)
+			return;
+		
+		has_custom_anchor = false;
+	}
+	
+	// //////////////////////////////////////////////////////////
+	// Other
+	// //////////////////////////////////////////////////////////
+	
 	void update_alignments_from_origin()
 	{
 		if(default_origin.value == 'top_left')
@@ -1446,12 +1471,69 @@ class PropTool : Tool
 		update_selection_bounds();
 	}
 	
-	private void clear_custom_anchor()
+	void align(const AlignmentEdge align)
 	{
-		if(custom_anchor_lock.value)
+		if(selected_props_count < 2)
 			return;
 		
-		has_custom_anchor = false;
+		const bool horizontal = align == Left || align == Centre || align == Right;
+		const int dir = align == Left || align == Top ? -1 : align == Right || align == Bottom ? 1 : 0;
+		
+		PropData@ p = @selected_props[0];
+		float min = horizontal ? (p.x + p.x1) : (p.y + p.y1);
+		float max = horizontal ? (p.x + p.x2) : (p.y + p.y2);
+		
+		for(int i = selected_props_count - 1; i >= 0; i--)
+		{
+			@p = @selected_props[i];
+			
+			if(horizontal)
+			{
+				if(p.x + p.x1 < min) min = p.x + p.x1;
+				if(p.x + p.x2 > max) max = p.x + p.x2;
+			}
+			else
+			{
+				if(p.y + p.y1 < min) min = p.y + p.y1;
+				if(p.y + p.y2 > max) max = p.y + p.y2;
+			}
+		}
+		
+		const float pos = dir == -1
+			? min
+			: dir == 1 ? max
+				: (min + max) * 0.5;
+		
+		for(int i = selected_props_count - 1; i >= 0; i--)
+		{
+			@p = @selected_props[i];
+			
+			if(horizontal)
+			{
+				if(dir == -1)
+					p.x = pos - p.x1;
+				else if(dir == 1)
+					p.x = pos - p.x2;
+				else
+					p.x = pos - (p.x1 + p.x2) * 0.5;
+				
+				p.prop.x(p.x);
+			}
+			else
+			{
+				if(dir == -1)
+					p.y = pos - p.y1;
+				else if(dir == 1)
+					p.y = pos - p.y2;
+				else
+					p.y = pos - (p.y1 + p.y2) * 0.5;
+				
+				p.prop.y(p.y);
+			}
+		}
+		
+		selection_angle = 0;
+		update_selection_bounds();
 	}
 	
 }

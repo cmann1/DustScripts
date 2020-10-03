@@ -1,3 +1,7 @@
+#include '../../../../lib/ui3/elements/Toolbar.cpp';
+#include '../../../../lib/ui3/elements/NumberSlider.cpp';
+#include '../../../../lib/ui3/layouts/GridLayout.cpp';
+
 class PropToolToolbar
 {
 	
@@ -171,8 +175,11 @@ class PropToolToolbar
 		@align_button.tooltip = PopupOptions(ui, 'Align');
 		align_button.mouse_click.on(button_click);
 		
-		@align_popup = PopupOptions(ui, 'ALIGN ME BABY!', true, PopupPosition::Below, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
+		Container@ align_buttons = create_align_buttons();
+		
+		@align_popup = PopupOptions(ui, align_buttons, true, PopupPosition::Below, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
 		align_popup.wait_for_mouse = true;
+		align_popup.padding = 0;
 		align_popup.spacing = style.spacing;
 		align_popup.show.on(EventCallback(on_align_popup_show));
 		align_popup.hide.on(EventCallback(on_align_popup_hide));
@@ -209,6 +216,46 @@ class PropToolToolbar
 		
 		ui.add_child(toolbar);
 		script.window_manager.register_element(toolbar);
+		
+		update_buttons(0);
+	}
+	
+	private Container@ create_align_buttons()
+	{
+		UI@ ui = script.ui;
+		Style@ style = ui.style;
+		
+		Container@ c = Container(ui);
+		@c.layout = GridLayout(ui, 3);
+		EventCallback@ align_button_click = EventCallback(on_align_button_click);
+		
+		Button@ button;
+		
+		create_button(c, 'top', 'Top Edges', 'align_left', 90, 1, -1, align_button_click);
+		create_button(c, 'middle', 'Vertical Centres', 'align_centre', -90, 1, 1, align_button_click);
+		create_button(c, 'bottom', 'Bottom Edges', 'align_left', -90, 1, 1, align_button_click);
+		
+		create_button(c, 'left', 'Left Edges', 'align_left', 0, 1, 1, align_button_click);
+		create_button(c, 'centre', 'Horizontal Centres', 'align_centre', 0, 1, 1, align_button_click);
+		create_button(c, 'right', 'Right Edges', 'align_left', 0, -1, 1, align_button_click);
+		
+		c.fit_to_contents(true);
+		return c;
+	}
+	
+	Button@ create_button(Container@ c, const string type, const string tooltip, const string icon, const float rotation, const float scale_x, const float scale_y, EventCallback@ click_handler)
+	{
+		Button@ button = Button(script.ui, 'script', 'prop_tool_' + icon, Settings::IconSize, Settings::IconSize);
+		button.name = type;
+		button.icon.rotation = rotation;
+		button.icon.scale_x = scale_x;
+		button.icon.scale_y = scale_y;
+		button.mouse_click.on(click_handler);
+		@button.tooltip = PopupOptions(script.ui, tooltip);
+		button.fit_to_contents();
+		c.add_child(button);
+		
+		return button;
 	}
 	
 	private void update_custom_grid_tooltip()
@@ -267,6 +314,11 @@ class PropToolToolbar
 	void hide_info_popup()
 	{
 		script.ui.hide_tooltip(info_popup);
+	}
+	
+	void update_buttons(const int selected_props_count)
+	{
+		align_button.disabled = selected_props_count < 2;
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -382,4 +434,28 @@ class PropToolToolbar
 		align_button.selectable = false;
 		align_button.tooltip.enabled = true;
 	}
+	
+	private void on_align_button_click(EventInfo@ event)
+	{
+		const string name = event.target.name;
+		AlignmentEdge align;
+		
+		if(name == 'top')
+			align = Top;
+		else if(name == 'middle')
+			align = Middle;
+		else if(name == 'bottom')
+			align = Bottom;
+		else if(name == 'left')
+			align = Left;
+		else if(name == 'centre')
+			align = Centre;
+		else if(name == 'right')
+			align = Right;
+		else
+			return;
+		
+		tool.align(align);
+	}
+	
 }
