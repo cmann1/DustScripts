@@ -62,6 +62,7 @@ class AdvToolScript
 	[hidden] array<FloatSetting> float_settings;
 	[hidden] array<StringSetting> string_settings;
 	[hidden] PropsClipboardData props_clipboard;
+	[hidden] string selected_tool_name;
 	
 	private dictionary settings;
 	
@@ -135,7 +136,7 @@ class AdvToolScript
 		initialise_ui();
 		initialise_tools();
 		
-		select_tool(editor.editor_tab());
+		select_tool(selected_tool_name != '' ? selected_tool_name : editor.editor_tab());
 		
 		info_overlay.init(this);
 		handles.init(this);
@@ -637,6 +638,7 @@ class AdvToolScript
 			editor.editor_tab(selected_tab = 'Scripts');
 		}
 		
+		selected_tool_name = tool.name;
 		@selected_tool = tool;
 		selected_tool.on_select();
 		selected_tool.group.on_select();
