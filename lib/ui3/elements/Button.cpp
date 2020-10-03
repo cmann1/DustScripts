@@ -73,6 +73,12 @@ class Button : SingleContainer
 		}
 	}
 	
+	/// Returns this button's image element, or null if the contants are not an image
+	Image@ icon
+	{
+		get { return cast<Image@>(_content); }
+	}
+	
 	bool selected
 	{
 		get const { return _selected; }
