@@ -469,7 +469,7 @@ class PropTool : Tool
 			select_none();
 		}
 		
-		if(@hovered_prop != null && mouse.right_press)
+		if(@hovered_prop != null && (mouse.right_press || script.shift && mouse.right_down))
 		{
 			if(hovered_prop.selected)
 			{
