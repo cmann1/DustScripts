@@ -75,9 +75,9 @@ class Toolbar : MoveableDialog, IOrientationParent
 	
 	// Add methods
 	
-	Image@ add_image(const string sprite_text, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
+	Image@ add_image(const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
-		Image@ image = Image(ui, sprite_text, sprite_name, width, height, offset_x, offset_y);
+		Image@ image = Image(ui, sprite_set, sprite_name, width, height, offset_x, offset_y);
 		add_child(image);
 		return image;
 	}
@@ -86,6 +86,7 @@ class Toolbar : MoveableDialog, IOrientationParent
 	{
 		Button@ button = Button(ui, content);
 		@button.group = button_group;
+		button.fit_to_contents();
 		add_child(button);
 		return button;
 	}
@@ -94,15 +95,17 @@ class Toolbar : MoveableDialog, IOrientationParent
 	{
 		Button@ button = Button(ui, text);
 		@button.group = button_group;
+		button.fit_to_contents();
 		add_child(button);
 		return button;
 	}
 	
-	Button@ add_button(const string sprite_text, const string sprite_name,
+	Button@ add_button(const string sprite_set, const string sprite_name,
 		const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
-		Button@ button = Button(ui, sprite_text, sprite_name, width, height, offset_x, offset_y);
+		Button@ button = Button(ui, sprite_set, sprite_name, width, height, offset_x, offset_y);
 		@button.group = button_group;
+		button.fit_to_contents();
 		add_child(button);
 		return button;
 	}
