@@ -1422,7 +1422,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 				
 				@mouse_over_traversal = mouse_over_traversal.parent;
 			}
-			while(@mouse_over_traversal != @mouse_over_root);
+			while(@mouse_over_traversal != @mouse_over_root && @mouse_over_traversal != null);
 		}
 		
 		// /////////////////////////////////////////////////
