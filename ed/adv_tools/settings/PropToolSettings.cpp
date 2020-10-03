@@ -20,6 +20,8 @@ namespace PropToolSettings
 		{'3.27.8', SmallPropRadius}
 	};
 	
+	const array<string> Origins = { 'centre', 'top_left', 'top', 'top_right', 'right', 'bottom_right', 'bottom', 'bottom_left', 'left' };
+	
 	const uint HighlightOverlayColour	= 0x5500eeff;
 	const uint HighlightOutlineColour	= 0xff00eeff;
 	const float HighlightOutlineWidth	= 1.5;
@@ -38,10 +40,6 @@ namespace PropToolSettings
 	
 	const float BoundingBoxLineWidth	= 1.5;
 	const uint BoundingBoxColour		= 0x55ffffff;
-	
-	const float SelectRectLineWidth		= 1.5;
-	const uint SelectRectFillColour		= 0x1144ff44;
-	const uint SelectRectLineColour		= 0x5544ff44;
 	
 	const float	RotationHandleOffset		= 18;
 	const float	RotateHandleSize			= 7;

@@ -2,6 +2,7 @@ class PropData
 {
 	
 	AdvToolScript@ script;
+	PropTool@ tool;
 	prop@ prop;
 	string key;
 	bool hovered;
@@ -41,9 +42,10 @@ class PropData
 	private int lines_count;
 	private array<float> lines(lines_size);
 	
-	void init(AdvToolScript@ script)
+	void init(AdvToolScript@ script, PropTool@ tool)
 	{
 		@this.script = script;
+		@this.tool = tool;
 		string sprite_set;
 		sprite_from_prop(@prop, sprite_set, sprite_name);
 		
@@ -54,8 +56,8 @@ class PropData
 		
 		spr.add_sprite_set(sprite_set);
 		
-		align_x = 0.5;
-		align_y = 0.5;
+		align_x = tool.origin_align_x;
+		align_y = tool.origin_align_y;
 		
 		update();
 		init_prop();
@@ -292,8 +294,8 @@ class PropData
 			cancel_drag();
 		}
 		
-		align_x = 0.5;
-		align_y = 0.5;
+		align_x = tool.origin_align_x;
+		align_y = tool.origin_align_y;
 		init_anchors();
 		
 		update();
@@ -336,8 +338,8 @@ class PropData
 			cancel_drag();
 		}
 		
-		align_x = 0.5;
-		align_y = 0.5;
+		align_x = tool.origin_align_x;
+		align_y = tool.origin_align_y;
 		init_anchors();
 		
 		update();

@@ -59,6 +59,7 @@ class AdvToolScript
 	[hidden] WindowManager window_manager;
 	[hidden] array<BoolSetting> bool_settings;
 	[hidden] array<FloatSetting> float_settings;
+	[hidden] array<StringSetting> string_settings;
 	
 	private dictionary settings;
 	
@@ -148,6 +149,11 @@ class AdvToolScript
 		for(uint i = 0; i < float_settings.length(); i++)
 		{
 			@settings[float_settings[i].key] = @float_settings[i];
+		}
+		
+		for(uint i = 0; i < string_settings.length(); i++)
+		{
+			@settings[string_settings[i].key] = @string_settings[i];
 		}
 	}
 	
@@ -514,6 +520,35 @@ class AdvToolScript
 		}
 		
 		return cast<FloatSetting@>(settings[key]);
+	}
+	
+	StringSetting@ get_string(Tool@ tool, string name, const string default_value='')
+	{
+		const string key = tool.name + '.string.' + name;
+		
+		if(!settings.exists(key))
+		{
+			string_settings.resize(string_settings.length() + 1);
+			StringSetting@ setting = @string_settings[string_settings.length() - 1];
+			setting.key = key;
+			setting.value = default_value;
+			@settings[key] = @setting;
+			return setting;
+		}
+		
+		return cast<StringSetting@>(settings[key]);
+	}
+	
+	void draw_select_rect(const float x1, const float y1, const float x2, const float y2)
+	{
+		g.draw_rectangle_world(
+			22, 22,
+			x1, y1, x2, y2,
+			0, Settings::SelectRectFillColour);
+		
+		outline_rect(g, 22, 22,
+			x1, y1, x2, y2,
+			Settings::SelectRectLineWidth / zoom, Settings::SelectRectLineColour);
 	}
 	
 	// //////////////////////////////////////////////////////////

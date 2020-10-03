@@ -5,12 +5,27 @@
 #include '../../../../lib/props/data.cpp';
 #include '../../../../lib/props/outlines.cpp';
 #include '../../../../lib/ui3/elements/Toolbar.cpp';
+#include '../../../../lib/ui3/elements/NumberSlider.cpp';
 
 #include 'PropToolState.cpp';
 #include 'PropSortingData.cpp';
 #include 'PropData.cpp';
+#include 'PropToolToolbar.cpp';
 
+const string PROP_TOOL_SPRITES_BASE = SPRITES_BASE + 'prop_tool/';
 const string EMBED_spr_icon_prop_tool = SPRITES_BASE + 'icon_prop_tool.png';
+const string EMBED_spr_origin_centre			= PROP_TOOL_SPRITES_BASE + 'origin_centre.png';
+const string EMBED_spr_origin_top				= PROP_TOOL_SPRITES_BASE + 'origin_top.png';
+const string EMBED_spr_origin_top_left			= PROP_TOOL_SPRITES_BASE + 'origin_top_left.png';
+const string EMBED_spr_prop_tool_align_centre		= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_centre.png';
+const string EMBED_spr_prop_tool_align_left			= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_left.png';
+const string EMBED_spr_prop_tool_custom_anchor_lock	= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_anchor_lock.png';
+const string EMBED_spr_prop_tool_custom_grid		= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_grid.png';
+const string EMBED_spr_prop_tool_dist_centre		= PROP_TOOL_SPRITES_BASE + 'prop_tool_dist_centre.png';
+const string EMBED_spr_prop_tool_dist_left			= PROP_TOOL_SPRITES_BASE + 'prop_tool_dist_left.png';
+const string EMBED_spr_prop_tool_show_info			= PROP_TOOL_SPRITES_BASE + 'prop_tool_show_info.png';
+const string EMBED_spr_prop_tool_show_selection		= PROP_TOOL_SPRITES_BASE + 'prop_tool_show_selection.png';
+const string EMBED_spr_prop_tool_tiles_blocking		= PROP_TOOL_SPRITES_BASE + 'prop_tool_tiles_blocking.png';
 
 class PropTool : Tool
 {
@@ -44,11 +59,6 @@ class PropTool : Tool
 	
 	private int hover_index_offset;
 	
-	private BoolSetting@ pick_through_tiles;
-	private BoolSetting@ pick_ignore_holes;
-	private FloatSetting@ pick_radius;
-	private BoolSetting@ hide_selection_highlight;
-	
 	private float drag_start_x, drag_start_y;
 	private float drag_offset_angle;
 	private bool drag_rotation_handle;
@@ -67,16 +77,26 @@ class PropTool : Tool
 	private float selection_drag_start_x, selection_drag_start_y;
 	private float selection_drag_start_angle;
 	
+	float origin_align_x, origin_align_y;
+	
 	private bool has_custom_anchor;
 	private int custom_anchor_layer = 19;
 	private float custom_anchor_x, custom_anchor_y;
 	private float custom_anchor_offset_x, custom_anchor_offset_y;
 	
-	// UI
+	private PropToolToolbar toolbar;
 	
-	private Toolbar@ toolbar;
-	private PopupOptions@ info_popup;
-	private Label@ info_label;
+	// Settings
+	
+	BoolSetting@ pick_through_tiles;
+	FloatSetting@ custom_grid;
+	StringSetting@ default_origin;
+	BoolSetting@ custom_anchor_lock;
+	BoolSetting@ show_selection;
+	BoolSetting@ show_info;
+	
+	BoolSetting@ pick_ignore_holes;
+	FloatSetting@ pick_radius;
 	
 	PropTool()
 	{
@@ -88,6 +108,8 @@ class PropTool : Tool
 	void build_sprites(message@ msg) override
 	{
 		build_sprite(msg, 'icon_prop_tool');
+		
+		toolbar.build_sprites(msg);
 	}
 	
 	void create(AdvToolScript@ script, ToolGroup@ group) override
@@ -102,38 +124,16 @@ class PropTool : Tool
 	void on_init() override
 	{
 		@pick_through_tiles	= script.get_bool(this, 'pick_through_tiles', false);
+		@custom_grid		= script.get_float(this, 'custom_grid', 5);
+		@default_origin		= script.get_string(this, 'default_origin', 'centre');
+		@custom_anchor_lock	= script.get_bool(this, 'custom_anchor_lock', false);
+		@show_selection		= script.get_bool(this, 'show_selection', true);
+		@show_info			= script.get_bool(this, 'show_info', true);
+		
 		@pick_ignore_holes	= script.get_bool(this, 'pick_ignore_holes', true);
 		@pick_radius		= script.get_float(this, 'pick_radius', 2);
 		
-		@hide_selection_highlight	= script.get_bool(this, 'hide_selection_highlight', true);
-		// TODO: REMOVE
-		hide_selection_highlight.value = true;
-	}
-	
-	private void create_ui()
-	{
-		if(@toolbar != null)
-			return;
-		
-		UI@ ui = script.ui;
-		Style@ style = ui.style;
-		
-		@toolbar = Toolbar(ui, true, true);
-		toolbar.name = 'PropToolToolbar';
-		toolbar.x = 20;
-		toolbar.y = 20;
-		
-		toolbar.add_button('PropTool');
-		
-		@info_label = Label(ui, '', true, font::SANS_BOLD, 20);
-		info_label.scale_x = 0.75;
-		info_label.scale_y = 0.75;
-		
-		@info_popup = PopupOptions(ui, info_label, false, PopupPosition::BelowLeft, PopupTriggerType::Manual, PopupHideType::Manual);
-		info_popup.spacing = 0;
-		info_popup.background_colour = multiply_alpha(style.normal_bg_clr, 0.5);
-		
-		script.window_manager.register_element(toolbar);
+		update_alignments_from_origin();
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -149,10 +149,9 @@ class PropTool : Tool
 	{
 		script.hide_gui(true);
 		
-		create_ui();
-		script.ui.add_child(toolbar);
+		toolbar.show(script, this);
 		
-		has_custom_anchor = false;
+		clear_custom_anchor();
 		drag_rotation_handle = false;
 	}
 	
@@ -164,7 +163,7 @@ class PropTool : Tool
 		state = Idle;
 		temporary_selection = false;
 		
-		script.ui.remove_child(toolbar);
+		toolbar.hide();
 	}
 	
 	protected void step_impl() override
@@ -200,13 +199,13 @@ class PropTool : Tool
 		{
 			if(@hovered_prop != @previous_hovered_prop)
 			{
-				show_prop_info(hovered_prop);
+				toolbar.show_prop_info(hovered_prop);
 				@previous_hovered_prop = hovered_prop;
 			}
 		}
 		else
 		{
-			script.ui.hide_tooltip(info_popup);
+			toolbar.hide_info_popup();
 			@previous_hovered_prop = null;
 		}
 		
@@ -215,7 +214,7 @@ class PropTool : Tool
 	
 	protected void draw_impl(const float sub_frame) override
 	{
-		const bool highlight = !performing_action || !hide_selection_highlight.value;
+		const bool highlight = !performing_action || show_selection.value;
 		
 		if(highlight)
 		{
@@ -267,14 +266,7 @@ class PropTool : Tool
 		
 		if(state == Selecting)
 		{
-			script.g.draw_rectangle_world(
-				22, 22,
-				drag_start_x, drag_start_y, mouse.x, mouse.y,
-				0, PropToolSettings::SelectRectFillColour);
-			
-			outline_rect(script.g, 22, 22,
-				drag_start_x, drag_start_y, mouse.x, mouse.y,
-				PropToolSettings::SelectRectLineWidth / script.zoom, PropToolSettings::SelectRectLineColour);
+			script.draw_select_rect(drag_start_x, drag_start_y, mouse.x, mouse.y);
 		}
 	}
 	
@@ -522,6 +514,7 @@ class PropTool : Tool
 		}
 		
 		pressed_prop.hovered = true;
+		@hovered_prop = pressed_prop;
 		@pressed_prop = null;
 		state = Moving;
 	}
@@ -633,7 +626,7 @@ class PropTool : Tool
 		
 		if(@hovered_prop != null)
 		{
-			show_prop_info(hovered_prop);
+			toolbar.show_prop_info(hovered_prop);
 		}
 		
 		selection_angle = 0;
@@ -658,7 +651,7 @@ class PropTool : Tool
 			
 			clear_temporary_selection();
 			
-			if(!hide_selection_highlight.value)
+			if(show_selection.value)
 			{
 				check_rotation_handle();
 			}
@@ -683,7 +676,7 @@ class PropTool : Tool
 		selection_x = selection_drag_start_x + drag_delta_x;
 		selection_y = selection_drag_start_y + drag_delta_y;
 		
-		if(!hide_selection_highlight.value)
+		if(show_selection.value)
 		{
 			check_rotation_handle();
 			check_scale_handle();
@@ -704,7 +697,7 @@ class PropTool : Tool
 				selection_angle = selection_drag_start_angle;
 			}
 			
-			if(!temporary_selection && !hide_selection_highlight.value)
+			if(!temporary_selection && show_selection.value)
 			{
 				check_rotation_handle();
 				check_scale_handle();
@@ -738,7 +731,7 @@ class PropTool : Tool
 			selection_y = custom_anchor_y + y;
 		}
 		
-		if(!hide_selection_highlight.value)
+		if(show_selection.value)
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
@@ -759,7 +752,7 @@ class PropTool : Tool
 				selected_props[i].stop_scale(script.escape_press);
 			}
 			
-			if(!temporary_selection && !hide_selection_highlight.value)
+			if(!temporary_selection && show_selection.value)
 			{
 				check_rotation_handle();
 				check_scale_handle();
@@ -794,7 +787,7 @@ class PropTool : Tool
 		selection_x2 = drag_selection_x2 * scale;
 		selection_y2 = drag_selection_y2 * scale;
 		
-		if(!hide_selection_highlight.value)
+		if(show_selection.value)
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
@@ -886,25 +879,31 @@ class PropTool : Tool
 	private void get_handle_position(const bool vertical, const float offset, float &out x, float &out y)
 	{
 		float sx, sy, sx1, sy1, sx2, sy2;
+		float x1, y1, x2, y2, x3, y3, x4, y4;
 		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
 		script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
 		script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
 		
-		const float distance = (vertical ? (sy2 - sy1) : (sx2 - sx1)) * 0.5;
+		rotate(sx1, sy1, selection_angle, x1, y1);
+		rotate(sx2, sy1, selection_angle, x2, y2);
+		rotate(sx2, sy2, selection_angle, x3, y3);
+		rotate(sx1, sy2, selection_angle, x4, y4);
 		
-		if(selected_props_count == 1)
+		if(vertical)
 		{
-			float s1x = (sx1 + sx2) * 0.5;
-			float s1y = (sy1 + sy2) * 0.5;
-			rotate(s1x, s1y, selection_angle, s1x, s1y);
-			sx += s1x;
-			sy += s1y;
+			sx += (x1 + x2) * 0.5;
+			sy += (y1 + y2) * 0.5;
+		}
+		else
+		{
+			sx += (x2 + x3) * 0.5;
+			sy += (y2 + y3) * 0.5;
 		}
 		
 		const float angle = vertical ? selection_angle - HALF_PI : selection_angle;
 		
-		x = sx + cos(angle) * (distance + offset / script.zoom);
-		y = sy + sin(angle) * (distance + offset / script.zoom);
+		x = sx + cos(angle) * (offset / script.zoom);
+		y = sy + sin(angle) * (offset / script.zoom);
 	}
 	
 	private bool check_rotation_handle(const bool force_highlight=false)
@@ -1007,7 +1006,7 @@ class PropTool : Tool
 			
 			selection_layer = 0;
 			selection_angle = 0;
-			has_custom_anchor = false;
+			clear_custom_anchor();
 		}
 		
 		if(
@@ -1074,8 +1073,8 @@ class PropTool : Tool
 			if(prop_data.y + prop_data.y2 > selection_y2) selection_y2 = prop_data.y + prop_data.y2;
 		}
 		
-		selection_x = selected_props_count > 1 ? (selection_x1 + selection_x2) * 0.5 : prop_data.anchor_x;
-		selection_y = selected_props_count > 1 ? (selection_y1 + selection_y2) * 0.5 : prop_data.anchor_y;
+		selection_x = selected_props_count > 1 ? selection_x1 + (selection_x2 - selection_x1) * origin_align_x : prop_data.anchor_x;
+		selection_y = selected_props_count > 1 ? selection_y1 + (selection_y2 - selection_y1) * origin_align_y : prop_data.anchor_y;
 		selection_x1 -= selection_x;
 		selection_y1 -= selection_y;
 		selection_x2 -= selection_x;
@@ -1107,21 +1106,6 @@ class PropTool : Tool
 	}
 	
 	// Highligts
-	
-	private void show_prop_info(PropData@ prop_data)
-	{
-		prop@ p = prop_data.prop;
-		int index = prop_index_to_array_index(p.prop_set(), p.prop_group(), p.prop_index());
-		const PropIndex@ prop_index = @PROP_INDICES[p.prop_group()][index];
-		
-		info_label.text =
-			// Group and name
-			string::nice(PROP_GROUP_NAMES[p.prop_group()]) + '::' + prop_index.name + '\n' +
-			// Layer
-			p.layer() + '.' + p.sub_layer();
-		
-		script.ui.show_tooltip(info_popup, toolbar);
-	}
 	
 	private PropData@ is_prop_highlighted(prop@ prop)
 	{
@@ -1157,7 +1141,7 @@ class PropTool : Tool
 		@highlighted_props[highlighted_props_count++] = @prop_data;
 		@highlighted_props_map[key] = @prop_data;
 		
-		prop_data.init(script);
+		prop_data.init(script, this);
 		
 		return prop_data;
 	}
@@ -1386,7 +1370,7 @@ class PropTool : Tool
 			return 24;
 		
 		if(script.alt)
-			return 5;
+			return custom_grid.value;
 		
 		return 0;
 	}
@@ -1408,6 +1392,66 @@ class PropTool : Tool
 	private bool is_same_parallax(const int layer1, const int layer2)
 	{
 		return layer1 >= 12 && layer2 >= 12 || layer1 == layer2;
+	}
+	
+	void update_alignments_from_origin()
+	{
+		if(default_origin.value == 'top_left')
+		{
+			origin_align_x = 0;
+			origin_align_y = 0;
+		}
+		else if(default_origin.value == 'top')
+		{
+			origin_align_x = 0.5;
+			origin_align_y = 0;
+		}
+		else if(default_origin.value == 'top_right')
+		{
+			origin_align_x = 1;
+			origin_align_y = 0;
+		}
+		else if(default_origin.value == 'right')
+		{
+			origin_align_x = 1;
+			origin_align_y = 0.5;
+		}
+		else if(default_origin.value == 'bottom_right')
+		{
+			origin_align_x = 1;
+			origin_align_y = 1;
+		}
+		else if(default_origin.value == 'bottom')
+		{
+			origin_align_x = 0.5;
+			origin_align_y = 1;
+		}
+		else if(default_origin.value == 'bottom_left')
+		{
+			origin_align_x = 0;
+			origin_align_y = 1;
+		}
+		else if(default_origin.value == 'left')
+		{
+			origin_align_x = 0;
+			origin_align_y = 0.5;
+		}
+		else
+		{
+			origin_align_x = 0.5;
+			origin_align_y = 0.5;
+		}
+		
+		selection_angle = 0;
+		update_selection_bounds();
+	}
+	
+	private void clear_custom_anchor()
+	{
+		if(custom_anchor_lock.value)
+			return;
+		
+		has_custom_anchor = false;
 	}
 	
 }
