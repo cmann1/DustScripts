@@ -8,23 +8,12 @@
 
 #include 'PropToolState.cpp';
 #include 'PropSortingData.cpp';
+#include 'PropAlignData.cpp';
 #include 'PropData.cpp';
 #include 'PropToolToolbar.cpp';
 
 const string PROP_TOOL_SPRITES_BASE = SPRITES_BASE + 'prop_tool/';
 const string EMBED_spr_icon_prop_tool = SPRITES_BASE + 'icon_prop_tool.png';
-const string EMBED_spr_origin_centre			= PROP_TOOL_SPRITES_BASE + 'origin_centre.png';
-const string EMBED_spr_origin_top				= PROP_TOOL_SPRITES_BASE + 'origin_top.png';
-const string EMBED_spr_origin_top_left			= PROP_TOOL_SPRITES_BASE + 'origin_top_left.png';
-const string EMBED_spr_prop_tool_align_centre		= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_centre.png';
-const string EMBED_spr_prop_tool_align_left			= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_left.png';
-const string EMBED_spr_prop_tool_custom_anchor_lock	= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_anchor_lock.png';
-const string EMBED_spr_prop_tool_custom_grid		= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_grid.png';
-const string EMBED_spr_prop_tool_dist_centre		= PROP_TOOL_SPRITES_BASE + 'prop_tool_dist_centre.png';
-const string EMBED_spr_prop_tool_dist_left			= PROP_TOOL_SPRITES_BASE + 'prop_tool_dist_left.png';
-const string EMBED_spr_prop_tool_show_info			= PROP_TOOL_SPRITES_BASE + 'prop_tool_show_info.png';
-const string EMBED_spr_prop_tool_show_selection		= PROP_TOOL_SPRITES_BASE + 'prop_tool_show_selection.png';
-const string EMBED_spr_prop_tool_tiles_blocking		= PROP_TOOL_SPRITES_BASE + 'prop_tool_tiles_blocking.png';
 
 class PropTool : Tool
 {
@@ -42,6 +31,9 @@ class PropTool : Tool
 	
 	private int props_under_mouse_size = 32;
 	private array<PropSortingData> props_under_mouse(props_under_mouse_size);
+	
+	private int props_align_data_size = 32;
+	private array<PropAlignData> props_align_data(props_align_data_size);
 	
 	private int highlighted_props_size = 32;
 	private int highlighted_props_count;
@@ -261,12 +253,12 @@ class PropTool : Tool
 			}
 		}
 		
-		for(int i = 0; i < selected_props_count; i++)
-		{
-			PropData@ p = @selected_props[i];
-			outline_rect(script.g,22,22,
-				p.x + p.x1, p.y + p.y1, p.x + p.x2, p.y + p.y2, 1 / script.zoom, 0xaaff0000);
-		}
+//		for(int i = 0; i < selected_props_count; i++)
+//		{
+//			PropData@ p = @selected_props[i];
+//			outline_rect(script.g,22,22,
+//				p.x + p.x1, p.y + p.y1, p.x + p.x2, p.y + p.y2, 1 / script.zoom, 0xaaff0000);
+//		}
 		
 		// Selection rect
 		
@@ -1530,6 +1522,104 @@ class PropTool : Tool
 				
 				p.prop.y(p.y);
 			}
+		}
+		
+		selection_angle = 0;
+		update_selection_bounds();
+	}
+	
+	void distribute(const AlignmentEdge align)
+	{
+		if(selected_props_count < 3)
+			return;
+		
+		const bool horizontal = align == Left || align == Centre || align == Right || align == Horizontal;
+		
+		if(props_align_data_size < selected_props_count)
+		{
+			props_align_data.resize(props_align_data_size += selected_props_count + 32);
+		}
+		
+		float props_width = 0;
+		
+		for(int i = selected_props_count - 1; i >= 0; i--)
+		{
+			PropData@ p = @selected_props[i];
+			@props_align_data[i].data = p;
+			props_align_data[i].x = horizontal ? p.x + p.x1 : p.y + p.y1;
+			props_width += horizontal ? p.x2 - p.x1 : p.y2 - p.y1;
+		}
+		
+		props_align_data.sortAsc(0, selected_props_count);
+		
+		PropData@ first = @props_align_data[0].data;
+		PropData@ last  = @props_align_data[selected_props_count - 1].data;
+		float min, max;
+		
+		switch(align)
+		{
+			case AlignmentEdge::Left:
+			case AlignmentEdge::Top:
+				min = horizontal ? first.x + first.x1 : first.y + first.y1;
+				max = horizontal ? last.x + last.x1 : last.y + last.y1;
+				break;
+			case AlignmentEdge::Right:
+			case AlignmentEdge::Bottom:
+				min = horizontal ? first.x + first.x2 : first.y + first.y2;
+				max = horizontal ? last.x + last.x2 : last.y + last.y2;
+				break;
+			case AlignmentEdge::Centre:
+			case AlignmentEdge::Middle:
+				min = horizontal ? first.x + (first.x1 + first.x2) * 0.5 : first.y + (first.y1 + first.y2) * 0.5;
+				max = horizontal ? last.x + (last.x1 + last.x2) * 0.5 : last.y + (last.y1 + last.y2) * 0.5;
+				break;
+			case AlignmentEdge::Horizontal:
+			case AlignmentEdge::Vertical:
+				min = horizontal ? first.x + first.x1 : first.y + first.y1;
+				max = horizontal ? last.x + last.x2 : last.y + last.y2;
+				break;
+		}
+		
+		const bool is_spaced = align == Horizontal || align == Vertical;
+		const float spacing = (is_spaced
+			? (max - min) - props_width
+			: (max - min)
+		) / (selected_props_count - 1);
+		
+		float x = min + spacing;
+		
+		if(is_spaced)
+		{
+			x += horizontal ? first.x2 - first.x1 : first.y2 - first.y1;
+		}
+		
+		for(int i = 1; i < selected_props_count - 1; i++)
+		{
+			PropData@ p = @props_align_data[i].data;
+			
+			switch(align)
+			{
+				case AlignmentEdge::Horizontal:
+				case AlignmentEdge::Left:		p.x = x - p.x1; break;
+				
+				case AlignmentEdge::Vertical:
+				case AlignmentEdge::Top:		p.y = x - p.y1; break;
+				
+				case AlignmentEdge::Right:		p.x = x - p.x2; break;
+				case AlignmentEdge::Bottom:		p.y = x - p.y2; break;
+				case AlignmentEdge::Centre:		p.x = x - (p.x1 + p.x2) * 0.5; break;
+				case AlignmentEdge::Middle:		p.y = x - (p.y1 + p.y2) * 0.5; break;
+			}
+			
+			p.prop.x(p.x);
+			p.prop.y(p.y);
+			
+			if(is_spaced)
+			{
+				x += horizontal ? p.x2 - p.x1 : p.y2 - p.y1;
+			}
+			
+			x += spacing;
 		}
 		
 		selection_angle = 0;

@@ -2,6 +2,19 @@
 #include '../../../../lib/ui3/elements/NumberSlider.cpp';
 #include '../../../../lib/ui3/layouts/GridLayout.cpp';
 
+const string EMBED_spr_origin_centre			= PROP_TOOL_SPRITES_BASE + 'origin_centre.png';
+const string EMBED_spr_origin_top				= PROP_TOOL_SPRITES_BASE + 'origin_top.png';
+const string EMBED_spr_origin_top_left			= PROP_TOOL_SPRITES_BASE + 'origin_top_left.png';
+const string EMBED_spr_prop_tool_align_centre		= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_centre.png';
+const string EMBED_spr_prop_tool_align_left			= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_left.png';
+const string EMBED_spr_prop_tool_custom_anchor_lock	= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_anchor_lock.png';
+const string EMBED_spr_prop_tool_custom_grid		= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_grid.png';
+const string EMBED_spr_prop_tool_dist_centre		= PROP_TOOL_SPRITES_BASE + 'prop_tool_dist_centre.png';
+const string EMBED_spr_prop_tool_dist_left			= PROP_TOOL_SPRITES_BASE + 'prop_tool_dist_left.png';
+const string EMBED_spr_prop_tool_show_info			= PROP_TOOL_SPRITES_BASE + 'prop_tool_show_info.png';
+const string EMBED_spr_prop_tool_show_selection		= PROP_TOOL_SPRITES_BASE + 'prop_tool_show_selection.png';
+const string EMBED_spr_prop_tool_tiles_blocking		= PROP_TOOL_SPRITES_BASE + 'prop_tool_tiles_blocking.png';
+
 class PropToolToolbar
 {
 	
@@ -26,6 +39,10 @@ class PropToolToolbar
 	private Button@ align_button;
 	private PopupOptions@ align_tooltip;
 	private PopupOptions@ align_popup;
+	
+	private Button@ distribute_button;
+	private PopupOptions@ distribute_tooltip;
+	private PopupOptions@ distribute_popup;
 	
 	// Settings
 	
@@ -184,6 +201,22 @@ class PropToolToolbar
 		align_popup.show.on(EventCallback(on_align_popup_show));
 		align_popup.hide.on(EventCallback(on_align_popup_hide));
 		
+		// Distribute button
+		
+		@distribute_button = toolbar.add_button('script', 'prop_tool_dist_left', Settings::IconSize, Settings::IconSize);
+		distribute_button.name = 'distribute';
+		@distribute_button.tooltip = PopupOptions(ui, 'Distribute');
+		distribute_button.mouse_click.on(button_click);
+		
+		Container@ distribute_buttons = create_distribute_buttons();
+		
+		@distribute_popup = PopupOptions(ui, distribute_buttons, true, PopupPosition::Below, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
+		distribute_popup.wait_for_mouse = true;
+		distribute_popup.padding = 0;
+		distribute_popup.spacing = style.spacing;
+		distribute_popup.show.on(EventCallback(on_distribute_popup_show));
+		distribute_popup.hide.on(EventCallback(on_distribute_popup_hide));
+		
 		// Selection button
 		
 		toolbar.add_divider();
@@ -231,13 +264,39 @@ class PropToolToolbar
 		
 		Button@ button;
 		
+		create_button(c, 'left', 'Left Edges', 'align_left', 0, 1, 1, align_button_click);
+		create_button(c, 'centre', 'Horizontal Centres', 'align_centre', 0, 1, 1, align_button_click);
+		create_button(c, 'right', 'Right Edges', 'align_left', 0, -1, 1, align_button_click);
+		
 		create_button(c, 'top', 'Top Edges', 'align_left', 90, 1, -1, align_button_click);
 		create_button(c, 'middle', 'Vertical Centres', 'align_centre', -90, 1, 1, align_button_click);
 		create_button(c, 'bottom', 'Bottom Edges', 'align_left', -90, 1, 1, align_button_click);
 		
-		create_button(c, 'left', 'Left Edges', 'align_left', 0, 1, 1, align_button_click);
-		create_button(c, 'centre', 'Horizontal Centres', 'align_centre', 0, 1, 1, align_button_click);
-		create_button(c, 'right', 'Right Edges', 'align_left', 0, -1, 1, align_button_click);
+		c.fit_to_contents(true);
+		return c;
+	}
+	
+	private Container@ create_distribute_buttons()
+	{
+		UI@ ui = script.ui;
+		Style@ style = ui.style;
+		
+		Container@ c = Container(ui);
+		@c.layout = GridLayout(ui, 3);
+		EventCallback@ distibute_button_click = EventCallback(on_distribute_button_click);
+		
+		Button@ button;
+		
+		create_button(c, 'left', 'Left Edges', 'dist_left', 0, 1, 1, distibute_button_click);
+		create_button(c, 'centre', 'Horizontal Centres', 'dist_centre', 0, 1, 1, distibute_button_click);
+		create_button(c, 'right', 'Right Edges', 'dist_left', 0, -1, 1, distibute_button_click);
+		
+		create_button(c, 'top', 'Top Edges', 'dist_left', 90, 1, -1, distibute_button_click);
+		create_button(c, 'middle', 'Vertical Centres', 'dist_centre', -90, 1, 1, distibute_button_click);
+		create_button(c, 'bottom', 'Bottom Edges', 'dist_left', -90, 1, 1, distibute_button_click);
+		
+		create_button(c, 'horizontal', 'Spaced Horizontally', 'dist_centre', 0, 1, 1, distibute_button_click);
+		create_button(c, 'vertical', 'Spaced Vertically', 'dist_centre', -90, 1, 1, distibute_button_click);
 		
 		c.fit_to_contents(true);
 		return c;
@@ -319,6 +378,36 @@ class PropToolToolbar
 	void update_buttons(const int selected_props_count)
 	{
 		align_button.disabled = selected_props_count < 2;
+		distribute_button.disabled = selected_props_count < 3;
+	}
+	
+	private AlignmentEdge alignment_from_name(const string name)
+	{
+		if(name == 'top')
+			return Top;
+		
+		if(name == 'middle')
+			return Middle;
+		
+		if(name == 'bottom')
+			return Bottom;
+		
+		if(name == 'left')
+			return Left;
+		
+		if(name == 'centre')
+			return Centre;
+		
+		if(name == 'right')
+			return Right;
+		
+		if(name == 'vertical')
+			return Vertical;
+		
+		if(name == 'horizontal')
+			return Horizontal;
+		
+		return None;
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -374,6 +463,12 @@ class PropToolToolbar
 			align_button.selected = true;
 			align_button.selectable = true;
 			script.ui.show_tooltip(align_popup, align_button);
+		}
+		else if(name == 'distribute')
+		{
+			distribute_button.selected = true;
+			distribute_button.selectable = true;
+			script.ui.show_tooltip(distribute_popup, distribute_button);
 		}
 	}
 	
@@ -437,25 +532,25 @@ class PropToolToolbar
 	
 	private void on_align_button_click(EventInfo@ event)
 	{
-		const string name = event.target.name;
-		AlignmentEdge align;
-		
-		if(name == 'top')
-			align = Top;
-		else if(name == 'middle')
-			align = Middle;
-		else if(name == 'bottom')
-			align = Bottom;
-		else if(name == 'left')
-			align = Left;
-		else if(name == 'centre')
-			align = Centre;
-		else if(name == 'right')
-			align = Right;
-		else
-			return;
-		
-		tool.align(align);
+		tool.align(alignment_from_name(event.target.name));
+	}
+	
+	// Distribute
+	
+	private void on_distribute_popup_show(EventInfo@ event)
+	{
+		distribute_button.tooltip.enabled = false;
+	}
+	
+	private void on_distribute_popup_hide(EventInfo@ event)
+	{
+		distribute_button.selectable = false;
+		distribute_button.tooltip.enabled = true;
+	}
+	
+	private void on_distribute_button_click(EventInfo@ event)
+	{
+		tool.distribute(alignment_from_name(event.target.name));
 	}
 	
 }

@@ -1,12 +1,17 @@
 enum AlignmentEdge
 {
 	
+	None,
+	
 	Top,
 	Middle,
 	Bottom,
 	
 	Left,
 	Centre,
-	Right
+	Right,
+	
+	Vertical,
+	Horizontal,
 	
 }
