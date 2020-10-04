@@ -245,7 +245,7 @@ class PropTool : Tool
 			
 			if(selected_props_count > 0 && !script.is_same_parallax(custom_anchor_layer, selection_layer))
 			{
-				const uint clr = multiply_alpha(PropToolSettings::BoundingBoxColour, 0.5);
+				const uint clr = multiply_alpha(Settings::BoundingBoxColour, 0.5);
 				float x1, y1, x2, y2;
 				
 				script.transform(custom_anchor_x, custom_anchor_y, custom_anchor_layer, 22, x1, y1);
@@ -286,12 +286,12 @@ class PropTool : Tool
 		x4 += sx;
 		y4 += sy;
 		
-		const float thickness = PropToolSettings::BoundingBoxLineWidth / script.zoom;
+		const float thickness = Settings::BoundingBoxLineWidth / script.zoom;
 		
-		draw_line(script.g, 22, 22, x1, y1, x2, y2, thickness, PropToolSettings::BoundingBoxColour);
-		draw_line(script.g, 22, 22, x2, y2, x3, y3, thickness, PropToolSettings::BoundingBoxColour);
-		draw_line(script.g, 22, 22, x3, y3, x4, y4, thickness, PropToolSettings::BoundingBoxColour);
-		draw_line(script.g, 22, 22, x4, y4, x1, y1, thickness, PropToolSettings::BoundingBoxColour);
+		draw_line(script.g, 22, 22, x1, y1, x2, y2, thickness, Settings::BoundingBoxColour);
+		draw_line(script.g, 22, 22, x2, y2, x3, y3, thickness, Settings::BoundingBoxColour);
+		draw_line(script.g, 22, 22, x3, y3, x4, y4, thickness, Settings::BoundingBoxColour);
+		draw_line(script.g, 22, 22, x4, y4, x1, y1, thickness, Settings::BoundingBoxColour);
 		const float mx = (x1 + x2) * 0.5;
 		const float my = (y1 + y2) * 0.5;
 		
@@ -302,10 +302,10 @@ class PropTool : Tool
 		draw_line(script.g, 22, 22,
 			mx, my,
 			mx + nx * oh, my + ny * oh,
-			PropToolSettings::BoundingBoxLineWidth / script.zoom, PropToolSettings::BoundingBoxColour);
+			Settings::BoundingBoxLineWidth / script.zoom, Settings::BoundingBoxColour);
 	}
 	
-	private void draw_rotation_anchor(float x, float y, const int from_layer, const bool lock=false, const float size = 1.4, const uint clr=PropToolSettings::BoundingBoxColour)
+	private void draw_rotation_anchor(float x, float y, const int from_layer, const bool lock=false, const float size = 1.4, const uint clr=Settings::BoundingBoxColour)
 	{
 		script.transform(x, y, from_layer, 22, x, y);
 		
@@ -930,7 +930,7 @@ class PropTool : Tool
 		
 		return script.handles.circle(
 			x, y,
-			Settings::RotateHandleSize, Settings::RotateHandleColour, Settings::RotateHandleHighlightColour, force_highlight);
+			Settings::RotateHandleSize, Settings::RotateHandleColour, Settings::RotateHandleHoveredColour, force_highlight);
 	}
 	
 	private bool check_scale_handle(const bool force_highlight=false)
@@ -944,7 +944,7 @@ class PropTool : Tool
 		return script.handles.square(
 			x, y,
 			Settings::ScaleHandleSize, selection_angle * RAD2DEG,
-			Settings::RotateHandleColour, Settings::RotateHandleHighlightColour, force_highlight);
+			Settings::RotateHandleColour, Settings::RotateHandleHoveredColour, force_highlight);
 	}
 	
 	private void show_custom_anchor_info()

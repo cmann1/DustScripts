@@ -341,23 +341,6 @@ class AdvToolScript
 		state_persisted = false;
 	}
 	
-	void persist_state()
-	{
-		if(state_persisted)
-			return;
-		
-//		controllable@ p = controller_controllable(0);
-//		
-//		if(@p != null)
-//		{
-//			p.x(g.get_checkpoint_x(0));
-//			p.y(g.get_checkpoint_y(0));
-//		}
-//		
-//		g.save_checkpoint(0, 0);
-		state_persisted = true;
-	}
-	
 	void editor_draw(float sub_frame)
 	{
 		if(@selected_tool != null)
@@ -750,6 +733,23 @@ class AdvToolScript
 //		toolbar.y = ui.region_height - toolbar.height;
 		toolbar.y = editor.hide_gui() ? 0 : 60;
 //		toolbar.y = 0;
+	}
+	
+	void persist_state()
+	{
+		if(state_persisted)
+			return;
+		
+//		controllable@ p = controller_controllable(0);
+//		
+//		if(@p != null)
+//		{
+//			p.x(g.get_checkpoint_x(0));
+//			p.y(g.get_checkpoint_y(0));
+//		}
+//		
+//		g.save_checkpoint(0, 0);
+		state_persisted = true;
 	}
 	
 	// ///////////////////////////////////////////

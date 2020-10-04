@@ -76,19 +76,19 @@ class PropData : IWorldBoundingBox
 		spr.draw_world(22, 22, sprite_name, 0, prop.palette(),
 			draw_x, draw_y, prop.rotation(),
 			draw_scale_x, draw_scale_y,
-			pending == 1 ? PropToolSettings::PendingAddOverlayColour : pending == -1 ? PropToolSettings::PendingRemoveOverlayColour
+			pending == 1 ? Settings::PendingAddFillColour : pending == -1 ? Settings::PendingRemoveFillColour
 				: hovered
-					? PropToolSettings::HighlightOverlayColour
-					: PropToolSettings::SelectOverlayColour);
+					? Settings::HoveredFillColour
+					: Settings::SelectedFillColour);
 		
-		const float width = (pending == 1 ? PropToolSettings::PendingAddOutlineWidth : pending == -1 ? PropToolSettings::PendingRemoveOutlineWidth
+		const float width = (pending == 1 ? Settings::PendingAddLineWidth : pending == -1 ? Settings::PendingRemoveLineWidth
 			: hovered
-				? PropToolSettings::HighlightOutlineWidth
-				: PropToolSettings::SelectedOutlineWidth) / script.zoom;
-		const uint colour = pending == 1 ? PropToolSettings::PendingAddOutlineColour : pending == -1 ? PropToolSettings::PendingRemoveOutlineColour
+				? Settings::HoveredLineWidth
+				: Settings::SelectedLineWidth) / script.zoom;
+		const uint colour = pending == 1 ? Settings::PendingAddLineColour : pending == -1 ? Settings::PendingRemoveLineColour
 			: hovered
-				? PropToolSettings::HighlightOutlineColour
-				: PropToolSettings::SelectedOutlineColour;
+				? Settings::HoveredLineColour
+				: Settings::SelectedLineColour;
 		
 		for(int i = lines_count - 4; i >= 0; i -= 4)
 		{

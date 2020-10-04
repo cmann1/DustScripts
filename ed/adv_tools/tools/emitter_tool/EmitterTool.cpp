@@ -136,6 +136,7 @@ class EmitterTool : Tool
 			case EmitterToolState::Rotating: state_rotating(); break;
 			case EmitterToolState::Scaling: state_scaling(); break;
 			case EmitterToolState::Selecting: state_selecting(); break;
+			case EmitterToolState::Creating: state_creating(); break;
 		}
 		
 		if(!mouse.left_down)
@@ -199,11 +200,23 @@ class EmitterTool : Tool
 			select_none();
 		}
 		
+		// Selection rect
+		
+		if(mouse.left_press && script.alt)
+		{
+			drag_start_x = mouse.x;
+			drag_start_y = mouse.y;
+			state = Selecting;
+			return;
+		}
+		
 		// Select emitter on click
 		
 		if(mouse.left_press && @hovered_emitter != null)
 		{
-			select_emitter(hovered_emitter, script.shift || hovered_emitter.selected ? SelectAction::Add : script.ctrl ? SelectAction::Remove : SelectAction::Set);
+			select_emitter(hovered_emitter, script.shift || (hovered_emitter.selected && !script.ctrl)
+				? SelectAction::Add
+				: script.ctrl ? SelectAction::Remove : SelectAction::Set);
 			@pressed_emitter = @hovered_emitter;
 		}
 		
@@ -310,6 +323,21 @@ class EmitterTool : Tool
 	}
 	
 	private void state_selecting()
+	{
+		if(script.escape_press || !mouse.left_down)
+		{
+			
+			state = Idle;
+			return;
+		}
+		
+		const float y1 = min(drag_start_y, mouse.y);
+		const float y2 = max(drag_start_y, mouse.y);
+		const float x1 = min(drag_start_x, mouse.x);
+		const float x2 = max(drag_start_x, mouse.x);
+	}
+	
+	private void state_creating()
 	{
 		
 	}

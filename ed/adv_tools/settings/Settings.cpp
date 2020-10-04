@@ -7,17 +7,41 @@ namespace Settings
 	const float UIFadeAlpha = 0.35;
 	const float UIFadeSpeed = 4;
 	
-	const float SelectRectLineWidth		= 1.5;
-	const uint SelectRectFillColour		= 0x1144ff44;
-	const uint SelectRectLineColour		= 0x55aaffaa;
+	const float SelectRectLineWidth			= 1.5;
+	const uint SelectRectFillColour			= 0x1144ff44;
+	const uint SelectRectLineColour			= 0x55aaffaa;
+	
+	const float DefaultLineWidth			= 1;
+	const uint DefaultLineColour			= 0x55ffffff;
+	const uint DefaultFillColour			= 0x10ffffff;
+	
+	const float HoveredLineWidth			= 1.5;
+	const uint HoveredLineColour			= 0xff44eeff;
+	const uint HoveredFillColour			= 0x5544eeff;
+	
+	const float SelectedLineWidth			= 1;
+	const uint SelectedLineColour			= 0xcc44eeff;
+	const uint SelectedFillColour			= 0x3344eeff;
+	
+	const float PendingAddLineWidth			= 1;
+	const uint PendingAddFillColour			= 0x3344ff44;
+	const uint PendingAddLineColour			= 0xaa44ff44;
+	
+	const float PendingRemoveLineWidth		= 1;
+	const uint PendingRemoveFillColour		= 0x33ff4444;
+	const uint PendingRemoveLineColour		= 0xaaff4444;
+	
+	const float BoundingBoxLineWidth		= 1.5;
+	const uint BoundingBoxColour			= 0x55ffffff;
 	
 	const float	RotationHandleOffset		= 18;
+	
 	const float	RotateHandleSize			= 5;
 	const uint RotateHandleColour			= 0xaaffffff;
-	const uint RotateHandleHighlightColour	= 0xaaea9c3f;
-	const float	ScaleHandleSize				= 4;
 	
-	/// 
+	const float	ScaleHandleSize				= 4;
+	const uint RotateHandleHoveredColour	= 0xaaea9c3f;
+	
 	const array<float> ScaleHandleOffsets = {
 		// Right
 		 1,  0,

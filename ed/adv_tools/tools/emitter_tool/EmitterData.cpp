@@ -12,6 +12,7 @@ class EmitterData : IWorldBoundingBox
 	bool primary_selected;
 	bool visible;
 	bool modified;
+	int pending_selection;
 	
 	private varstruct@ vars;
 	private varvalue@ width_var;
@@ -61,6 +62,7 @@ class EmitterData : IWorldBoundingBox
 		selected = false;
 		primary_selected = false;
 		modified = false;
+		pending_selection = 0;
 	}
 	
 	void update()
@@ -136,7 +138,7 @@ class EmitterData : IWorldBoundingBox
 				if(script.handles.square(
 					world_x + nx * ox * o[i + 0] - ny * oy * o[i + 1],
 					world_y + ny * ox * o[i + 2] + nx * oy * o[i + 3],
-					Settings::ScaleHandleSize, rotation, Settings::RotateHandleColour, Settings::RotateHandleHighlightColour))
+					Settings::ScaleHandleSize, rotation, Settings::RotateHandleColour, Settings::RotateHandleHoveredColour))
 				{
 //					hovered_handle_index = i / 4;
 				}
@@ -146,18 +148,18 @@ class EmitterData : IWorldBoundingBox
 	
 	void draw()
 	{
-		const uint fill = hovered ? EmitterToolSettings::HoveredFillColour
+		const uint fill = hovered ? Settings::HoveredFillColour
 			: selected
-				? EmitterToolSettings::SelectedFillColour
-				: EmitterToolSettings::VisibleFillColour;
-		const uint line = hovered ? EmitterToolSettings::HoveredLineColour
+				? Settings::SelectedFillColour
+				: Settings::DefaultFillColour;
+		const uint line = hovered ? Settings::HoveredLineColour
 			: selected
-				? EmitterToolSettings::SelectedLineColour
-				: EmitterToolSettings::VisibleLineColour;
-		const float line_width = hovered ? EmitterToolSettings::HoveredLineWidth
+				? Settings::SelectedLineColour
+				: Settings::DefaultLineColour;
+		const float line_width = hovered ? Settings::HoveredLineWidth
 			: selected
-				? EmitterToolSettings::SelectedLineWidth
-				: EmitterToolSettings::LineWidth;
+				? Settings::SelectedLineWidth
+				: Settings::DefaultLineWidth;
 		
 		if(fill != 0)
 		{
