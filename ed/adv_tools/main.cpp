@@ -22,6 +22,7 @@
 #include 'misc/InfoOverlay.cpp';
 #include 'misc/ToolListenerInterfaces.cpp';
 #include 'settings/Settings.cpp';
+#include 'tools/emitter_tool/EmitterTool.cpp';
 #include 'tools/prop_tool/PropTool.cpp';
 #include 'tools/TextTool.cpp';
 #include 'tools/ExtendedTriggerTool.cpp';
@@ -67,6 +68,7 @@ class AdvToolScript
 	private dictionary settings;
 	
 	private bool initialised;
+	private bool state_persisted = true;
 	
 	private Toolbar@ toolbar;
 	private array<ToolGroup> tool_groups;
@@ -232,6 +234,7 @@ class AdvToolScript
 		add_tool('Props',		PropTool());
 		add_tool('Triggers',	TextTool());
 		add_tool('Triggers',	ExtendedTriggerTool());
+		add_tool('Emitters',	EmitterTool());
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -282,6 +285,7 @@ class AdvToolScript
 		{
 			selected_tab = new_tab;
 			select_tool(selected_tab);
+			persist_state();
 		}
 		
 		if(@ui.focus == null)
@@ -303,6 +307,7 @@ class AdvToolScript
 					if(editor.key_check_pressed_vk(tool.shortcut_key))
 					{
 						select_tool(tool.on_shortcut_key());
+						persist_state();
 						break;
 					}
 				}
@@ -330,6 +335,25 @@ class AdvToolScript
 		{
 			toolbar.alpha = max(toolbar.alpha - Settings::UIFadeSpeed * DT, Settings::UIFadeAlpha);
 		}
+		
+		state_persisted = false;
+	}
+	
+	void persist_state()
+	{
+		if(state_persisted)
+			return;
+		
+		controllable@ p = controller_controllable(0);
+		
+		if(@p != null)
+		{
+			p.x(g.get_checkpoint_x(0));
+			p.y(g.get_checkpoint_y(0));
+		}
+		
+		g.save_checkpoint(0, 0);
+		state_persisted = true;
 	}
 	
 	void editor_draw(float sub_frame)
@@ -622,7 +646,6 @@ class AdvToolScript
 		}
 		
 		selected_tool_name = tool.name;
-		g.save_checkpoint(0, 0);
 		@selected_tool = tool;
 		selected_tool.on_select();
 		selected_tool.group.on_select();
@@ -651,6 +674,7 @@ class AdvToolScript
 			return;
 		
 		select_tool(cast<Tool@>(tools_map[event.target.name]));
+		persist_state();
 	}
 	
 	//
