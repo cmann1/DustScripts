@@ -78,6 +78,11 @@ class EmitterTool : Tool
 			hover_index_offset = 0;
 		}
 		
+		for(int j = highlighted_emitters_count - 1; j >= 0; j--)
+		{
+			highlighted_emitters[j].visible = false;
+		}
+		
 		int i = script.query_onscreen_entities(ColType::Emitter);
 		int mouse_inside_count = 0;
 		
@@ -386,8 +391,6 @@ class EmitterTool : Tool
 		
 		if(highlighted_emitters_map.exists(key))
 		{
-			// TODO: REMOVE
-//			cast<EmitterData@>(highlighted_emitters_map[key]).init(script, this, emitter, index);
 			return cast<EmitterData@>(highlighted_emitters_map[key]);
 		}
 		
