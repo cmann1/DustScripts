@@ -1209,8 +1209,8 @@ class PropTool : Tool
 		}
 		else
 		{
-			x = script.view_x - props_clipboard.x1 - (props_clipboard.x2 - props_clipboard.x1) * 0.5;
-			y = script.view_y - props_clipboard.y1 - (props_clipboard.y2 - props_clipboard.y1) * 0.5;
+			x = mouse.x - props_clipboard.x1 - (props_clipboard.x2 - props_clipboard.x1) * 0.5;
+			y = mouse.y - props_clipboard.y1 - (props_clipboard.y2 - props_clipboard.y1) * 0.5;
 		}
 		
 		select_none();

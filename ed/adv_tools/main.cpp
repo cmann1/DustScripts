@@ -91,10 +91,6 @@ class AdvToolScript
 	float view_w, view_h;
 	float screen_w, screen_h;
 	
-	private int size_onscreen_triggers = 32;
-	private int num_onscreen_triggers = -1;
-	private array<entity@> onscreen_triggers(size_onscreen_triggers);
-	
 	// //////////////////////////////////////////////////////////
 	// Init
 	// //////////////////////////////////////////////////////////
@@ -318,8 +314,6 @@ class AdvToolScript
 			selected_tool.step();
 		}
 		
-		num_onscreen_triggers = -1;
-		
 		info_overlay.step();
 		
 		ui.step();
@@ -424,22 +418,6 @@ class AdvToolScript
 		num_tool_group_popups += open ? 1 : -1;
 	}
 	
-	int get_onscreen_triggers(array<entity@>@ &out triggers)
-	{
-		if(num_onscreen_triggers == -1)
-		{
-			num_onscreen_triggers = g.get_entity_collision(view_y1, view_y2, view_x1, view_x2, ColType::Trigger);
-			
-			for(int i = 0; i < num_onscreen_triggers; i++)
-			{
-				@triggers[i] = g.get_entity_collision_index(i);
-			}
-		}
-		
-		@triggers = @onscreen_triggers;
-		return num_onscreen_triggers;
-	}
-	
 	void world_to_hud(const float x, const float y, float &out hud_x, float &out hud_y, const bool ui_coords=true)
 	{
 		hud_x = (x - view_x1) / view_w * screen_w;
@@ -485,6 +463,11 @@ class AdvToolScript
 		}
 		
 		return closest;
+	}
+	
+	int query_onscreen_entities(const ColType type)
+	{
+		return g.get_entity_collision(view_y1, view_y2, view_x1, view_x2, type);
 	}
 	
 	void hide_gui(const bool hide=true)
@@ -639,6 +622,7 @@ class AdvToolScript
 		}
 		
 		selected_tool_name = tool.name;
+		g.save_checkpoint(0, 0);
 		@selected_tool = tool;
 		selected_tool.on_select();
 		selected_tool.group.on_select();
