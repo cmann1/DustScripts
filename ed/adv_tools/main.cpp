@@ -491,9 +491,27 @@ class AdvToolScript
 		return closest;
 	}
 	
-	int query_onscreen_entities(const ColType type)
+	int query_onscreen_entities(const ColType type, const bool expand_for_parallax=false)
 	{
-		return g.get_entity_collision(view_y1, view_y2, view_x1, view_x2, type);
+		float x1, y1, x2, y2;
+		transform(view_x1, view_y1, 22, 6, x1, y1);
+		transform(view_x2, view_y2, 22, 6, x2, y2);
+		
+		if(!expand_for_parallax)
+		{
+			x1 = view_x1;
+			y1 = view_y1;
+			x2 = view_x2;
+			y2 = view_y2;
+		}
+		else
+		{
+			transform(view_x1, view_y1, 22, 6, x1, y1);
+			transform(view_x2, view_y2, 22, 6, x2, y2);
+		}
+		
+		const float padding = 100;
+		return g.get_entity_collision(y1 - padding, y2 + padding, x1 - padding, x2 + padding, type);
 	}
 	
 	void hide_gui(const bool hide=true)

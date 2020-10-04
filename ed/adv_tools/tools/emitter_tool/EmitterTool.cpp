@@ -83,7 +83,7 @@ class EmitterTool : Tool
 			highlighted_emitters[j].visible = false;
 		}
 		
-		int i = script.query_onscreen_entities(ColType::Emitter);
+		int i = script.query_onscreen_entities(ColType::Emitter, true);
 		int mouse_inside_count = 0;
 		
 		while(i-- > 0)
