@@ -13,7 +13,10 @@ class Handles
 	private int handles_count;
 	private array<Handle@> handles(handles_size);
 	
+	private bool has_hit_handle;
+	
 	bool mouse_over;
+	bool mouse_over_last_handle;
 	
 	void init(AdvToolScript@ script)
 	{
@@ -33,10 +36,20 @@ class Handles
 		
 		@handles[handles_count++] = handle;
 		handle.init(shape, x, y, size, rotation, colour, highlight_colour);
+		mouse_over_last_handle = false;
 		
 		if(handle.hit_test(script, script.mouse.x, script.mouse.y))
 		{
 			mouse_over = true;
+			mouse_over_last_handle = true;
+			
+			if(has_hit_handle)
+			{
+				handle.hit = force_highlight;
+				return false;
+			}
+			
+			has_hit_handle = true;
 			return script.mouse.left_press && !script.space;
 		}
 		
@@ -75,6 +88,7 @@ class Handles
 		
 		handles_count = 0;
 		mouse_over = false;
+		has_hit_handle = false;
 	}
 	
 	void draw()

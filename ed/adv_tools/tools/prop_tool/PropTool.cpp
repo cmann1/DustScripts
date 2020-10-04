@@ -1,11 +1,11 @@
 #include '../../misc/SelectAction.cpp';
 #include '../../misc/AlignmentEdge.cpp';
-#include '../../settings/PropToolSettings.cpp';
 #include '../../../../lib/tiles/common.cpp';
 #include '../../../../lib/props/common.cpp';
 #include '../../../../lib/props/data.cpp';
 #include '../../../../lib/props/outlines.cpp';
 
+#include 'PropToolSettings.cpp';
 #include 'PropToolState.cpp';
 #include 'PropSortingData.cpp';
 #include 'PropAlignData.cpp';
@@ -154,6 +154,7 @@ class PropTool : Tool
 		select_none();
 		state = Idle;
 		temporary_selection = false;
+		clear_highlighted_props();
 		
 		toolbar.hide();
 	}
@@ -175,11 +176,11 @@ class PropTool : Tool
 		
 		switch(state)
 		{
-			case Idle: state_idle(); break;
-			case Moving: state_moving(); break;
-			case Rotating: state_rotating(); break;
-			case Scaling: state_scaling(); break;
-			case Selecting: state_selecting(); break;
+			case PropToolState::Idle: state_idle(); break;
+			case PropToolState::Moving: state_moving(); break;
+			case PropToolState::Rotating: state_rotating(); break;
+			case PropToolState::Scaling: state_scaling(); break;
+			case PropToolState::Selecting: state_selecting(); break;
 		}
 		
 		for(int i = highlighted_props_count - 1; i >= 0; i--)
@@ -241,7 +242,7 @@ class PropTool : Tool
 		{
 			draw_rotation_anchor(custom_anchor_x, custom_anchor_y, custom_anchor_layer, true);
 			
-			if(selected_props_count > 0 && !is_same_parallax(custom_anchor_layer, selection_layer))
+			if(selected_props_count > 0 && !script.is_same_parallax(custom_anchor_layer, selection_layer))
 			{
 				const uint clr = multiply_alpha(PropToolSettings::BoundingBoxColour, 0.5);
 				float x1, y1, x2, y2;
@@ -302,7 +303,7 @@ class PropTool : Tool
 		
 		const float nx = cos(selection_angle - HALF_PI);
 		const float ny = sin(selection_angle - HALF_PI);
-		const float oh = (PropToolSettings::RotationHandleOffset - PropToolSettings::RotateHandleSize) / script.zoom;
+		const float oh = (Settings::RotationHandleOffset - Settings::RotateHandleSize) / script.zoom;
 		
 		draw_line(script.g, 22, 22,
 			mx, my,
@@ -462,7 +463,7 @@ class PropTool : Tool
 		
 		// Adjust layer/sublayer
 		
-		if(mouse.scroll != 0 && (script.ctrl || script.alt) && !script.shift)
+		if(mouse.scroll != 0 && (script.ctrl || script.alt))
 		{
 			idle_adjust_layer();
 		}
@@ -639,9 +640,7 @@ class PropTool : Tool
 		
 		if(@prop_data != null)
 		{
-			script.info_overlay.show(
-				x1, y1, x2, y2,
-				prop_data.prop.layer() + '.' + prop_data.prop.sub_layer(), 0.75);
+			script.show_layer_sublayer_overlay(x1, y1, x2, y2, prop_data.prop.layer(), prop_data.prop.sub_layer());
 		}
 		
 		if(@hovered_prop != null)
@@ -683,8 +682,8 @@ class PropTool : Tool
 		float start_x, start_y;
 		float mouse_x, mouse_y;
 		script.transform(mouse.x, mouse.y, 22, action_layer, mouse_x, mouse_y);
-		snap(drag_start_x, drag_start_y, start_x, start_y);
-		snap(mouse_x, mouse_y, mouse_x, mouse_y);
+		script.snap(drag_start_x, drag_start_y, start_x, start_y, custom_grid.value);
+		script.snap(mouse_x, mouse_y, mouse_x, mouse_y, custom_grid.value);
 		const float drag_delta_x = mouse_x - start_x;
 		const float drag_delta_y = mouse_y - start_y;
 		
@@ -737,7 +736,7 @@ class PropTool : Tool
 		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
 		const float angle = atan2(anchor_y - y, anchor_x - x);
 		selection_angle = angle - drag_offset_angle;
-		snap(selection_angle, selection_angle);
+		script.snap(selection_angle, selection_angle);
 		
 		for(int i = 0; i < selected_props_count; i++)
 		{
@@ -932,11 +931,11 @@ class PropTool : Tool
 			return false;
 		
 		float x, y;
-		get_handle_position(true, PropToolSettings::RotationHandleOffset, x, y);
+		get_handle_position(true, Settings::RotationHandleOffset, x, y);
 		
 		return script.handles.circle(
 			x, y,
-			PropToolSettings::RotateHandleSize, PropToolSettings::RotateHandleColour, PropToolSettings::RotateHandleHighlightColour, force_highlight);
+			Settings::RotateHandleSize, Settings::RotateHandleColour, Settings::RotateHandleHighlightColour, force_highlight);
 	}
 	
 	private bool check_scale_handle(const bool force_highlight=false)
@@ -949,8 +948,8 @@ class PropTool : Tool
 		
 		return script.handles.square(
 			x, y,
-			PropToolSettings::ScaleHandleSize, selection_angle * RAD2DEG,
-			PropToolSettings::RotateHandleColour, PropToolSettings::RotateHandleHighlightColour, force_highlight);
+			Settings::ScaleHandleSize, selection_angle * RAD2DEG,
+			Settings::RotateHandleColour, Settings::RotateHandleHighlightColour, force_highlight);
 	}
 	
 	private void show_custom_anchor_info()
@@ -1467,69 +1466,6 @@ class PropTool : Tool
 	// //////////////////////////////////////////////////////////
 	// Other
 	// //////////////////////////////////////////////////////////
-	
-	private void snap(const float x, const float y, float &out out_x, float &out out_y)
-	{
-		const float snap = get_snap_size();
-		
-		if(snap != 0)
-		{
-			out_x = round(x / snap) * snap;
-			out_y = round(y / snap) * snap;
-		}
-		else
-		{
-			out_x = x;
-			out_y = y;
-		}
-	}
-	
-	private void snap(const float angle, float &out out_angle)
-	{
-		const float snap = get_snap_angle() * DEG2RAD;
-		
-		if(snap != 0)
-		{
-			out_angle = round(angle / snap) * snap;
-		}
-		else
-		{
-			out_angle = angle;
-		}
-	}
-	
-	private float get_snap_size()
-	{
-		if(script.shift)
-			return 48;
-		
-		if(script.ctrl)
-			return 24;
-		
-		if(script.alt)
-			return custom_grid.value;
-		
-		return 0;
-	}
-	
-	private float get_snap_angle()
-	{
-		if(script.shift)
-			return 45;
-		
-		if(script.ctrl)
-			return 22.5;
-		
-		if(script.alt)
-			return 5;
-		
-		return 0;
-	}
-	
-	private bool is_same_parallax(const int layer1, const int layer2)
-	{
-		return layer1 >= 12 && layer2 >= 12 || layer1 == layer2;
-	}
 	
 	private void clear_custom_anchor()
 	{

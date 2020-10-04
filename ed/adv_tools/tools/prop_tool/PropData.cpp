@@ -65,7 +65,7 @@ class PropData
 	
 	void step()
 	{
-		transform_layer_position(script.g, script.view_x, script.view_y, this.x, this.y, prop.layer(), 22, draw_x, draw_y);
+		script.transform(x, y, prop.layer(), 22, draw_x, draw_y);
 	}
 	
 	void draw()

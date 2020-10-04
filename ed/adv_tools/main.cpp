@@ -344,15 +344,15 @@ class AdvToolScript
 		if(state_persisted)
 			return;
 		
-		controllable@ p = controller_controllable(0);
-		
-		if(@p != null)
-		{
-			p.x(g.get_checkpoint_x(0));
-			p.y(g.get_checkpoint_y(0));
-		}
-		
-		g.save_checkpoint(0, 0);
+//		controllable@ p = controller_controllable(0);
+//		
+//		if(@p != null)
+//		{
+//			p.x(g.get_checkpoint_x(0));
+//			p.y(g.get_checkpoint_y(0));
+//		}
+//		
+//		g.save_checkpoint(0, 0);
 		state_persisted = true;
 	}
 	
@@ -561,6 +561,74 @@ class AdvToolScript
 		outline_rect(g, 22, 22,
 			x1, y1, x2, y2,
 			Settings::SelectRectLineWidth / zoom, Settings::SelectRectLineColour);
+	}
+	
+	void snap(const float x, const float y, float &out out_x, float &out out_y, const float custom_snap_size=5)
+	{
+		const float snap = get_snap_size(custom_snap_size);
+		
+		if(snap != 0)
+		{
+			out_x = round(x / snap) * snap;
+			out_y = round(y / snap) * snap;
+		}
+		else
+		{
+			out_x = x;
+			out_y = y;
+		}
+	}
+	
+	void snap(const float angle, float &out out_angle)
+	{
+		const float snap = get_snap_angle() * DEG2RAD;
+		
+		if(snap != 0)
+		{
+			out_angle = round(angle / snap) * snap;
+		}
+		else
+		{
+			out_angle = angle;
+		}
+	}
+	
+	float get_snap_size(const float custom_snap_size=5)
+	{
+		if(shift)
+			return 48;
+		
+		if(ctrl)
+			return 24;
+		
+		if(alt)
+			return custom_snap_size;
+		
+		return 0;
+	}
+	
+	float get_snap_angle()
+	{
+		if(shift)
+			return 45;
+		
+		if(ctrl)
+			return 22.5;
+		
+		if(alt)
+			return 5;
+		
+		return 0;
+	}
+	
+	bool is_same_parallax(const int layer1, const int layer2)
+	{
+		return layer1 >= 12 && layer2 >= 12 || layer1 == layer2;
+	}
+	
+	void show_layer_sublayer_overlay(const float x1, const float y1, const float x2, const float y2, const int layer, const int sublayer)
+	{
+		info_overlay.show(x1, y1, x2, y2, layer + '.' + sublayer, 0.75);
 	}
 	
 	// //////////////////////////////////////////////////////////

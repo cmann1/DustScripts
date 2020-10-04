@@ -41,10 +41,4 @@ namespace PropToolSettings
 	const float BoundingBoxLineWidth	= 1.5;
 	const uint BoundingBoxColour		= 0x55ffffff;
 	
-	const float	RotationHandleOffset		= 18;
-	const float	RotateHandleSize			= 7;
-	const uint RotateHandleColour			= 0xaaffffff;
-	const uint RotateHandleHighlightColour	= 0xaaea9c3f;
-	const float	ScaleHandleSize				= 5;
-	
 }
