@@ -24,7 +24,7 @@ class LayerSelector : LockedContainer
 	
 	// Properties
 	
-	protected LayerSelectorType _type = LayerSelectorType(-1);
+	protected LayerSelectorType _type = LayerSelectorType::Uninitialised;
 	protected bool _layers_multi_select = true;
 	protected bool _sub_layers_multi_select = true;
 	protected uint _layers_min_select = 0;
@@ -255,7 +255,7 @@ class LayerSelector : LockedContainer
 		get const { return _type; }
 		set
 		{
-			if(_type == value)
+			if(value == LayerSelectorType::Uninitialised || _type == value)
 				return;
 			
 			_type = value;

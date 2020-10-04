@@ -160,6 +160,9 @@ class LayerSelectorSet : Container
 			Checkbox@ checkbox = @checkboxes[i];
 			Label@ label = @labels[i];
 			
+			if(@label == null)
+				continue;
+			
 			checkbox.fit(0);
 			label.fit_to_contents();
 			
@@ -184,6 +187,9 @@ class LayerSelectorSet : Container
 		{
 			Checkbox@ checkbox = @checkboxes[i];
 			Label@ label = @labels[i];
+			
+			if(@label == null)
+				continue;
 			
 			checkbox.fit(0);
 			label.fit_to_contents();
@@ -666,7 +672,7 @@ class LayerSelectorSet : Container
 			Checkbox@ checkbox = @checkboxes[i];
 			Label@ label = @labels[i];
 			
-			if(@checkbox == null)
+			if(@checkbox == null || @label == null)
 				return;
 			
 			if(use_default_layer_colours)
@@ -799,6 +805,9 @@ class LayerSelectorSet : Container
 			const int index = i == -1 ? active_indices[num_layers - 1] : active_indices[i];
 			Checkbox@ checkbox = @checkboxes[index];
 			Label@ label = @labels[index];
+			
+			 if(@label == null)
+				 continue;
 			
 			checkbox._y = y;
 			label._y = y;

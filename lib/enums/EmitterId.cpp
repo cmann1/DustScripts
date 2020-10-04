@@ -176,8 +176,6 @@ namespace EmitterId
 	const int PlayerAttackH3 = 130;
 	// const int DropletLong = 131;
 	
-	// const int Aliases const int for const int area const int tile const int emitters (Maybe)
-	
 	const int TileCleansedMansion	= CleansedFb1;
 	const int TileCleansedForest	= CleansedFb2;
 	const int TileCleansedCity		= CleansedFb3;

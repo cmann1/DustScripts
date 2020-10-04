@@ -1078,7 +1078,6 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		const LayerSelectorType type, const PopupPosition position)
 	{
 		popup_options.position = position;
-		
 		layer_selector.reset(false);
 		layer_selector.type = type;
 		layer_selector.multi_select = false;
