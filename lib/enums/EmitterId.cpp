@@ -1,7 +1,9 @@
 namespace EmitterId
 {
 	
-	// const int Main
+	// //////////////////////////////////////////////////////
+	// Main
+	// //////////////////////////////////////////////////////
 	
 	const int DropletLong = 131;
 	const int Droplets = 113;
@@ -22,7 +24,9 @@ namespace EmitterId
 	const int WaterfallBack = 49;
 	const int WaterfallTop = 41;
 	
-	// const int The const int rest
+	// //////////////////////////////////////////////////////
+	// Other
+	// //////////////////////////////////////////////////////
 	
 	const int NoName = 0;
 	// const int DustGround = 1;
@@ -175,6 +179,10 @@ namespace EmitterId
 	const int PlayerAttack3 = 129;
 	const int PlayerAttackH3 = 130;
 	// const int DropletLong = 131;
+	
+	// //////////////////////////////////////////////////////
+	// Aliases
+	// //////////////////////////////////////////////////////
 	
 	const int TileCleansedMansion	= CleansedFb1;
 	const int TileCleansedForest	= CleansedFb2;
