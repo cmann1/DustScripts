@@ -10,10 +10,18 @@ class InfoOverlay
 	
 	private Container@ dummy_overlay;
 	private PopupOptions@ popup;
+	private IWorldBoundingBox@ target;
 	
 	void init(AdvToolScript@ script)
 	{
 		@this.script = script;
+	}
+	
+	void show(IWorldBoundingBox@ target, const string text, const float display_time=-1)
+	{
+		@this.target = target;
+		
+		show(text, display_time);
 	}
 	
 	void show(const float x1, const float y1, const float x2, const float y2, const string text, const float display_time=-1)
@@ -22,7 +30,13 @@ class InfoOverlay
 		this.y1 = y1;
 		this.x2 = x2;
 		this.y2 = y2;
+		@this.target = null;
 		
+		show(text, display_time);
+	}
+	
+	private void show(const string text, const float display_time=-1)
+	{
 		this.max_display_time = display_time;
 		this.display_time = display_time;
 		
@@ -58,6 +72,7 @@ class InfoOverlay
 		this.y1 = y1;
 		this.x2 = x2;
 		this.y2 = y2;
+		@target = null;
 		
 		update_popup_position();
 	}
@@ -67,12 +82,19 @@ class InfoOverlay
 		if(@dummy_overlay == null)
 			return;
 		
+		@target = null;
 		dummy_overlay.visible = false;
+		
 		script.ui.hide_tooltip(popup);
 	}
 	
 	void step()
 	{
+		if(@target != null)
+		{
+			update_popup_position();
+		}
+		
 		if(display_time > 0)
 		{
 			display_time -= DT;
@@ -99,6 +121,14 @@ class InfoOverlay
 	
 	private void update_popup_position()
 	{
+		if(@target != null)
+		{
+			this.x1 = target.get_world_x1();
+			this.y1 = target.get_world_y1();
+			this.x2 = target.get_world_x2();
+			this.y2 = target.get_world_y2();
+		}
+		
 		float x1, y1, x2, y2;
 		script.world_to_hud(this.x1, this.y1, x1, y1);
 		script.world_to_hud(this.x2, this.y2, x2, y2);

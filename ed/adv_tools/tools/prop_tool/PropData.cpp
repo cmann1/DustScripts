@@ -1,4 +1,4 @@
-class PropData
+class PropData : IWorldBoundingBox
 {
 	
 	AdvToolScript@ script;
@@ -98,6 +98,13 @@ class PropData
 				lines[i + 3],
 				colour);
 		}
+		
+//		if(selected)
+//		{
+//			outline_rect(script.g,22,22,
+//				x + x1, y + y1, x + x2, y + y2,
+//				1 / script.zoom, 0xaaff0000);
+//		}
 	}
 	
 	void update()
@@ -354,6 +361,28 @@ class PropData
 		init_anchors();
 		
 		update();
+	}
+	
+	// IWorldBoundingBox
+	
+	float get_world_x1() override
+	{
+		return x + x1;
+	}
+	
+	float get_world_y1() override
+	{
+		return y + y1;
+	}
+	
+	float get_world_x2() override
+	{
+		return x + x2;
+	}
+	
+	float get_world_y2() override
+	{
+		return y + y2;
 	}
 	
 }

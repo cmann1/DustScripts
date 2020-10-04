@@ -20,7 +20,9 @@
 
 #include 'handles/Handles.cpp';
 #include 'misc/InfoOverlay.cpp';
+#include 'misc/IWorldBoundingBox.cpp';
 #include 'misc/ToolListenerInterfaces.cpp';
+#include 'misc/WorldBoundingBox.cpp';
 #include 'settings/Settings.cpp';
 #include 'tools/emitter_tool/EmitterTool.cpp';
 #include 'tools/prop_tool/PropTool.cpp';
@@ -629,6 +631,11 @@ class AdvToolScript
 	void show_layer_sublayer_overlay(const float x1, const float y1, const float x2, const float y2, const int layer, const int sublayer)
 	{
 		info_overlay.show(x1, y1, x2, y2, layer + '.' + sublayer, 0.75);
+	}
+	
+	void show_layer_sublayer_overlay(IWorldBoundingBox@ target, const int layer, const int sublayer)
+	{
+		info_overlay.show(target, layer + '.' + sublayer, 0.75);
 	}
 	
 	// //////////////////////////////////////////////////////////

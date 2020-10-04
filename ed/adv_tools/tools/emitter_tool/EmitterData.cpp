@@ -1,4 +1,4 @@
-class EmitterData
+class EmitterData : IWorldBoundingBox
 {
 	
 	AdvToolScript@ script;
@@ -28,6 +28,9 @@ class EmitterData
 	float world_size_x, world_size_y;
 	float x1, y1, x2, y2;
 	float local_mouse_x, local_mouse_y;
+	
+	float min_x, min_y;
+	float max_x, max_y;
 	
 	private float drag_start_x, drag_start_y;
 	
@@ -78,6 +81,22 @@ class EmitterData
 			local_mouse_x >= x1 && local_mouse_x <= x2 &&
 			local_mouse_y >= y1 && local_mouse_y <= y2
 				? 1 : 0;
+		
+		min_x = -world_size_x * 0.5;
+		min_y = -world_size_y * 0.5;
+		max_x =  world_size_x * 0.5;
+		max_y =  world_size_y * 0.5;
+		
+		float x1, y1, x2, y2, x3, y3, x4, y4;
+		rotate(min_x, min_y, rotation * DEG2RAD, x1, y1);
+		rotate(max_x, min_y, rotation * DEG2RAD, x2, y2);
+		rotate(max_x, max_y, rotation * DEG2RAD, x3, y3);
+		rotate(min_x, max_y, rotation * DEG2RAD, x4, y4);
+		
+		min_x = min(min(world_x + x1, world_x + x2), min(world_x + x3, world_x + x4));
+		min_y = min(min(world_y + y1, world_y + y2), min(world_y + y3, world_y + y4));
+		max_x = max(max(world_x + x1, world_x + x2), max(world_x + x3, world_x + x4));
+		max_y = max(max(world_y + y1, world_y + y2), max(world_y + y3, world_y + y4));
 	}
 	
 	/// Changing an emitter's properties does not reflect in the editor for some reason.
@@ -170,25 +189,6 @@ class EmitterData
 		return scene_index - other.scene_index;
 	}
 	
-	void get_bounding_box(float &out ox1, float &out oy1, float &out ox2, float &out oy2)
-	{
-		ox1 = -world_size_x * 0.5;
-		oy1 = -world_size_y * 0.5;
-		ox2 =  world_size_x * 0.5;
-		oy2 =  world_size_y * 0.5;
-		
-		float x1, y1, x2, y2, x3, y3, x4, y4;
-		rotate(ox1, oy1, rotation * DEG2RAD, x1, y1);
-		rotate(ox2, oy1, rotation * DEG2RAD, x2, y2);
-		rotate(ox2, oy2, rotation * DEG2RAD, x3, y3);
-		rotate(ox1, oy2, rotation * DEG2RAD, x4, y4);
-		
-		ox1 = min(min(world_x + x1, world_x + x2), min(world_x + x3, world_x + x4));
-		oy1 = min(min(world_y + y1, world_y + y2), min(world_y + y3, world_y + y4));
-		ox2 = max(max(world_x + x1, world_x + x2), max(world_x + x3, world_x + x4));
-		oy2 = max(max(world_y + y1, world_y + y2), max(world_y + y3, world_y + y4));
-	}
-	
 	// Moving
 	
 	void start_drag()
@@ -233,6 +233,28 @@ class EmitterData
 		
 		modified = true;
 		update();
+	}
+	
+	// IWorldBoundingBox
+	
+	float get_world_x1() override
+	{
+		return min_x;
+	}
+	
+	float get_world_y1() override
+	{
+		return min_y;
+	}
+	
+	float get_world_x2() override
+	{
+		return max_x;
+	}
+	
+	float get_world_y2() override
+	{
+		return max_y;
 	}
 	
 }

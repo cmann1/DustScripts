@@ -30,6 +30,8 @@ class EmitterTool : Tool
 	private int action_layer;
 	private float drag_start_x, drag_start_y;
 	
+	private WorldBoundingBox selection_bounding_box;
+	
 	EmitterTool()
 	{
 		super('Emitter Tool');
@@ -235,40 +237,33 @@ class EmitterTool : Tool
 	private void idle_adjust_layer()
 	{
 		EmitterData@ data = null;
-		float x1, y1, x2, y2;
-		float ox1, oy1, ox2, oy2;
+		IWorldBoundingBox@ bounding_box = null;
 		
 		if(script.shift)
 		{
+			selection_bounding_box.reset();
+			
 			for(int i = 0; i < selected_emitters_count; i++)
 			{
 				@data = @selected_emitters[i];
 				data.shift_layer(mouse.scroll, script.alt);
-				
-				if(i == 0)
-				{
-					data.get_bounding_box(x1, y1, x2, y2);
-				}
-				else
-				{
-					data.get_bounding_box(ox1, oy1, ox2, oy2);
-					if(ox1 < x1) x1 = ox1;
-					if(oy1 < y1) y1 = oy1;
-					if(ox2 > x2) x2 = ox2;
-					if(oy2 > y2) y2 = oy2;
-				}
+				selection_bounding_box.add(data.min_x, data.min_y, data.max_x, data.max_y);
 			}
 		}
 		else if(@hovered_emitter != null)
 		{
 			@data = hovered_emitter;
 			data.shift_layer(mouse.scroll, script.alt);
-			data.get_bounding_box(x1, y1, x2, y2);
+			@bounding_box = data;
 		}
 		
-		if(@data != null)
+		if(@bounding_box != null)
 		{
-			script.show_layer_sublayer_overlay(x1, y1, x2, y2, data.layer, data.sublayer);
+			script.show_layer_sublayer_overlay(bounding_box, data.layer, data.sublayer);
+		}
+		else if(@data != null)
+		{
+			script.show_layer_sublayer_overlay(@selection_bounding_box, data.layer, data.sublayer);
 		}
 	}
 	

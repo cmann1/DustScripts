@@ -68,6 +68,7 @@ class PropTool : Tool
 	private float selection_angle;
 	private float selection_drag_start_x, selection_drag_start_y;
 	private float selection_drag_start_angle;
+	private WorldBoundingBox selection_bounding_box;
 	
 	float origin_align_x, origin_align_y;
 	
@@ -254,13 +255,6 @@ class PropTool : Tool
 				draw_rotation_anchor(custom_anchor_x, custom_anchor_y, selection_layer, true, 1, clr);
 			}
 		}
-		
-//		for(int i = 0; i < selected_props_count; i++)
-//		{
-//			PropData@ p = @selected_props[i];
-//			outline_rect(script.g,22,22,
-//				p.x + p.x1, p.y + p.y1, p.x + p.x2, p.y + p.y2, 1 / script.zoom, 0xaaff0000);
-//		}
 		
 		// Selection rect
 		
@@ -613,7 +607,7 @@ class PropTool : Tool
 	private void idle_adjust_layer()
 	{
 		PropData@ prop_data = null;
-		float x1, y1, x2, y2;
+		IWorldBoundingBox@ bounding_box = null;
 		
 		if(script.shift)
 		{
@@ -623,24 +617,25 @@ class PropTool : Tool
 				prop_data.shift_layer(mouse.scroll, script.alt);
 			}
 			
-			x1 = selection_x + selection_x1;
-			y1 = selection_y + selection_y1;
-			x2 = selection_x + selection_x2;
-			y2 = selection_y + selection_y2;
+			selection_bounding_box.x1 = selection_x + selection_x1;
+			selection_bounding_box.y1 = selection_y + selection_y1;
+			selection_bounding_box.x2 = selection_x + selection_x2;
+			selection_bounding_box.y2 = selection_y + selection_y2;
 		}
 		else if(@hovered_prop != null)
 		{
 			@prop_data = hovered_prop;
 			hovered_prop.shift_layer(mouse.scroll, script.alt);
-			x1 = prop_data.draw_x + prop_data.x1;
-			y1 = prop_data.draw_y + prop_data.y1;
-			x2 = prop_data.draw_x + prop_data.x2;
-			y2 = prop_data.draw_y + prop_data.y2;
+			@bounding_box = prop_data;
 		}
 		
-		if(@prop_data != null)
+		if(@bounding_box != null)
 		{
-			script.show_layer_sublayer_overlay(x1, y1, x2, y2, prop_data.prop.layer(), prop_data.prop.sub_layer());
+			script.show_layer_sublayer_overlay(bounding_box, prop_data.prop.layer(), prop_data.prop.sub_layer());
+		}
+		else if(@prop_data != null)
+		{
+			script.show_layer_sublayer_overlay(@selection_bounding_box, prop_data.prop.layer(), prop_data.prop.sub_layer());
 		}
 		
 		if(@hovered_prop != null)
