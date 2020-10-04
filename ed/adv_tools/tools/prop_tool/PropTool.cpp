@@ -147,7 +147,7 @@ class PropTool : Tool
 		drag_rotation_handle = false;
 	}
 	
-	void on_deselect_impl()
+	protected void on_deselect_impl()
 	{
 		script.hide_gui(false);
 		

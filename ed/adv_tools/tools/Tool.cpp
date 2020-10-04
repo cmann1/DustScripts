@@ -197,7 +197,7 @@ class Tool
 		
 	}
 	
-	void on_deselect_impl()
+	protected void on_deselect_impl()
 	{
 		
 	}
