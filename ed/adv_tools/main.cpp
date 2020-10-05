@@ -19,6 +19,7 @@
 #include '../../lib/ui3/window_manager/WindowManager.cpp';
 
 #include 'handles/Handles.cpp';
+#include 'misc/DragHandleType.cpp';
 #include 'misc/InfoOverlay.cpp';
 #include 'misc/IWorldBoundingBox.cpp';
 #include 'misc/ToolListenerInterfaces.cpp';
@@ -288,7 +289,8 @@ class AdvToolScript
 		return_press = editor.key_check_pressed_gvb(GVB::Return);
 		escape_press = editor.key_check_pressed_gvb(GVB::Escape);
 		
-		if(new_tab != selected_tab)
+		// `editor_tab` returns 'Help' when switching to the particle editor. As a workaround just ignore it for now.
+		if(new_tab != selected_tab && new_tab != 'Help')
 		{
 			selected_tab = new_tab;
 			select_tool(selected_tab);
@@ -683,6 +685,18 @@ class AdvToolScript
 	bool key_repeat_gvb(const int gvb)
 	{
 		return pressed_key == gvb && pressed_key_active;
+	}
+	
+	void world_to_local(
+		const float x, const float y, const int layer,
+		const float to_x, const float to_y, const float to_rotation,
+		const int to_layer,
+		float &out local_x, float &out local_y)
+	{
+		transform(x, y, layer, to_layer, local_x, local_y);
+		local_x -= to_x;
+		local_y -= to_y;
+		rotate(local_x, local_y, -to_rotation * DEG2RAD, local_x, local_y);
 	}
 	
 	// //////////////////////////////////////////////////////////

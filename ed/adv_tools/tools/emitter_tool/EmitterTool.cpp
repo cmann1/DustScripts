@@ -30,6 +30,8 @@ class EmitterTool : Tool
 	private int select_rect_pending;
 	private int action_layer;
 	private float drag_start_x, drag_start_y;
+	private float drag_anchor_x, drag_anchor_y;
+	private DragHandleType dragged_handle = DragHandleType::None;
 	
 	private WorldBoundingBox selection_bounding_box;
 	
@@ -63,6 +65,7 @@ class EmitterTool : Tool
 	
 	protected void on_deselect_impl()
 	{
+		@primary_selected = null;
 		@hovered_emitter = null;
 		clear_highlighted_emitters();
 	}
@@ -77,6 +80,11 @@ class EmitterTool : Tool
 		if(mouse.moved)
 		{
 			hover_index_offset = 0;
+		}
+		
+		if(@primary_selected != null && primary_selected.is_mouse_inside == 0)
+		{
+			primary_selected.hovered = false;
 		}
 		
 		for(int j = highlighted_emitters_count - 1; j >= 0; j--)
@@ -122,11 +130,15 @@ class EmitterTool : Tool
 			if(data.is_mouse_inside != 1)
 				continue;
 			
-			if(hover_index++ != (hover_index_offset % mouse_inside_count))
-				continue;
+			if(state == Idle)
+			{
+				if(hover_index++ != (hover_index_offset % mouse_inside_count))
+					continue;
+				
+				data.hovered = true;
+				@hovered_emitter = data;
+			}
 			
-			data.hovered = true;
-			@hovered_emitter = data;
 			break;
 		}
 		
@@ -168,7 +180,7 @@ class EmitterTool : Tool
 		{
 			EmitterData@ data = @highlighted_emitters[i];
 			
-			if(data.hovered)
+			if(@data == @hovered_emitter)
 				continue;
 			
 			data.draw();
@@ -291,6 +303,17 @@ class EmitterTool : Tool
 			@hovered_emitter = null;
 		}
 		
+		if(@primary_selected != null)
+		{
+			dragged_handle = primary_selected.do_handles();
+			
+			if(dragged_handle >= DragHandleType::Right && dragged_handle <= DragHandleType::TopRight)
+			{
+				idle_start_scaling();
+				return;
+			}
+		}
+		
 		// Scroll hover index
 		
 		if(mouse.scroll != 0 && !script.space && !script.ctrl && !script.alt && !script.shift)
@@ -312,6 +335,7 @@ class EmitterTool : Tool
 			selected_emitters[i].start_drag();
 		}
 		
+		do_handles();
 		@pressed_emitter = null;
 		state = Moving;
 		script.ui.mouse_enabled = false;
@@ -352,8 +376,31 @@ class EmitterTool : Tool
 		}
 	}
 	
+	private void idle_start_scaling()
+	{
+		primary_selected.get_handle_position(DragHandle::opposite(dragged_handle), drag_anchor_x, drag_anchor_y);
+		
+		float local_x, local_y;
+		script.world_to_local(
+			mouse.x, mouse.y, 22,
+			drag_anchor_x, drag_anchor_y, primary_selected.rotation,
+			primary_selected.layer,
+			drag_start_x, drag_start_y);
+		
+		drag_start_x = drag_start_x > 0 ? drag_start_x - primary_selected.width : drag_start_x + primary_selected.width;
+		drag_start_y = drag_start_y > 0 ? drag_start_y - primary_selected.height : drag_start_y + primary_selected.height;
+		
+		primary_selected.start_scale();
+		primary_selected.hovered = true;
+		
+		state = Scaling;
+		script.ui.mouse_enabled = false;
+	}
+	
 	private void state_moving()
 	{
+		do_handles();
+		
 		if(script.escape_press || !mouse.left_down)
 		{
 			for(int i = 0; i < selected_emitters_count; i++)
@@ -387,12 +434,81 @@ class EmitterTool : Tool
 	
 	private void state_scaling()
 	{
+		if(script.escape_press || !mouse.left_down)
+		{
+			primary_selected.do_handles(dragged_handle);
+			primary_selected.stop_scale(script.escape_press);
+			
+			if(primary_selected.is_mouse_inside == 0 && !primary_selected.mouse_over_handle)
+			{
+				primary_selected.hovered = false;
+			}
+			
+			state = Idle;
+			script.ui.mouse_enabled = true;
+			return;
+		}
 		
+		EmitterData@ data = @primary_selected;
+		
+		float local_x, local_y;
+		script.world_to_local(
+			mouse.x, mouse.y, 22,
+			drag_anchor_x, drag_anchor_y, data.rotation,
+			data.layer,
+			local_x, local_y);
+		
+		local_x -= drag_start_x;
+		local_y -= drag_start_y;
+		
+		float width, height;
+		float ix = 0, iy = 0;
+		
+		switch(dragged_handle)
+		{
+			case DragHandleType::BottomRight:
+			case DragHandleType::TopRight:
+			case DragHandleType::Right:
+			case DragHandleType::BottomLeft:
+			case DragHandleType::TopLeft:
+			case DragHandleType::Left:
+				width = abs(local_x);
+				ix = 1;
+				break;
+			default:
+				width = data.width;
+				local_x = 0;
+				break;
+		}
+		
+		switch(dragged_handle)
+		{
+			case DragHandleType::Bottom:
+			case DragHandleType::BottomLeft:
+			case DragHandleType::BottomRight:
+			case DragHandleType::Top:
+			case DragHandleType::TopLeft:
+			case DragHandleType::TopRight:
+				height = abs(local_y);
+				iy = 1;
+				break;
+			default:
+				height = data.height;
+				local_y = 0;
+				break;
+		}
+		
+		rotate(local_x, local_y, data.rotation * DEG2RAD, local_x, local_y);
+		
+		data.do_scale(width, height, drag_anchor_x + local_x * 0.5, drag_anchor_y + local_y * 0.5);
+		data.do_handles(dragged_handle);
+		data.hovered = true;
 	}
 	
 	private void state_selecting()
 	{
 		clear_pending_emitters();
+		do_handles();
 		
 		if(script.escape_press)
 		{
@@ -473,6 +589,14 @@ class EmitterTool : Tool
 		{
 			selected_emitters[i].move(dx, dy);
 		}
+	}
+	
+	private void do_handles(const DragHandleType current_handle=DragHandleType::None)
+	{
+		if(@primary_selected == null)
+			return;
+		
+		primary_selected.do_handles(current_handle);
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -576,10 +700,7 @@ class EmitterTool : Tool
 			EmitterData@ emitter_data = @highlighted_emitters[i];
 			
 			if(emitter_data.hovered || emitter_data.selected || emitter_data.visible)
-			{
-				emitter_data.step();
 				continue;
-			}
 			
 			if(emitter_data_pool_count >= emitter_data_pool_size)
 			{

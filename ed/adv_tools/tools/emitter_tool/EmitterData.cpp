@@ -7,6 +7,7 @@ class EmitterData : SelectableData
 	entity@ emitter;
 	bool visible;
 	bool modified;
+	bool mouse_over_handle;
 	
 	private varstruct@ vars;
 	private varvalue@ width_var;
@@ -24,6 +25,7 @@ class EmitterData : SelectableData
 	private float rect_x2, rect_y2;
 	
 	private float drag_start_x, drag_start_y;
+	private float drag_start_width, drag_start_height;
 	
 	void init(AdvToolScript@ script, EmitterTool@ tool, entity@ emitter, const int scene_index)
 	{
@@ -45,6 +47,7 @@ class EmitterData : SelectableData
 		rotation = rotation_var.get_int32();
 		
 		modified = false;
+		mouse_over_handle = false;
 	}
 	
 	void update()
@@ -96,26 +99,54 @@ class EmitterData : SelectableData
 		script.g.remove_entity(emitter);
 	}
 	
-	void step()
+	DragHandleType do_handles(DragHandleType current_handle=DragHandleType::None)
 	{
-		if(primary_selected)
+		DragHandleType handle = DragHandleType::Right;
+		DragHandleType dragged_handle = current_handle;
+		
+		const float nx = cos(rotation * DEG2RAD);
+		const float ny = sin(rotation * DEG2RAD);
+		
+		const array<float>@ o = Settings::ScaleHandleOffsets;
+		
+		
+		for(int i = 0; i < 32; i += 4)
 		{
-			const float nx = cos(rotation * DEG2RAD);
-			const float ny = sin(rotation * DEG2RAD);
-			
-			const array<float>@ o = Settings::ScaleHandleOffsets;
-			
-			for(int i = 0; i < 32; i += 4)
+			if(script.handles.square(
+				aabb_x + nx * world_size_x * o[i + 0] - ny * world_size_y * o[i + 1],
+				aabb_y + ny * world_size_x * o[i + 2] + nx * world_size_y * o[i + 3],
+				Settings::ScaleHandleSize, rotation,
+				Settings::RotateHandleColour, Settings::RotateHandleHoveredColour,
+				dragged_handle == handle) && dragged_handle == DragHandleType::None)
 			{
-				if(script.handles.square(
-					aabb_x + nx * world_size_x * o[i + 0] - ny * world_size_y * o[i + 1],
-					aabb_y + ny * world_size_x * o[i + 2] + nx * world_size_y * o[i + 3],
-					Settings::ScaleHandleSize, rotation, Settings::RotateHandleColour, Settings::RotateHandleHoveredColour))
-				{
-//					hovered_handle_index = i / 4;
-				}
+				dragged_handle = handle;
 			}
+			
+			if(script.handles.mouse_over_last_handle)
+			{
+				hovered = true;
+				mouse_over_handle = true;
+			}
+			
+			handle++;
 		}
+		
+		if(script.handles.circle(
+			aabb_x + ny * (world_size_y + Settings::RotationHandleOffset / script.zoom),
+			aabb_y - nx * (world_size_y + Settings::RotationHandleOffset / script.zoom),
+			Settings::RotateHandleSize,
+			Settings::RotateHandleColour, Settings::RotateHandleHoveredColour, dragged_handle == DragHandleType::Rotate) && dragged_handle == DragHandleType::None)
+		{
+			dragged_handle = DragHandleType::Rotate;
+		}
+		
+		if(script.handles.mouse_over_last_handle)
+		{
+			hovered = true;
+			mouse_over_handle = true;
+		}
+		
+		return dragged_handle;
 	}
 	
 	void draw()
@@ -139,6 +170,19 @@ class EmitterData : SelectableData
 				rotation, line_width,
 				line_colour);
 		}
+		
+		if(primary_selected)
+		{
+			const float nx =  sin(rotation * DEG2RAD);
+			const float ny = -cos(rotation * DEG2RAD);
+			
+			draw_line(script.g, 22, 22,
+				aabb_x + nx * (world_size_y),
+				aabb_y + ny * (world_size_y),
+				aabb_x + nx * (world_size_y + Settings::RotationHandleOffset / script.zoom),
+				aabb_y + ny * (world_size_y + Settings::RotationHandleOffset / script.zoom),
+				Settings::BoundingBoxLineWidth / script.zoom, Settings::BoundingBoxColour);
+		}
 	}
 	
 	int opCmp(const EmitterData &in other)
@@ -157,6 +201,54 @@ class EmitterData : SelectableData
 			return sublayer - other.sublayer;
 		
 		return scene_index - other.scene_index;
+	}
+	
+	void get_handle_position(const DragHandleType handle, float &out x, float &out y)
+	{
+		float ix, iy;
+		
+		switch(handle)
+		{
+			case DragHandleType::BottomRight:
+			case DragHandleType::TopRight:
+			case DragHandleType::Right:
+				ix = 1;
+				break;
+			case DragHandleType::BottomLeft:
+			case DragHandleType::TopLeft:
+			case DragHandleType::Left:
+				ix = -1;
+				break;
+			default:
+				ix = 0;
+				break;
+		}
+		
+		switch(handle)
+		{
+			case DragHandleType::Bottom:
+			case DragHandleType::BottomLeft:
+			case DragHandleType::BottomRight:
+				iy = 1;
+				break;
+			case DragHandleType::Top:
+			case DragHandleType::TopLeft:
+			case DragHandleType::TopRight:
+				iy = -1;
+				break;
+			default:
+				iy = 0;
+				break;
+		}
+		
+		const float nx = cos(rotation * DEG2RAD);
+		const float ny = sin(rotation * DEG2RAD);
+		
+		x = nx * width * 0.5 * ix - ny * height * 0.5 * iy;
+		y = ny * width * 0.5 * ix + nx * height * 0.5 * iy;
+		
+		x += this.x;
+		y += this.y;
 	}
 	
 	// Moving
@@ -194,7 +286,7 @@ class EmitterData : SelectableData
 		emitter.set_xy(x, y);
 	}
 	
-	// Layer/Sublar
+	// Layer/Sublayer
 	
 	void shift_layer(const int dir, const bool sublayer=false)
 	{
@@ -212,5 +304,48 @@ class EmitterData : SelectableData
 		modified = true;
 		update();
 	}
+	
+	// Scale
+	
+	void start_scale()
+	{
+		drag_start_width  = width;
+		drag_start_height = height;
+		
+		start_drag();
+	}
+	
+	void do_scale(const float w, const float h, float anchor_x, float anchor_y)
+	{
+		width  = abs(w);
+		height = abs(h);
+		
+		width_var.set_int32(ceil_int(width));
+		height_var.set_int32(ceil_int(height));
+		
+		x = anchor_x;
+		y = anchor_y;
+		
+		emitter.set_xy(x, y);
+		
+		modified = true;
+		update();
+	}
+	
+	void stop_scale(const bool cancel)
+	{
+		if(cancel)
+		{
+			width  = drag_start_width;
+			height = drag_start_height;
+			width_var.set_int32(round_int(width));
+			height_var.set_int32(round_int(height));
+			stop_drag(false);
+		}
+		
+		modified = true;
+		update();
+	}
+	
 	
 }

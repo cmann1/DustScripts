@@ -25,7 +25,7 @@ class Handle
 		hit = false;
 	}
 	
-	bool hit_test(AdvToolScript@ script, const float px, const float py)
+	bool hit_test(AdvToolScript@ script, float px, float py)
 	{
 		const float size = this.size / script.zoom;
 		
@@ -33,7 +33,15 @@ class Handle
 		{
 			case HandleShape::Square:
 			{
-				hit = px >= x - size && px <= x + size && py >= y - size && py <= y + size;
+				px -= x;
+				py -= y;
+				
+				if(rotation != 0)
+				{
+					rotate(px, py, -rotation * DEG2RAD, px, py);
+				}
+				
+				hit = px >= -size && px <= size && py >= -size && py <= size;
 			}
 				break;
 			case HandleShape::Circle:
