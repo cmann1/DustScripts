@@ -217,6 +217,25 @@ class EmitterTool : Tool
 			return;
 		}
 		
+		// Move with arrow keys
+		
+		if(script.key_repeat_gvb(GVB::LeftArrow))
+		{
+			shift_emitters(script.shift ? script.ctrl ? -20 : -10 : -1, 0);
+		}
+		else if(script.key_repeat_gvb(GVB::RightArrow))
+		{
+			shift_emitters(script.shift ? script.ctrl ? 20 : 10 : 1, 0);
+		}
+		else if(script.key_repeat_gvb(GVB::UpArrow))
+		{
+			shift_emitters(0, script.shift ? script.ctrl ? -20 : -10 : -1);
+		}
+		else if(script.key_repeat_gvb(GVB::DownArrow))
+		{
+			shift_emitters(0, script.shift ? script.ctrl ? 20 : 10 : 1);
+		}
+		
 		// Select emitter on click
 		
 		if(mouse.left_press && @hovered_emitter != null)
@@ -351,6 +370,16 @@ class EmitterTool : Tool
 	private void state_creating()
 	{
 		
+	}
+	
+	//
+	
+	private void shift_emitters(const float dx, const float dy)
+	{
+		for(int i = 0; i < selected_emitters_count; i++)
+		{
+			selected_emitters[i].move(dx, dy);
+		}
 	}
 	
 	// //////////////////////////////////////////////////////////

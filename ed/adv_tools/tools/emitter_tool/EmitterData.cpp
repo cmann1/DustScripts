@@ -186,6 +186,14 @@ class EmitterData : SelectableData
 		}
 	}
 	
+	void move(const float dx, const float dy)
+	{
+		x += dx;
+		y += dy;
+		
+		emitter.set_xy(x, y);
+	}
+	
 	// Layer/Sublar
 	
 	void shift_layer(const int dir, const bool sublayer=false)

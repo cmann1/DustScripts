@@ -385,6 +385,8 @@ class PropTool : Tool
 			return;
 		}
 		
+		// Move with arrow keys
+		
 		if(script.key_repeat_gvb(GVB::LeftArrow))
 		{
 			shift_props(script.shift ? script.ctrl ? -20 : -10 : -1, 0);
@@ -393,8 +395,7 @@ class PropTool : Tool
 		{
 			shift_props(script.shift ? script.ctrl ? 20 : 10 : 1, 0);
 		}
-		else 
-		if(script.key_repeat_gvb(GVB::UpArrow))
+		else if(script.key_repeat_gvb(GVB::UpArrow))
 		{
 			shift_props(0, script.shift ? script.ctrl ? -20 : -10 : -1);
 		}
