@@ -99,6 +99,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 	private bool active_mouse_element_processed;
 	
 	private bool is_mouse_over;
+	private bool _mouse_enabled = true;
 	
 	/// Used for processing element layouts
 	private ElementStack element_stack;
@@ -441,6 +442,15 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 	void move_down(Element@ child)
 	{
 		contents.move_down(child);
+	}
+	
+	bool mouse_enabled
+	{
+		get const { return _mouse_enabled; }
+		set
+		{
+			_mouse_enabled = value;
+		}
 	}
 	
 	void clear()
@@ -1302,28 +1312,31 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 				ctx.subtree_x2 = element.x2;
 				ctx.subtree_y2 = element.y2;
 				
-				if(
-					element.mouse_self && ctx.mouse_active && (
-						ctx.clipping_mode == ClippingMode::None ||
-						mouse_x >= ctx.x1 && mouse_x <= ctx.x2 &&
-						mouse_y >= ctx.y1 && mouse_y <= ctx.y2 && (
-							ctx.clipping_mode == ClippingMode::Outside ||
-							element.x1 >= ctx.x1 && element.x2 <= ctx.x2 &&
-							element.y1 >= ctx.y1 && element.y2 <= ctx.y2
+				if(_mouse_enabled)
+				{
+					if(
+						element.mouse_self && ctx.mouse_active && (
+							ctx.clipping_mode == ClippingMode::None ||
+							mouse_x >= ctx.x1 && mouse_x <= ctx.x2 &&
+							mouse_y >= ctx.y1 && mouse_y <= ctx.y2 && (
+								ctx.clipping_mode == ClippingMode::Outside ||
+								element.x1 >= ctx.x1 && element.x2 <= ctx.x2 &&
+								element.y1 >= ctx.y1 && element.y2 <= ctx.y2
+							)
 						)
 					)
-				)
-				{
-					if(element.overlaps_point(mouse_x, mouse_y))
 					{
-						@mouse_over = @element;
-						mouse_over_index = element_index;
+						if(element.overlaps_point(mouse_x, mouse_y))
+						{
+							@mouse_over = @element;
+							mouse_over_index = element_index;
+						}
 					}
-				}
-				else if(debug_draw_active && element.overlaps_point(mouse_x, mouse_y))
-				{
-					@debug_mouse_over = @element;
-					debug_mouse_over_index = element_index;
+					else if(debug_draw_active && element.overlaps_point(mouse_x, mouse_y))
+					{
+						@debug_mouse_over = @element;
+						debug_mouse_over_index = element_index;
+					}
 				}
 				
 				if(element.clip_contents != ClippingMode::None)
