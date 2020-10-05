@@ -771,6 +771,8 @@ class AdvToolScript
 		@selected_tool = tool;
 		selected_tool.on_select();
 		selected_tool.group.on_select();
+		
+		ui.mouse_enabled = true;
 	}
 	
 	private void position_toolbar()

@@ -374,6 +374,7 @@ class PropTool : Tool
 			drag_start_y = mouse.y;
 			clear_highlighted_props();
 			state = Selecting;
+			script.ui.mouse_enabled = false;
 			return;
 		}
 		
@@ -389,19 +390,19 @@ class PropTool : Tool
 		
 		if(script.key_repeat_gvb(GVB::LeftArrow))
 		{
-			shift_props(script.shift ? script.ctrl ? -20 : -10 : -1, 0);
+			shift_props(script.ctrl ? -20 : script.shift ? -10 : -1, 0);
 		}
 		else if(script.key_repeat_gvb(GVB::RightArrow))
 		{
-			shift_props(script.shift ? script.ctrl ? 20 : 10 : 1, 0);
+			shift_props(script.ctrl ? 20 : script.shift ? 10 : 1, 0);
 		}
 		else if(script.key_repeat_gvb(GVB::UpArrow))
 		{
-			shift_props(0, script.shift ? script.ctrl ? -20 : -10 : -1);
+			shift_props(0, script.ctrl ? -20 : script.shift ? -10 : -1);
 		}
 		else if(script.key_repeat_gvb(GVB::DownArrow))
 		{
-			shift_props(0, script.shift ? script.ctrl ? 20 : 10 : 1);
+			shift_props(0, script.ctrl ? 20 : script.shift ? 10 : 1);
 		}
 		
 		// Pick props
@@ -505,7 +506,7 @@ class PropTool : Tool
 			@hovered_prop = null;
 		}
 		
-		// Copy
+		// Copy/Paste
 		
 		if(selected_props_count > 0 && script.ctrl && script.editor.key_check_pressed_vk(VK::C))
 		{
@@ -551,6 +552,7 @@ class PropTool : Tool
 		@hovered_prop = pressed_prop;
 		@pressed_prop = null;
 		state = Moving;
+		script.ui.mouse_enabled = false;
 	}
 	
 	private void idle_start_rotating()
@@ -591,6 +593,7 @@ class PropTool : Tool
 		
 		clear_highlighted_props();
 		state = Rotating;
+		script.ui.mouse_enabled = false;
 	}
 	
 	private void idle_start_scaling()
@@ -621,6 +624,7 @@ class PropTool : Tool
 		
 		clear_highlighted_props();
 		state = Scaling;
+		script.ui.mouse_enabled = false;
 	}
 	
 	private void idle_adjust_layer()
@@ -690,6 +694,7 @@ class PropTool : Tool
 			}
 			
 			state = Idle;
+			script.ui.mouse_enabled = true;
 			return;
 		}
 		
@@ -739,6 +744,7 @@ class PropTool : Tool
 			drag_rotation_handle = false;
 			clear_temporary_selection();
 			state = Idle;
+			script.ui.mouse_enabled = true;
 			return;
 		}
 		
@@ -793,6 +799,7 @@ class PropTool : Tool
 			
 			clear_temporary_selection();
 			state = Idle;
+			script.ui.mouse_enabled = true;
 			return;
 		}
 		
@@ -839,6 +846,7 @@ class PropTool : Tool
 		if(script.escape_press)
 		{
 			state = Idle;
+			script.ui.mouse_enabled = true;
 			return;
 		}
 		
@@ -902,8 +910,8 @@ class PropTool : Tool
 		
 		if(!mouse.left_down)
 		{
-			// Select
 			state = Idle;
+			script.ui.mouse_enabled = true;
 		}
 	}
 	

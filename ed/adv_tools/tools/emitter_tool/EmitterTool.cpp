@@ -214,6 +214,7 @@ class EmitterTool : Tool
 			drag_start_x = mouse.x;
 			drag_start_y = mouse.y;
 			state = Selecting;
+			script.ui.mouse_enabled = false;
 			return;
 		}
 		
@@ -221,19 +222,19 @@ class EmitterTool : Tool
 		
 		if(script.key_repeat_gvb(GVB::LeftArrow))
 		{
-			shift_emitters(script.shift ? script.ctrl ? -20 : -10 : -1, 0);
+			shift_emitters(script.ctrl ? -20 : script.shift ? -10 : -1, 0);
 		}
 		else if(script.key_repeat_gvb(GVB::RightArrow))
 		{
-			shift_emitters(script.shift ? script.ctrl ? 20 : 10 : 1, 0);
+			shift_emitters(script.ctrl ? 20 : script.shift ? 10 : 1, 0);
 		}
 		else if(script.key_repeat_gvb(GVB::UpArrow))
 		{
-			shift_emitters(0, script.shift ? script.ctrl ? -20 : -10 : -1);
+			shift_emitters(0, script.ctrl ? -20 : script.shift ? -10 : -1);
 		}
 		else if(script.key_repeat_gvb(GVB::DownArrow))
 		{
-			shift_emitters(0, script.shift ? script.ctrl ? 20 : 10 : 1);
+			shift_emitters(0, script.ctrl ? 20 : script.shift ? 10 : 1);
 		}
 		
 		// Select emitter on click
@@ -274,8 +275,9 @@ class EmitterTool : Tool
 			selected_emitters[i].start_drag();
 		}
 		
-		state = Moving;
 		@pressed_emitter = null;
+		state = Moving;
+		script.ui.mouse_enabled = false;
 	}
 	
 	private void idle_adjust_layer()
@@ -323,6 +325,7 @@ class EmitterTool : Tool
 			}
 			
 			state = Idle;
+			script.ui.mouse_enabled = true;
 			return;
 		}
 		
@@ -356,8 +359,8 @@ class EmitterTool : Tool
 		
 		if(script.escape_press || !mouse.left_down)
 		{
-			
 			state = Idle;
+			script.ui.mouse_enabled = true;
 			return;
 		}
 		
