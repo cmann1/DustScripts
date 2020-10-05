@@ -25,6 +25,7 @@ class EmitterTool : Tool
 	
 	private EmitterData@ hovered_emitter;
 	private EmitterData@ pressed_emitter;
+	private SelectAction pressed_action;
 	private int hover_index_offset;
 	
 	private int select_rect_pending;
@@ -80,6 +81,11 @@ class EmitterTool : Tool
 		if(mouse.moved)
 		{
 			hover_index_offset = 0;
+		}
+		
+		if(mouse.left_release)
+		{
+			pressed_action = SelectAction::None;
 		}
 		
 		if(@primary_selected != null && primary_selected.is_mouse_inside == 0)
@@ -207,7 +213,7 @@ class EmitterTool : Tool
 	{
 		// Start moving
 		
-		if(@pressed_emitter != null && mouse.moved)
+		if(@pressed_emitter != null && mouse.moved && (pressed_action == SelectAction::None || pressed_action == SelectAction::Set))
 		{
 			idle_start_drag();
 			return;
@@ -261,9 +267,13 @@ class EmitterTool : Tool
 		
 		if(mouse.left_press && @hovered_emitter != null)
 		{
-			select_emitter(hovered_emitter, script.shift || (hovered_emitter.selected && !script.ctrl)
+			const SelectAction action = script.shift || (hovered_emitter.selected && !script.ctrl)
 				? SelectAction::Add
-				: script.ctrl ? SelectAction::Remove : SelectAction::Set);
+				: script.ctrl ? SelectAction::Remove : SelectAction::Set;
+			
+			pressed_action = hovered_emitter.selected && action != SelectAction::Remove ? SelectAction::None : action;
+			
+			select_emitter(hovered_emitter, action);
 			@pressed_emitter = @hovered_emitter;
 		}
 		
@@ -273,6 +283,7 @@ class EmitterTool : Tool
 		{
 			idle_adjust_layer();
 		}
+		
 		// Delete
 		
 		if(script.editor.key_check_gvb(GVB::Delete))
