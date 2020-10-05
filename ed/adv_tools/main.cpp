@@ -87,6 +87,10 @@ class AdvToolScript
 	
 	private EventCallback@ on_after_layout_delegate;
 	
+	private int pressed_key = -1;
+	private bool pressed_key_active;
+	private int pressed_timer;
+	
 	//
 	
 	float view_x, view_y;
@@ -272,6 +276,7 @@ class AdvToolScript
 		
 		mouse_in_gui = editor.mouse_in_gui();
 		
+		handle_keyboard();
 		handles.step();
 		mouse.step(ui.is_mouse_over_ui || mouse_in_gui);
 		
@@ -339,6 +344,42 @@ class AdvToolScript
 		}
 		
 		state_persisted = false;
+	}
+	
+	private void handle_keyboard()
+	{
+		if(pressed_key != -1)
+		{
+			pressed_key_active = false;
+			
+			if(!editor.key_check_gvb(pressed_key))
+			{
+				pressed_key = -1;
+			}
+			else
+			{
+				if(--pressed_timer == 0)
+				{
+					pressed_key_active = true;
+					pressed_timer = Settings::KeyRepeatPeriod;
+				}
+				
+				return;
+			}
+		}
+		
+		for(int i = int(Settings::RepeatKeys.length()) - 1; i >= 0; i--)
+		{
+			const int key = Settings::RepeatKeys[i];
+			
+			if(!editor.key_check_pressed_gvb(key))
+				continue;
+			
+			pressed_key = key;
+			pressed_timer = Settings::KeyPressDelay;
+			pressed_key_active = true;
+			break;
+		}
 	}
 	
 	void editor_draw(float sub_frame)
@@ -637,6 +678,11 @@ class AdvToolScript
 	void show_layer_sublayer_overlay(IWorldBoundingBox@ target, const int layer, const int sublayer)
 	{
 		info_overlay.show(target, layer + '.' + sublayer, 0.75);
+	}
+	
+	bool key_repeat_gvb(const int gvb)
+	{
+		return pressed_key == gvb && pressed_key_active;
 	}
 	
 	// //////////////////////////////////////////////////////////

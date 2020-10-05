@@ -372,8 +372,8 @@ class PropTool : Tool
 			
 			drag_start_x = mouse.x;
 			drag_start_y = mouse.y;
-			state = Selecting;
 			clear_highlighted_props();
+			state = Selecting;
 			return;
 		}
 		
@@ -383,6 +383,24 @@ class PropTool : Tool
 		{
 			idle_start_move();
 			return;
+		}
+		
+		if(script.key_repeat_gvb(GVB::LeftArrow))
+		{
+			shift_props(script.shift ? script.ctrl ? -20 : -10 : -1, 0);
+		}
+		else if(script.key_repeat_gvb(GVB::RightArrow))
+		{
+			shift_props(script.shift ? script.ctrl ? 20 : 10 : 1, 0);
+		}
+		else 
+		if(script.key_repeat_gvb(GVB::UpArrow))
+		{
+			shift_props(0, script.shift ? script.ctrl ? -20 : -10 : -1);
+		}
+		else if(script.key_repeat_gvb(GVB::DownArrow))
+		{
+			shift_props(0, script.shift ? script.ctrl ? 20 : 10 : 1);
 		}
 		
 		// Pick props
@@ -974,6 +992,17 @@ class PropTool : Tool
 		{
 			custom_anchor_layer = mod(custom_anchor_layer + mouse.scroll, 20);
 		}
+	}
+	
+	private void shift_props(const float dx, const float dy)
+	{
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			selected_props[i].move(dx, dy);
+		}
+		
+		selection_x += dx;
+		selection_y += dy;
 	}
 	
 	// //////////////////////////////////////////////////////////

@@ -283,6 +283,17 @@ class PropData : SelectableData
 		prop.y(y);
 	}
 	
+	void move(const float dx, const float dy)
+	{
+		x += dx;
+		y += dy;
+		
+		init_anchors();
+		
+		prop.x(x);
+		prop.y(y);
+	}
+	
 	//
 	
 	void start_rotate(const float anchor_x, const float anchor_y, const float base_rotation)

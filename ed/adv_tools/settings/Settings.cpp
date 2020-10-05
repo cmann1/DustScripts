@@ -69,6 +69,18 @@ namespace Settings
 		 1, -1,
 	};
 	
+	const array<int> RepeatKeys = {
+		GVB::LeftArrow,
+		GVB::RightArrow,
+		GVB::UpArrow,
+		GVB::DownArrow,
+	};
+	
+	/// How long (frames) to pause after the initial key press before the key starts repeating
+	const int KeyPressDelay = 25;
+	/// While a key is pressed, this specifies the speed (in frames) at which it will trigger
+	const int KeyRepeatPeriod = 2;
+	
 }
 
 class Setting
