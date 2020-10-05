@@ -842,7 +842,7 @@ class PropTool : Tool
 			{
 				if(mouse.left_down)
 				{
-					prop_data.pending = 1;
+					prop_data.pending_selection = 1;
 				}
 				else
 				{
@@ -855,7 +855,7 @@ class PropTool : Tool
 				{
 					if(mouse.left_down)
 					{
-						prop_data.pending = 1;
+						prop_data.pending_selection = 1;
 					}
 					else
 					{
@@ -867,7 +867,7 @@ class PropTool : Tool
 			{
 				if(mouse.left_down)
 				{
-					prop_data.pending = prop_data.selected ? -1 : -2;
+					prop_data.pending_selection = prop_data.selected ? -1 : -2;
 				}
 				else
 				{
@@ -1079,19 +1079,19 @@ class PropTool : Tool
 			return;
 		
 		PropData@ prop_data = @selected_props[0];
-		selection_x1 = prop_data.x + prop_data.x1;
-		selection_y1 = prop_data.y + prop_data.y1;
-		selection_x2 = prop_data.x + prop_data.x2;
-		selection_y2 = prop_data.y + prop_data.y2;
+		selection_x1 = prop_data.x + prop_data.local_x1;
+		selection_y1 = prop_data.y + prop_data.local_y1;
+		selection_x2 = prop_data.x + prop_data.local_x2;
+		selection_y2 = prop_data.y + prop_data.local_y2;
 		
 		for(int i = selected_props_count - 1; i >= 1; i--)
 		{
 			@prop_data = @selected_props[i];
 			
-			if(prop_data.x + prop_data.x1 < selection_x1) selection_x1 = prop_data.x + prop_data.x1;
-			if(prop_data.y + prop_data.y1 < selection_y1) selection_y1 = prop_data.y + prop_data.y1;
-			if(prop_data.x + prop_data.x2 > selection_x2) selection_x2 = prop_data.x + prop_data.x2;
-			if(prop_data.y + prop_data.y2 > selection_y2) selection_y2 = prop_data.y + prop_data.y2;
+			if(prop_data.x + prop_data.local_x1 < selection_x1) selection_x1 = prop_data.x + prop_data.local_x1;
+			if(prop_data.y + prop_data.local_y1 < selection_y1) selection_y1 = prop_data.y + prop_data.local_y1;
+			if(prop_data.x + prop_data.local_x2 > selection_x2) selection_x2 = prop_data.x + prop_data.local_x2;
+			if(prop_data.y + prop_data.local_y2 > selection_y2) selection_y2 = prop_data.y + prop_data.local_y2;
 		}
 		
 		selection_x = selected_props_count > 1 ? selection_x1 + (selection_x2 - selection_x1) * origin_align_x : prop_data.anchor_x;
@@ -1162,17 +1162,17 @@ class PropTool : Tool
 			
 			if(i == 0)
 			{
-				props_clipboard.x1 = prop_data.x + prop_data.x1 - ox;
-				props_clipboard.y1 = prop_data.y + prop_data.y1 - oy;
-				props_clipboard.x2 = prop_data.x + prop_data.x2 - ox;
-				props_clipboard.y2 = prop_data.y + prop_data.y2 - oy;
+				props_clipboard.x1 = prop_data.x + prop_data.local_x1 - ox;
+				props_clipboard.y1 = prop_data.y + prop_data.local_y1 - oy;
+				props_clipboard.x2 = prop_data.x + prop_data.local_x2 - ox;
+				props_clipboard.y2 = prop_data.y + prop_data.local_y2 - oy;
 			}
 			else
 			{
-				if(prop_data.x + prop_data.x1 - ox < props_clipboard.x1) props_clipboard.x1 = prop_data.x + prop_data.x1 - ox;
-				if(prop_data.y + prop_data.y1 - oy < props_clipboard.y1) props_clipboard.y1 = prop_data.y + prop_data.y1 - oy;
-				if(prop_data.x + prop_data.x2 - ox > props_clipboard.x2) props_clipboard.x2 = prop_data.x + prop_data.x2 - ox;
-				if(prop_data.y + prop_data.y2 - oy > props_clipboard.y2) props_clipboard.y2 = prop_data.y + prop_data.y2 - oy;
+				if(prop_data.x + prop_data.local_x1 - ox < props_clipboard.x1) props_clipboard.x1 = prop_data.x + prop_data.local_x1 - ox;
+				if(prop_data.y + prop_data.local_y1 - oy < props_clipboard.y1) props_clipboard.y1 = prop_data.y + prop_data.local_y1 - oy;
+				if(prop_data.x + prop_data.local_x2 - ox > props_clipboard.x2) props_clipboard.x2 = prop_data.x + prop_data.local_x2 - ox;
+				if(prop_data.y + prop_data.local_y2 - oy > props_clipboard.y2) props_clipboard.y2 = prop_data.y + prop_data.local_y2 - oy;
 			}
 		}
 		
@@ -1259,10 +1259,7 @@ class PropTool : Tool
 			? @prop_data_pool[--prop_data_pool_count]
 			: PropData();
 		
-		@prop_data.prop = prop;
-		prop_data.key = key;
-		prop_data.pending = 0;
-		@prop_data.outline = @outline;
+		prop_data.init(script, this, prop, @outline);
 		
 		if(highlighted_props_count >= highlighted_props_size)
 		{
@@ -1271,8 +1268,6 @@ class PropTool : Tool
 		
 		@highlighted_props[highlighted_props_count++] = @prop_data;
 		@highlighted_props_map[key] = @prop_data;
-		
-		prop_data.init(script, this);
 		
 		return prop_data;
 	}
@@ -1285,7 +1280,7 @@ class PropTool : Tool
 			
 			if(clear_pending)
 			{
-				prop_data.pending = 0;
+				prop_data.pending_selection = 0;
 				
 				if(prop_data.selected)
 					continue;
@@ -1538,8 +1533,8 @@ class PropTool : Tool
 		const int dir = align == Left || align == Top ? -1 : align == Right || align == Bottom ? 1 : 0;
 		
 		PropData@ p = @selected_props[0];
-		float min = horizontal ? (p.x + p.x1) : (p.y + p.y1);
-		float max = horizontal ? (p.x + p.x2) : (p.y + p.y2);
+		float min = horizontal ? (p.x + p.local_x1) : (p.y + p.local_y1);
+		float max = horizontal ? (p.x + p.local_x2) : (p.y + p.local_y2);
 		
 		for(int i = selected_props_count - 1; i >= 0; i--)
 		{
@@ -1547,13 +1542,13 @@ class PropTool : Tool
 			
 			if(horizontal)
 			{
-				if(p.x + p.x1 < min) min = p.x + p.x1;
-				if(p.x + p.x2 > max) max = p.x + p.x2;
+				if(p.x + p.local_x1 < min) min = p.x + p.local_x1;
+				if(p.x + p.local_x2 > max) max = p.x + p.local_x2;
 			}
 			else
 			{
-				if(p.y + p.y1 < min) min = p.y + p.y1;
-				if(p.y + p.y2 > max) max = p.y + p.y2;
+				if(p.y + p.local_y1 < min) min = p.y + p.local_y1;
+				if(p.y + p.local_y2 > max) max = p.y + p.local_y2;
 			}
 		}
 		
@@ -1569,22 +1564,22 @@ class PropTool : Tool
 			if(horizontal)
 			{
 				if(dir == -1)
-					p.x = pos - p.x1;
+					p.x = pos - p.local_x1;
 				else if(dir == 1)
-					p.x = pos - p.x2;
+					p.x = pos - p.local_x2;
 				else
-					p.x = pos - (p.x1 + p.x2) * 0.5;
+					p.x = pos - (p.local_x1 + p.local_x2) * 0.5;
 				
 				p.prop.x(p.x);
 			}
 			else
 			{
 				if(dir == -1)
-					p.y = pos - p.y1;
+					p.y = pos - p.local_y1;
 				else if(dir == 1)
-					p.y = pos - p.y2;
+					p.y = pos - p.local_y2;
 				else
-					p.y = pos - (p.y1 + p.y2) * 0.5;
+					p.y = pos - (p.local_y1 + p.local_y2) * 0.5;
 				
 				p.prop.y(p.y);
 			}
@@ -1612,8 +1607,8 @@ class PropTool : Tool
 		{
 			PropData@ p = @selected_props[i];
 			@props_align_data[i].data = p;
-			props_align_data[i].x = horizontal ? p.x + p.x1 : p.y + p.y1;
-			props_width += horizontal ? p.x2 - p.x1 : p.y2 - p.y1;
+			props_align_data[i].x = horizontal ? p.x + p.local_x1 : p.y + p.local_y1;
+			props_width += horizontal ? p.local_x2 - p.local_x1 : p.local_y2 - p.local_y1;
 		}
 		
 		props_align_data.sortAsc(0, selected_props_count);
@@ -1626,23 +1621,23 @@ class PropTool : Tool
 		{
 			case AlignmentEdge::Left:
 			case AlignmentEdge::Top:
-				min = horizontal ? first.x + first.x1 : first.y + first.y1;
-				max = horizontal ? last.x + last.x1 : last.y + last.y1;
+				min = horizontal ? first.x + first.local_x1 : first.y + first.local_y1;
+				max = horizontal ? last.x + last.local_x1 : last.y + last.local_y1;
 				break;
 			case AlignmentEdge::Right:
 			case AlignmentEdge::Bottom:
-				min = horizontal ? first.x + first.x2 : first.y + first.y2;
-				max = horizontal ? last.x + last.x2 : last.y + last.y2;
+				min = horizontal ? first.x + first.local_x2 : first.y + first.local_y2;
+				max = horizontal ? last.x + last.local_x2 : last.y + last.local_y2;
 				break;
 			case AlignmentEdge::Centre:
 			case AlignmentEdge::Middle:
-				min = horizontal ? first.x + (first.x1 + first.x2) * 0.5 : first.y + (first.y1 + first.y2) * 0.5;
-				max = horizontal ? last.x + (last.x1 + last.x2) * 0.5 : last.y + (last.y1 + last.y2) * 0.5;
+				min = horizontal ? first.x + (first.local_x1 + first.local_x2) * 0.5 : first.y + (first.local_y1 + first.local_y2) * 0.5;
+				max = horizontal ? last.x + (last.local_x1 + last.local_x2) * 0.5 : last.y + (last.local_y1 + last.local_y2) * 0.5;
 				break;
 			case AlignmentEdge::Horizontal:
 			case AlignmentEdge::Vertical:
-				min = horizontal ? first.x + first.x1 : first.y + first.y1;
-				max = horizontal ? last.x + last.x2 : last.y + last.y2;
+				min = horizontal ? (first.x + first.local_x1) : (first.y + first.local_y1);
+				max = horizontal ? (last.x  + last.local_x2)  : (last.y + last.local_y2);
 				break;
 		}
 		
@@ -1656,7 +1651,7 @@ class PropTool : Tool
 		
 		if(is_spaced)
 		{
-			x += horizontal ? first.x2 - first.x1 : first.y2 - first.y1;
+			x += horizontal ? (first.local_x2 - first.local_x1) : (first.local_y2 - first.local_y1);
 		}
 		
 		for(int i = 1; i < selected_props_count - 1; i++)
@@ -1666,15 +1661,15 @@ class PropTool : Tool
 			switch(align)
 			{
 				case AlignmentEdge::Horizontal:
-				case AlignmentEdge::Left:		p.x = x - p.x1; break;
+				case AlignmentEdge::Left:		p.x = x - p.local_x1; break;
 				
 				case AlignmentEdge::Vertical:
-				case AlignmentEdge::Top:		p.y = x - p.y1; break;
+				case AlignmentEdge::Top:		p.y = x - p.local_y1; break;
 				
-				case AlignmentEdge::Right:		p.x = x - p.x2; break;
-				case AlignmentEdge::Bottom:		p.y = x - p.y2; break;
-				case AlignmentEdge::Centre:		p.x = x - (p.x1 + p.x2) * 0.5; break;
-				case AlignmentEdge::Middle:		p.y = x - (p.y1 + p.y2) * 0.5; break;
+				case AlignmentEdge::Right:		p.x = x - p.local_x2; break;
+				case AlignmentEdge::Bottom:		p.y = x - p.local_y2; break;
+				case AlignmentEdge::Centre:		p.x = x - (p.local_x1 + p.local_x2) * 0.5; break;
+				case AlignmentEdge::Middle:		p.y = x - (p.local_y1 + p.local_y2) * 0.5; break;
 			}
 			
 			p.prop.x(p.x);
@@ -1682,7 +1677,7 @@ class PropTool : Tool
 			
 			if(is_spaced)
 			{
-				x += horizontal ? p.x2 - p.x1 : p.y2 - p.y1;
+				x += horizontal ? p.local_x2 - p.local_x1 : p.local_y2 - p.local_y1;
 			}
 			
 			x += spacing;

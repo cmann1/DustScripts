@@ -1,20 +1,12 @@
-class PropData : IWorldBoundingBox
+#include '../../misc/SelectableData.cpp';
+
+class PropData : SelectableData
 {
 	
-	AdvToolScript@ script;
 	PropTool@ tool;
 	prop@ prop;
-	string key;
-	bool hovered;
-	bool selected;
-	int pending;
 	
 	const array<array<float>>@ outline;
-	
-	float draw_x, draw_y;
-	float x, y;
-	float x1, y1;
-	float x2, y2;
 	
 	private float drag_start_x, drag_start_y;
 	private float rotate_start_angle;
@@ -23,14 +15,18 @@ class PropData : IWorldBoundingBox
 	
 	float anchor_x, anchor_y;
 	
+	float local_x1, local_y1;
+	float local_x2, local_y2;
+	
 	private sprites@ spr;
 	
 	private string sprite_name;
-	private float draw_scale_x, draw_scale_y;
+	float x, y;
 	private float angle;
 	private float layer_scale;
 	private float backdrop_scale;
 	private float draw_scale;
+	private float draw_scale_x, draw_scale_y;
 	
 	private float align_x, align_y;
 	private float prop_left, prop_top;
@@ -42,10 +38,13 @@ class PropData : IWorldBoundingBox
 	private int lines_count;
 	private array<float> lines(lines_size);
 	
-	void init(AdvToolScript@ script, PropTool@ tool)
+	void init(AdvToolScript@ script, PropTool@ tool, prop@ prop, const array<array<float>>@ outline)
 	{
-		@this.script = script;
+		SelectableData::init(script, prop.id() + '', scene_index);
+		
 		@this.tool = tool;
+		@this.prop = prop;
+		@this.outline = outline;
 		string sprite_set;
 		sprite_from_prop(@prop, sprite_set, sprite_name);
 		
@@ -65,44 +64,37 @@ class PropData : IWorldBoundingBox
 	
 	void step()
 	{
-		script.transform(x, y, prop.layer(), 22, draw_x, draw_y);
+		script.transform(x, y, prop.layer(), 22, aabb_x, aabb_y);
 	}
 	
 	void draw()
 	{
-		if(pending == -2)
+		if(pending_selection == -2)
 			return;
 		
-		spr.draw_world(22, 22, sprite_name, 0, prop.palette(),
-			draw_x, draw_y, prop.rotation(),
-			draw_scale_x, draw_scale_y,
-			pending == 1 ? Settings::PendingAddFillColour : pending == -1 ? Settings::PendingRemoveFillColour
-				: hovered
-					? Settings::HoveredFillColour
-					: Settings::SelectedFillColour);
+		float line_width;
+		uint line_colour, fill_colour;
+		get_colours(line_width, line_colour, fill_colour);
 		
-		const float width = (pending == 1 ? Settings::PendingAddLineWidth : pending == -1 ? Settings::PendingRemoveLineWidth
-			: hovered
-				? Settings::HoveredLineWidth
-				: Settings::SelectedLineWidth) / script.zoom;
-		const uint colour = pending == 1 ? Settings::PendingAddLineColour : pending == -1 ? Settings::PendingRemoveLineColour
-			: hovered
-				? Settings::HoveredLineColour
-				: Settings::SelectedLineColour;
+		spr.draw_world(22, 22, sprite_name, 0, prop.palette(),
+			aabb_x, aabb_y, prop.rotation(),
+			draw_scale_x, draw_scale_y,
+			fill_colour);
 		
 		for(int i = lines_count - 4; i >= 0; i -= 4)
 		{
 			script.g.draw_rectangle_world(22, 22,
-				draw_x + lines[i] - width, draw_y + lines[i + 1] - lines[i + 2] * 0.5,
-				draw_x + lines[i] + width, draw_y + lines[i + 1] + lines[i + 2] * 0.5,
+				aabb_x + lines[i] - line_width, aabb_y + lines[i + 1] - lines[i + 2] * 0.5,
+				aabb_x + lines[i] + line_width, aabb_y + lines[i + 1] + lines[i + 2] * 0.5,
 				lines[i + 3],
-				colour);
+				line_colour);
 		}
 		
 //		if(selected)
 //		{
 //			outline_rect(script.g,22,22,
-//				x + x1, y + y1, x + x2, y + y2,
+//				aabb_x + aabb_x1, aabb_y + aabb_y1,
+//				aabb_x + aabb_x2, aabb_y + aabb_y2,
 //				1 / script.zoom, 0xaaff0000);
 //		}
 	}
@@ -114,7 +106,7 @@ class PropData : IWorldBoundingBox
 		x = prop.x();
 		y = prop.y();
 		
-		transform_layer_position(script.g, script.view_x, script.view_y, this.x, this.y, prop.layer(), 22, draw_x, draw_y);
+		script.transform(x, y, prop.layer(), 22, aabb_x, aabb_y);
 		
 		angle = prop.rotation() * DEG2RAD * sign(prop_scale_x) * sign(prop_scale_y);
 		layer_scale = prop.layer() <= 5 ? script.g.layer_scale(prop.layer()) : 1.0;
@@ -129,8 +121,8 @@ class PropData : IWorldBoundingBox
 		
 		lines_count = 0;
 		
-		x1 = y1 = 0;
-		x2 = y2 = 0;
+		local_x1 = local_y1 = 0;
+		local_x2 = local_y2 = 0;
 		
 		for(int i = 0, path_count = int(outline.length()); i < path_count; i++)
 		{
@@ -149,8 +141,8 @@ class PropData : IWorldBoundingBox
 			
 			if(i == 0)
 			{
-				x1 = x2 = prev_x;
-				y1 = y2 = prev_y;
+				local_x1 = local_x2 = prev_x;
+				local_y1 = local_y2 = prev_y;
 			}
 			
 			prev_x *= draw_scale;
@@ -164,10 +156,10 @@ class PropData : IWorldBoundingBox
 				float x = (cos_angle * p_x - sin_angle * p_y) * draw_scale_x;
 				float y = (sin_angle * p_x + cos_angle * p_y) * draw_scale_y;
 				
-				if(x < x1) x1 = x;
-				if(x > x2) x2 = x;
-				if(y < y1) y1 = y;
-				if(y > y2) y2 = y;
+				if(x < local_x1) local_x1 = x;
+				if(x > local_x2) local_x2 = x;
+				if(y < local_y1) local_y1 = y;
+				if(y > local_y2) local_y2 = y;
 				
 				x *= draw_scale;
 				y *= draw_scale;
@@ -183,6 +175,9 @@ class PropData : IWorldBoundingBox
 				prev_y = y;
 			}
 		}
+		
+		script.transform_size(local_x1, local_y1, prop.layer(), 22, aabb_x1, aabb_y1);
+		script.transform_size(local_x2, local_y2, prop.layer(), 22, aabb_x2, aabb_y2);
 		
 		draw_scale_x *= draw_scale;
 		draw_scale_y *= draw_scale;
@@ -361,28 +356,6 @@ class PropData : IWorldBoundingBox
 		init_anchors();
 		
 		update();
-	}
-	
-	// IWorldBoundingBox
-	
-	float get_world_x1() override
-	{
-		return x + x1;
-	}
-	
-	float get_world_y1() override
-	{
-		return y + y1;
-	}
-	
-	float get_world_x2() override
-	{
-		return x + x2;
-	}
-	
-	float get_world_y2() override
-	{
-		return y + y2;
 	}
 	
 }

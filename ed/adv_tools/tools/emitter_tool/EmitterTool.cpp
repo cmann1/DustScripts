@@ -177,6 +177,13 @@ class EmitterTool : Tool
 		{
 			hovered_emitter.draw();
 		}
+		
+		// Selection rect
+		
+		if(state == Selecting)
+		{
+			script.draw_select_rect(drag_start_x, drag_start_y, mouse.x, mouse.y);
+		}
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -265,7 +272,9 @@ class EmitterTool : Tool
 			{
 				@data = @selected_emitters[i];
 				data.shift_layer(mouse.scroll, script.alt);
-				selection_bounding_box.add(data.min_x, data.min_y, data.max_x, data.max_y);
+				selection_bounding_box.add(
+					data.aabb_x + data.aabb_x1, data.aabb_y + data.aabb_y1,
+					data.aabb_x + data.aabb_x2, data.aabb_y + data.aabb_y2);
 			}
 		}
 		else if(@hovered_emitter != null)
@@ -324,6 +333,8 @@ class EmitterTool : Tool
 	
 	private void state_selecting()
 	{
+		clear_pending_emitters();
+		
 		if(script.escape_press || !mouse.left_down)
 		{
 			
@@ -434,10 +445,6 @@ class EmitterTool : Tool
 		return emitter_data;
 	}
 	
-	// //////////////////////////////////////////////////////////
-	// Methods
-	// //////////////////////////////////////////////////////////
-	
 	private void update_highlighted_emitters()
 	{
 		for(int i = highlighted_emitters_count - 1; i >= 0; i--)
@@ -479,5 +486,17 @@ class EmitterTool : Tool
 		
 		highlighted_emitters_count = 0;
 	}
+	
+	private void clear_pending_emitters()
+	{
+		for(int i = highlighted_emitters_count - 1; i >= 0; i--)
+		{
+			highlighted_emitters[i].pending_selection = 0;
+		}
+	}
+	
+	// //////////////////////////////////////////////////////////
+	// Methods
+	// //////////////////////////////////////////////////////////
 	
 }

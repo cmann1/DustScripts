@@ -1,18 +1,12 @@
-class EmitterData : IWorldBoundingBox
+#include '../../misc/SelectableData.cpp';
+
+class EmitterData : SelectableData
 {
 	
-	AdvToolScript@ script;
 	EmitterTool@ tool;
 	entity@ emitter;
-	string key;
-	int scene_index;
-	int is_mouse_inside;
-	bool hovered;
-	bool selected;
-	bool primary_selected;
 	bool visible;
 	bool modified;
-	int pending_selection;
 	
 	private varstruct@ vars;
 	private varvalue@ width_var;
@@ -25,24 +19,18 @@ class EmitterData : IWorldBoundingBox
 	float width, height;
 	float rotation;
 	
-	float world_x, world_y;
-	float world_size_x, world_size_y;
-	float x1, y1, x2, y2;
-	float local_mouse_x, local_mouse_y;
-	
-	float min_x, min_y;
-	float max_x, max_y;
+	private float world_size_x, world_size_y;
+	private float rect_x1, rect_y1;
+	private float rect_x2, rect_y2;
 	
 	private float drag_start_x, drag_start_y;
 	
 	void init(AdvToolScript@ script, EmitterTool@ tool, entity@ emitter, const int scene_index)
 	{
-		@this.script = script;
+		SelectableData::init(script, emitter.id() + '', scene_index);
+		
 		@this.tool = tool;
 		@this.emitter = emitter;
-		this.scene_index = scene_index;
-		
-		key = emitter.id() + '';
 		
 		@vars = emitter.vars();
 		@width_var = vars.get_var('width');
@@ -50,55 +38,41 @@ class EmitterData : IWorldBoundingBox
 		@rotation_var = vars.get_var('e_rotation');
 		@sublayer_var = vars.get_var('draw_depth_sub');
 		
-		x = emitter.x();
-		y = emitter.y();
 		layer = emitter.layer();
 		sublayer = sublayer_var.get_int32();
 		width = width_var.get_int32();
 		height = height_var.get_int32();
 		rotation = rotation_var.get_int32();
 		
-		hovered = false;
-		selected = false;
-		primary_selected = false;
 		modified = false;
-		pending_selection = 0;
 	}
 	
 	void update()
 	{
-		script.transform(x, y, layer, 22, world_x, world_y);
+		x = emitter.x();
+		y = emitter.y();
+		
+		script.transform(x, y, layer, 22, aabb_x, aabb_y);
 		script.transform_size(width, height, layer, 22, world_size_x, world_size_y);
+		world_size_x *= 0.5;
+		world_size_y *= 0.5;
 		
-		x1 = world_x - world_size_x * 0.5;
-		y1 = world_y - world_size_y * 0.5;
-		x2 = world_x + world_size_x * 0.5;
-		y2 = world_y + world_size_y * 0.5;
+		float rel_mouse_x, rel_mouse_y;
+		rotate(
+			script.mouse.x, script.mouse.y, aabb_x, aabb_y,
+			-rotation * DEG2RAD, rel_mouse_x, rel_mouse_y);
 		
-		rotate(script.mouse.x - world_x, script.mouse.y - world_y, -rotation * DEG2RAD, local_mouse_x, local_mouse_y);
-		local_mouse_x += world_x;
-		local_mouse_y += world_y;
+		rect_x1 = aabb_x - world_size_x;
+		rect_y1 = aabb_y - world_size_y;
+		rect_x2 = aabb_x + world_size_x;
+		rect_y2 = aabb_y + world_size_y;
 		
 		is_mouse_inside = 
-			local_mouse_x >= x1 && local_mouse_x <= x2 &&
-			local_mouse_y >= y1 && local_mouse_y <= y2
+			rel_mouse_x >= rect_x1 && rel_mouse_x <= rect_x2 &&
+			rel_mouse_y >= rect_y1 && rel_mouse_y <= rect_y2
 				? 1 : 0;
 		
-		min_x = -world_size_x * 0.5;
-		min_y = -world_size_y * 0.5;
-		max_x =  world_size_x * 0.5;
-		max_y =  world_size_y * 0.5;
-		
-		float x1, y1, x2, y2, x3, y3, x4, y4;
-		rotate(min_x, min_y, rotation * DEG2RAD, x1, y1);
-		rotate(max_x, min_y, rotation * DEG2RAD, x2, y2);
-		rotate(max_x, max_y, rotation * DEG2RAD, x3, y3);
-		rotate(min_x, max_y, rotation * DEG2RAD, x4, y4);
-		
-		min_x = min(min(world_x + x1, world_x + x2), min(world_x + x3, world_x + x4));
-		min_y = min(min(world_y + y1, world_y + y2), min(world_y + y3, world_y + y4));
-		max_x = max(max(world_x + x1, world_x + x2), max(world_x + x3, world_x + x4));
-		max_y = max(max(world_y + y1, world_y + y2), max(world_y + y3, world_y + y4));
+		aabb_from_rect(world_size_x, world_size_y, rotation * DEG2RAD);
 	}
 	
 	/// Changing an emitter's properties does not reflect in the editor for some reason.
@@ -128,16 +102,14 @@ class EmitterData : IWorldBoundingBox
 		{
 			const float nx = cos(rotation * DEG2RAD);
 			const float ny = sin(rotation * DEG2RAD);
-			const float ox = world_size_x * 0.5;
-			const float oy = world_size_y * 0.5;
 			
 			const array<float>@ o = Settings::ScaleHandleOffsets;
 			
 			for(int i = 0; i < 32; i += 4)
 			{
 				if(script.handles.square(
-					world_x + nx * ox * o[i + 0] - ny * oy * o[i + 1],
-					world_y + ny * ox * o[i + 2] + nx * oy * o[i + 3],
+					aabb_x + nx * world_size_x * o[i + 0] - ny * world_size_y * o[i + 1],
+					aabb_y + ny * world_size_x * o[i + 2] + nx * world_size_y * o[i + 3],
 					Settings::ScaleHandleSize, rotation, Settings::RotateHandleColour, Settings::RotateHandleHoveredColour))
 				{
 //					hovered_handle_index = i / 4;
@@ -148,29 +120,25 @@ class EmitterData : IWorldBoundingBox
 	
 	void draw()
 	{
-		const uint fill = hovered ? Settings::HoveredFillColour
-			: selected
-				? Settings::SelectedFillColour
-				: Settings::DefaultFillColour;
-		const uint line = hovered ? Settings::HoveredLineColour
-			: selected
-				? Settings::SelectedLineColour
-				: Settings::DefaultLineColour;
-		const float line_width = hovered ? Settings::HoveredLineWidth
-			: selected
-				? Settings::SelectedLineWidth
-				: Settings::DefaultLineWidth;
+		float line_width;
+		uint line_colour, fill_colour;
+		get_colours(line_width, line_colour, fill_colour);
 		
-		if(fill != 0)
+		if(fill_colour != 0)
 		{
 			script.g.draw_rectangle_world(22, 22,
-				x1, y1, x2, y2, rotation, fill);
+				aabb_x - world_size_x, aabb_y - world_size_y,
+				aabb_x + world_size_x, aabb_y + world_size_y,
+				rotation, fill_colour);
 		}
 		
-		outline_rotated_rect(script.g, 22, 22,
-			world_x, world_y, world_size_x * 0.5, world_size_y * 0.5,
-			rotation, line_width / script.zoom,
-			line);
+		if(line_colour != 0)
+		{
+			outline_rotated_rect(script.g, 22, 22,
+				aabb_x, aabb_y, world_size_x, world_size_y,
+				rotation, line_width / script.zoom,
+				line_colour);
+		}
 	}
 	
 	int opCmp(const EmitterData &in other)
@@ -235,28 +203,6 @@ class EmitterData : IWorldBoundingBox
 		
 		modified = true;
 		update();
-	}
-	
-	// IWorldBoundingBox
-	
-	float get_world_x1() override
-	{
-		return min_x;
-	}
-	
-	float get_world_y1() override
-	{
-		return min_y;
-	}
-	
-	float get_world_x2() override
-	{
-		return max_x;
-	}
-	
-	float get_world_y2() override
-	{
-		return max_y;
 	}
 	
 }
