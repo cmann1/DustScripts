@@ -269,8 +269,10 @@ class PropTool : Tool
 		float sx, sy, sx1, sy1, sx2, sy2;
 		float x1, y1, x2, y2, x3, y3, x4, y4;
 		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
-		script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
-		script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
+//		script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
+//		script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
+		script.transform_size(min(selection_x1, selection_x2), min(selection_y1, selection_y2), selection_layer, 22, sx1, sy1);
+		script.transform_size(max(selection_x1, selection_x2), max(selection_y1, selection_y2), selection_layer, 22, sx2, sy2);
 		
 		rotate(sx1, sy1, selection_angle, x1, y1);
 		rotate(sx2, sy1, selection_angle, x2, y2);
@@ -615,6 +617,8 @@ class PropTool : Tool
 		float x, y;
 		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
 		drag_scale_start_distance = distance(x, y, anchor_x, anchor_y);
+		drag_start_x = mouse.x;
+		drag_start_y = mouse.y;
 		
 		if(has_custom_anchor)
 		{
@@ -794,7 +798,7 @@ class PropTool : Tool
 			if(!temporary_selection && show_selection.value)
 			{
 				check_rotation_handle();
-				check_scale_handle();
+				check_scale_handle(false);
 			}
 			
 			clear_temporary_selection();
@@ -809,7 +813,15 @@ class PropTool : Tool
 		
 		float x, y;
 		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
-		const float scale = distance(x, y, anchor_x, anchor_y) / drag_scale_start_distance;
+		const float length = magnitude(drag_start_x - anchor_x, drag_start_y - anchor_y);
+		project(
+			x - anchor_x, y - anchor_y,
+			(drag_start_x - anchor_x) / length, (drag_start_y - anchor_y) / length,
+			x, y);
+		const float distance_sign = dot(
+				x, y,
+				drag_start_x - anchor_x, drag_start_y - anchor_y) < 0 ? -1 : 1;
+		const float scale = magnitude(x, y) / drag_scale_start_distance * distance_sign;
 		
 		for(int i = 0; i < selected_props_count; i++)
 		{
@@ -917,13 +929,22 @@ class PropTool : Tool
 	
 	//
 	
-	private void get_handle_position(const bool vertical, const float offset, float &out x, float &out y)
+	private void get_handle_position(const bool vertical, const float offset, float &out x, float &out y, const bool allow_flipped=true)
 	{
 		float sx, sy, sx1, sy1, sx2, sy2;
 		float x1, y1, x2, y2, x3, y3, x4, y4;
 		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
-		script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
-		script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
+		
+		if(!allow_flipped)
+		{
+			script.transform_size(min(selection_x1, selection_x2), min(selection_y1, selection_y2), selection_layer, 22, sx1, sy1);
+			script.transform_size(max(selection_x1, selection_x2), max(selection_y1, selection_y2), selection_layer, 22, sx2, sy2);
+		}
+		else
+		{
+			script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
+			script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
+		}
 		
 		rotate(sx1, sy1, selection_angle, x1, y1);
 		rotate(sx2, sy1, selection_angle, x2, y2);
@@ -953,7 +974,7 @@ class PropTool : Tool
 			return false;
 		
 		float x, y;
-		get_handle_position(true, Settings::RotationHandleOffset, x, y);
+		get_handle_position(true, Settings::RotationHandleOffset, x, y, false);
 		
 		return script.handles.circle(
 			x, y,

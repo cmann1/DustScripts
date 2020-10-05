@@ -48,9 +48,9 @@ abstract class SelectableData : IWorldBoundingBox
 	
 	protected void get_colours(float &out line_width, uint &out line_colour, uint &out fill_colour)
 	{
-		line_width = pending_selection == 1 ? Settings::PendingAddLineWidth : pending_selection == -1 ? Settings::PendingRemoveLineWidth
+		line_width = (pending_selection == 1 ? Settings::PendingAddLineWidth : pending_selection == -1 ? Settings::PendingRemoveLineWidth
 			: hovered ? Settings::HoveredLineWidth
-			: selected ? Settings::SelectedLineWidth : Settings::DefaultLineWidth;
+			: selected ? Settings::SelectedLineWidth : Settings::DefaultLineWidth) / script.zoom;
 		fill_colour = pending_selection == 1 ? Settings::PendingAddFillColour : pending_selection == -1 ? Settings::PendingRemoveFillColour
 			: hovered ? Settings::HoveredFillColour
 			: selected ? Settings::SelectedFillColour : Settings::DefaultFillColour;

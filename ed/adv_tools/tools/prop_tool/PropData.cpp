@@ -338,8 +338,14 @@ class PropData : SelectableData
 	
 	void do_scale(const float scale)
 	{
-		prop_scale_x = max(drag_start_scale_x * scale, 0.001);
-		prop_scale_y = max(drag_start_scale_y * scale, 0.001);
+		prop_scale_x = drag_start_scale_x * scale;
+		prop_scale_y = drag_start_scale_y * scale;
+		
+		if(prop_scale_x == 0)
+			prop_scale_x = 0.001;
+		if(prop_scale_y == 0)
+			prop_scale_y = 0.001;
+		
 		prop.scale_x(prop_scale_x);
 		prop.scale_y(prop_scale_y);
 		
