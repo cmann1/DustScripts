@@ -269,8 +269,6 @@ class PropTool : Tool
 		float sx, sy, sx1, sy1, sx2, sy2;
 		float x1, y1, x2, y2, x3, y3, x4, y4;
 		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
-//		script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
-//		script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
 		script.transform_size(min(selection_x1, selection_x2), min(selection_y1, selection_y2), selection_layer, 22, sx1, sy1);
 		script.transform_size(max(selection_x1, selection_x2), max(selection_y1, selection_y2), selection_layer, 22, sx2, sy2);
 		
@@ -1221,19 +1219,27 @@ class PropTool : Tool
 			copy_data.scale_x		= prop_data.prop.scale_x();
 			copy_data.scale_y		= prop_data.prop.scale_y();
 			
+			float x1 = prop_data.x + prop_data.local_x1 - ox;
+			float y1 = prop_data.y + prop_data.local_y1 - oy;
+			float x2 = prop_data.x + prop_data.local_x2 - ox;
+			float y2 = prop_data.y + prop_data.local_y2 - oy;
+			
+			script.transform(x1, y1, copy_data.layer, selection_layer, x1, y1);
+			script.transform(x2, y2, copy_data.layer, selection_layer, x2, y2);
+			
 			if(i == 0)
 			{
-				props_clipboard.x1 = prop_data.x + prop_data.local_x1 - ox;
-				props_clipboard.y1 = prop_data.y + prop_data.local_y1 - oy;
-				props_clipboard.x2 = prop_data.x + prop_data.local_x2 - ox;
-				props_clipboard.y2 = prop_data.y + prop_data.local_y2 - oy;
+				props_clipboard.x1 = x1;
+				props_clipboard.y1 = y1;
+				props_clipboard.x2 = x2;
+				props_clipboard.y2 = y2;
 			}
 			else
 			{
-				if(prop_data.x + prop_data.local_x1 - ox < props_clipboard.x1) props_clipboard.x1 = prop_data.x + prop_data.local_x1 - ox;
-				if(prop_data.y + prop_data.local_y1 - oy < props_clipboard.y1) props_clipboard.y1 = prop_data.y + prop_data.local_y1 - oy;
-				if(prop_data.x + prop_data.local_x2 - ox > props_clipboard.x2) props_clipboard.x2 = prop_data.x + prop_data.local_x2 - ox;
-				if(prop_data.y + prop_data.local_y2 - oy > props_clipboard.y2) props_clipboard.y2 = prop_data.y + prop_data.local_y2 - oy;
+				if(x1 < props_clipboard.x1) props_clipboard.x1 = x1;
+				if(y1 < props_clipboard.y1) props_clipboard.y1 = y1;
+				if(x2 > props_clipboard.x2) props_clipboard.x2 = x2;
+				if(y2 > props_clipboard.y2) props_clipboard.y2 = y2;
 			}
 		}
 		
@@ -1293,8 +1299,20 @@ class PropTool : Tool
 			const array<array<float>>@ outline = @PROP_OUTLINES[copy_data.prop_set - 1][copy_data.prop_group][copy_data.prop_index - 1];
 			
 			script.g.add_prop(p);
-			select_prop(highlight_prop(p, @outline), SelectAction::Add);
+			
+			PropData@ data = highlight_prop(p, @outline);
+			select_prop(data, SelectAction::Add);
 		}
+		
+		const float dx = selection_x1 - props_clipboard.x1;
+		const float dy = selection_y1 - props_clipboard.y1;
+		
+		selection_x += dx;
+		selection_y += dy;
+		selection_x1 -= dx;
+		selection_y1 -= dy;
+		selection_x2 -= dx;
+		selection_y2 -= dy;
 		
 		update_alignments_from_origin();
 	}
