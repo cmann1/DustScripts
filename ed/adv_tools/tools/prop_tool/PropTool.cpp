@@ -1142,6 +1142,7 @@ class PropTool : Tool
 		
 		props_clipboard.x = ox;
 		props_clipboard.y = oy;
+		props_clipboard.layer = selection_layer;
 		
 		for(int i = 0; i < selected_props_count; i++)
 		{
@@ -1203,8 +1204,10 @@ class PropTool : Tool
 		}
 		else
 		{
-			x = mouse.x - props_clipboard.x1 - (props_clipboard.x2 - props_clipboard.x1) * 0.5;
-			y = mouse.y - props_clipboard.y1 - (props_clipboard.y2 - props_clipboard.y1) * 0.5;
+			float mx, my;
+			script.transform(mouse.x, mouse.y, 22, props_clipboard.layer, mx, my);
+			x = mx - props_clipboard.x1 - (props_clipboard.x2 - props_clipboard.x1) * 0.5;
+			y = my - props_clipboard.y1 - (props_clipboard.y2 - props_clipboard.y1) * 0.5;
 		}
 		
 		select_none();
