@@ -136,7 +136,7 @@ class EmitterData : SelectableData
 		{
 			outline_rotated_rect(script.g, 22, 22,
 				aabb_x, aabb_y, world_size_x, world_size_y,
-				rotation, line_width / script.zoom,
+				rotation, line_width,
 				line_colour);
 		}
 	}

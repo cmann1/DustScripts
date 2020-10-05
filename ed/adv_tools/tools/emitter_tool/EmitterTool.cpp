@@ -27,6 +27,7 @@ class EmitterTool : Tool
 	private EmitterData@ pressed_emitter;
 	private int hover_index_offset;
 	
+	private int select_rect_pending;
 	private int action_layer;
 	private float drag_start_x, drag_start_y;
 	
@@ -213,6 +214,13 @@ class EmitterTool : Tool
 		{
 			drag_start_x = mouse.x;
 			drag_start_y = mouse.y;
+			select_rect_pending = script.shift ? 1 : script.ctrl ? -1 : 0;
+			
+			if(select_rect_pending == 0)
+			{
+				select_none();
+			}
+			
 			state = Selecting;
 			script.ui.mouse_enabled = false;
 			return;
@@ -357,7 +365,7 @@ class EmitterTool : Tool
 	{
 		clear_pending_emitters();
 		
-		if(script.escape_press || !mouse.left_down)
+		if(script.escape_press)
 		{
 			state = Idle;
 			script.ui.mouse_enabled = true;
@@ -368,6 +376,59 @@ class EmitterTool : Tool
 		const float y2 = max(drag_start_y, mouse.y);
 		const float x1 = min(drag_start_x, mouse.x);
 		const float x2 = max(drag_start_x, mouse.x);
+		
+		int i = script.g.get_entity_collision(y1, y2, x1, x2, ColType::Emitter);
+		
+		while(i-- > 0)
+		{
+			entity@ e = script.g.get_entity_collision_index(i);
+			EmitterData@ data = highlight(e, i);
+			
+			if(select_rect_pending == 0)
+			{
+				if(mouse.left_down)
+				{
+					data.pending_selection = 1;
+				}
+				else
+				{
+					select_emitter(data, SelectAction::Add);
+				}
+			}
+			else if(select_rect_pending == 1)
+			{
+				if(!data.selected)
+				{
+					if(mouse.left_down)
+					{
+						data.pending_selection = 1;
+					}
+					else
+					{
+						select_emitter(data, SelectAction::Add);
+					}
+				}
+			}
+			else if(select_rect_pending == -1 && data.selected)
+			{
+				if(mouse.left_down)
+				{
+					data.pending_selection = -1;
+				}
+				else
+				{
+					select_emitter(data, SelectAction::Remove);
+				}
+			}
+		}
+		
+		// Complete selection
+		
+		if(!mouse.left_down)
+		{
+			state = Idle;
+			script.ui.mouse_enabled = true;
+		}
 	}
 	
 	private void state_creating()
