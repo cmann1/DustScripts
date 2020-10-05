@@ -398,7 +398,7 @@ class EmitterTool : Tool
 		{
 			if(selected_emitters_count >= selected_emitters_size)
 			{
-				selected_emitters.resize(selected_emitters_size += 32);
+				selected_emitters.resize(selected_emitters_size = selected_emitters_count + 32);
 			}
 			
 			@selected_emitters[selected_emitters_count++] = data;
@@ -407,6 +407,7 @@ class EmitterTool : Tool
 		else
 		{
 			selected_emitters.removeAt(selected_emitters.findByRef(@data));
+			selected_emitters.resize(selected_emitters_size);
 			data.selected = false;
 			selected_emitters_count--;
 			

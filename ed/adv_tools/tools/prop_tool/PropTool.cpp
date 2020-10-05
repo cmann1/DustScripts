@@ -1014,8 +1014,8 @@ class PropTool : Tool
 		{
 			while(selected_props_count > 0)
 			{
-				PropData@ selected_pro_data = @selected_props[--selected_props_count];
-				selected_pro_data.selected = false;
+				PropData@ selected_prop_data = @selected_props[--selected_props_count];
+				selected_prop_data.selected = false;
 			}
 			
 			selection_layer = 0;
@@ -1039,7 +1039,7 @@ class PropTool : Tool
 		{
 			if(selected_props_count >= selected_props_size)
 			{
-				selected_props.resize(selected_props_size += 32);
+				selected_props.resize(selected_props_size = selected_props_count + 32);
 			}
 			
 			@selected_props[selected_props_count++] = prop_data;
@@ -1053,6 +1053,7 @@ class PropTool : Tool
 		else
 		{
 			selected_props.removeAt(selected_props.findByRef(@prop_data));
+			selected_props.resize(selected_props_size);
 			prop_data.selected = false;
 			selected_props_count--;
 			
