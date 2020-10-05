@@ -261,6 +261,35 @@ class EmitterTool : Tool
 		{
 			idle_adjust_layer();
 		}
+		// Delete
+		
+		if(script.editor.key_check_gvb(GVB::Delete))
+		{
+			for(int i = 0; i < selected_emitters_count; i++)
+			{
+				script.g.remove_entity(selected_emitters[i].emitter);
+			}
+			
+			select_none();
+			
+			if(@hovered_emitter != null)
+			{
+				hovered_emitter.hovered = false;
+				@hovered_emitter = null;
+			}
+		}
+		
+		if(@hovered_emitter != null && (mouse.right_press || script.shift && mouse.right_down))
+		{
+			if(hovered_emitter.selected)
+			{
+				select_emitter(hovered_emitter, SelectAction::Remove);
+			}
+			
+			script.g.remove_entity(hovered_emitter.emitter);
+			hovered_emitter.hovered = false;
+			@hovered_emitter = null;
+		}
 		
 		// Scroll hover index
 		
@@ -458,6 +487,7 @@ class EmitterTool : Tool
 			{
 				EmitterData@ emitter_data = @selected_emitters[--selected_emitters_count];
 				emitter_data.selected = false;
+				emitter_data.hovered = false;
 			}
 			
 			if(@primary_selected != null)
