@@ -29,10 +29,10 @@ abstract class SelectableData : IWorldBoundingBox
 	
 	protected void aabb_from_rect(const float half_width, const float half_height, const float angle)
 	{
-		aabb_x1 = -half_width  * 0.5;
-		aabb_y1 = -half_height * 0.5;
-		aabb_x2 =  half_width  * 0.5;
-		aabb_y2 =  half_height * 0.5;
+		aabb_x1 = -half_width;
+		aabb_y1 = -half_height;
+		aabb_x2 =  half_width;
+		aabb_y2 =  half_height;
 		
 		float x1, y1, x2, y2, x3, y3, x4, y4;
 		rotate(aabb_x1, aabb_y1, angle, x1, y1);
@@ -40,10 +40,10 @@ abstract class SelectableData : IWorldBoundingBox
 		rotate(aabb_x2, aabb_y2, angle, x3, y3);
 		rotate(aabb_x1, aabb_y2, angle, x4, y4);
 		
-		aabb_x1 = min(min(x1, aabb_x + x2), min(x3, aabb_x + x4));
-		aabb_y1 = min(min(y1, aabb_y + y2), min(y3, aabb_y + y4));
-		aabb_x2 = max(max(x1, aabb_x + x2), max(x3, aabb_x + x4));
-		aabb_y2 = max(max(y1, aabb_y + y2), max(y3, aabb_y + y4));
+		aabb_x1 = min(min(x1, x2), min(x3, x4));
+		aabb_y1 = min(min(y1, y2), min(y3, y4));
+		aabb_x2 = max(max(x1, x2), max(x3, x4));
+		aabb_y2 = max(max(y1, y2), max(y3, y4));
 	}
 	
 	protected void get_colours(float &out line_width, uint &out line_colour, uint &out fill_colour)
