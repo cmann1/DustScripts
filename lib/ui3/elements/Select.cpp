@@ -5,7 +5,7 @@
 
 namespace Select { const string TYPE_NAME = 'Select'; }
 
-class Select : SelectBase
+class Select : SelectBase, IStepHandler
 {
 	
 	float button_size = 20;
@@ -122,6 +122,18 @@ class Select : SelectBase
 	
 	//
 	
+	bool ui_step()
+	{
+		if(ui._has_editor && editor_api::consume_gvb_press(ui._editor, GVB::Escape))
+		{
+			ui.hide_tooltip(popup);
+			open = false;
+			return false;
+		}
+		
+		return true;
+	}
+	
 	void _do_layout(LayoutContext@ ctx) override
 	{
 		const float border_size = max(0.0, ui.style.border_size);
@@ -167,6 +179,9 @@ class Select : SelectBase
 		if(event.button != ui.primary_button)
 			return;
 		
+		if(open)
+			return;
+		
 		list_view.fit_to_contents(true);
 		
 		if(selected_index == -1)
@@ -190,6 +205,7 @@ class Select : SelectBase
 			tooltip.enabled = false;
 		}
 		
+		ui._step_subscribe(this);
 		open = true;
 		ui.show_tooltip(popup, this);
 	}
