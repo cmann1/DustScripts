@@ -252,6 +252,11 @@ class Window : MoveableDialog
 		}
 	}
 	
+	Label@ title_label
+	{
+		get const { return _title_label; }
+	}
+	
 	bool show_close_button
 	{
 		get const { return _show_close_button; }
