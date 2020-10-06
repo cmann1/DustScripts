@@ -549,7 +549,7 @@ class EmitterTool : Tool
 				}
 				else
 				{
-					select_emitter(data, SelectAction::Add);
+					select_emitter(data, SelectAction::Add, false);
 				}
 			}
 			else if(select_rect_pending == 1)
@@ -562,7 +562,7 @@ class EmitterTool : Tool
 					}
 					else
 					{
-						select_emitter(data, SelectAction::Add);
+						select_emitter(data, SelectAction::Add, false);
 					}
 				}
 			}
@@ -574,7 +574,7 @@ class EmitterTool : Tool
 				}
 				else
 				{
-					select_emitter(data, SelectAction::Remove);
+					select_emitter(data, SelectAction::Remove, false);
 				}
 			}
 		}
@@ -615,7 +615,7 @@ class EmitterTool : Tool
 	// Selection
 	// //////////////////////////////////////////////////////////
 	
-	private void select_emitter(EmitterData@ data, const SelectAction action)
+	private void select_emitter(EmitterData@ data, const SelectAction action, const bool update_primary=true)
 	{
 		if(action == SelectAction::Set)
 		{
@@ -626,7 +626,7 @@ class EmitterTool : Tool
 				emitter_data.hovered = false;
 			}
 			
-			if(@primary_selected != null)
+			if(update_primary && @primary_selected != null)
 			{
 				primary_selected.primary_selected = false;
 				@primary_selected = null;
@@ -641,13 +641,16 @@ class EmitterTool : Tool
 		
 		if(action == SelectAction::Add || action == SelectAction::Set)
 		{
-			if(@primary_selected != null)
+			if(update_primary || action == SelectAction::Set && @primary_selected != @data)
 			{
-				primary_selected.primary_selected = false;
+				if(@primary_selected != null)
+				{
+					primary_selected.primary_selected = false;
+				}
+				
+				data.primary_selected = true;
+				@primary_selected = data;
 			}
-			
-			data.primary_selected = true;
-			@primary_selected = data;
 			
 			if(data.selected)
 				return;
