@@ -19,10 +19,10 @@ class EmitterToolWindow
 	private ListView@ other_ids_list_view;
 	private PopupOptions@ other_ids_tooltip;
 	
-	private IntSetting@ emitter_id;
-	private IntSetting@ layer;
-	private IntSetting@ sublayer;
-	private FloatSetting@ rotation;
+	IntSetting@ emitter_id;
+	IntSetting@ layer;
+	IntSetting@ sublayer;
+	FloatSetting@ rotation;
 	
 	private void create_ui()
 	{
@@ -106,10 +106,10 @@ class EmitterToolWindow
 			@this.script = script;
 			@this.tool = tool;
 			
-			@emitter_id	= script.get_int(tool, 'emitter_id', EmitterId::DustGround);
-			@layer		= script.get_int(tool, 'layer', 19);
-			@sublayer	= script.get_int(tool, 'sublayer', 12);
-			@rotation	= script.get_float(tool, 'rotation', 0);
+			@emitter_id	= tool.emitter_id;
+			@layer		= tool.layer;
+			@sublayer	= tool.sublayer;
+			@rotation	= tool.rotation;
 			
 			create_ui();
 		}

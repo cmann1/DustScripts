@@ -58,6 +58,8 @@ class AdvToolScript
 	bool scene_focus;
 	bool ctrl, shift, alt, space;
 	bool return_press, escape_press;
+	bool space_on_press;
+	bool pressed_in_scene;
 	
 	InfoOverlay info_overlay;
 	
@@ -283,10 +285,6 @@ class AdvToolScript
 //		debug.print('selected_tab: ' + new_tab, 'selected_tab');
 //		debug.print('selected_tool: ' + selected_tool.name, 'selected_tool');
 		
-		mouse_in_gui = editor.mouse_in_gui();
-		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui && !ui.is_mouse_active;
-		scene_focus = @ui.focus ==  null;
-		
 		handle_keyboard();
 		handles.step();
 		mouse.step();
@@ -295,6 +293,21 @@ class AdvToolScript
 		shift	= editor.key_check_gvb(GVB::Shift);
 		alt		= editor.key_check_gvb(GVB::Alt);
 		space	= editor.key_check_gvb(GVB::Space);
+		
+		mouse_in_gui = editor.mouse_in_gui();
+		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui && !ui.is_mouse_active && !space;
+		scene_focus = @ui.focus ==  null;
+		
+		if(mouse.left_press)
+		{
+			space_on_press = space;
+			pressed_in_scene = mouse_in_scene;
+		}
+		else if(mouse.left_release)
+		{
+			space_on_press = false;
+			pressed_in_scene = false;
+		}
 		
 		return_press = editor.key_check_pressed_gvb(GVB::Return);
 		escape_press = editor.key_check_pressed_gvb(GVB::Escape);
