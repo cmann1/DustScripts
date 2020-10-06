@@ -229,7 +229,6 @@ class Scrollbar : Element, IStepHandler
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-//		puts('ScrollBar::_do_layout');
 		calculate_scroll_values();
 		
 		if(_position < scroll_min)
@@ -301,6 +300,7 @@ class Scrollbar : Element, IStepHandler
 			if(_container._scrolled_into_view)
 			{
 				_position = is_horizontal ? -_container._scroll_x : -_container._scroll_y;
+				_container._scrolled_into_view = false;
 			}
 		}
 		
