@@ -10,6 +10,7 @@ class ListView : ScrollView
 {
 	
 	bool drag_select = false;
+	bool allow_deselect = true;
 	
 	Event select;
 	

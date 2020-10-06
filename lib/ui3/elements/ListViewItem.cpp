@@ -311,7 +311,7 @@ class ListViewItem : Container
 	{
 		if(@_list_view == null || !_list_view.drag_select)
 		{
-			selected = !_selected;
+			selected = _list_view.allow_deselect ? !_selected : true;
 		}
 	}
 	
