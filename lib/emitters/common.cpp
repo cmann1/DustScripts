@@ -1,15 +1,15 @@
-#include "enums/EmitterId.cpp";
+#include '../enums/EmitterId.cpp';
 
 entity@ create_emitter(int id, float x, float y, int width, int height, int layer, int sub_layer)
 {
-	entity@ emitter = create_entity("entity_emitter");
+	entity@ emitter = create_entity('entity_emitter');
 	varstruct@ vars = emitter.vars();
 	emitter.layer(layer);
-	vars.get_var("emitter_id").set_int32(id);
-	vars.get_var("width").set_int32(width);
-	vars.get_var("height").set_int32(height);
-	vars.get_var("draw_depth_sub").set_int32(sub_layer);
-	vars.get_var("r_area").set_bool(true);
+	vars.get_var('emitter_id').set_int32(id);
+	vars.get_var('width').set_int32(width);
+	vars.get_var('height').set_int32(height);
+	vars.get_var('draw_depth_sub').set_int32(sub_layer);
+	vars.get_var('r_area').set_bool(true);
 	emitter.set_xy(x, y);
 	
 	return emitter;
