@@ -440,12 +440,12 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		{
 			if(_layer_select.type == LayerSelectorType::Layers || _layer_select.type == LayerSelectorType::Both)
 			{
-				layer_select.set_layers_selected(@selected_layers, false, true);
+				layer_select.set_layers_selected(@selected_layers, true, true);
 			}
 			
 			if(_layer_select.type == LayerSelectorType::SubLayers || _layer_select.type == LayerSelectorType::Both)
 			{
-				layer_select.set_sub_layers_selected(@selected_sub_layers, false, true);
+				layer_select.set_sub_layers_selected(@selected_sub_layers, true, true);
 			}
 			
 			canceled = false;
