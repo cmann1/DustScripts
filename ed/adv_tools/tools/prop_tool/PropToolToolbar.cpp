@@ -1,3 +1,4 @@
+#include '../../../../lib/ui3/elements/extra/SelectButton.cpp';
 #include '../../../../lib/ui3/elements/Toolbar.cpp';
 #include '../../../../lib/ui3/elements/NumberSlider.cpp';
 #include '../../../../lib/ui3/layouts/GridLayout.cpp';
@@ -30,10 +31,10 @@ class PropToolToolbar
 	private PopupOptions@ custom_grid_popup;
 	private NumberSlider@ custom_grid_slider;
 	
-	private Button@ origin_button;
+	private SelectButton@ origin_button;
 	private Image@ origin_img;
 	private ListView@ origin_list_view;
-	private PopupOptions@ origin_popup;
+//	private PopupOptions@ origin_popup;
 	private PopupOptions@ origin_tooltip;
 	
 	private Button@ align_button;
@@ -141,23 +142,20 @@ class PropToolToolbar
 		custom_grid_popup.show.on(EventCallback(on_custom_grid_slider_popup_show));
 		custom_grid_popup.hide.on(EventCallback(on_custom_grid_slider_popup_hide));
 		
-		// Anchor button
+		// Orgin button
 		
 		float icon_rotation;
 		@origin_img = Image(ui, '', '', Settings::IconSize, Settings::IconSize);
 		update_origin_icon();
 		
-		@origin_button = toolbar.add_button(origin_img);
+		@origin_button = SelectButton(ui, origin_img);
 		origin_button.name = 'default_origin';
 		@origin_button.tooltip = PopupOptions(ui, '');
 		origin_button.mouse_click.on(button_click);
+		toolbar.add(origin_button);
 		update_origin_tooltip();
 		
-		@origin_list_view = ListView(ui);
-		origin_list_view.allow_deselect = false;
-		origin_list_view.border_size = 0;
-		origin_list_view.border_colour = 0;
-		origin_list_view.background_colour = 0;
+		@origin_list_view = origin_button.list_view;
 		origin_list_view.select.on(EventCallback(on_origin_select));
 		
 		for(int i = 0, count = int(PropToolSettings::Origins.length()); i < count; i++)
@@ -168,14 +166,6 @@ class PropToolToolbar
 				string::nice(PropToolSettings::Origins[i]), Settings::IconSize, Settings::IconSize);
 			item.icon.rotation = rotation;
 		}
-		
-		@origin_popup = PopupOptions(ui, origin_list_view, true, PopupPosition::Below, PopupTriggerType::Manual, PopupHideType::MouseDownOutside);
-		origin_popup.wait_for_mouse = true;
-		origin_popup.allow_target_overlap = false;
-		origin_popup.spacing = style.spacing;
-		origin_popup.padding = 0;
-		origin_popup.show.on(EventCallback(on_origin_slider_popup_show));
-		origin_popup.hide.on(EventCallback(on_origin_slider_popup_hide));
 		
 		// Custom anchor lock button
 		
@@ -430,23 +420,6 @@ class PropToolToolbar
 			custom_grid_button.selectable = true;
 			script.ui.show_tooltip(custom_grid_popup, custom_grid_button);
 		}
-		else if(name == 'default_origin')
-		{
-			origin_button.selected = true;
-			origin_button.selectable = true;
-			origin_list_view.fit_to_contents(true);
-			
-			int index;
-			ListViewItem@ selected_item = origin_list_view.get_item(default_origin.value, index);
-			
-			if(@selected_item != null)
-			{
-				selected_item.selected = true;
-				@origin_list_view.content.scroll_into_view = selected_item;
-			}
-			
-			script.ui.show_tooltip(origin_popup, origin_button);
-		}
 		else if(name == 'custom_anchor_lock')
 		{
 			custom_anchor_lock.value = button.selected;
@@ -499,23 +472,11 @@ class PropToolToolbar
 		if(default_origin.value == event.value)
 			return;
 		
-		script.ui.hide_tooltip(origin_popup);
 		default_origin.value = event.value;
 		tool.update_alignments_from_origin(true);
 		
 		update_origin_icon();
 		update_origin_tooltip();
-	}
-	
-	private void on_origin_slider_popup_show(EventInfo@ event)
-	{
-		origin_button.tooltip.enabled = false;
-	}
-	
-	private void on_origin_slider_popup_hide(EventInfo@ event)
-	{
-		origin_button.selectable = false;
-		origin_button.tooltip.enabled = true;
 	}
 	
 	// Align
