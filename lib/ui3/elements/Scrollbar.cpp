@@ -210,6 +210,7 @@ class Scrollbar : Element, IStepHandler
 				position = clamp(_scroll_min + scroll_range * mouse_t, _scroll_min, _scroll_min + scroll_range);
 				calculate_scroll_values();
 				
+				@ui._active_mouse_element = @this;
 				step_subscribed = true;
 			}
 			else
