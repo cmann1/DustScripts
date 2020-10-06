@@ -18,6 +18,7 @@ class Window : MoveableDialog
 	protected string _title;
 	protected Image@ _title_icon;
 	protected Label@ _title_label;
+	protected float _title_bar_height = -1;
 	protected Container@ _title_before;
 	protected Container@ _title_after;
 	protected FlowLayout@ title_flow_layout;
@@ -204,6 +205,19 @@ class Window : MoveableDialog
 		}
 	}
 	
+	float title_bar_height
+	{
+		get const { return _title_bar_height; }
+		set
+		{
+			if(_title_bar_height == value)
+				return;
+			
+			_title_bar_height = value;
+			validate_layout = true;
+		}
+	}
+	
 	string title
 	{
 		get const { return _title; }
@@ -221,6 +235,7 @@ class Window : MoveableDialog
 					@_title_label = Label(ui, '');
 					_title_label.mouse_enabled = false;
 					_title_label.align_v = GraphicAlign::Middle;
+					_title_label.sizing = ImageSize::ConstrainInside;
 					Container::add_child(_title_label, 1);
 				}
 				
@@ -692,7 +707,7 @@ class Window : MoveableDialog
 	{
 		const float spacing = ui.style.spacing;
 		const float title_width = _width - spacing * 2;
-		const float title_height = ui.style.titlebar_height;
+		const float title_height = _title_bar_height <= 0 ? ui.style.titlebar_height : _title_bar_height;
 		const float title_item_height = title_height - spacing * 2;
 		const bool has_icon = _show_title_bar && @_title_icon != null && _title_icon.visible;
 		const bool has_label = _show_title_bar && @_title_label != null && _title_label.visible;
