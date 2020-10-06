@@ -485,13 +485,14 @@ class Window : MoveableDialog
 	void fit_to_contents(const bool fit_min=false) override
 	{
 		_contents.fit_to_contents(fit_min);
+		puts(_contents._height);
 		
 		const float spacing = ui.style.spacing;
 		const bool has_buttons_left = @_buttons_left != null && _buttons_left.visible;
 		const bool has_buttons_right = @_buttons_right != null && _buttons_right.visible;
 		
 		_width = _set_width = _contents._width + spacing * 2;
-		_height = _contents._height + spacing * 2;
+		_height = _contents._height + spacing;
 		
 		if(_show_title_bar)
 		{
@@ -500,7 +501,7 @@ class Window : MoveableDialog
 		
 		if(has_buttons_left || has_buttons_right)
 		{
-			_height += spacing;
+			_height += spacing * 2;
 		}
 		
 		if(@_buttons_left != null && _buttons_left.visible || @_buttons_right != null && _buttons_right.visible)
