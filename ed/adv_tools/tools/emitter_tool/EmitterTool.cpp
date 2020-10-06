@@ -32,6 +32,7 @@ class EmitterTool : Tool
 	private SelectAction pressed_action;
 	private int hover_index_offset;
 	
+	private bool force_create;
 	private int select_rect_pending;
 	private int action_layer;
 	private float drag_start_x, drag_start_y;
@@ -275,7 +276,15 @@ class EmitterTool : Tool
 	{
 		// Start Creating
 		
-		if(script.mouse_in_scene && script.pressed_in_scene && !mouse.left_press && mouse.left_down && !script.space_on_press && !script.alt && @pressed_emitter == null && mouse.moved)
+		if(mouse.left_press)
+		{
+			force_create = script.mouse_in_scene && script.editor.key_check_vk(VK::A);
+		}
+		
+		if(
+			script.mouse_in_scene && script.pressed_in_scene &&
+			!mouse.left_press && mouse.left_down && !script.space_on_press && !script.alt &&
+			(@pressed_emitter == null || force_create) && mouse.moved)
 		{
 			idle_start_create();
 			return;
