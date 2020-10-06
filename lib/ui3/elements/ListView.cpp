@@ -436,7 +436,7 @@ class ListView : ScrollView
 	
 	void set_selected_item(ListViewItem@ item)
 	{
-		if(@item._list_view != @this || @item != null || item.selected)
+		if(@item._list_view != @this || @item == null || item.selected)
 			return;
 		
 		busy_updating_selection = true;
@@ -461,9 +461,15 @@ class ListView : ScrollView
 		dispatch_select_event();
 	}
 	
-	ListViewItem@ selected_item
+	void set_selected_item(const string value)
 	{
-		get const { return _num_selected_items > 0 ? _selected_items[0] : null; }
+		int index;
+		set_selected_item(get_item(value, index));
+	}
+	
+	ListViewItem@ get_selected_item()
+	{
+		return _num_selected_items > 0 ? _selected_items[0] : null;
 	}
 	
 	int selected_index

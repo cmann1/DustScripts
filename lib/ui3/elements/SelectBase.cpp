@@ -167,7 +167,7 @@ abstract class SelectBase : LockedContainer
 			{
 				custom_value = value;
 				custom_value_selected = true;
-				selected_index = -1;
+				_selected_index = -1;
 				update_label();
 				update_icon();
 				ui._dispatch_event(@change, EventType::CHANGE, this);

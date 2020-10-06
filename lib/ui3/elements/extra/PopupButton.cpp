@@ -6,7 +6,7 @@ namespace PopupButton { const string TYPE_NAME = 'PopupButton'; }
 class PopupButton : Button, IStepHandler
 {
 	
-	Event before_open;
+	/// Dispatched jsut before the popup opens, once it has opened, and when it closes
 	Event open;
 	
 	protected PopupOptions@ _popup;
@@ -42,6 +42,8 @@ class PopupButton : Button, IStepHandler
 		_popup.hide.on(EventCallback(on_popup_hide));
 	}
 	
+	string element_type { get const override { return PopupButton::TYPE_NAME; } }
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Basic properties
 	// ///////////////////////////////////////////////////////////////////
@@ -68,7 +70,7 @@ class PopupButton : Button, IStepHandler
 	
 	PopupOptions@ popup
 	{
-		get const { return _popup; }
+		get { return _popup; }
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -77,6 +79,9 @@ class PopupButton : Button, IStepHandler
 	
 	void close()
 	{
+		if(!_selected)
+			return;
+		
 		ui.hide_tooltip(_popup);
 	}
 	
@@ -112,15 +117,15 @@ class PopupButton : Button, IStepHandler
 			return;
 		}
 		
-		before_popup_show();
 		ui._dispatch_event(@open, EventType::BEFORE_OPEN, this);
+		before_popup_show();
 		
 		ui._step_subscribe(this);
 		Button::set_selected(true);
 		ui.show_tooltip(_popup, this);
 	}
 	
-	void on_popup_show(EventInfo@ event)
+	protected void on_popup_show(EventInfo@ event)
 	{
 		if(@tooltip != null)
 		{
@@ -130,7 +135,7 @@ class PopupButton : Button, IStepHandler
 		ui._dispatch_event(@open, EventType::OPEN, this);
 	}
 	
-	void on_popup_hide(EventInfo@ event)
+	protected void on_popup_hide(EventInfo@ event)
 	{
 		Button::set_selected(false);
 		
