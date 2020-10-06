@@ -82,6 +82,7 @@ class Popup : SingleContainer, IStepHandler
 		if(pending_fit > 0)
 		{
 			fit();
+			pending_fit--;
 		}
 		
 		if(@_target != null)
