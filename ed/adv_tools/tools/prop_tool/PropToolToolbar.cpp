@@ -34,7 +34,6 @@ class PropToolToolbar
 	private SelectButton@ origin_button;
 	private Image@ origin_img;
 	private ListView@ origin_list_view;
-//	private PopupOptions@ origin_popup;
 	private PopupOptions@ origin_tooltip;
 	
 	private Button@ align_button;
@@ -152,6 +151,7 @@ class PropToolToolbar
 		origin_button.name = 'default_origin';
 		@origin_button.tooltip = PopupOptions(ui, '');
 		origin_button.mouse_click.on(button_click);
+		origin_button.open.on(EventCallback(on_origin_select_open));
 		toolbar.add(origin_button);
 		update_origin_tooltip();
 		
@@ -466,6 +466,17 @@ class PropToolToolbar
 	}
 	
 	// Origin
+	
+	private void on_origin_select_open(EventInfo@ event)
+	{
+		if(event.type != EventType::BEFORE_OPEN)
+			return;
+		
+		origin_list_view.select.enabled = false;
+		origin_list_view.select_none();
+		origin_list_view.set_selected_item(default_origin.value);
+		origin_list_view.select.enabled = true;
+	}
 	
 	private void on_origin_select(EventInfo@ event)
 	{
