@@ -9,6 +9,8 @@ funcdef void EventCallback(EventInfo@);
 class Event
 {
 	
+	bool enabled = true;
+	
 //	private array<EventCallback@> listeners;
 	private EventCallback@ listener1;
 	private EventCallback@ listener2;
@@ -74,6 +76,9 @@ class Event
 	
 	void dispatch(EventInfo@ event)
 	{
+		if(!enabled)
+			return;
+		
 //		puts(event.type + ' ' + event.target._id);
 		
 		if(num_listeners >= 1)

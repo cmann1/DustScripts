@@ -82,6 +82,17 @@ class Toolbar : MoveableDialog, IOrientationParent
 		return image;
 	}
 	
+	Button@ add(Button@ button)
+	{
+		if(@button == null)
+			return null;
+		
+		@button.group = button_group;
+		button.fit_to_contents();
+		add_child(button);
+		return button;
+	}
+	
 	Button@ add_button(Element@ content)
 	{
 		Button@ button = Button(ui, content);
