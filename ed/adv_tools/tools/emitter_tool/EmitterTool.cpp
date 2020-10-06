@@ -254,6 +254,13 @@ class EmitterTool : Tool
 			idle_adjust_layer();
 		}
 		
+		// Deselect on right mouse in empty space
+		
+		if(mouse.right_press && !script.shift && @hovered_emitter == null)
+		{
+			select_none();
+		}
+		
 		// Delete
 		
 		if(script.editor.key_check_gvb(GVB::Delete))
