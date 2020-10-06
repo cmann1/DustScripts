@@ -263,6 +263,9 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 	/// The top most element the mouse is over
 	bool is_mouse_over_ui { get { return @_mouse_over_element != null; } }
 	
+	/// Is the mouse currently interacting with an element, eg. dragging a scrollbar
+	bool is_mouse_active { get { return @_active_mouse_element != null; } }
+	
 	/// Returns mouse x relative to the UI
 	float mouse_x { get { return mouse.x - contents.x1; } }
 	
