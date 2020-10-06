@@ -354,5 +354,32 @@ class EmitterData : SelectableData
 		update();
 	}
 	
+	// Rotate
+	
+	void start_rotate()
+	{
+		drag_start_width = rotation;
+	}
+	
+	void do_rotate(const float rotation)
+	{
+		this.rotation = rotation;
+		rotation_var.set_int32(round_int(this.rotation));
+		
+		modified = true;
+		update();
+	}
+	
+	void stop_rotate(const bool cancel)
+	{
+		if(cancel)
+		{
+			rotation = drag_start_width;
+			rotation_var.set_int32(round_int(rotation));
+		}
+		
+		modified = true;
+		update();
+	}
 	
 }

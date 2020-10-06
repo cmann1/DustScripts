@@ -32,6 +32,8 @@ class EmitterTool : Tool
 	private int action_layer;
 	private float drag_start_x, drag_start_y;
 	private float drag_anchor_x, drag_anchor_y;
+	private float drag_offset_angle;
+	private float drag_base_rotation;
 	private DragHandleType dragged_handle = DragHandleType::None;
 	
 	private WorldBoundingBox selection_bounding_box;
@@ -226,24 +228,6 @@ class EmitterTool : Tool
 			select_none();
 		}
 		
-		// Selection rect
-		
-		if(mouse.left_press && script.alt)
-		{
-			drag_start_x = mouse.x;
-			drag_start_y = mouse.y;
-			select_rect_pending = script.shift ? 1 : script.ctrl ? -1 : 0;
-			
-			if(select_rect_pending == 0)
-			{
-				select_none();
-			}
-			
-			state = Selecting;
-			script.ui.mouse_enabled = false;
-			return;
-		}
-		
 		// Move with arrow keys
 		
 		if(script.key_repeat_gvb(GVB::LeftArrow))
@@ -261,20 +245,6 @@ class EmitterTool : Tool
 		else if(script.key_repeat_gvb(GVB::DownArrow))
 		{
 			shift_emitters(0, script.ctrl ? 20 : script.shift ? 10 : 1);
-		}
-		
-		// Select emitter on click
-		
-		if(mouse.left_press && @hovered_emitter != null)
-		{
-			const SelectAction action = script.shift || (hovered_emitter.selected && !script.ctrl)
-				? SelectAction::Add
-				: script.ctrl ? SelectAction::Remove : SelectAction::Set;
-			
-			pressed_action = hovered_emitter.selected && action != SelectAction::Remove ? SelectAction::None : action;
-			
-			select_emitter(hovered_emitter, action);
-			@pressed_emitter = @hovered_emitter;
 		}
 		
 		// Adjust layer/sublayer
@@ -324,6 +294,43 @@ class EmitterTool : Tool
 				idle_start_scaling();
 				return;
 			}
+			else if(dragged_handle == DragHandleType::Rotate)
+			{
+				idle_start_rotating();
+				return;
+			}
+		}
+		
+		// Select emitter on click
+		
+		if(mouse.left_press && @hovered_emitter != null)
+		{
+			const SelectAction action = script.shift || (hovered_emitter.selected && !script.ctrl)
+				? SelectAction::Add
+				: script.ctrl ? SelectAction::Remove : SelectAction::Set;
+			
+			pressed_action = hovered_emitter.selected && action != SelectAction::Remove ? SelectAction::None : action;
+			
+			select_emitter(hovered_emitter, action);
+			@pressed_emitter = @hovered_emitter;
+		}
+		
+		// Selection rect
+		
+		if(mouse.left_press && script.alt)
+		{
+			drag_start_x = mouse.x;
+			drag_start_y = mouse.y;
+			select_rect_pending = script.shift ? 1 : script.ctrl ? -1 : 0;
+			
+			if(select_rect_pending == 0)
+			{
+				select_none();
+			}
+			
+			state = Selecting;
+			script.ui.mouse_enabled = false;
+			return;
 		}
 		
 		// Scroll hover index
@@ -409,6 +416,21 @@ class EmitterTool : Tool
 		script.ui.mouse_enabled = false;
 	}
 	
+	private void idle_start_rotating()
+	{
+		EmitterData@ data = @primary_selected;
+		
+		float mx, my;
+		script.transform(mouse.x, mouse.y, 22, data.layer, mx, my);
+		drag_offset_angle = atan2(my - data.y, mx - data.x);
+		drag_base_rotation = data.rotation * DEG2RAD;
+		
+		primary_selected.start_rotate();
+		
+		state = Rotating;
+		script.ui.mouse_enabled = false;
+	}
+	
 	private void state_moving()
 	{
 		do_handles();
@@ -437,11 +459,6 @@ class EmitterTool : Tool
 		{
 			selected_emitters[i].do_drag(drag_delta_x, drag_delta_y);
 		}
-	}
-	
-	private void state_rotating()
-	{
-		
 	}
 	
 	private void state_scaling()
@@ -513,6 +530,35 @@ class EmitterTool : Tool
 		rotate(local_x, local_y, data.rotation * DEG2RAD, local_x, local_y);
 		
 		data.do_scale(width, height, drag_anchor_x + local_x * 0.5, drag_anchor_y + local_y * 0.5);
+		data.do_handles(dragged_handle);
+		data.hovered = true;
+	}
+	
+	private void state_rotating()
+	{
+		if(script.escape_press || !mouse.left_down)
+		{
+			primary_selected.do_handles(dragged_handle);
+			primary_selected.stop_rotate(script.escape_press);
+			
+			if(primary_selected.is_mouse_inside == 0 && !primary_selected.mouse_over_handle)
+			{
+				primary_selected.hovered = false;
+			}
+			
+			state = Idle;
+			script.ui.mouse_enabled = true;
+			return;
+		}
+		
+		EmitterData@ data = @primary_selected;
+		
+		float mx, my;
+		script.transform(mouse.x, mouse.y, 22, data.layer, mx, my);
+		float angle = drag_base_rotation + atan2(my - data.y, mx - data.x) - drag_offset_angle;
+		script.snap(angle, angle);
+		
+		data.do_rotate((angle) * RAD2DEG);
 		data.do_handles(dragged_handle);
 		data.hovered = true;
 	}
