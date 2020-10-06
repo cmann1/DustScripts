@@ -38,7 +38,7 @@ class Handles
 		handle.init(shape, x, y, size, rotation, colour, highlight_colour);
 		mouse_over_last_handle = false;
 		
-		if(handle.hit_test(script, script.mouse.x, script.mouse.y))
+		if(script.mouse_in_scene && handle.hit_test(script, script.mouse.x, script.mouse.y))
 		{
 			mouse_over = true;
 			mouse_over_last_handle = true;
