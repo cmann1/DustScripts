@@ -54,9 +54,7 @@ class Popup : SingleContainer, IStepHandler
 		_force_hide = false;
 		
 		pending_fit = 2;
-		fit_to_contents();
-		prev_content_width  = _content._width;
-		prev_content_height = _content._height;
+		fit();
 		
 		if(!stepping)
 		{
@@ -83,9 +81,7 @@ class Popup : SingleContainer, IStepHandler
 		// Fit the popup for two frames to give the child a chance to layout
 		if(pending_fit > 0)
 		{
-			fit_to_contents();
-			prev_content_width  = _content._width;
-			prev_content_height = _content._height;
+			fit();
 		}
 		
 		if(@_target != null)
@@ -322,6 +318,47 @@ class Popup : SingleContainer, IStepHandler
 			_options._has_background_blur,
 			
 			_options._has_blur_inset ? _options._blur_inset : NAN);
+	}
+	
+	private void fit()
+	{
+		fit_to_contents();
+		
+		if(_options.stretch && @_target != null)
+		{
+			switch(_options.position)
+			{
+				case PopupPosition::Above:
+				case PopupPosition::AboveLeft:
+				case PopupPosition::AboveRight:
+				case PopupPosition::Below:
+				case PopupPosition::BelowLeft:
+				case PopupPosition::BelowRight:
+				case PopupPosition::InsideTop:
+				case PopupPosition::InsideBottom:
+					if(_content._width < _target._width)
+					{
+						_content._width = _target._width;
+					}
+					break;
+				case PopupPosition::Right:
+				case PopupPosition::RightTop:
+				case PopupPosition::RightBottom:
+				case PopupPosition::Left:
+				case PopupPosition::LeftTop:
+				case PopupPosition::LeftBottom:
+				case PopupPosition::InsideRight:
+				case PopupPosition::InsideLeft:
+					if(_content._height < _target._height)
+					{
+						_content._height = _target._height;
+					}
+					break;
+			}
+		}
+		
+		prev_content_width  = _content._width;
+		prev_content_height = _content._height;
 	}
 	
 	private void update_fade()

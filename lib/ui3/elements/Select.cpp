@@ -40,6 +40,7 @@ class Select : SelectBase
 		@popup = PopupOptions(ui, list_view, true, PopupPosition::Below, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
 		popup.wait_for_mouse = true;
 		popup.allow_target_overlap = false;
+		popup.stretch = true;
 		popup.spacing = 2;
 		popup.padding = 0;
 		popup.hide.on(EventCallback(on_popup_hide));

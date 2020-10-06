@@ -12,6 +12,8 @@ class PopupOptions : IGenericEventTarget
 	
 	bool enabled = true;
 	PopupPosition position;
+	/// If true, the popup will try to stretch to fit the target
+	bool stretch;
 	PopupTriggerType trigger_type;
 	PopupHideType hide_type;
 	bool keep_open_while_pressed;
