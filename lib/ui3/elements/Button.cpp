@@ -12,11 +12,9 @@ namespace Button { const string TYPE_NAME = 'Button'; }
 class Button : SingleContainer
 {
 	
-	/// If true the button can be toggled on and off. A selected button will be highlight
-	bool selectable;
-	/// If false, the button's selected state won't be toggle when the user clicks it
-	bool user_selectable = true;
-	bool _selected;
+	protected bool _selectable;
+	protected bool _user_selectable = true;
+	protected bool _selected;
 	
 	DrawOption draw_background = DrawOption::Always;
 	DrawOption draw_border = DrawOption::Always;
@@ -63,6 +61,11 @@ class Button : SingleContainer
 	
 	string element_type { get const override { return Button::TYPE_NAME; } }
 	
+	// ///////////////////////////////////////////////////////////////////
+	// Basic properties
+	// ///////////////////////////////////////////////////////////////////
+	
+	/// The ButtonGroup this button belongs to.
 	ButtonGroup@ group
 	{
 		get { return _group; }
@@ -82,6 +85,33 @@ class Button : SingleContainer
 		get { return cast<Image@>(_content); }
 	}
 	
+	/// If true the button can be toggled on and off. A selected button will be highlight
+	bool selectable
+	{
+		get const { return _selectable; }
+		set
+		{
+			if(_selectable == value)
+				return;
+			
+			_selectable = value;
+		}
+	}
+	
+	/// If false, the button's selected state won't be toggle when the user clicks it
+	bool user_selectable
+	{
+		get const { return _user_selectable; }
+		set
+		{
+			if(_user_selectable == value)
+				return;
+			
+			_user_selectable = value;
+		}
+	}
+	
+	/// Sets whether or not this button is selected. Does nothing when selectable is false
 	bool selected
 	{
 		get const { return _selected; }
@@ -104,6 +134,10 @@ class Button : SingleContainer
 		}
 	}
 	
+	// ///////////////////////////////////////////////////////////////////
+	// Internal
+	// ///////////////////////////////////////////////////////////////////
+	
 	void _do_layout(LayoutContext@ ctx) override
 	{
 		if(@_content != null)
@@ -124,7 +158,7 @@ class Button : SingleContainer
 		style.draw_interactive_element(
 			x1, y1, x2, y2,
 			hovered || pressed,
-			selectable && selected,
+			_selectable && selected,
 			pressed,
 			disabled,
 			draw_background == DrawOption::Always || draw_background == DrawOption::Hover && (hovered || pressed),
@@ -162,7 +196,7 @@ class Button : SingleContainer
 	
 	void _mouse_click(EventInfo@ event) override
 	{
-		if(selectable && user_selectable)
+		if(_selectable && _user_selectable)
 		{
 			selected = !_selected;
 		}
