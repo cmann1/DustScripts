@@ -159,7 +159,9 @@ abstract class Graphic : Element
 		float x2 = this._width;
 		float y2 = this._height;
 		
-		is_transposed = abs(abs(rotation) - 90) <= EPSILON;
+		_rotation = mod(_rotation, 360.0);
+		is_transposed = abs(abs(mod(_rotation, 180.0)) - 90) <= EPSILON;
+		
 		const float gr_width  = is_transposed ? _graphic_height : _graphic_width;
 		const float gr_height = is_transposed ? _graphic_width  : _graphic_height;
 		const float _scale_x = is_transposed ? this._scale_y : this._scale_x;
@@ -222,9 +224,25 @@ abstract class Graphic : Element
 		float dx = _graphic_offset_x - _graphic_width  * _origin_x;
 		float dy = _graphic_offset_y - _graphic_height * _origin_y;
 		
-		if(rotation != 0)
+		if(_rotation != 0)
 		{
-			rotate(dx, dy, rotation * DEG2RAD, dx, dy);
+			rotate(dx, dy, _rotation * DEG2RAD, dx, dy);
+		}
+		
+		if(is_transposed)
+		{
+			if(abs(_rotation - 90) <= EPSILON)
+			{
+				dy--;
+			}
+			else if(abs(_rotation - 270) <= EPSILON)
+			{
+				dy++;
+			}
+		}
+		else if(abs(_rotation - 180) <= EPSILON)
+		{
+			dx++;
 		}
 		
 		const float x = x1 + (width  - gr_width  * draw_scale_x) * _align_h + gr_width  * draw_scale_x * (is_transposed ? _origin_y : _origin_x);
