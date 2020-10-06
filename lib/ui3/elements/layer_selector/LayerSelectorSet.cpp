@@ -285,7 +285,7 @@ class LayerSelectorSet : Container
 		int result = 0;
 		uint selected_count = uint(count_selected());
 		
-		if(!multi_select && selected_count >= 1)
+		if(!multi_select && !ignore_min_select && selected_count >= 1)
 			return 0;
 		
 		for(int i = 0; i < end; i++)
