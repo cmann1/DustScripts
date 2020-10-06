@@ -1,6 +1,9 @@
 #include 'EmitterToolSettings.cpp';
 #include 'EmitterToolState.cpp';
 #include 'EmitterData.cpp';
+#include 'EmitterToolWindow.cpp';
+#include '../../../../lib/emitters/names.cpp';
+
 
 class EmitterTool : Tool
 {
@@ -38,6 +41,8 @@ class EmitterTool : Tool
 	
 	private WorldBoundingBox selection_bounding_box;
 	
+	private EmitterToolWindow properties_window;
+	
 	EmitterTool()
 	{
 		super('Emitter Tool');
@@ -63,7 +68,7 @@ class EmitterTool : Tool
 	
 	protected void on_select_impl()
 	{
-		
+		properties_window.show(script, this);
 	}
 	
 	protected void on_deselect_impl()
@@ -71,6 +76,8 @@ class EmitterTool : Tool
 		@primary_selected = null;
 		@hovered_emitter = null;
 		clear_highlighted_emitters();
+		
+		properties_window.hide();
 	}
 	
 	protected void step_impl() override
@@ -100,8 +107,9 @@ class EmitterTool : Tool
 			highlighted_emitters[j].visible = false;
 		}
 		
-		int i = script.query_onscreen_entities(ColType::Emitter, true);
 		int mouse_inside_count = 0;
+		
+		int i = script.query_onscreen_entities(ColType::Emitter, true);
 		
 		while(i-- > 0)
 		{
@@ -112,11 +120,14 @@ class EmitterTool : Tool
 			data.visible = true;
 		}
 		
-		for(i = highlighted_emitters_count - 1; i >= 0; i--)
+		if(!script.ui.is_mouse_over_ui)
 		{
-			if(highlighted_emitters[i].is_mouse_inside == 1)
+			for(i = highlighted_emitters_count - 1; i >= 0; i--)
 			{
-				mouse_inside_count++;
+				if(highlighted_emitters[i].is_mouse_inside == 1)
+				{
+					mouse_inside_count++;
+				}
 			}
 		}
 		
@@ -130,24 +141,27 @@ class EmitterTool : Tool
 		
 		int hover_index = 0;
 		
-		for(i = highlighted_emitters_count - 1; i >= 0; i--)
+		if(script.mouse_in_scene && mouse_inside_count > 0)
 		{
-			EmitterData@ data = @highlighted_emitters[i];
-			@highlighted_emitters[i] = @data;
-			
-			if(data.is_mouse_inside != 1)
-				continue;
-			
-			if(state == Idle)
+			for(i = highlighted_emitters_count - 1; i >= 0; i--)
 			{
-				if(hover_index++ != (hover_index_offset % mouse_inside_count))
+				EmitterData@ data = @highlighted_emitters[i];
+				@highlighted_emitters[i] = @data;
+				
+				if(data.is_mouse_inside != 1)
 					continue;
 				
-				data.hovered = true;
-				@hovered_emitter = data;
+				if(state == Idle)
+				{
+					if(hover_index++ != (hover_index_offset % mouse_inside_count))
+						continue;
+					
+					data.hovered = true;
+					@hovered_emitter = data;
+				}
+				
+				break;
 			}
-			
-			break;
 		}
 		
 		switch(state)
@@ -223,7 +237,7 @@ class EmitterTool : Tool
 		
 		// Deselect
 		
-		if(mouse.left_release && !mouse_moved_after_press && @pressed_emitter == null && !script.shift && !script.ctrl && !script.alt)
+		if(script.mouse_in_scene && mouse.left_release && !mouse_moved_after_press && @pressed_emitter == null && !script.shift && !script.ctrl && !script.alt)
 		{
 			select_none();
 		}
@@ -256,14 +270,14 @@ class EmitterTool : Tool
 		
 		// Deselect on right mouse in empty space
 		
-		if(mouse.right_press && !script.shift && @hovered_emitter == null)
+		if(script.mouse_in_scene && mouse.right_press && !script.shift && @hovered_emitter == null)
 		{
 			select_none();
 		}
 		
 		// Delete
 		
-		if(script.editor.key_check_gvb(GVB::Delete))
+		if(@script.ui.focus == null && script.editor.key_check_gvb(GVB::Delete))
 		{
 			for(int i = 0; i < selected_emitters_count; i++)
 			{
@@ -310,7 +324,7 @@ class EmitterTool : Tool
 		
 		// Select emitter on click
 		
-		if(mouse.left_press && @hovered_emitter != null)
+		if(script.mouse_in_scene && mouse.left_press && @hovered_emitter != null)
 		{
 			const SelectAction action = script.shift || (hovered_emitter.selected && !script.ctrl)
 				? SelectAction::Add
@@ -324,7 +338,7 @@ class EmitterTool : Tool
 		
 		// Selection rect
 		
-		if(mouse.left_press && script.alt)
+		if(script.mouse_in_scene && mouse.left_press && script.alt)
 		{
 			drag_start_x = mouse.x;
 			drag_start_y = mouse.y;
@@ -582,10 +596,10 @@ class EmitterTool : Tool
 			return;
 		}
 		
-		const float y1 = min(drag_start_y, mouse.y);
-		const float y2 = max(drag_start_y, mouse.y);
-		const float x1 = min(drag_start_x, mouse.x);
-		const float x2 = max(drag_start_x, mouse.x);
+		float y1 = min(drag_start_y, mouse.y);
+		float y2 = max(drag_start_y, mouse.y);
+		float x1 = min(drag_start_x, mouse.x);
+		float x2 = max(drag_start_x, mouse.x);
 		
 		int i = script.g.get_entity_collision(y1, y2, x1, x2, ColType::Emitter);
 		

@@ -361,7 +361,7 @@ class PropTool : Tool
 		
 		// Start dragging selection
 		
-		if(script.alt && mouse.left_press)
+		if(script.mouse_in_scene && script.alt && mouse.left_press)
 		{
 			if(!script.shift && !script.ctrl)
 			{
@@ -388,26 +388,29 @@ class PropTool : Tool
 		
 		// Move with arrow keys
 		
-		if(script.key_repeat_gvb(GVB::LeftArrow))
+		if(script.scene_focus)
 		{
-			shift_props(script.ctrl ? -20 : script.shift ? -10 : -1, 0);
-		}
-		else if(script.key_repeat_gvb(GVB::RightArrow))
-		{
-			shift_props(script.ctrl ? 20 : script.shift ? 10 : 1, 0);
-		}
-		else if(script.key_repeat_gvb(GVB::UpArrow))
-		{
-			shift_props(0, script.ctrl ? -20 : script.shift ? -10 : -1);
-		}
-		else if(script.key_repeat_gvb(GVB::DownArrow))
-		{
-			shift_props(0, script.ctrl ? 20 : script.shift ? 10 : 1);
+			if(script.key_repeat_gvb(GVB::LeftArrow))
+			{
+				shift_props(script.ctrl ? -20 : script.shift ? -10 : -1, 0);
+			}
+			else if(script.key_repeat_gvb(GVB::RightArrow))
+			{
+				shift_props(script.ctrl ? 20 : script.shift ? 10 : 1, 0);
+			}
+			else if(script.key_repeat_gvb(GVB::UpArrow))
+			{
+				shift_props(0, script.ctrl ? -20 : script.shift ? -10 : -1);
+			}
+			else if(script.key_repeat_gvb(GVB::DownArrow))
+			{
+				shift_props(0, script.ctrl ? 20 : script.shift ? 10 : 1);
+			}
 		}
 		
 		// Pick props
 		
-		if(!script.space && !script.handles.mouse_over && !script.ui.is_mouse_over_ui)
+		if(script.mouse_in_scene && !script.space && !script.handles.mouse_over)
 		{
 			pick_props();
 			do_mouse_selection();
@@ -419,7 +422,7 @@ class PropTool : Tool
 		
 		// Start rotating from hovered prop
 		
-		if(@hovered_prop != null && !script.shift && !script.alt && mouse.middle_press)
+		if(script.mouse_in_scene && @hovered_prop != null && !script.shift && !script.alt && mouse.middle_press)
 		{
 			drag_rotation_handle = false;
 			idle_start_rotating();
@@ -428,13 +431,13 @@ class PropTool : Tool
 		
 		// Set or clear custom anchor position, or set custom anchor layer
 		
-		if(script.shift && mouse.scroll != 0 && has_custom_anchor)
+		if(script.mouse_in_scene && script.shift && mouse.scroll != 0 && has_custom_anchor)
 		{
 			adjust_custom_anchor_layer(mouse.scroll);
 			show_custom_anchor_info();
 		}
 		
-		if(mouse.middle_press)
+		if(script.mouse_in_scene && mouse.middle_press)
 		{
 			if(script.shift || script.ctrl)
 			{
@@ -484,7 +487,7 @@ class PropTool : Tool
 		
 		// Delete
 		
-		if(script.editor.key_check_gvb(GVB::Delete))
+		if(script.scene_focus && script.editor.key_check_gvb(GVB::Delete))
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
@@ -494,7 +497,7 @@ class PropTool : Tool
 			select_none();
 		}
 		
-		if(@hovered_prop != null && (mouse.right_press || script.shift && mouse.right_down))
+		if(script.mouse_in_scene && @hovered_prop != null && (mouse.right_press || script.shift && mouse.right_down))
 		{
 			if(hovered_prop.selected)
 			{
@@ -508,12 +511,12 @@ class PropTool : Tool
 		
 		// Copy/Paste
 		
-		if(selected_props_count > 0 && script.ctrl && script.editor.key_check_pressed_vk(VK::C))
+		if(script.scene_focus && selected_props_count > 0 && script.ctrl && script.editor.key_check_pressed_vk(VK::C))
 		{
 			copy_selected_props();
 		}
 		
-		if(script.ctrl && script.editor.key_check_pressed_vk(VK::V))
+		if(script.scene_focus && script.ctrl && script.editor.key_check_pressed_vk(VK::V))
 		{
 			paste(script.shift);
 		}

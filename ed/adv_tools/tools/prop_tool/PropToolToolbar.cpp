@@ -431,11 +431,11 @@ class PropToolToolbar
 		}
 		else if(name == 'default_origin')
 		{
-			int index;
 			origin_button.selected = true;
 			origin_button.selectable = true;
 			origin_list_view.fit_to_contents(true);
 			
+			int index;
 			ListViewItem@ selected_item = origin_list_view.get_item(default_origin.value, index);
 			
 			if(@selected_item != null)

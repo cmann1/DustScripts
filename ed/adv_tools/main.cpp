@@ -54,6 +54,8 @@ class AdvToolScript
 	
 	float zoom;
 	bool mouse_in_gui;
+	bool mouse_in_scene;
+	bool scene_focus;
 	bool ctrl, shift, alt, space;
 	bool return_press, escape_press;
 	
@@ -63,6 +65,7 @@ class AdvToolScript
 	[hidden] string clipboard;
 	[hidden] WindowManager window_manager;
 	[hidden] array<BoolSetting> bool_settings;
+	[hidden] array<IntSetting> int_settings;
 	[hidden] array<FloatSetting> float_settings;
 	[hidden] array<StringSetting> string_settings;
 	[hidden] PropsClipboardData props_clipboard;
@@ -152,6 +155,11 @@ class AdvToolScript
 		for(uint i = 0; i < bool_settings.length(); i++)
 		{
 			@settings[bool_settings[i].key] = @bool_settings[i];
+		}
+		
+		for(uint i = 0; i < int_settings.length(); i++)
+		{
+			@settings[int_settings[i].key] = @int_settings[i];
 		}
 		
 		for(uint i = 0; i < float_settings.length(); i++)
@@ -276,10 +284,12 @@ class AdvToolScript
 //		debug.print('selected_tool: ' + selected_tool.name, 'selected_tool');
 		
 		mouse_in_gui = editor.mouse_in_gui();
+		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui;
+		scene_focus = @ui.focus ==  null;
 		
 		handle_keyboard();
 		handles.step();
-		mouse.step(ui.is_mouse_over_ui || mouse_in_gui);
+		mouse.step();
 		
 		ctrl	= editor.key_check_gvb(GVB::Control);
 		shift	= editor.key_check_gvb(GVB::Shift);
@@ -561,6 +571,23 @@ class AdvToolScript
 		}
 		
 		return cast<BoolSetting@>(settings[key]);
+	}
+	
+	IntSetting@ get_int(Tool@ tool, const string name, const int default_value=false)
+	{
+		const string key = tool.name + '.int.' + name;
+		
+		if(!settings.exists(key))
+		{
+			int_settings.resize(int_settings.length() + 1);
+			IntSetting@ setting = @int_settings[int_settings.length() - 1];
+			setting.key = key;
+			setting.value = default_value;
+			@settings[key] = @setting;
+			return setting;
+		}
+		
+		return cast<IntSetting@>(settings[key]);
 	}
 	
 	FloatSetting@ get_float(Tool@ tool, string name, const float default_value=0)

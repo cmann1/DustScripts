@@ -88,14 +88,19 @@ class Setting
 	[text] string key;
 }
 
-class FloatSetting : Setting
-{
-	[text] float value;
-}
-
 class BoolSetting : Setting
 {
 	[text] bool value;
+}
+
+class IntSetting : Setting
+{
+	[text] int value;
+}
+
+class FloatSetting : Setting
+{
+	[text] float value;
 }
 
 class StringSetting : Setting
