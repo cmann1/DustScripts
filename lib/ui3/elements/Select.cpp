@@ -120,6 +120,17 @@ class Select : SelectBase, IStepHandler
 		list_view.clear();
 	}
 	
+	void close()
+	{
+		if(@tooltip != null)
+		{
+			tooltip.enabled = true;
+		}
+		
+		ui.hide_tooltip(popup);
+		open = false;
+	}
+	
 	//
 	
 	bool ui_step()
@@ -180,7 +191,10 @@ class Select : SelectBase, IStepHandler
 			return;
 		
 		if(open)
+		{
+			close();
 			return;
+		}
 		
 		list_view.fit_to_contents(true);
 		
@@ -220,13 +234,7 @@ class Select : SelectBase, IStepHandler
 			selected_index = list_view.selected_index;
 		}
 		
-		if(@tooltip != null)
-		{
-			tooltip.enabled = true;
-		}
-		
-		ui.hide_tooltip(popup);
-		open = false;
+		close();
 	}
 	
 	protected void on_popup_hide(EventInfo@ event)
