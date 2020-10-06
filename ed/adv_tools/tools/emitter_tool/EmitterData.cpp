@@ -171,6 +171,13 @@ class EmitterData : SelectableData
 				line_colour);
 		}
 		
+		if(selected)
+		{
+			const float size = 3 / script.zoom;
+			script.g.draw_rectangle_world(22, 22,
+				aabb_x - size, aabb_y - size, aabb_x + size, aabb_y + size, 45, line_colour);
+		}
+		
 		if(primary_selected)
 		{
 			const float nx =  sin(rotation * DEG2RAD);

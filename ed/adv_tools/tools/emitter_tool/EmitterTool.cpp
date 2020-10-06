@@ -311,6 +311,7 @@ class EmitterTool : Tool
 			
 			script.g.remove_entity(hovered_emitter.emitter);
 			hovered_emitter.hovered = false;
+			hovered_emitter.is_mouse_inside = 0;
 			@hovered_emitter = null;
 		}
 		
