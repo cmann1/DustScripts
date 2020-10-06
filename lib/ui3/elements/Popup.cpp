@@ -323,6 +323,9 @@ class Popup : SingleContainer, IStepHandler
 	
 	private void fit()
 	{
+		if(@_content == null)
+			return;
+		
 		fit_to_contents();
 		stretch_contents();
 		
@@ -332,7 +335,7 @@ class Popup : SingleContainer, IStepHandler
 	
 	private void stretch_contents()
 	{
-		if(!_options.stretch || @_target == null)
+		if(!_options.stretch || @_target == null || @_content == null)
 			return;
 		
 		switch(_options.position)
