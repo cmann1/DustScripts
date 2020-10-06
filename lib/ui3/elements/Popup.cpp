@@ -249,13 +249,13 @@ class Popup : SingleContainer, IStepHandler
 				prev_content_width  = new_width;
 				prev_content_height = new_height;
 				try_expand = true;
-				
 				x2 = x1 + content._x + new_width  + (is_nan(_options.padding_right)  ? ui.style.tooltip_padding : _options.padding_right);
 				y2 = y1 + content._y + new_height + (is_nan(_options.padding_bottom) ? ui.style.tooltip_padding : _options.padding_bottom);
 			}
 			
 			_content.width  = new_width;
 			_content.height = new_height;
+			fit_contents();
 		}
 		
 		_x = x1 - parent.x1;
@@ -325,6 +325,14 @@ class Popup : SingleContainer, IStepHandler
 	{
 		fit_to_contents();
 		
+		fit_contents();
+		
+		prev_content_width  = _content._width;
+		prev_content_height = _content._height;
+	}
+	
+	private void fit_contents()
+	{
 		if(_options.stretch && @_target != null)
 		{
 			switch(_options.position)
@@ -339,7 +347,7 @@ class Popup : SingleContainer, IStepHandler
 				case PopupPosition::InsideBottom:
 					if(_content._width < _target._width)
 					{
-						_content._width = _target._width;
+						_content._width = _width = _target._width;
 					}
 					break;
 				case PopupPosition::Right:
@@ -352,14 +360,11 @@ class Popup : SingleContainer, IStepHandler
 				case PopupPosition::InsideLeft:
 					if(_content._height < _target._height)
 					{
-						_content._height = _target._height;
+						_content._height = _height = _target._height;
 					}
 					break;
 			}
 		}
-		
-		prev_content_width  = _content._width;
-		prev_content_height = _content._height;
 	}
 	
 	private void update_fade()
