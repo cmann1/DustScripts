@@ -485,7 +485,6 @@ class Window : MoveableDialog
 	void fit_to_contents(const bool fit_min=false) override
 	{
 		_contents.fit_to_contents(fit_min);
-		puts(_contents._height);
 		
 		const float spacing = ui.style.spacing;
 		const bool has_buttons_left = @_buttons_left != null && _buttons_left.visible;

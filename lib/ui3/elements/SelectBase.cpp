@@ -15,6 +15,8 @@ abstract class SelectBase : LockedContainer
 	protected array<string> icons;
 	protected array<float> icon_sizes;
 	protected int _selected_index = -1;
+	protected bool custom_value_selected;
+	protected string custom_value;
 	
 	protected string _placeholder_text;
 	protected string _placeholder_icon_set;
@@ -25,6 +27,7 @@ abstract class SelectBase : LockedContainer
 	protected float _placeholder_icon_offset_y;
 	protected int _num_icons;
 	protected bool _show_icons;
+	protected bool _allow_custom_value;
 	
 	SelectBase(UI@ ui, const string placeholder_text='',
 		const string placeholder_icon_set='', const string placeholder_icon_name='',
@@ -100,6 +103,27 @@ abstract class SelectBase : LockedContainer
 		}
 	}
 	
+	/// Normally if a value that does not exist is selected the placeholder text will be displayed, selected_index returns -1,
+	/// and selected_value returns an empty string.
+	/// If this is set to true, any value can be set. select_index will still return -1, but selected_value will return the custom value instead.
+	bool allow_custom_value
+	{
+		get const { return _allow_custom_value; }
+		set
+		{
+			if(_allow_custom_value == value)
+				return;
+			
+			_allow_custom_value = value;
+			
+			if(!value)
+			{
+				custom_value_selected = false;
+				custom_value = '';
+			}
+		}
+	}
+	
 	int num_values { get const { return _num_values; } }
 	
 	int selected_index
@@ -114,6 +138,8 @@ abstract class SelectBase : LockedContainer
 				return;
 			
 			_selected_index = value;
+			custom_value = '';
+			custom_value_selected = false;
 			
 			update_label();
 			update_icon();
@@ -124,10 +150,33 @@ abstract class SelectBase : LockedContainer
 	
 	string selected_value
 	{
-		get const { return _selected_index == -1 ? '' : _values[_selected_index] ; }
+		get const
+		{
+			if(allow_custom_value && custom_value_selected && _selected_index == -1)
+			{
+				return custom_value;
+			}
+			
+			return _selected_index == -1 ? '' : _values[_selected_index];
+		}
 		set
 		{
-			selected_index = _values.find(value);
+			const int index = _values.find(value);
+			
+			if(_allow_custom_value && index == -1)
+			{
+				custom_value = value;
+				custom_value_selected = true;
+				selected_index = -1;
+				update_label();
+				update_icon();
+				ui._dispatch_event(@change, EventType::CHANGE, this);
+				validate_layout = true;
+			}
+			else
+			{
+				selected_index = index;
+			}
 		}
 	}
 	
@@ -358,7 +407,15 @@ abstract class SelectBase : LockedContainer
 	
 	protected void update_label()
 	{
-		_label.text = _selected_index == -1 ? _placeholder_text : _text[_selected_index];
+		if(_allow_custom_value && custom_value_selected)
+		{
+			_label.text = custom_value;
+		}
+		else
+		{
+			_label.text = _selected_index == -1 ? _placeholder_text : _text[_selected_index];
+		}
+		
 		validate_layout = true;
 	}
 	
@@ -375,7 +432,7 @@ abstract class SelectBase : LockedContainer
 			return;
 		}
 		
-		const bool no_icon = _selected_index == -1 || !_show_icons;
+		const bool no_icon = _selected_index == -1 || !_show_icons || _allow_custom_value && custom_value_selected;
 		
 		const string set  = no_icon ? _placeholder_icon_set  : icons[_selected_index * 2];
 		const string name = no_icon ? _placeholder_icon_name : icons[_selected_index * 2 + 1];
