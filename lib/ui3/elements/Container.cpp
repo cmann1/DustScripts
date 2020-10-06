@@ -311,30 +311,30 @@ class Container : Element
 			
 			if(@_scroll_into_view.parent == @this)
 			{
-				if(_scroll_into_view.x1 < x1)
+				if(_scroll_x + _scroll_into_view._x < 0)
 				{
-					_scroll_x += x1 - _scroll_into_view.x1;
+					_scroll_x = -_scroll_into_view._x;
 					scroll_changed = true;
 				}
-				else if(_scroll_into_view.x2 > x2)
+				else if(_scroll_x + _scroll_into_view._x + _scroll_into_view._width > _width)
 				{
-					_scroll_x += x2 - _scroll_into_view.x2;
-					scroll_changed = true;
-				}
-				
-				if(_scroll_into_view.y1 < y1)
-				{
-					_scroll_y += y1 - _scroll_into_view.y1;
-					scroll_changed = true;
-				}
-				else if(_scroll_into_view.y2 > y2)
-				{
-					_scroll_y += y2 - _scroll_into_view.y2;
+					_scroll_x = _width - (_scroll_into_view._x + _scroll_into_view._width);
 					scroll_changed = true;
 				}
 				
-				_scroll_x = clamp(_scroll_x, 0, -(scroll_max_x - _width));
-				_scroll_y = clamp(_scroll_y, 0, -(scroll_max_y - _height));
+				if(_scroll_y + _scroll_into_view._y < 0)
+				{
+					_scroll_y = -_scroll_into_view._y;
+					scroll_changed = true;
+				}
+				else if(_scroll_y + _scroll_into_view._y + _scroll_into_view._height > _height)
+				{
+					_scroll_y = _height - (_scroll_into_view._y + _scroll_into_view._height);
+					scroll_changed = true;
+				}
+				
+				_scroll_x = clamp(_scroll_x, -(scroll_max_x - _width), 0);
+				_scroll_y = clamp(_scroll_y, -(scroll_max_y - _height), 0);
 			}
 			
 			_scrolled_into_view = scroll_changed;
