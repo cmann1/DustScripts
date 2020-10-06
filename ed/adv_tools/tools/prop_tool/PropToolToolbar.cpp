@@ -154,6 +154,7 @@ class PropToolToolbar
 		update_origin_tooltip();
 		
 		@origin_list_view = ListView(ui);
+		origin_list_view.allow_deselect = false;
 		origin_list_view.border_size = 0;
 		origin_list_view.border_colour = 0;
 		origin_list_view.background_colour = 0;

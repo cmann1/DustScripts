@@ -1,3 +1,4 @@
+#include '../../../../lib/ui3/elements/extra/SelectButton.cpp';
 #include '../../../../lib/ui3/elements/LayerButton.cpp';
 #include '../../../../lib/ui3/elements/RotationWheel.cpp';
 #include '../../../../lib/ui3/elements/Select.cpp';
@@ -14,16 +15,16 @@ class EmitterToolWindow
 	private LayerButton@ layer_button;
 	private RotationWheel@ rotation_wheel;
 	
-	private Button@ other_ids_button;
-	private Image@ other_ids_img;
+	private SelectButton@ other_ids_button;
 	private ListView@ other_ids_list_view;
-	private PopupOptions@ other_ids_popup;
 	private PopupOptions@ other_ids_tooltip;
 	
-	IntSetting@ emitter_id;
-	IntSetting@ layer;
-	IntSetting@ sublayer;
-	FloatSetting@ rotation;
+	private bool ignore_other_id_select;
+	
+	private IntSetting@ emitter_id;
+	private IntSetting@ layer;
+	private IntSetting@ sublayer;
+	private FloatSetting@ rotation;
 	
 	private void create_ui()
 	{
@@ -51,19 +52,21 @@ class EmitterToolWindow
 			emitter_id_select.add_value(Emitters::MainEmitterNames[i], Emitters::MainEmitterNames[i]);
 		}
 		
-		emitter_id_select.selected_value = Emitters::MainEmitterNames[Emitters::MainEmitterIds.find(emitter_id.value)];
+		string emitter_name;
+		get_emitter_name(emitter_id.value, emitter_name);
+		emitter_id_select.selected_value = emitter_name;
 		emitter_id_select.change.on(EventCallback(on_emitter_id_change));
 		
 		// Other Emitters
 		
-		@other_ids_button = Button(ui, 'editor', 'emittericon');
+		@other_ids_button = SelectButton(ui, 'editor', 'emittericon');
 		other_ids_button.icon.width  = Settings::IconSize;
 		other_ids_button.icon.height = Settings::IconSize;
 		other_ids_button.fit_to_contents();
 		other_ids_button.x = emitter_id_select.x + emitter_id_select.width - other_ids_button.width;
 		other_ids_button.y = emitter_id_select.y + emitter_id_select.height + style.spacing;
-		@other_ids_button.tooltip = PopupOptions(ui, 'Other Emitters', false, PopupPosition::Above);
-		other_ids_button.mouse_click.on(EventCallback(on_other_ids_button_click));
+		@other_ids_button.tooltip = PopupOptions(ui, 'Other Emitters', false, PopupPosition::Right);
+		other_ids_button.open.on(EventCallback(on_other_ids_open));
 		window.add_child(other_ids_button);
 		
 		// Layer
@@ -121,101 +124,112 @@ class EmitterToolWindow
 		window.hide();
 	}
 	
-	private void create_other_ids_popup()
+	private void populate_other_ids()
 	{
 		if(@other_ids_list_view != null)
 			return;
 		
-		@other_ids_list_view = ListView(script.ui);
-		other_ids_list_view.border_size = 0;
-		other_ids_list_view.border_colour = 0;
-		other_ids_list_view.background_colour = 0;
+		other_ids_button.popup.position = PopupPosition::Right;
+		
+		@other_ids_list_view = other_ids_button.list_view;
+		other_ids_list_view.scroll_amount = 75;
 		other_ids_list_view.select.on(EventCallback(on_other_ids_select));
 		
 		for(uint i = 0; i < Emitters::OtherEmitterNames.length(); i++)
 		{
 			ListViewItem@ item = other_ids_list_view.add_item(Emitters::OtherEmitterNames[i], Emitters::OtherEmitterNames[i]);
 		}
+	}
+	
+	private bool get_emitter_name(const int id, string &out name)
+	{
+		int index = Emitters::MainEmitterIds.find(id);
 		
-		@other_ids_popup = PopupOptions(script.ui, other_ids_list_view, true, PopupPosition::Right, PopupTriggerType::Manual, PopupHideType::MouseDownOutside);
-		other_ids_popup.wait_for_mouse = true;
-		other_ids_popup.allow_target_overlap = false;
-		other_ids_popup.spacing = script.ui.style.spacing;
-		other_ids_popup.padding = 0;
-		other_ids_popup.show.on(EventCallback(on_other_ids_popup_show));
-		other_ids_popup.hide.on(EventCallback(on_other_ids_popup_hide));
+		if(index == -1)
+		{
+			index = Emitters::OtherEmitterIds.find(id);
+			
+			if(index == -1)
+			{
+				name = Emitters::MainEmitterNames[Emitters::MainEmitterIds[EmitterId::DustGround]];
+				return false;
+			}
+			
+			name = Emitters::OtherEmitterNames[index];
+			return true;
+		}
+		else
+		{
+			name = Emitters::MainEmitterNames[index];
+			return true;
+		}
+	}
+	
+	private void update_emitter_id(const int id)
+	{
+		puts('update_emitter_id: ' + id);
+		emitter_id.value = id;
 	}
 	
 	// //////////////////////////////////////////////////////////
 	// Events
 	// //////////////////////////////////////////////////////////
 	
-	void on_emitter_id_change(EventInfo@ event)
+	private void on_emitter_id_change(EventInfo@ event)
 	{
-		puts('on_emitter_id_change: ' + emitter_id_select.selected_value);
-		emitter_id.value = Emitters::MainEmitterIds[emitter_id_select.selected_index];
+		if(ignore_other_id_select || emitter_id_select.selected_index == -1)
+			return;
+		
+		update_emitter_id(Emitters::MainEmitterIds[emitter_id_select.selected_index]);
 	}
 	
-	void on_layer_change(EventInfo@ event)
+	private void on_layer_change(EventInfo@ event)
 	{
 		puts('on_layer_change: ' + layer_button.layer_select.get_selected_layer() + '.' + layer_button.layer_select.get_selected_sub_layer());
 		layer.value = layer_button.layer_select.get_selected_layer();
 		sublayer.value = layer_button.layer_select.get_selected_sub_layer();
 	}
 	
-	void on_rotation_change(EventInfo@ event)
+	private void on_rotation_change(EventInfo@ event)
 	{
 		puts('on_rotation_change: ' + rotation_wheel.degrees);
 		rotation.value = rotation_wheel.degrees;
 	}
 	
-	void on_other_ids_button_click(EventInfo@ event)
+	private void on_other_ids_open(EventInfo@ event)
 	{
-		create_other_ids_popup();
+		if(event.type != EventType::BEFORE_OPEN)
+			return;
 		
-		other_ids_button.selected = true;
-		other_ids_button.selectable = true;
-		other_ids_list_view.fit_to_contents(true);
+		populate_other_ids();
 		
+		ignore_other_id_select = true;
 		other_ids_list_view.select_none();
+		
 		const int other_id_index = Emitters::OtherEmitterIds.find(emitter_id.value);
 		
 		if(other_id_index != -1)
 		{
-			int index;
-			ListViewItem@ selected_item = other_ids_list_view.get_item(Emitters::OtherEmitterNames[other_id_index], index);
-			
-			if(@selected_item != null)
-			{
-				selected_item.selected = true;
-				@other_ids_list_view.content.scroll_into_view = selected_item;
-			}
+			other_ids_list_view.set_selected_item(Emitters::OtherEmitterNames[other_id_index]);
 		}
 		
-		script.ui.show_tooltip(other_ids_popup, other_ids_button);
+		ignore_other_id_select = false;
 	}
 	
 	void on_other_ids_select(EventInfo@ event)
 	{
+		if(ignore_other_id_select)
+			return;
+		
 		if(other_ids_list_view.selected_index == -1)
 			return;
 		
-		puts('on_other_ids_select: ' + event.value + ' [' + other_ids_list_view.selected_index + ']');
+		ignore_other_id_select = true;
 		
-		puts(other_ids_list_view.selected_index);
-		script.ui.hide_tooltip(other_ids_popup);
-		emitter_id.value = Emitters::OtherEmitterIds[other_ids_list_view.selected_index];
-	}
-	
-	void on_other_ids_popup_show(EventInfo@ event)
-	{
-		other_ids_button.tooltip.enabled = false;
-	}
-	
-	void on_other_ids_popup_hide(EventInfo@ event)
-	{
-		other_ids_button.selectable = false;
-		other_ids_button.tooltip.enabled = true;
+		update_emitter_id(Emitters::OtherEmitterIds[other_ids_list_view.selected_index]);
+		emitter_id_select.selected_value = event.value;
+		
+		ignore_other_id_select = false;
 	}
 	
 }

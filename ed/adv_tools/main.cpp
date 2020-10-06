@@ -284,7 +284,7 @@ class AdvToolScript
 //		debug.print('selected_tool: ' + selected_tool.name, 'selected_tool');
 		
 		mouse_in_gui = editor.mouse_in_gui();
-		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui;
+		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui && !ui.is_mouse_active;
 		scene_focus = @ui.focus ==  null;
 		
 		handle_keyboard();
