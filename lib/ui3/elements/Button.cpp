@@ -12,7 +12,10 @@ namespace Button { const string TYPE_NAME = 'Button'; }
 class Button : SingleContainer
 {
 	
+	/// If true the button can be toggled on and off. A selected button will be highlight
 	bool selectable;
+	/// If false, the button's selected state won't be toggle when the user clicks it
+	bool user_selectable = true;
 	bool _selected;
 	
 	DrawOption draw_background = DrawOption::Always;
@@ -159,7 +162,7 @@ class Button : SingleContainer
 	
 	void _mouse_click(EventInfo@ event) override
 	{
-		if(selectable)
+		if(selectable && user_selectable)
 		{
 			selected = !_selected;
 		}
