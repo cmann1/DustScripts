@@ -8,7 +8,6 @@ namespace EventType
 	const string MOUSE_RELEASE 		= 'mouse_release';
 	const string MOUSE_CLICK 		= 'mouse_click';
 	const string MOUSE_SCROLL 		= 'mouse_scroll';
-	
 	const string HIDE_START			= 'hide_start';
 	const string HIDE				= 'hide';
 	const string SHOW				= 'show';
@@ -22,11 +21,14 @@ namespace EventType
 	
 	const string MOVE				= 'move';
 	const string MOVE_COMPLETED		= 'move_completed';
-	const string CLOSE				= 'close';
 	
 	const string AFTER_LAYOUT		= 'after_layout';
 	const string SCREEN_RESIZE		= 'screen_resize';
 	const string LAYER_SELECT		= 'layer_select';
 	const string SUB_LAYER_SELECT	= 'sub_layer_select';
+	
+	const string BEFORE_OPEN		= 'before_open';
+	const string OPEN				= 'open';
+	const string CLOSE				= 'close';
 	
 }

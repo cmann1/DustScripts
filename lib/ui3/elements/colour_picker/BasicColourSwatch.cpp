@@ -1,3 +1,5 @@
+#include '../Element.cpp';
+
 namespace BasicColourSwatch { const string TYPE_NAME = 'BasicColourSwatch'; }
 
 class BasicColourSwatch : Element
