@@ -1,6 +1,6 @@
 #include '../enums/EmitterId.cpp';
 
-entity@ create_emitter(int id, float x, float y, int width, int height, int layer, int sub_layer)
+entity@ create_emitter(const int id, const float x, const float y, const int width, const int height, const int layer, const int sub_layer, const int rotation=0)
 {
 	entity@ emitter = create_entity('entity_emitter');
 	varstruct@ vars = emitter.vars();
@@ -10,6 +10,7 @@ entity@ create_emitter(int id, float x, float y, int width, int height, int laye
 	vars.get_var('height').set_int32(height);
 	vars.get_var('draw_depth_sub').set_int32(sub_layer);
 	vars.get_var('r_area').set_bool(true);
+	vars.get_var('e_rotation').set_int32(rotation);
 	emitter.set_xy(x, y);
 	
 	return emitter;
