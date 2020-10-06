@@ -19,8 +19,6 @@ class EmitterToolWindow
 	private ListView@ other_ids_list_view;
 	private PopupOptions@ other_ids_tooltip;
 	
-	private bool ignore_other_id_select;
-	
 	private IntSetting@ emitter_id;
 	private IntSetting@ layer;
 	private IntSetting@ sublayer;
@@ -177,7 +175,7 @@ class EmitterToolWindow
 	
 	private void on_emitter_id_change(EventInfo@ event)
 	{
-		if(ignore_other_id_select || emitter_id_select.selected_index == -1)
+		if(emitter_id_select.selected_index == -1)
 			return;
 		
 		update_emitter_id(Emitters::MainEmitterIds[emitter_id_select.selected_index]);
@@ -203,7 +201,7 @@ class EmitterToolWindow
 		
 		populate_other_ids();
 		
-		ignore_other_id_select = true;
+		other_ids_list_view.select.enabled = false;
 		other_ids_list_view.select_none();
 		
 		const int other_id_index = Emitters::OtherEmitterIds.find(emitter_id.value);
@@ -213,23 +211,20 @@ class EmitterToolWindow
 			other_ids_list_view.set_selected_item(Emitters::OtherEmitterNames[other_id_index]);
 		}
 		
-		ignore_other_id_select = false;
+		other_ids_list_view.select.enabled = true;
 	}
 	
-	void on_other_ids_select(EventInfo@ event)
+	private void on_other_ids_select(EventInfo@ event)
 	{
-		if(ignore_other_id_select)
-			return;
-		
 		if(other_ids_list_view.selected_index == -1)
 			return;
 		
-		ignore_other_id_select = true;
+		other_ids_list_view.select.enabled = false;
 		
 		update_emitter_id(Emitters::OtherEmitterIds[other_ids_list_view.selected_index]);
 		emitter_id_select.selected_value = event.value;
 		
-		ignore_other_id_select = false;
+		other_ids_list_view.select.enabled = true;
 	}
 	
 }

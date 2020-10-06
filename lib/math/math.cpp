@@ -162,6 +162,11 @@ int mod(const int x, const int m)
 	return (x % m + m) % m;
 }
 
+float mod(const float x, const float m)
+{
+	return (x % m + m) % m;
+}
+
 bool approximately(const float a, const float b)
 {
 	return abs(b - a) < EPSILON;
