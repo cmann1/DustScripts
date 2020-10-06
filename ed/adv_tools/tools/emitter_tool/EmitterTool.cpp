@@ -228,7 +228,7 @@ class EmitterTool : Tool
 			script.draw_select_rect(drag_start_x, drag_start_y, mouse.x, mouse.y);
 		}
 		
-		// Selection rect
+		// New emitter
 		
 		if(state == EmitterToolState::Creating)
 		{
@@ -251,14 +251,19 @@ class EmitterTool : Tool
 			
 			const float nx = cos((rotation.value - 90) * DEG2RAD);
 			const float ny = sin((rotation.value - 90) * DEG2RAD);
-			const float arrow_length = 30 / script.zoom;
+			const float arrow_length = max(min(30 / script.zoom, abs(ly) * 0.5), 0.0);
+			const float arrow_size = max(min(10 / script.zoom, min(abs(lx) * 0.5, abs(ly) * 0.5)), 0.0);
 			const float m = ly < 0 ? -1 : 1;
 			
 			draw_arrow(script.g, 22, 22,
-				ox + nx * m * (ly * 0.5), oy + ny * m * (ly * 0.5),
-				ox + nx * m * (ly * 0.5 + arrow_length * m), oy + ny * m * (ly * 0.5 + arrow_length * m),
-				Settings::DefaultLineWidth / script.zoom, 10 / script.zoom, 1,
+				ox, oy,
+				ox + nx * m * (arrow_length * m), oy + ny * m * (arrow_length * m),
+				Settings::DefaultLineWidth / script.zoom, arrow_size, 1,
 				Settings::HoveredLineColour);
+			
+			const float size = 4 / script.zoom;
+			script.g.draw_rectangle_world(22, 22,
+				ox - size, oy - size, ox + size, oy + size, 45, Settings::HoveredLineColour);
 		}
 	}
 	
@@ -270,7 +275,7 @@ class EmitterTool : Tool
 	{
 		// Start Creating
 		
-		if(script.mouse_in_scene && script.pressed_in_scene && mouse.left_down && !script.space_on_press && !script.alt && @pressed_emitter == null && mouse.moved)
+		if(script.mouse_in_scene && script.pressed_in_scene && !mouse.left_press && mouse.left_down && !script.space_on_press && !script.alt && @pressed_emitter == null && mouse.moved)
 		{
 			idle_start_create();
 			return;
