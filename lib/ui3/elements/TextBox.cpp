@@ -114,7 +114,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 	{
 		super(ui);
 		
-		auto_update_scrool_rect = false;
+		auto_update_scroll_rect = false;
 		_scroll_children = false;
 		
 		_width  = _set_width  = 140;

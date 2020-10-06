@@ -255,7 +255,7 @@ class Popup : SingleContainer, IStepHandler
 			
 			_content.width  = new_width;
 			_content.height = new_height;
-			fit_contents();
+			stretch_contents();
 		}
 		
 		_x = x1 - parent.x1;
@@ -324,46 +324,45 @@ class Popup : SingleContainer, IStepHandler
 	private void fit()
 	{
 		fit_to_contents();
-		
-		fit_contents();
+		stretch_contents();
 		
 		prev_content_width  = _content._width;
 		prev_content_height = _content._height;
 	}
 	
-	private void fit_contents()
+	private void stretch_contents()
 	{
-		if(_options.stretch && @_target != null)
+		if(!_options.stretch || @_target == null)
+			return;
+		
+		switch(_options.position)
 		{
-			switch(_options.position)
-			{
-				case PopupPosition::Above:
-				case PopupPosition::AboveLeft:
-				case PopupPosition::AboveRight:
-				case PopupPosition::Below:
-				case PopupPosition::BelowLeft:
-				case PopupPosition::BelowRight:
-				case PopupPosition::InsideTop:
-				case PopupPosition::InsideBottom:
-					if(_content._width < _target._width)
-					{
-						_content._width = _width = _target._width;
-					}
-					break;
-				case PopupPosition::Right:
-				case PopupPosition::RightTop:
-				case PopupPosition::RightBottom:
-				case PopupPosition::Left:
-				case PopupPosition::LeftTop:
-				case PopupPosition::LeftBottom:
-				case PopupPosition::InsideRight:
-				case PopupPosition::InsideLeft:
-					if(_content._height < _target._height)
-					{
-						_content._height = _height = _target._height;
-					}
-					break;
-			}
+			case PopupPosition::Above:
+			case PopupPosition::AboveLeft:
+			case PopupPosition::AboveRight:
+			case PopupPosition::Below:
+			case PopupPosition::BelowLeft:
+			case PopupPosition::BelowRight:
+			case PopupPosition::InsideTop:
+			case PopupPosition::InsideBottom:
+				if(_content._width < _target._width)
+				{
+					_content._width = _width = _target._width;
+				}
+				break;
+			case PopupPosition::Right:
+			case PopupPosition::RightTop:
+			case PopupPosition::RightBottom:
+			case PopupPosition::Left:
+			case PopupPosition::LeftTop:
+			case PopupPosition::LeftBottom:
+			case PopupPosition::InsideRight:
+			case PopupPosition::InsideLeft:
+				if(_content._height < _target._height)
+				{
+					_content._height = _height = _target._height;
+				}
+				break;
 		}
 	}
 	

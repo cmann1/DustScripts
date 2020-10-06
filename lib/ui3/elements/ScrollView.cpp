@@ -92,11 +92,11 @@ class ScrollView : LockedContainer
 		
 		float height = scroll_max_y - scroll_min_y + layout_padding_top + layout_padding_bottom + layout_border_size * 2;
 		
-		if(@scrollbar_horizontal != null)
+		if(@scrollbar_horizontal != null && scrollbar_horizontal.visible)
 		{
 			height += scrollbar_horizontal._height + ui.style.spacing;
 		}
-		else if(scroll_max_x > (max_width >= 0 ? min(max_width, _width) : _width) - ui.style.spacing * 2)
+		else if(scroll_max_x - ((max_width >= 0 ? min(max_width, _width) : _width) - ui.style.spacing * 2) > EPSILON)
 		{
 			height += ui.style.default_scrollbar_size + ui.style.spacing;
 		}
@@ -278,7 +278,7 @@ class ScrollView : LockedContainer
 			previous_scroll_y = _content._scroll_y;
 		}
 		
-		calculate_scroll_rect(false);
+//		calculate_scroll_rect(false);
 		
 //		ui.debug.rect(22, 22,
 //			_content.x1 + _content.scroll_min_x, _content.y1 + _content.scroll_min_y,
@@ -297,13 +297,16 @@ class ScrollView : LockedContainer
 			scrollbar_horizontal.visible = false;
 		}
 		
+		// Not exactly sure where the content position is changed.
+		// But it affects the scroll rect calculation
+		_content._x=0;
+		_content._y=0;
 		_content._layout.padding_left	= EPSILON;
 		_content._layout.padding_top	= EPSILON;
 		_content._layout.padding_right	= EPSILON;
 		_content._layout.padding_bottom	= EPSILON;
 		
 		_content.fit_to_contents(fit_min);
-		
 		Container::do_fit_contents(fit_min);
 	}
 	
