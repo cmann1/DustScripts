@@ -198,8 +198,6 @@ class Scrollbar : Element, IStepHandler
 	
 	bool ui_step() override
 	{
-		step_subscribed = false;
-		
 		const bool is_horizontal = _orientation == Horizontal;
 		
 		if(dragging_thumb)
@@ -216,7 +214,12 @@ class Scrollbar : Element, IStepHandler
 			else
 			{
 				dragging_thumb = false;
+				step_subscribed = false;
 			}
+		}
+		else
+		{
+			step_subscribed = false;
 		}
 		
 		update_position();
@@ -226,6 +229,7 @@ class Scrollbar : Element, IStepHandler
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
+//		puts('ScrollBar::_do_layout');
 		calculate_scroll_values();
 		
 		if(_position < scroll_min)
