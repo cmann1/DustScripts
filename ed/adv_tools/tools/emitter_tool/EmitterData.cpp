@@ -177,7 +177,7 @@ class EmitterData : SelectableData
 		
 		if(selected)
 		{
-			const float size = 3 / script.zoom;
+			const float size = Settings::SelectDiamondSize / script.zoom;
 			script.g.draw_rectangle_world(22, 22,
 				aabb_x - size, aabb_y - size, aabb_x + size, aabb_y + size, 45, line_colour);
 		}

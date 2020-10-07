@@ -42,6 +42,8 @@ namespace Settings
 	const float	ScaleHandleSize				= 4;
 	const uint RotateHandleHoveredColour	= 0xaaea9c3f;
 	
+	const float	SelectDiamondSize			= 3;
+	
 	const array<float> ScaleHandleOffsets = {
 		// Right
 		 1,  0,
