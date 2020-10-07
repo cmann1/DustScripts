@@ -4,6 +4,8 @@
 #include '../../../../lib/ui3/elements/Select.cpp';
 #include '../../../../lib/ui3/elements/Window.cpp';
 
+#include 'EmitterIdData.cpp';
+
 class EmitterToolWindow
 {
 	
@@ -18,6 +20,8 @@ class EmitterToolWindow
 	private SelectButton@ other_ids_button;
 	private ListView@ other_ids_list_view;
 	private PopupOptions@ other_ids_tooltip;
+	
+	private array<EmitterIdData> other_emitter_names_sorted;
 	
 	IntSetting@ emitter_id;
 	IntSetting@ layer;
@@ -133,9 +137,19 @@ class EmitterToolWindow
 		other_ids_list_view.scroll_amount = 75;
 		other_ids_list_view.select.on(EventCallback(on_other_ids_select));
 		
+		other_emitter_names_sorted.resize(Emitters::OtherEmitterNames.length());
+		
 		for(uint i = 0; i < Emitters::OtherEmitterNames.length(); i++)
 		{
-			ListViewItem@ item = other_ids_list_view.add_item(Emitters::OtherEmitterNames[i], Emitters::OtherEmitterNames[i]);
+			other_emitter_names_sorted[i].id = Emitters::OtherEmitterIds[i];
+			other_emitter_names_sorted[i].name = Emitters::OtherEmitterNames[i];
+		}
+		
+		other_emitter_names_sorted.sortAsc();
+		
+		for(uint i = 0; i < other_emitter_names_sorted.length(); i++)
+		{
+			ListViewItem@ item = other_ids_list_view.add_item(other_emitter_names_sorted[i].name, other_emitter_names_sorted[i].name);
 		}
 	}
 	
@@ -221,7 +235,7 @@ class EmitterToolWindow
 		
 		other_ids_list_view.select.enabled = false;
 		
-		update_emitter_id(Emitters::OtherEmitterIds[other_ids_list_view.selected_index]);
+		update_emitter_id(other_emitter_names_sorted[other_ids_list_view.selected_index].id);
 		emitter_id_select.selected_value = event.value;
 		
 		other_ids_list_view.select.enabled = true;
