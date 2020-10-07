@@ -74,6 +74,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		Style@ style = ui.style;
 		
 		@window = Window(ui, 'Edit Text');
+		window.name = 'TextToolTextProperties';
 		window.set_icon('script', 'icon_text', 24, 24);
 		ui.add_child(window);
 		window.x = 200;
@@ -100,6 +101,8 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		btn.fit_to_contents();
 		btn.mouse_click.on(EventCallback(on_cancel_click));
 		window.add_button_right(btn);
+		
+		script.window_manager.register_element(window);
 		
 		return true;
 	}
