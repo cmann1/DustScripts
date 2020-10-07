@@ -81,7 +81,7 @@ class Style
 	float default_list_view_item_width  = 100;
 	float default_list_view_item_height = 30;
 	
-	float titlebar_height  = 38;
+	float titlebar_height = 38;
 	
 	float caret_width = 2;
 	int caret_blink_rate = 60;

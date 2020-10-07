@@ -266,6 +266,8 @@ class AdvToolScript
 		{
 			initialise();
 			initialised = true;
+			
+//			select_tool(get_tool('Prop Tool'));
 		}
 		
 		screen_w = g.hud_screen_width(false);
@@ -350,6 +352,8 @@ class AdvToolScript
 			selected_tool.step();
 		}
 		
+//		get_tool('Prop Tool').step();
+		
 		info_overlay.step();
 		
 		ui.step();
@@ -412,6 +416,8 @@ class AdvToolScript
 		{
 			selected_tool.draw(sub_frame);
 		}
+		
+//		get_tool('Prop Tool').draw(sub_frame);
 		
 		handles.draw();
 		ui.draw();
@@ -518,6 +524,9 @@ class AdvToolScript
 	
 	entity@ pick_trigger()
 	{
+		if(!mouse_in_scene)
+			return null;
+		
 		int i = g.get_entity_collision(mouse.y - 10, mouse.y + 10, mouse.x - 10, mouse.x + 10, ColType::Trigger);
 		
 		entity@ closest = null;

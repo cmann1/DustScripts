@@ -487,23 +487,19 @@ class Window : MoveableDialog
 		_contents.fit_to_contents(fit_min);
 		
 		const float spacing = ui.style.spacing;
+		const float title_height = _title_bar_height <= 0 ? ui.style.titlebar_height : _title_bar_height;
 		const bool has_buttons_left = @_buttons_left != null && _buttons_left.visible;
 		const bool has_buttons_right = @_buttons_right != null && _buttons_right.visible;
 		
 		_width = _set_width = _contents._width + spacing * 2;
-		_height = _contents._height + spacing;
+		_height = _contents._height + spacing * 2;
 		
 		if(_show_title_bar)
 		{
-			_height += ui.style.titlebar_height + _title_divider._height;
+			_height += title_height + _title_divider._height;
 		}
 		
 		if(has_buttons_left || has_buttons_right)
-		{
-			_height += spacing * 2;
-		}
-		
-		if(@_buttons_left != null && _buttons_left.visible || @_buttons_right != null && _buttons_right.visible)
 		{
 			if(@_buttons_left != null)
 			{
@@ -515,7 +511,7 @@ class Window : MoveableDialog
 				_buttons_right.fit_to_contents(fit_min);
 			}
 			
-			_height += _buttons_divider._height + spacing;
+			_height += _buttons_divider._height + spacing * 2;
 			_height += max(@_buttons_left != null ? _buttons_left._height : 0, @_buttons_right != null ? _buttons_right._height : 0);
 		}
 		
