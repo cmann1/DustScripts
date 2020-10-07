@@ -22,6 +22,10 @@ class EmitterToolWindow
 	private PopupOptions@ other_ids_tooltip;
 	
 	private array<EmitterIdData> other_emitter_names_sorted;
+	private array<string> emitter_names;
+	
+	private const array<EmitterData@>@ selected_emitters;
+	private int selected_emitters_count;
 	
 	IntSetting@ emitter_id;
 	IntSetting@ layer;
@@ -33,7 +37,7 @@ class EmitterToolWindow
 		UI@ ui = script.ui;
 		Style@ style = ui.style;
 		
-		@window = Window(ui, 'Emitter Properties', false, true);
+		@window = Window(ui, 'None selected', false, true);
 		window.name = 'EmitterToolWindow';
 		window.x = 20;
 		window.y = 20;
@@ -43,7 +47,7 @@ class EmitterToolWindow
 		
 		// Emitter Id
 		
-		@emitter_id_select = Select(ui, '- No emitter selected -');
+		@emitter_id_select = Select(ui, '- Multiple Ids -');
 		emitter_id_select.width = 260;
 		emitter_id_select.allow_custom_value = true;
 		@emitter_id_select.tooltip = PopupOptions(ui, 'Emitter Id', false, PopupPosition::Right);
@@ -51,12 +55,33 @@ class EmitterToolWindow
 		
 		for(uint i = 0; i < Emitters::MainEmitterNames.length(); i++)
 		{
-			emitter_id_select.add_value(Emitters::MainEmitterNames[i], Emitters::MainEmitterNames[i]);
+			const string name = Emitters::MainEmitterNames[i];
+			emitter_id_select.add_value(name, name);
+			
+			const int id = Emitters::MainEmitterIds[i];
+			
+			if(uint(id) >= emitter_names.length())
+			{
+				emitter_names.resize(id + 1);
+			}
+			
+			emitter_names[id] = name;
 		}
 		
-		string emitter_name;
-		get_emitter_name(emitter_id.value, emitter_name);
-		emitter_id_select.selected_value = emitter_name;
+		for(uint i = 0; i < Emitters::OtherEmitterNames.length(); i++)
+		{
+			const string name = Emitters::OtherEmitterNames[i];
+			const int id = Emitters::OtherEmitterIds[i];
+			
+			if(uint(id) >= emitter_names.length())
+			{
+				emitter_names.resize(id + 1);
+			}
+			
+			emitter_names[id] = name;
+		}
+		
+		emitter_id_select.selected_value = get_emitter_name(emitter_id.value);
 		emitter_id_select.change.on(EventCallback(on_emitter_id_change));
 		
 		// Other Emitters
@@ -85,7 +110,9 @@ class EmitterToolWindow
 		// Rotation
 		
 		@rotation_wheel = RotationWheel(ui);
+		rotation_wheel.indicator_offset = -HALF_PI;
 		rotation_wheel.allow_range = false;
+		rotation_wheel.drag_relative = true;
 		rotation_wheel.auto_tooltip = true;
 		rotation_wheel.tooltip_prefix = 'Rotation: ';
 		rotation_wheel.x = layer_button.x + layer_button.width + style.spacing;
@@ -118,12 +145,121 @@ class EmitterToolWindow
 			create_ui();
 		}
 		
+		update_selection(null, 0);
 		window.show();
 	}
 	
 	void hide()
 	{
 		window.hide();
+	}
+	
+	void update_selection(const array<EmitterData@>@ selected_emitters, const int selected_emitters_count)
+	{
+		@this.selected_emitters = selected_emitters;
+		this.selected_emitters_count = selected_emitters_count;
+		
+		set_ui_events_enabled(false);
+		
+		if(selected_emitters_count == 0)
+		{
+			window.title = 'None selected';
+			
+			emitter_id_select.selected_value = get_emitter_name(emitter_id.value);
+			layer_button.layer_select.set_selected_layer(layer.value);
+			layer_button.layer_select.set_selected_sub_layer(sublayer.value);
+			rotation_wheel.degrees = rotation.value;
+		}
+		else if(selected_emitters_count == 1)
+		{
+			EmitterData@ data = @selected_emitters[0];
+			
+			window.title = 'Emitter Properties';
+			
+			emitter_id.value	= data.emitter_id;
+			layer.value			= data.layer;
+			sublayer.value		= data.sublayer;
+			rotation.value		= data.rotation;
+			
+			emitter_id_select.selected_value = get_emitter_name(emitter_id.value);
+			layer_button.layer_select.set_selected_layer(layer.value);
+			layer_button.layer_select.set_selected_sub_layer(sublayer.value);
+			rotation_wheel.degrees = rotation.value;
+		}
+		else
+		{
+			window.title = 'Multiple Emtters';
+			
+			EmitterData@ data = @selected_emitters[0];
+			
+			int emitter_id = data.emitter_id;
+			int layer = data.layer;
+			int sublayer = data.sublayer;
+			float rotation = data.rotation;
+			bool same_rotation = true;
+			
+			for(int i = 1; i < selected_emitters_count; i++)
+			{
+				@data = @selected_emitters[i];
+				
+				if(emitter_id != data.emitter_id)
+				{
+					emitter_id = -1;
+				}
+				
+				if(layer != data.layer)
+				{
+					layer = -1;
+				}
+				
+				if(sublayer != data.sublayer)
+				{
+					sublayer = -1;
+				}
+				
+				if(!approximately(rotation, data.rotation))
+				{
+					same_rotation = false;
+				}
+			}
+			
+			if(emitter_id != -1)
+				emitter_id_select.selected_value = get_emitter_name(emitter_id);
+			else
+				emitter_id_select.selected_index = -1;
+			
+			if(layer != -1)
+				layer_button.layer_select.set_selected_layer(layer);
+			else
+				layer_button.layer_select.select_layers_none(false, true);
+			
+			if(sublayer != -1)
+				layer_button.layer_select.set_selected_sub_layer(sublayer);
+			else
+				layer_button.layer_select.select_sub_layers_none(false, true);
+			
+			rotation_wheel.degrees = same_rotation ? rotation : 0;
+		}
+		
+		set_ui_events_enabled(true);
+	}
+	
+	void update_rotation(const float rotation)
+	{
+		if(selected_emitters_count != 1)
+			return;
+		
+		set_ui_events_enabled(false);
+		rotation_wheel.degrees = rotation;
+		set_ui_events_enabled(true);
+	}
+	
+	private void set_ui_events_enabled(const bool enabled=true)
+	{
+		emitter_id_select.change.enabled = enabled;
+		rotation_wheel.change.enabled = enabled;
+		layer_button.layer_select.layer_select.enabled = enabled;
+		layer_button.layer_select.sub_layer_select.enabled = enabled;
 	}
 	
 	private void populate_other_ids()
@@ -153,28 +289,14 @@ class EmitterToolWindow
 		}
 	}
 	
-	private bool get_emitter_name(const int id, string &out name)
+	private string get_emitter_name(const int id)
 	{
-		int index = Emitters::MainEmitterIds.find(id);
+		const string name = id >= 0 && id < int(emitter_names.length())
+			? emitter_names[id] : '';
 		
-		if(index == -1)
-		{
-			index = Emitters::OtherEmitterIds.find(id);
-			
-			if(index == -1)
-			{
-				name = Emitters::MainEmitterNames[Emitters::MainEmitterIds[EmitterId::DustGround]];
-				return false;
-			}
-			
-			name = Emitters::OtherEmitterNames[index];
-			return true;
-		}
-		else
-		{
-			name = Emitters::MainEmitterNames[index];
-			return true;
-		}
+		return name != ''
+			? name
+			: Emitters::MainEmitterNames[Emitters::MainEmitterIds[EmitterId::DustGround]];
 	}
 	
 	private void update_emitter_id(const int id)

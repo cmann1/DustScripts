@@ -10,11 +10,13 @@ class EmitterData : SelectableData
 	bool mouse_over_handle;
 	
 	private varstruct@ vars;
+	private varvalue@ emitter_id_var;
 	private varvalue@ width_var;
 	private varvalue@ height_var;
 	private varvalue@ rotation_var;
 	private varvalue@ sublayer_var;
 	
+	int emitter_id;
 	int layer, sublayer;
 	float x, y;
 	float width, height;
@@ -35,11 +37,13 @@ class EmitterData : SelectableData
 		@this.emitter = emitter;
 		
 		@vars = emitter.vars();
+		@emitter_id_var = vars.get_var('emitter_id');
 		@width_var = vars.get_var('width');
 		@height_var = vars.get_var('height');
 		@rotation_var = vars.get_var('e_rotation');
 		@sublayer_var = vars.get_var('draw_depth_sub');
 		
+		emitter_id = emitter_id_var.get_int32();
 		layer = emitter.layer();
 		sublayer = sublayer_var.get_int32();
 		width = width_var.get_int32();

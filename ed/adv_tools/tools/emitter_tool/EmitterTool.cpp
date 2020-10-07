@@ -27,6 +27,8 @@ class EmitterTool : Tool
 	private array<EmitterData@> selected_emitters(selected_emitters_size);
 	private EmitterData@ primary_selected;
 	
+	private bool selection_updated;
+	
 	private EmitterData@ hovered_emitter;
 	private EmitterData@ pressed_emitter;
 	private SelectAction pressed_action;
@@ -202,6 +204,12 @@ class EmitterTool : Tool
 		for(int j = 0; j < selected_emitters_count; j++)
 		{
 			selected_emitters[j].post_step_validate();
+		}
+		
+		if(selection_updated)
+		{
+			properties_window.update_selection(selected_emitters, selected_emitters_count);
+			selection_updated = false;
 		}
 	}
 	
@@ -655,6 +663,8 @@ class EmitterTool : Tool
 		data.do_rotate((angle) * RAD2DEG);
 		data.do_handles(dragged_handle);
 		data.hovered = true;
+		
+		properties_window.update_rotation(data.rotation);
 	}
 	
 	private void state_selecting()
@@ -794,6 +804,7 @@ class EmitterTool : Tool
 				EmitterData@ emitter_data = @selected_emitters[--selected_emitters_count];
 				emitter_data.selected = false;
 				emitter_data.hovered = false;
+				selection_updated = true;
 			}
 			
 			if(update_primary && @primary_selected != null)
@@ -835,6 +846,8 @@ class EmitterTool : Tool
 			
 			@selected_emitters[selected_emitters_count++] = data;
 			data.selected = true;
+			
+			selection_updated = true;
 		}
 		else
 		{
@@ -848,6 +861,8 @@ class EmitterTool : Tool
 				data.primary_selected = false;
 				@primary_selected = null;
 			}
+			
+			selection_updated = true;
 		}
 	}
 	
