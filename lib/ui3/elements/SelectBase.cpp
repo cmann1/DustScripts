@@ -58,6 +58,8 @@ abstract class SelectBase : LockedContainer
 		if(_placeholder_text == text)
 			return;
 		
+		_placeholder_text = text;
+		
 		if(_selected_index == -1)
 		{
 			_label.text = text;
