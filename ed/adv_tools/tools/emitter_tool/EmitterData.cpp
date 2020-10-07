@@ -386,4 +386,35 @@ class EmitterData : SelectableData
 		update();
 	}
 	
+	// Property setters
+	
+	void update_emitter_id(const int id)
+	{
+		emitter_id = id;
+		emitter_id_var.set_int32(emitter_id);
+		
+		modified = true;
+		update();
+	}
+	
+	void update_rotation(const float rotation)
+	{
+		this.rotation = rotation;
+		rotation_var.set_int32(round_int(rotation));
+		
+		modified = true;
+		update();
+	}
+	
+	void update_layer(const int layer, const int sublayer)
+	{
+		this.layer = clamp(layer, 0, 20);
+		emitter.layer(this.layer);
+		this.sublayer = clamp(sublayer, 0, 24);
+		sublayer_var.set_int32(this.sublayer);
+		
+		modified = true;
+		update();
+	}
+	
 }

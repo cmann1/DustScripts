@@ -152,6 +152,8 @@ class EmitterToolWindow
 	void hide()
 	{
 		window.hide();
+		
+		selected_emitters_count = 0;
 	}
 	
 	void update_selection(const array<EmitterData@>@ selected_emitters, const int selected_emitters_count)
@@ -244,6 +246,11 @@ class EmitterToolWindow
 		set_ui_events_enabled(true);
 	}
 	
+	void update_selection()
+	{
+		update_selection(@selected_emitters, selected_emitters_count);
+	}
+	
 	void update_rotation(const float rotation)
 	{
 		if(selected_emitters_count != 1)
@@ -301,8 +308,14 @@ class EmitterToolWindow
 	
 	private void update_emitter_id(const int id)
 	{
-		puts('update_emitter_id: ' + id);
 		emitter_id.value = id;
+		
+		for(int i = 0; i < selected_emitters_count; i++)
+		{
+			selected_emitters[i].update_emitter_id(id);
+		}
+		
+		update_selection();
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -319,15 +332,27 @@ class EmitterToolWindow
 	
 	private void on_layer_change(EventInfo@ event)
 	{
-		puts('on_layer_change: ' + layer_button.layer_select.get_selected_layer() + '.' + layer_button.layer_select.get_selected_sub_layer());
 		layer.value = layer_button.layer_select.get_selected_layer();
 		sublayer.value = layer_button.layer_select.get_selected_sub_layer();
+		
+		for(int i = 0; i < selected_emitters_count; i++)
+		{
+			selected_emitters[i].update_layer(layer.value, sublayer.value);
+		}
+		
+		update_selection();
 	}
 	
 	private void on_rotation_change(EventInfo@ event)
 	{
-		puts('on_rotation_change: ' + rotation_wheel.degrees);
 		rotation.value = rotation_wheel.degrees;
+		
+		for(int i = 0; i < selected_emitters_count; i++)
+		{
+			selected_emitters[i].update_rotation(rotation.value);
+		}
+		
+		update_selection();
 	}
 	
 	private void on_other_ids_open(EventInfo@ event)
@@ -358,7 +383,6 @@ class EmitterToolWindow
 		other_ids_list_view.select.enabled = false;
 		
 		update_emitter_id(other_emitter_names_sorted[other_ids_list_view.selected_index].id);
-		emitter_id_select.selected_value = event.value;
 		
 		other_ids_list_view.select.enabled = true;
 	}
