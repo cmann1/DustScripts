@@ -136,7 +136,7 @@ abstract class SelectBase : LockedContainer
 			if(value > _num_values - 1)
 				value = _num_values - 1;
 			
-			if(_selected_index == value)
+			if(_selected_index == value && !(value == -1 && custom_value_selected))
 				return;
 			
 			_selected_index = value;
