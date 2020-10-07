@@ -75,11 +75,14 @@ class WindowManager
 		const string id = element.name != '' ? element.name : element._id;
 		
 		WindowAnchor@ anchor;
+		bool do_reposition = false;
 		
 		if(anchor_map.exists(id))
 		{
 			@anchor = anchors[int(anchor_map[id])];
 			anchor.pending_reposition = true;
+			
+			do_reposition = true;
 		}
 		else
 		{
@@ -90,9 +93,32 @@ class WindowManager
 		
 		@anchor.element = element;
 		anchor.initialise();
+		
+		if(do_reposition)
+		{
+			element.force_calculate_bounds();
+			anchor.reposition(ui.region_width, ui.region_height, relative);
+		}
+		
 		pending_anchors.insertLast(anchor);
 		num_pending_update++;
 		wait_for_layout();
+	}
+	
+	/// Forces an element to be positioned immediately
+	void force_immediate_reposition(Element@ element)
+	{
+		if(@element == null)
+			return;
+		
+		const string id = element.name != '' ? element.name : element._id;
+		
+		if(!anchor_map.exists(id))
+			return;
+		
+		WindowAnchor@ anchor = anchors[int(anchor_map[id])];
+		element.force_calculate_bounds();
+		anchor.reposition(ui.region_width, ui.region_height, relative);
 	}
 	
 	/// Resets anchor positions for all registered windows
