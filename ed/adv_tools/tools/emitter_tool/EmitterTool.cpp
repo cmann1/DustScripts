@@ -60,7 +60,7 @@ class EmitterTool : Tool
 	{
 		Tool::create(script, group);
 		
-		set_icon('editor', 'boundary');
+		set_icon('editor', 'emittericon');
 		
 		@mouse = @script.mouse;
 	}
@@ -80,6 +80,8 @@ class EmitterTool : Tool
 	protected void on_select_impl()
 	{
 		properties_window.show(script, this);
+		
+		script.hide_gui();
 	}
 	
 	protected void on_deselect_impl()
@@ -89,6 +91,8 @@ class EmitterTool : Tool
 		clear_highlighted_emitters();
 		
 		properties_window.hide();
+		
+		script.hide_gui(false);
 	}
 	
 	protected void step_impl() override

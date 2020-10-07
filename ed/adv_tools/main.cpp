@@ -241,7 +241,7 @@ class AdvToolScript
 		add_tool(Tool('Entities')		.set_icon('editor',  'entityicon').init_shortcut_key(VK::E));
 		add_tool(Tool('Triggers')		.set_icon('editor',  'triggersicon').init_shortcut_key(VK::T));
 		add_tool(Tool('Camera')			.set_icon('editor',  'cameraicon'));
-		add_tool(Tool('Emitters')		.set_icon('editor',  'emittericon'));
+		add_tool(EmitterTool());
 		add_tool(Tool('Level Settings')	.set_icon('editor',  'settingsicon'));
 		add_tool(Tool('Scripts')		.set_icon('dustmod', 'scripticon').init_shortcut_key(VK::S));
 		add_tool(HelpTool('Help')		.set_icon('editor',  'helpicon'));
@@ -251,7 +251,6 @@ class AdvToolScript
 		add_tool('Props',		PropTool());
 		add_tool('Triggers',	TextTool());
 		add_tool('Triggers',	ExtendedTriggerTool());
-		add_tool('Emitters',	EmitterTool());
 	}
 	
 	// //////////////////////////////////////////////////////////
