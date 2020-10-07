@@ -104,7 +104,7 @@ class EmitterToolWindow
 		layer_button.layer_select.set_selected_layer(layer.value);
 		layer_button.layer_select.set_selected_sub_layer(sublayer.value);
 		layer_button.layer_select.layer_select.on(EventCallback(on_layer_change));
-		layer_button.layer_select.sub_layer_select.on(EventCallback(on_layer_change));
+		layer_button.layer_select.sub_layer_select.on(EventCallback(on_sublayer_change));
 		window.add_child(layer_button);
 		
 		// Rotation
@@ -332,12 +332,33 @@ class EmitterToolWindow
 	
 	private void on_layer_change(EventInfo@ event)
 	{
-		layer.value = layer_button.layer_select.get_selected_layer();
-		sublayer.value = layer_button.layer_select.get_selected_sub_layer();
+		const int value = layer_button.layer_select.get_selected_layer();
+		
+		if(value == -1)
+			return;
+		
+		layer.value = value;
 		
 		for(int i = 0; i < selected_emitters_count; i++)
 		{
-			selected_emitters[i].update_layer(layer.value, sublayer.value);
+			selected_emitters[i].update_layer(layer.value);
+		}
+		
+		update_selection();
+	}
+	
+	private void on_sublayer_change(EventInfo@ event)
+	{
+		const int value = layer_button.layer_select.get_selected_sub_layer();
+		
+		if(value == -1)
+			return;
+		
+		sublayer.value = value;
+		
+		for(int i = 0; i < selected_emitters_count; i++)
+		{
+			selected_emitters[i].update_sublayer(sublayer.value);
 		}
 		
 		update_selection();

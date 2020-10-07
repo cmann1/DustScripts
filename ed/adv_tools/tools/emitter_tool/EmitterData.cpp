@@ -417,4 +417,22 @@ class EmitterData : SelectableData
 		update();
 	}
 	
+	void update_layer(const int layer)
+	{
+		this.layer = clamp(layer, 0, 20);
+		emitter.layer(this.layer);
+		
+		modified = true;
+		update();
+	}
+	
+	void update_sublayer(const int sublayer)
+	{
+		this.sublayer = clamp(sublayer, 0, 24);
+		sublayer_var.set_int32(this.sublayer);
+		
+		modified = true;
+		update();
+	}
+	
 }
