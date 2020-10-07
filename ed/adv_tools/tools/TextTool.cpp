@@ -76,7 +76,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		Style@ style = ui.style;
 		
 		@window = Window(ui, 'Edit Text');
-		window.name = 'TextToolTextProperties';
+		window.name = 'TextToolTextProperties1';
 		window.set_icon('script', 'icon_text', 24, 24);
 		ui.add_child(window);
 		window.x = 200;
@@ -450,6 +450,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		if(is_window_created)
 		{
 			window.centre();
+			script.window_manager.force_immediate_reposition(window);
 		}
 		
 		window.show();
