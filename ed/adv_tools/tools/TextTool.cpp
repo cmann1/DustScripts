@@ -37,6 +37,8 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	private Select@ font_select;
 	private Select@ font_size_select;
 	
+	private bool ignore_events;
+	
 	private const array<int>@ font_sizes;
 	private int selected_font_size;
 	private bool ignore_next_font_size_update;
@@ -459,6 +461,8 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	
 	private void update_properties()
 	{
+		ignore_events = true;
+		
 		colour_swatch.colour = vars.get_var('colour').get_int32();
 		layer_select.set_selected_layer(vars.get_var('layer').get_int32(), false);
 		layer_select.set_selected_sub_layer(vars.get_var('sublayer').get_int32(), false);
@@ -466,8 +470,10 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		scale_slider.value = vars.get_var('text_scale').get_float();
 		
 		selected_font_size = vars.get_var('font_size').get_int32();
-		update_font_sizes();
 		font_select.selected_value = vars.get_var('font').get_string();
+		update_font_sizes();
+		
+		ignore_events = false;
 	}
 	
 	private void update_font_sizes()
@@ -521,6 +527,9 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	
 	void on_text_change(EventInfo@ event)
 	{
+		if(ignore_events)
+			return;
+		
 		text_var.set_string(text_box.text);
 	}
 	
@@ -539,27 +548,42 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	
 	void on_colour_change(EventInfo@ event)
 	{
+		if(ignore_events)
+			return;
+		
 		vars.get_var('colour').set_int32(colour_swatch.colour);
 	}
 	
 	void on_layer_select(EventInfo@ event)
 	{
+		if(ignore_events)
+			return;
+		
 		vars.get_var('layer').set_int32(layer_select.get_selected_layer());
 		vars.get_var('sublayer').set_int32(layer_select.get_selected_sub_layer());
 	}
 	
 	void on_rotation_change(EventInfo@ event)
 	{
+		if(ignore_events)
+			return;
+		
 		vars.get_var('text_rotation').set_int32(int(rotation_wheel.degrees));
 	}
 	
 	void on_scale_change(EventInfo@ event)
 	{
+		if(ignore_events)
+			return;
+		
 		vars.get_var('text_scale').set_float(scale_slider.value);
 	}
 	
 	void on_font_change(EventInfo@ event)
 	{
+		if(ignore_events)
+			return;
+		
 		vars.get_var('font').set_string(font_select.selected_value);
 		ignore_next_font_size_update = true;
 		update_font_sizes();
@@ -567,6 +591,9 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	
 	void on_font_size_change(EventInfo@ event)
 	{
+		if(ignore_events)
+			return;
+		
 		if(font_size_select.selected_index == -1)
 			return;
 		
