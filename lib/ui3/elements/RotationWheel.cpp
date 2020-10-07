@@ -19,6 +19,7 @@ class RotationWheel : Image, IStepHandler
 	float snap_tiny  = PI / 36;
 	
 	float image_radius_inset = 3;
+	float indicator_offset;
 	
 	protected bool _auto_tooltip = false;
 	protected bool _auto_tooltip_range = true;
@@ -255,18 +256,18 @@ class RotationWheel : Image, IStepHandler
 		const float mid_x = (x1 + x2) * 0.5;
 		const float mid_y = (y1 + y2) * 0.5;
 		
-		float nx = cos(_angle);
-		float ny = sin(_angle);
+		float nx = cos(_angle + indicator_offset);
+		float ny = sin(_angle + indicator_offset);
 		style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 1.5, main_clr);
 		
 		if(allow_range && _range != 0)
 		{
 			const uint range_clr = drag_range ? style.selected_highlight_border_clr : style.secondary_bg_clr;
-			nx = cos(_angle - _range);
-			ny = sin(_angle - _range);
+			nx = cos(_angle + indicator_offset - _range);
+			ny = sin(_angle + indicator_offset - _range);
 			style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 1, range_clr);
-			nx = cos(_angle + _range);
-			ny = sin(_angle + _range);
+			nx = cos(_angle + indicator_offset + _range);
+			ny = sin(_angle + indicator_offset + _range);
 			style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 1, range_clr);
 		}
 	}
@@ -295,7 +296,7 @@ class RotationWheel : Image, IStepHandler
 		const float dx = ui.mouse.x - mid_x;
 		const float dy = ui.mouse.y - mid_y;
 		
-		return atan2(dy, dx);
+		return atan2(dy, dx) - indicator_offset;
 	}
 	
 	protected void update_tooltip()
