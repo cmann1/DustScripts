@@ -2,7 +2,7 @@
 #include '../lib/enums/ColType.cpp';
 #include '../lib/enums/EmitterId.cpp';
 #include '../lib/drawing/common.cpp';
-#include '../lib/emitters.cpp';
+#include '../lib/emitters/common.cpp';
 #include '../lib/RemoveTimer.cpp';
 #include '../lib/Fx.cpp';
 
