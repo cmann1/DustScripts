@@ -2,6 +2,7 @@
 #include '../drawing/common.cpp';
 #include '../drawing/circle.cpp';
 #include '../drawing/Sprite.cpp';
+#include '../input/Mouse.cpp';
 #include '../fonts.cpp';
 #include '../math/math.cpp';
 #include '../layer.cpp';
@@ -91,6 +92,9 @@ class BaseEditorScript
 	
 	BaseEditorScript()
 	{
+		@g = get_scene();
+		@editor = get_editor_api();
+		
 		@cam = get_active_camera();
 		@text_field = create_textfield();
 		text_field.set_font(font::ENVY_BOLD, 20);
