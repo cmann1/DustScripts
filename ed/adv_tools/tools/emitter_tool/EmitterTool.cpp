@@ -889,6 +889,11 @@ class EmitterTool : Tool
 			? @emitter_data_pool[--emitter_data_pool_count]
 			: EmitterData();
 		
+		if(highlighted_emitters_count >= highlighted_emitters_size)
+		{
+			highlighted_emitters.resize(highlighted_emitters_size = highlighted_emitters_count + 33);
+		}
+		
 		@highlighted_emitters_map[key] = @emitter_data;
 		@highlighted_emitters[highlighted_emitters_count++] = @emitter_data;
 		
