@@ -370,6 +370,12 @@ class ListView : ScrollView
 		dispatch_select_event(item);
 	}
 	
+	void select_item(const string value)
+	{
+		int index;
+		select_item(get_item(value, index));
+	}
+	
 	void deselect_item(ListViewItem@ item)
 	{
 		if(busy_updating_selection || @item == null || @item._list_view != @this || !item.selected)
@@ -434,42 +440,9 @@ class ListView : ScrollView
 		dispatch_select_event();
 	}
 	
-	void set_selected_item(ListViewItem@ item)
+	ListViewItem@ selected_item
 	{
-		if(@item._list_view != @this || @item == null || item.selected)
-			return;
-		
-		busy_updating_selection = true;
-		
-		for(int i = 0; i < _num_selected_items; i++)
-		{
-			_selected_items[i].selected = false;
-		}
-		
-		_selected_items.resize(0);
-		_num_selected_items = 0;
-		
-		if(@item != null)
-		{
-			_selected_items.insertLast(@item);
-			_num_selected_items++;
-			item.selected = true;
-		}
-		
-		busy_updating_selection = false;
-		
-		dispatch_select_event();
-	}
-	
-	void set_selected_item(const string value)
-	{
-		int index;
-		set_selected_item(get_item(value, index));
-	}
-	
-	ListViewItem@ get_selected_item()
-	{
-		return _num_selected_items > 0 ? _selected_items[0] : null;
+		get { return _num_selected_items > 0 ? _selected_items[0] : null; }
 	}
 	
 	int selected_index
