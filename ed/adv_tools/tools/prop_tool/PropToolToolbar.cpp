@@ -474,7 +474,7 @@ class PropToolToolbar
 		
 		origin_list_view.select.enabled = false;
 		origin_list_view.select_none();
-		origin_list_view.set_selected_item(default_origin.value);
+		origin_list_view.select_item(default_origin.value);
 		origin_list_view.select.enabled = true;
 	}
 	

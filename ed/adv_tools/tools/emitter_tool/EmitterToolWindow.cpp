@@ -390,7 +390,7 @@ class EmitterToolWindow
 		
 		if(other_id_index != -1)
 		{
-			other_ids_list_view.set_selected_item(Emitters::OtherEmitterNames[other_id_index]);
+			other_ids_list_view.select_item(Emitters::OtherEmitterNames[other_id_index]);
 		}
 		
 		other_ids_list_view.select.enabled = true;
