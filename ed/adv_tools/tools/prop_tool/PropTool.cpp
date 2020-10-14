@@ -1453,6 +1453,7 @@ class PropTool : Tool
 				@data.prop = @p;
 				@data.outline = @outline;
 				data.is_inside = is_inside ? 1 : 0;
+				data.selected = @prop_data != null ? prop_data.selected : false;
 				data.scene_index = i;
 			}
 		}

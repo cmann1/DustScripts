@@ -198,6 +198,9 @@ class EmitterData : SelectableData
 	
 	int opCmp(const EmitterData &in other)
 	{
+		if(selected != other.selected)
+			return selected ? 1 : -1;
+		
 		// Emitters that the mouse is inside of take priority over ones that the mouse is close to
 		
 		if(is_mouse_inside != other.is_mouse_inside)

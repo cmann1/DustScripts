@@ -4,10 +4,14 @@ class PropSortingData
 	prop@ prop;
 	int is_inside;
 	int scene_index;
+	bool selected;
 	const array<array<float>>@ outline;
 	
 	int opCmp(const PropSortingData &in other)
 	{
+		if(selected != other.selected)
+			return selected ? 1 : -1;
+		
 		// Props that the mouse is inside of take priority over props that the mouse is close to
 		
 		if(is_inside != other.is_inside)
