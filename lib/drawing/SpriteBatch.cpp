@@ -1,3 +1,5 @@
+#include '../props/common.cpp';
+
 /*
  * Simpler than SpriteGroup
  */
