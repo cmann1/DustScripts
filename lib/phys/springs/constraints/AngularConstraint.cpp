@@ -73,10 +73,18 @@ class AngularConstraint : Constraint
 			const float mx = particle1.x + dx;
 			const float my = particle1.y + dy;
 			rotate(dx, dy, da, dx, dy);
-			particle2.x = mx + dx;
-			particle2.y = my + dy;
-			particle1.x = mx - dx;
-			particle1.y = my - dy;
+			
+			if(!particle2.is_static)
+			{
+				particle2.x = mx + dx;
+				particle2.y = my + dy;
+			}
+			
+			if(!particle1.is_static)
+			{
+				particle1.x = mx - dx;
+				particle1.y = my - dy;
+			}
 		}
 	}
 	

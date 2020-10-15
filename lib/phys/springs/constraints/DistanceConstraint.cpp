@@ -27,10 +27,18 @@ class DistanceConstraint : Constraint
 		
 		dx *= resting_ratio;
 		dy *= resting_ratio;
-		particle1.x -= dx;
-		particle1.y -= dy;
-		particle2.x += dx;
-		particle2.y += dy;
+		
+		if(!particle1.is_static)
+		{
+			particle1.x -= dx;
+			particle1.y -= dy;
+		}
+		
+		if(!particle2.is_static)
+		{
+			particle2.x += dx;
+			particle2.y += dy;
+		}
 	}
 	
 	void debug_draw(scene@ g, const float origin_x, const float origin_y) override
