@@ -657,9 +657,9 @@ class AdvToolScript
 			Settings::SelectRectLineWidth / zoom, Settings::SelectRectLineColour);
 	}
 	
-	void snap(const float x, const float y, float &out out_x, float &out out_y, const float custom_snap_size=5)
+	void snap(const float x, const float y, float &out out_x, float &out out_y, const float custom_snap_size=5, const bool default_shift=false)
 	{
-		const float snap = get_snap_size(custom_snap_size);
+		const float snap = get_snap_size(custom_snap_size, default_shift);
 		
 		if(snap != 0)
 		{
@@ -687,9 +687,9 @@ class AdvToolScript
 		}
 	}
 	
-	float get_snap_size(const float custom_snap_size=5)
+	float get_snap_size(const float custom_snap_size=5, const bool default_shift=false)
 	{
-		if(shift)
+		if(shift || default_shift && !ctrl && !alt)
 			return 48;
 		
 		if(ctrl)

@@ -9,6 +9,7 @@ const string EMBED_spr_origin_top_left			= PROP_TOOL_SPRITES_BASE + 'origin_top_
 const string EMBED_spr_prop_tool_align_centre		= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_centre.png';
 const string EMBED_spr_prop_tool_align_left			= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_left.png';
 const string EMBED_spr_prop_tool_custom_anchor_lock	= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_anchor_lock.png';
+const string EMBED_spr_prop_tool_custom_anchor_snap	= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_anchor_snap.png';
 const string EMBED_spr_prop_tool_custom_grid		= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_grid.png';
 const string EMBED_spr_prop_tool_dist_centre		= PROP_TOOL_SPRITES_BASE + 'prop_tool_dist_centre.png';
 const string EMBED_spr_prop_tool_dist_left			= PROP_TOOL_SPRITES_BASE + 'prop_tool_dist_left.png';
@@ -36,6 +37,8 @@ class PropToolToolbar
 	private ListView@ origin_list_view;
 	private PopupOptions@ origin_tooltip;
 	
+	private Button@ custom_anchor_snap_button;
+	
 	private Button@ align_button;
 	private PopupOptions@ align_tooltip;
 	private PopupOptions@ align_popup;
@@ -61,6 +64,7 @@ class PropToolToolbar
 		build_sprite(msg, 'prop_tool_align_centre');
 		build_sprite(msg, 'prop_tool_align_left');
 		build_sprite(msg, 'prop_tool_custom_anchor_lock');
+		build_sprite(msg, 'prop_tool_custom_anchor_snap');
 		build_sprite(msg, 'prop_tool_custom_grid');
 		build_sprite(msg, 'prop_tool_dist_centre');
 		build_sprite(msg, 'prop_tool_dist_left');
@@ -167,7 +171,7 @@ class PropToolToolbar
 			item.icon.rotation = rotation;
 		}
 		
-		// Custom anchor lock button
+		// Custom anchor lock button and snap
 		
 		@button = toolbar.add_button('script', 'prop_tool_custom_anchor_lock', Settings::IconSize, Settings::IconSize);
 		button.name = 'custom_anchor_lock';
@@ -175,6 +179,12 @@ class PropToolToolbar
 		button.selected = custom_anchor_lock.value;
 		@button.tooltip = PopupOptions(ui, 'Lock custom anchor');
 		button.mouse_click.on(button_click);
+		
+		@button = toolbar.add_button('script', 'prop_tool_custom_anchor_snap', Settings::IconSize, Settings::IconSize);
+		button.name = 'custom_anchor_snap';
+		@button.tooltip = PopupOptions(ui, 'Snap anchor');
+		button.mouse_click.on(button_click);
+		@custom_anchor_snap_button = button;
 		
 		// Align button
 		
@@ -423,6 +433,10 @@ class PropToolToolbar
 		else if(name == 'custom_anchor_lock')
 		{
 			custom_anchor_lock.value = button.selected;
+		}
+		else if(name == 'custom_anchor_snap')
+		{
+			tool.snap_custom_anchor();
 		}
 		else if(name == 'show_selection')
 		{

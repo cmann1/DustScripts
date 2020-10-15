@@ -465,10 +465,12 @@ class PropTool : Tool
 				}
 				
 				has_custom_anchor = true;
+				toolbar.update_buttons(selected_props_count);
 			}
 			else if(script.alt)
 			{
 				has_custom_anchor = false;
+				toolbar.update_buttons(selected_props_count);
 			}
 		}
 		
@@ -1554,6 +1556,7 @@ class PropTool : Tool
 		if(custom_anchor_lock.value)
 			return;
 		
+		toolbar.update_buttons(selected_props_count);
 		has_custom_anchor = false;
 	}
 	
@@ -1613,6 +1616,26 @@ class PropTool : Tool
 		{
 			selection_angle = 0;
 			update_selection_bounds();
+		}
+	}
+	
+	void snap_custom_anchor()
+	{
+		if(has_custom_anchor)
+		{
+			script.snap(custom_anchor_x, custom_anchor_y, custom_anchor_x, custom_anchor_y, custom_grid.value, true);
+		}
+		else if(selected_props_count > 0)
+		{
+			const float x = selection_x;
+			const float y = selection_y;
+			script.snap(selection_x, selection_y, selection_x, selection_y, custom_grid.value, true);
+			const float dx = selection_x - x;
+			const float dy = selection_y - y;
+			selection_x1 -= dx;
+			selection_y1 -= dy;
+			selection_x2 -= dx;
+			selection_y2 -= dy;
 		}
 	}
 	
@@ -1777,6 +1800,11 @@ class PropTool : Tool
 		
 		selection_angle = 0;
 		update_selection_bounds();
+	}
+	
+	bool is_custom_anchor_active()
+	{
+		return has_custom_anchor;
 	}
 	
 }
