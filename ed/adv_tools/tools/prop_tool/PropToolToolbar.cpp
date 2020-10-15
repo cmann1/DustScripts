@@ -400,11 +400,19 @@ class PropToolToolbar
 		int index = prop_index_to_array_index(p.prop_set(), p.prop_group(), p.prop_index());
 		const PropIndex@ prop_index = @PROP_INDICES[p.prop_group()][index];
 		
-		info_label.text =
+		string text =
 			// Group and name
 			string::nice(PROP_GROUP_NAMES[p.prop_group()]) + '::' + prop_index.name + '\n' +
 			// Layer
 			p.layer() + '.' + p.sub_layer();
+		
+		// Scale
+		if(p.scale_x() != 1 && p.scale_x() != -1)
+		{
+			text += '\nScale: ' + string::nice_float(p.scale_x(), 4);
+		}
+		
+		info_label.text = text;
 		
 		script.ui.show_tooltip(info_popup, toolbar);
 	}
