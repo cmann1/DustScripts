@@ -63,6 +63,7 @@ class EmitterTool : Tool
 		set_icon('editor', 'emittericon');
 		
 		@mouse = @script.mouse;
+		@selection_bounding_box.script = script;
 	}
 	
 	void on_init() override
@@ -469,9 +470,10 @@ class EmitterTool : Tool
 			{
 				@data = @selected_emitters[i];
 				data.shift_layer(mouse.scroll, script.alt);
+				
 				selection_bounding_box.add(
-					data.aabb_x + data.aabb_x1, data.aabb_y + data.aabb_y1,
-					data.aabb_x + data.aabb_x2, data.aabb_y + data.aabb_y2);
+					data.x - data.width * 0.5, data.y - data.height * 0.5,
+					data.x + data.width * 0.5, data.y + data.height * 0.5, data.layer);
 			}
 		}
 		else if(@hovered_emitter != null)

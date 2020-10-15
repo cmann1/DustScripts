@@ -112,6 +112,7 @@ class PropTool : Tool
 		set_icon('script', 'icon_prop_tool', 33, 33);
 		
 		@mouse = @script.mouse;
+		@selection_bounding_box.script = script;
 	}
 	
 	void on_init() override
@@ -657,12 +658,17 @@ class PropTool : Tool
 			@bounding_box = prop_data;
 		}
 		
+		selection_angle = 0;
+		update_selection_bounds();
+		update_selection_layer();
+		
 		if(@bounding_box != null)
 		{
 			script.show_layer_sublayer_overlay(bounding_box, prop_data.prop.layer(), prop_data.prop.sub_layer());
 		}
 		else if(@prop_data != null)
 		{
+			selection_bounding_box.layer = selection_layer;
 			script.show_layer_sublayer_overlay(@selection_bounding_box, prop_data.prop.layer(), prop_data.prop.sub_layer());
 		}
 		
@@ -670,10 +676,6 @@ class PropTool : Tool
 		{
 			toolbar.show_prop_info(hovered_prop);
 		}
-		
-		selection_angle = 0;
-		update_selection_bounds();
-		update_selection_layer();
 	}
 	
 	private void state_moving()

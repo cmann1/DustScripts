@@ -61,24 +61,12 @@ abstract class SelectableData : IWorldBoundingBox
 	
 	// IWorldBoundingBox
 	
-	float get_world_x1() override
+	void get_bounding_box_world(float &out x1, float &out y1, float &out x2, float &out y2) override
 	{
-		return aabb_x + aabb_x1;
-	}
-	
-	float get_world_y1() override
-	{
-		return aabb_y + aabb_y1;
-	}
-	
-	float get_world_x2() override
-	{
-		return aabb_x + aabb_x2;
-	}
-	
-	float get_world_y2() override
-	{
-		return aabb_y + aabb_y2;
+		x1 = aabb_x + aabb_x1;
+		y1 = aabb_y + aabb_y1;
+		x2 = aabb_x + aabb_x2;
+		y2 = aabb_y + aabb_y2;
 	}
 	
 }

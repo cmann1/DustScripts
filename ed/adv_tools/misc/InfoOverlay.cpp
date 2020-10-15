@@ -123,10 +123,7 @@ class InfoOverlay
 	{
 		if(@target != null)
 		{
-			this.x1 = target.get_world_x1();
-			this.y1 = target.get_world_y1();
-			this.x2 = target.get_world_x2();
-			this.y2 = target.get_world_y2();
+			target.get_bounding_box_world(this.x1, this.y1, this.x2, this.y2);
 		}
 		
 		float x1, y1, x2, y2;

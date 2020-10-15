@@ -1,9 +1,6 @@
 interface IWorldBoundingBox
 {
 	
-	float get_world_x1();
-	float get_world_y1();
-	float get_world_x2();
-	float get_world_y2();
+	void get_bounding_box_world(float &out x1, float &out y1, float &out x2, float &out y2);
 	
 }
