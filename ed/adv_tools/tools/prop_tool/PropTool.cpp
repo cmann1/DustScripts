@@ -12,6 +12,8 @@
 #include 'PropData.cpp';
 #include 'PropToolToolbar.cpp';
 #include 'PropsClipboardData.cpp';
+#include 'PropExportType.cpp';
+#include 'PropToolExporter.cpp';
 
 const string PROP_TOOL_SPRITES_BASE = SPRITES_BASE + 'prop_tool/';
 const string EMBED_spr_icon_prop_tool = SPRITES_BASE + 'icon_prop_tool.png';
@@ -87,6 +89,7 @@ class PropTool : Tool
 	BoolSetting@ custom_anchor_lock;
 	BoolSetting@ show_selection;
 	BoolSetting@ show_info;
+	IntSetting@ export_type;
 	
 	BoolSetting@ pick_ignore_holes;
 	FloatSetting@ pick_radius;
@@ -126,6 +129,8 @@ class PropTool : Tool
 		
 		@pick_ignore_holes	= script.get_bool(this, 'pick_ignore_holes', true);
 		@pick_radius		= script.get_float(this, 'pick_radius', 2);
+		
+		@export_type		= script.get_int(this, 'export_type', PropExportType::SpriteBatch);
 		
 		update_alignments_from_origin();
 	}
@@ -1807,4 +1812,22 @@ class PropTool : Tool
 		return has_custom_anchor;
 	}
 	
+	void export_selected_props(const PropExportType type)	
+	{
+		if(selected_props_count == 0)
+			return;
+		
+		const float origin_x = has_custom_anchor ? custom_anchor_x : selection_x;
+		const float origin_y = has_custom_anchor ? custom_anchor_y : selection_y;
+		
+		switch(type)
+		{
+			case PropExportType::SpriteBatch:
+				PropToolExporter::sprite_batch(@selected_props, selected_props_count, origin_x, origin_y);
+				break;
+			case PropExportType::SpriteGroup:
+				PropToolExporter::sprite_group(@selected_props, selected_props_count, origin_x, origin_y);
+				break;
+		}
+	}
 }

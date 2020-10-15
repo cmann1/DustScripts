@@ -1,7 +1,10 @@
+#include '../../../../lib/ui3/elements/extra/PopupButton.cpp';
 #include '../../../../lib/ui3/elements/extra/SelectButton.cpp';
+#include '../../../../lib/ui3/elements/Select.cpp';
 #include '../../../../lib/ui3/elements/Toolbar.cpp';
 #include '../../../../lib/ui3/elements/NumberSlider.cpp';
 #include '../../../../lib/ui3/layouts/GridLayout.cpp';
+#include 'PropExportType.cpp';
 
 const string EMBED_spr_origin_centre			= PROP_TOOL_SPRITES_BASE + 'origin_centre.png';
 const string EMBED_spr_origin_top				= PROP_TOOL_SPRITES_BASE + 'origin_top.png';
@@ -16,6 +19,7 @@ const string EMBED_spr_prop_tool_dist_left			= PROP_TOOL_SPRITES_BASE + 'prop_to
 const string EMBED_spr_prop_tool_show_info			= PROP_TOOL_SPRITES_BASE + 'prop_tool_show_info.png';
 const string EMBED_spr_prop_tool_show_selection		= PROP_TOOL_SPRITES_BASE + 'prop_tool_show_selection.png';
 const string EMBED_spr_prop_tool_tiles_blocking		= PROP_TOOL_SPRITES_BASE + 'prop_tool_tiles_blocking.png';
+const string EMBED_spr_prop_tool_export				= PROP_TOOL_SPRITES_BASE + 'prop_tool_export.png';
 
 class PropToolToolbar
 {
@@ -47,6 +51,9 @@ class PropToolToolbar
 	private PopupOptions@ distribute_tooltip;
 	private PopupOptions@ distribute_popup;
 	
+	private PopupButton@ export_button;
+	private Select@ export_type_select;
+	
 	// Settings
 	
 	private BoolSetting@ pick_through_tiles;
@@ -55,6 +62,7 @@ class PropToolToolbar
 	private BoolSetting@ custom_anchor_lock;
 	private BoolSetting@ show_selection;
 	private BoolSetting@ show_info;
+	private IntSetting@ export_type;
 	
 	void build_sprites(message@ msg)
 	{
@@ -71,6 +79,7 @@ class PropToolToolbar
 		build_sprite(msg, 'prop_tool_show_info');
 		build_sprite(msg, 'prop_tool_show_selection');
 		build_sprite(msg, 'prop_tool_tiles_blocking');
+		build_sprite(msg, 'prop_tool_export');
 	}
 	
 	void show(AdvToolScript@ script, PropTool@ tool)
@@ -100,6 +109,7 @@ class PropToolToolbar
 		@custom_anchor_lock	= @tool.custom_anchor_lock;
 		@show_selection		= @tool.show_selection;
 		@show_info			= @tool.show_info;
+		@export_type		= @tool.export_type;
 	}
 	
 	private void create_ui()
@@ -237,6 +247,34 @@ class PropToolToolbar
 		button.selected = show_info.value;
 		@button.tooltip = PopupOptions(ui, 'Show prop info');
 		button.mouse_click.on(button_click);
+		
+		// Export button
+		
+		@export_button = PopupButton(ui, 'script', 'prop_tool_export', Settings::IconSize, Settings::IconSize);
+		@export_button.tooltip = PopupOptions(ui, 'Export');
+		toolbar.add(export_button);
+		
+		Container@ export_contents = Container(ui);
+		
+		@export_type_select = Select(ui);
+		export_type_select.add_value('0', 'SpriteBatch');
+		export_type_select.add_value('1', 'SpriteGroup');
+		export_type_select.width = 160;
+		export_type_select.selected_index = export_type.value == PropExportType::SpriteBatch ? 0 : 1;
+		export_type_select.change.on(EventCallback(on_export_type_change));
+		export_contents.add_child(export_type_select);
+		
+		@button = Button(ui, 'Export');
+		button.name = 'export';
+		button.fit_to_contents();
+		button.x = export_type_select.x + export_type_select.width - button.width;
+		button.y = export_type_select.y + export_type_select.height + style.spacing;
+		button.mouse_click.on(button_click);
+		export_contents.add_child(button);
+		
+		export_contents.fit_to_contents(true);
+		@export_button.popup.content_element = export_contents;
+		export_button.popup.padding = style.spacing;
 		
 		// Info popup
 		
@@ -380,6 +418,7 @@ class PropToolToolbar
 	{
 		align_button.disabled = selected_props_count < 2;
 		distribute_button.disabled = selected_props_count < 3;
+		export_button.disabled = selected_props_count == 0;
 	}
 	
 	private AlignmentEdge alignment_from_name(const string name)
@@ -457,6 +496,11 @@ class PropToolToolbar
 			distribute_button.selected = true;
 			distribute_button.selectable = true;
 			script.ui.show_tooltip(distribute_popup, distribute_button);
+		}
+		else if(name == 'export')
+		{
+			tool.export_selected_props(PropExportType(export_type.value));
+			export_button.close();
 		}
 	}
 	
@@ -538,6 +582,13 @@ class PropToolToolbar
 	private void on_distribute_button_click(EventInfo@ event)
 	{
 		tool.distribute(alignment_from_name(event.target.name));
+	}
+	
+	// Export
+	
+	private void on_export_type_change(EventInfo@ event)
+	{
+		export_type.value = export_type_select.selected_index;
 	}
 	
 }
