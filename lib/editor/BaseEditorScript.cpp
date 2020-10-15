@@ -31,6 +31,7 @@ class BaseEditorScript
 	float ed_handle_size;
 	float ed_default_thickness = 1;
 	bool ed_disable_handles;
+	int ed_index = 0;
 	int ed_secondary_index = -1;
 	int ed_box_handle_index = -1;
 	
