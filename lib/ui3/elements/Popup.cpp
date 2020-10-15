@@ -176,12 +176,32 @@ class Popup : SingleContainer, IStepHandler
 		}
 		else if(_options.hide_type == PopupHideType::MouseDownOutside)
 		{
+			// Hide if the mouse is pressed and is not inside this popup, ont of its children, or its target
 			if(
 				(ui.mouse.primary_press || _options.any_mouse_down_button && (ui.mouse.left_press || ui.mouse.middle_press || ui.mouse.right_press)) &&
-				!check_mouse() && (@_target == null || !_target.check_mouse()))
+				!check_mouse() && (@_target == null || !_target.check_mouse()) &&
+				(@ui.mouse_over_element == null || !contains(ui.mouse_over_element))
+			)
 			{
-				active = false;
-				_force_hide = true;
+				bool hide = true;
+				
+				// Check if the clicked element is inside of another popup that is targeting one of this popup's children
+				// If it is, do not close
+				if(@ui.mouse_over_element != null)
+				{
+					Popup@ e = cast<Popup@>(ui.mouse_over_element.find_closest(Popup::TYPE_NAME));
+					
+					if(@e != null && contains(e._target))
+					{
+						hide = false;
+					}
+				}
+				
+				if(hide)
+				{
+					active = false;
+					_force_hide = true;
+				}
 			}
 		}
 		
