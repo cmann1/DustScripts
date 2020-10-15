@@ -1001,11 +1001,16 @@ class PropTool : Tool
 	private void show_custom_anchor_info()
 	{
 		float x, y;
-		script.transform(custom_anchor_x, custom_anchor_y, custom_anchor_layer, 22, x, y);
+		script.transform_size(5 / script.zoom, 5 / script.zoom, 22, custom_anchor_layer, x, y);
+		
+		selection_bounding_box.layer = custom_anchor_layer;
+		selection_bounding_box.x1 = custom_anchor_x - x;
+		selection_bounding_box.y1 = custom_anchor_y - y;
+		selection_bounding_box.x2 = custom_anchor_x + x;
+		selection_bounding_box.y2 = custom_anchor_y + y;
 		
 		script.info_overlay.show(
-			x - 5 / script.zoom, y - 5 / script.zoom,
-			x + 5 / script.zoom, y + 5 / script.zoom,
+			selection_bounding_box,
 			'Custom Anchor Layer: ' + custom_anchor_layer, 0.75);
 	}
 	
