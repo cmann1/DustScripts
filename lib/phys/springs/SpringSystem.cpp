@@ -59,6 +59,14 @@ class SpringSystem
 		return particle;
 	}
 	
+	Particle@ add_particle(Particle@ p)
+	{
+		particles.insertLast(p);
+		particle_count++;
+		
+		return p;
+	}
+	
 	Constraint@ add_constraint(Constraint@ constraint)
 	{
 		constraints.insertLast(constraint);
@@ -89,6 +97,28 @@ class SpringSystem
 		constraint_count++;
 		
 		return constraint;
+	}
+	
+	void remove_particle(Particle@ particle)
+	{
+		const int index = particles.findByRef(particle);
+		
+		if(index == -1)
+			return;
+		
+		@particles[index] = @particles[particle_count - 1];
+		particles.resize(--particle_count);
+	}
+	
+	void remove_constraint(Constraint@ constraint)
+	{
+		const int index = constraints.findByRef(constraint);
+		
+		if(index == -1)
+			return;
+		
+		@constraints[index] = @constraints[constraint_count - 1];
+		constraints.resize(--constraint_count);
 	}
 	
 	void step()
@@ -125,6 +155,28 @@ class SpringSystem
 			{
 				constraints[j].resolve();
 			}
+		}
+	}
+	
+	void resolve_constraints(const int constraint_iterations=4)
+	{
+		for(int i = 0; i < constraint_iterations; i++)
+		{
+			for(int j = 0; j < constraint_count; j++)
+			{
+				constraints[j].resolve();
+			}
+		}
+	}
+	
+	void clear_particle_velocities()
+	{
+		for(int i = 0; i < particle_count; i++)
+		{
+			Particle@ particle = particles[i];
+			
+			particle.prev_x = particle.x;
+			particle.prev_y = particle.y;
 		}
 	}
 	

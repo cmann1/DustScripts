@@ -2,6 +2,7 @@
 
 class DistanceConstraint : Constraint
 {
+	
 	Particle@ particle1;
 	Particle@ particle2;
 	float rest_length;
