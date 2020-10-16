@@ -26,32 +26,17 @@ Once added to a map and compiled, left click the script name to save it as a pre
 2. Open the script tab in the editor.
 3. Click the text box, type **ed/prop-path.cpp** and hit enter
 
-### Props (pp.cpp)
-The main script has a utility for selecting and outputting code that can be used to draw them inside of a script.
-- **PropMover** - A trigger that can be used to move props between layers and sub layers
+### AdvTools
+Combines and improves some of the old editor scripts using the new editor api.
+Currently both the emitter (**em.cpp**) and prop (**pp.cpp**) have been removed.  
+See [this map](https://www.dropbox.com/s/15mq10gethutkml/__AdvTools?dl=0) for an overview of everything it can do.  
+Compiling as an editor plugin is recommended.
 
 ### Tiles (t.cpp)
 - **CopyTileEdges** - Copies only tiles with one or more solid edges to the target layer.
 - **MoveTiles** - Move or copy tiles to the target layer.
 - **SetTileSprites** - Sets all tiles to the target sprite set and palette
 - **MakeTilesInvisible** - Makes tiles invisible - not sure this is useful because invisible tiles are removed when exiting play mode or a checkpoint is loaded
-
-### Emitters
-- **em.cpp** - Script triggers:
-    - **SetEmitterId** - allows setting emitter ids.
-    - **SetEmitterSubLayer** - allows setting emitter sub layers.
-    - **SetEmitterRotation** - allows setting emitter rotation.
-- **emitters/main.cpp** - Direct editing of emitters using the mouse:
-    - **Move**: Left mouse
-    - **Resize**: Left mouse corner handles.
-    - **Adjust sub layer**: Mouse wheel while dragging.
-    - **Adjust layer**: Middle mouse while dragging to toggle between changing sub layers and layers.
-    - **Rotate**: Middle mouse.
-    - **Delete**: Right mouse while dragging.
-    - **Properties:**
-        - **enabled:** Turn the script on and off.
-        - **parallax_hitbox:** Renders the position of emitters on parallax layers - useful for finding emitters if you need to select it with the normal emitter tool. Can be turned on always or only when the mouse is over an emitter.
-        - **parallax_lines:** Renders lines from the real emitter position to the parallax position. Might be helpful for locating for emitters in the lower backdrop layers.
 
 ### Edge Brush (edge-brush/main.cpp)
 ##### Basic usage:
