@@ -14,6 +14,8 @@ class MessageBroadcaster : trigger_base, callback_base, EnterExitTrigger
 	[text] bool once	= false;
 	/// If true the message won't broadcast when an entity enters if there is already another entity inside of the trigger area.
 	[text] bool group	= false;
+	/// If this is not zero, the message will be sent to the entity with this id instead of a global broadcast_message
+	[entity] int entity_id;
 	/// The id of the message that will be broadcast.
 	[text] string id;
 	/// If not empty, an int will be set on the message when broadcast.
@@ -78,7 +80,16 @@ class MessageBroadcaster : trigger_base, callback_base, EnterExitTrigger
 			msg.set_int(key, value);
 		}
 		
-		broadcast_message(id, msg);
+		entity@ e = entity_id != 0 ? entity_by_id(entity_id) : null;
+		
+		if(@e != null)
+		{
+			e.send_message(id, msg);
+		}
+		else
+		{
+			broadcast_message(id, msg);
+		}
 		
 		if(once)
 		{
