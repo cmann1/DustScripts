@@ -42,6 +42,8 @@ class BaseEditorScript
 	Line ed_line1;
 	Line ed_line2;
 	
+	bool ed_space;
+	bool ed_mouse_in_gui;
 	bool ed_press_control;
 	bool ed_press_shift;
 	bool ed_press_alt;
@@ -118,7 +120,9 @@ class BaseEditorScript
 		ed_view_y2 = max(view1_y + view1_h, view2_y + view2_h);
 		
 //		const bool can_press = @editor == null || !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space) && editor.editor_tab() == 'Triggers';
-		const bool can_press = !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space) && (editor.editor_tab() == 'Triggers' || editor.editor_tab() == 'Scripts');
+		ed_space = editor.key_check_gvb(GVB::Space);
+		ed_mouse_in_gui = editor.mouse_in_gui();
+		const bool can_press = !ed_mouse_in_gui && !ed_space && (editor.editor_tab() == 'Triggers' || editor.editor_tab() == 'Scripts');
 		
 		ed_rel_x = 0;
 		ed_rel_y = 0;
@@ -128,6 +132,7 @@ class BaseEditorScript
 		ed_circle_handles_count = 0;
 		ed_arrows_count = 0;
 		ed_texts_count = 0;
+		
 		
 		mouse.step();
 		
