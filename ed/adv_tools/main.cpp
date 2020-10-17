@@ -16,6 +16,7 @@
 
 #include '../../lib/ui3/UI.cpp';
 #include '../../lib/ui3/elements/Toolbar.cpp';
+#include '../../lib/ui3/popups/PopupOptions.cpp';
 #include '../../lib/ui3/window_manager/WindowManager.cpp';
 
 #include 'handles/Handles.cpp';
@@ -60,6 +61,7 @@ class AdvToolScript
 	bool return_press, escape_press;
 	bool space_on_press;
 	bool pressed_in_scene;
+	bool shortcut_keys_enabled = true;
 	
 	InfoOverlay info_overlay;
 	
@@ -86,6 +88,8 @@ class AdvToolScript
 	private dictionary tool_groups_map;
 	private dictionary tools_map;
 	private ButtonGroup@ button_group = ButtonGroup(ui, false);
+	
+	private PopupOptions@ shortcut_keys_enabled_popup;
 	
 	private string selected_tab;
 	private Tool@ selected_tool;
@@ -221,6 +225,8 @@ class AdvToolScript
 		ui.after_layout.on(on_after_layout_delegate);
 		
 		ui.screen_resize.on(EventCallback(on_screen_resize));
+		
+		update_shortcut_keys_enabled_popup();
 	}
 	
 	private void initialise_tools()
@@ -321,7 +327,7 @@ class AdvToolScript
 			persist_state();
 		}
 		
-		if(@ui.focus == null)
+		if(@ui.focus == null && shortcut_keys_enabled)
 		{
 			if(shift && editor.key_check_pressed_vk(VK::W))
 			{
@@ -376,6 +382,15 @@ class AdvToolScript
 	
 	private void handle_keyboard()
 	{
+		if(editor.key_check_pressed_vk(VK::Pause))
+		{
+			shortcut_keys_enabled = !shortcut_keys_enabled;
+			update_shortcut_keys_enabled_popup();
+		}
+		
+		if(!shortcut_keys_enabled)
+			return;
+		
 		if(pressed_key != -1)
 		{
 			pressed_key_active = false;
@@ -843,6 +858,27 @@ class AdvToolScript
 //		toolbar.y = ui.region_height - toolbar.height;
 		toolbar.y = editor.hide_gui() ? 0 : 60;
 //		toolbar.y = 0;
+	}
+	
+	private void update_shortcut_keys_enabled_popup()
+	{
+		if(shortcut_keys_enabled && @shortcut_keys_enabled_popup == null)
+			return;
+		
+		if(@shortcut_keys_enabled_popup == null)
+		{
+			@shortcut_keys_enabled_popup = PopupOptions(ui, '', false, PopupPosition::Below, PopupTriggerType::Manual, PopupHideType::Manual);
+		}
+		
+		if(!shortcut_keys_enabled)
+		{
+			shortcut_keys_enabled_popup.content_string = shortcut_keys_enabled ? 'Shortcut Keys Enabled' : 'Shortcut Keys Disabled';
+			ui.show_tooltip(shortcut_keys_enabled_popup, toolbar);
+		}
+		else
+		{
+			ui.hide_tooltip(shortcut_keys_enabled_popup);
+		}
 	}
 	
 	void persist_state()
