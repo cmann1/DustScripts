@@ -189,3 +189,18 @@ void closest_point_to_rect(const float x, const float y, const float x1, const f
 		out_y = new_y;
 	}
 }
+
+bool point_in_triangle(const float x, const float y, const float x1, const float y1, const float x2, const float y2, const float x3, const float y3)
+{
+	const float s = y1 * x3 - x1 * y3 + (y3 - y1) * x + (x1 - x3) * y;
+	const float t = x1 * y2 - y1 * x2 + (y1 - y2) * x + (x2 - x1) * y;
+
+	if((s < 0) != (t < 0))
+		return false;
+
+	const float a = -y2 * x3 + y1 * (x3 - x2) + x1 * (y2 - y3) + x2 * y3;
+
+	return a < 0
+		? (s <= 0 && s + t >= a)
+		: (s >= 0 && s + t <= a);
+}
