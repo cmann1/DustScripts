@@ -210,7 +210,7 @@ class BaseEditorScript
 	//
 	
 	EditorMouseResult ed_handle(float x, float y, IEditable@ ref, const int index, const int layer=19,
-		const uint colour=0xffaaaa44, const float rotation=45)
+		const uint colour=0xffaaaa44, const float rotation=45, const float size=-1)
 	{
 		if(ed_disable_handles)
 			return None;
@@ -236,6 +236,7 @@ class BaseEditorScript
 		handle.layer = layer;
 		handle.colour = colour;
 		handle.rotation = rotation;
+		handle.size = size;
 		handle.circle = false;
 		@ed_last_handle = @handle;
 		
