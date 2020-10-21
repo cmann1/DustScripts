@@ -100,6 +100,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 	
 	private bool is_mouse_over;
 	private bool _mouse_enabled = true;
+	private bool mouse_down_inside_ui = false;
 	
 	/// Used for processing element layouts
 	private ElementStack element_stack;
@@ -620,7 +621,18 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		
 		debug_draw_active = false;
 		
-		if(block_editor_input && _hud && _has_editor && @_mouse_over_element != null)
+		// If the mouse is held down and drag over the UI, don't cancel built-in mouse behaviour
+		// Do this so the e.g. Moving over the UI while dragging a trigger won't cancel the drag.
+		if(mouse.primary_press)
+		{
+			mouse_down_inside_ui = @_mouse_over_element != null;
+		}
+		else if(mouse.primary_release)
+		{
+			mouse_down_inside_ui = true;
+		}
+		
+		if(block_editor_input && mouse_down_inside_ui && _hud && _has_editor && @_mouse_over_element != null)
 		{
 			editor_api::block_all_mouse(_editor);
 		}
