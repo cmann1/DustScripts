@@ -381,6 +381,8 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		dummy_overlay.visible = true;
 		dummy_overlay.force_calculate_bounds();
 		
+		popup.interactable = !script.space;
+		
 		script.ui.move_to_back(dummy_overlay);
 		script.ui.show_tooltip(popup, dummy_overlay);
 	}
