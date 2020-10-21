@@ -670,6 +670,11 @@ class EmitterTool : Tool
 		data.do_handles(dragged_handle);
 		data.hovered = true;
 		
+		if(selected_emitters_count == 1)
+		{
+			rotation.value = data.rotation;
+		}
+		
 		properties_window.update_rotation(data.rotation);
 	}
 	
