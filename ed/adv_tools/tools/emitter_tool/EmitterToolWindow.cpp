@@ -1,4 +1,5 @@
 #include '../../../../lib/ui3/elements/extra/SelectButton.cpp';
+#include '../../../../lib/ui3/elements/Label.cpp';
 #include '../../../../lib/ui3/elements/LayerButton.cpp';
 #include '../../../../lib/ui3/elements/RotationWheel.cpp';
 #include '../../../../lib/ui3/elements/Select.cpp';
@@ -16,6 +17,7 @@ class EmitterToolWindow
 	private Select@ emitter_id_select;
 	private LayerButton@ layer_button;
 	private RotationWheel@ rotation_wheel;
+	private Label@ id_label;
 	
 	private SelectButton@ other_ids_button;
 	private ListView@ other_ids_list_view;
@@ -123,6 +125,22 @@ class EmitterToolWindow
 		
 		layer_button.height = rotation_wheel.height;
 		
+		// Id Label
+		
+		@id_label = Label(ui, '999', true, font::ENVY_BOLD, 20);
+		id_label.colour = 0x99ffffff;
+		id_label.fit_to_contents();
+		id_label.x = other_ids_button.x - style.spacing - id_label.width;
+		id_label.y = rotation_wheel.y;
+		window.add_child(id_label);
+		
+		Label@ id_lbl = Label(ui, 'Id:', true, font::ENVY_BOLD, 20);
+		id_lbl.colour = id_label.colour;
+		id_lbl.x = id_label.x - id_label.width - style.spacing;
+		id_lbl.y = id_label.y;
+		window.add_child(id_lbl);
+		
+		
 		// Finish
 		
 		window.fit_to_contents(true);
@@ -171,6 +189,7 @@ class EmitterToolWindow
 			layer_button.layer_select.set_selected_layer(layer.value);
 			layer_button.layer_select.set_selected_sub_layer(sublayer.value);
 			rotation_wheel.degrees = rotation.value;
+			id_label.text = emitter_id.value < 0 ? '-' : emitter_id.value + '';
 		}
 		else if(selected_emitters_count == 1)
 		{
@@ -187,6 +206,7 @@ class EmitterToolWindow
 			layer_button.layer_select.set_selected_layer(layer.value);
 			layer_button.layer_select.set_selected_sub_layer(sublayer.value);
 			rotation_wheel.degrees = rotation.value;
+			id_label.text = emitter_id.value < 0 ? '-' : emitter_id.value + '';
 		}
 		else
 		{
@@ -226,9 +246,15 @@ class EmitterToolWindow
 			}
 			
 			if(emitter_id != -1)
+			{
 				emitter_id_select.selected_value = get_emitter_name(emitter_id);
+				id_label.text = emitter_id + '';
+			}
 			else
+			{
 				emitter_id_select.selected_index = -1;
+				id_label.text = '-';
+			}
 			
 			if(layer != -1)
 				layer_button.layer_select.set_selected_layer(layer);
