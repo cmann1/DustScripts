@@ -346,7 +346,7 @@ class EmitterTool : Tool
 		
 		// Deselect on right mouse in empty space
 		
-		if(script.mouse_in_scene && mouse.right_press && !script.shift && @hovered_emitter == null)
+		if(!force_create && script.mouse_in_scene && mouse.right_press && !script.shift && @hovered_emitter == null)
 		{
 			select_none();
 		}
@@ -400,7 +400,7 @@ class EmitterTool : Tool
 		
 		// Select emitter on click
 		
-		if(script.mouse_in_scene && mouse.left_press && @hovered_emitter != null)
+		if(!force_create && script.mouse_in_scene && mouse.left_press && @hovered_emitter != null)
 		{
 			const SelectAction action = script.shift || (hovered_emitter.selected && !script.ctrl)
 				? SelectAction::Add
