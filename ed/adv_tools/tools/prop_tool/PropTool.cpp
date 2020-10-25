@@ -526,7 +526,7 @@ class PropTool : Tool
 		
 		if(script.scene_focus && script.ctrl && script.editor.key_check_pressed_vk(VK::V))
 		{
-			paste(script.shift);
+			paste(script.shift, script.alt);
 		}
 		
 		clear_highlighted_props();
@@ -1269,7 +1269,7 @@ class PropTool : Tool
 		}
 	}
 	
-	private void paste(const bool into_place=false)
+	private void paste(const bool into_place=false, const bool tile_aligned=false)
 	{
 		PropsClipboardData@ props_clipboard = @script.props_clipboard;
 		array<PropClipboardData>@ props = @props_clipboard.props;
@@ -1291,6 +1291,12 @@ class PropTool : Tool
 			script.transform(mouse.x, mouse.y, 22, props_clipboard.layer, mx, my);
 			x = mx - props_clipboard.x1 - (props_clipboard.x2 - props_clipboard.x1) * 0.5;
 			y = my - props_clipboard.y1 - (props_clipboard.y2 - props_clipboard.y1) * 0.5;
+			
+			if(tile_aligned)
+			{
+				x = floor(x / 48) * 48 + (props_clipboard.x - floor(props_clipboard.x / 48) * 48);
+				y = floor(y / 48) * 48 + (props_clipboard.y - floor(props_clipboard.y / 48) * 48);
+			}
 		}
 		
 		select_none();
