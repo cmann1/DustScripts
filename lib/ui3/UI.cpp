@@ -879,6 +879,11 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		colour_picker_window.hide();
 	}
 	
+	ColourPicker@ colour_picker_instance
+	{
+		get { return colour_picker; }
+	}
+	
 	private void on_colour_picker_change(EventInfo@ event)
 	{
 		if(@on_colour_picker_change_callback != null)

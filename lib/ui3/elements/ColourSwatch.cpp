@@ -49,7 +49,7 @@ class ColourSwatch : BasicColourSwatch
 		}
 	}
 	
-	/// Shwo the alpha inputs or not
+	/// Show the alpha inputs or not
 	bool show_alpha
 	{
 		get const { return _show_alpha; }
@@ -65,6 +65,44 @@ class ColourSwatch : BasicColourSwatch
 				_mouse_click(null);
 			}
 		}
+	}
+	
+	// ///////////////////////////////////////////////////////////////////
+	// Methods
+	// ///////////////////////////////////////////////////////////////////
+	
+	/// Show the colour picker popup
+	void choose()
+	{
+		if(selected)
+			return;
+		
+		selected = true;
+		
+		ui.show_colour_picker(_colour,
+			on_colour_picker_change_delegate, on_colour_picker_change_delegate,
+			_show_alpha);
+	}
+	
+	/// Hide the colour picker popup
+	void hide(const bool accept=true)
+	{
+		if(!selected)
+			return;
+		
+		_colour = accept
+			? ui.colour_picker_instance.colour
+			: ui.colour_picker_instance.previous_colour;
+		background_colour = _colour;
+		
+		selected = false;
+		ui._dispatch_event(@change, accept ? EventType::ACCEPT : EventType::CANCEL, this);
+	}
+	
+	/// Is the colour picker popup currently open
+	bool open
+	{
+		get const { return selected; }
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -84,29 +122,25 @@ class ColourSwatch : BasicColourSwatch
 	
 	void _mouse_click(EventInfo@ event) override
 	{
-		selected = true;
-		
-		ui.show_colour_picker(_colour,
-			on_colour_picker_change_delegate, on_colour_picker_change_delegate,
-			_show_alpha);
+		choose();
 	}
 	
 	void on_colour_picker_change(EventInfo@ event)
 	{
-		ColourPicker@ colour_picker = cast<ColourPicker@>(event.target);
-		
-		_colour = event.type == EventType::CANCEL
-			? colour_picker.previous_colour
-			: colour_picker.colour;
-		background_colour = _colour;
-		
-		if(event.type != EventType::CHANGE)
+		if(event.type == EventType::CHANGE)
 		{
-			selected = false;
+			_colour = event.type == EventType::CANCEL
+				? ui.colour_picker_instance.previous_colour
+				: ui.colour_picker_instance.colour;
+			background_colour = _colour;
+			
+			@event.target = this;
+			change.dispatch(event);
 		}
-		
-		@event.target = this;
-		change.dispatch(event);
+		else
+		{
+			hide(event.type == EventType::ACCEPT);
+		}
 	}
 	
 }
