@@ -336,10 +336,10 @@ class PropData : SelectableData
 		start_drag();
 	}
 	
-	void do_scale(const float scale)
+	void do_scale(const float scale_x, const float scale_y)
 	{
-		prop_scale_x = drag_start_scale_x * scale;
-		prop_scale_y = drag_start_scale_y * scale;
+		prop_scale_x = drag_start_scale_x * scale_x;
+		prop_scale_y = drag_start_scale_y * scale_y;
 		
 		if(prop_scale_x == 0)
 			prop_scale_x = 0.001;
@@ -350,7 +350,7 @@ class PropData : SelectableData
 		prop.scale_y(prop_scale_y);
 		
 		float ox, oy;
-		rotate(prop_offset_x * scale, prop_offset_y * scale, prop.rotation() * DEG2RAD, ox, oy);
+		rotate(prop_offset_x * scale_x, prop_offset_y * scale_y, prop.rotation() * DEG2RAD, ox, oy);
 		
 		x = anchor_x - ox;
 		y = anchor_y - oy;

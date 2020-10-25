@@ -393,6 +393,7 @@ class PropTool : Tool
 		}
 		
 		// Move with arrow keys
+		// Flip
 		
 		if(script.scene_focus)
 		{
@@ -411,6 +412,14 @@ class PropTool : Tool
 			else if(script.key_repeat_gvb(GVB::DownArrow))
 			{
 				shift_props(0, script.ctrl ? 20 : script.shift ? 10 : 1);
+			}
+			else if(script.editor.key_check_pressed_gvb(GVB::BracketOpen))
+			{
+				flip_props(true, false);
+			}
+			else if(script.editor.key_check_pressed_gvb(GVB::BracketClose))
+			{
+				flip_props(false, true);
 			}
 		}
 		
@@ -611,7 +620,6 @@ class PropTool : Tool
 	{
 		const float anchor_x = has_custom_anchor ? custom_anchor_x : selection_x;
 		const float anchor_y = has_custom_anchor ? custom_anchor_y : selection_y;
-		const int anchor_layer = has_custom_anchor ? custom_anchor_layer : selection_layer;
 		
 		for(int i = 0; i < selected_props_count; i++)
 		{
@@ -819,7 +827,6 @@ class PropTool : Tool
 		
 		const float anchor_x = has_custom_anchor ? custom_anchor_x : selection_x;
 		const float anchor_y = has_custom_anchor ? custom_anchor_y : selection_y;
-		const int anchor_layer = has_custom_anchor ? custom_anchor_layer : selection_layer;
 		
 		float x, y;
 		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
@@ -835,7 +842,7 @@ class PropTool : Tool
 		
 		for(int i = 0; i < selected_props_count; i++)
 		{
-			selected_props[i].do_scale(scale);
+			selected_props[i].do_scale(scale, scale);
 		}
 		
 		if(has_custom_anchor)
@@ -1050,6 +1057,35 @@ class PropTool : Tool
 		selection_y += dy;
 	}
 	
+	private void flip_props(const bool x, const bool y)
+	{
+		const float anchor_x = has_custom_anchor ? custom_anchor_x : selection_x;
+		const float anchor_y = has_custom_anchor ? custom_anchor_y : selection_y;
+		
+		if(x)
+		{
+			for(int i = 0; i < selected_props_count; i++)
+			{
+				PropData@ data = @selected_props[i];
+				data.start_scale(anchor_x, anchor_y);
+				data.do_scale(-1, 1);
+				data.stop_scale(false);
+			}
+		}
+		else
+		{
+			for(int i = 0; i < selected_props_count; i++)
+			{
+				PropData@ data = @selected_props[i];
+				data.start_scale(anchor_x, anchor_y);
+				data.do_scale(1, -1);
+				data.stop_scale(false);
+			}
+		}
+		
+		update_selection_bounds(true, selection_x, selection_y);
+	}
+	
 	// //////////////////////////////////////////////////////////
 	// Selection
 	// //////////////////////////////////////////////////////////
@@ -1148,7 +1184,7 @@ class PropTool : Tool
 		select_prop(null, SelectAction::Set);
 	}
 	
-	private void update_selection_bounds()
+	private void update_selection_bounds(const bool set_origin=false, const float origin_x=0, const float origin_y=0)
 	{
 		if(selected_props_count == 0)
 			return;
@@ -1169,8 +1205,17 @@ class PropTool : Tool
 			if(prop_data.y + prop_data.local_y2 > selection_y2) selection_y2 = prop_data.y + prop_data.local_y2;
 		}
 		
-		selection_x = selected_props_count > 1 ? selection_x1 + (selection_x2 - selection_x1) * origin_align_x : prop_data.anchor_x;
-		selection_y = selected_props_count > 1 ? selection_y1 + (selection_y2 - selection_y1) * origin_align_y : prop_data.anchor_y;
+		if(set_origin)
+		{
+			selection_x = origin_x;
+			selection_y = origin_y;
+		}
+		else
+		{
+			selection_x = selected_props_count > 1 ? selection_x1 + (selection_x2 - selection_x1) * origin_align_x : prop_data.anchor_x;
+			selection_y = selected_props_count > 1 ? selection_y1 + (selection_y2 - selection_y1) * origin_align_y : prop_data.anchor_y;
+		}
+		
 		selection_x1 -= selection_x;
 		selection_y1 -= selection_y;
 		selection_x2 -= selection_x;
@@ -1430,7 +1475,7 @@ class PropTool : Tool
 			
 			const float prop_x = p.x();
 			const float prop_y = p.y();
-			const float rotation = p.rotation() * DEG2RAD * sign(p.scale_x()) * sign(p.scale_y());
+			const float rotation = p.rotation() * DEG2RAD * (p.scale_x() >= 0 ? 1.0 : -1.0) * (p.scale_y() >= 0 ? 1.0 : -1.0);
 			const float layer_scale = p.layer() <= 5 ? script.g.layer_scale(p.layer()) : 1.0;
 			const float backdrop_scale = p.layer() <= 5 ? 2.0 : 1.0;
 			const float scale_x = p.scale_x() / layer_scale * backdrop_scale;
