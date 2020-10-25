@@ -244,7 +244,7 @@ class PropData : SelectableData
 		init_anchors();
 	}
 	
-	private void init_anchors()
+	void init_anchors()
 	{
 		prop_offset_x = (prop_left + prop_width * align_x) * prop_scale_x  / layer_scale * backdrop_scale;
 		prop_offset_y = (prop_top  + prop_height * align_y) * prop_scale_y / layer_scale * backdrop_scale;
@@ -370,8 +370,8 @@ class PropData : SelectableData
 		
 		align_x = tool.origin_align_x;
 		align_y = tool.origin_align_y;
-		init_anchors();
 		
+		init_anchors();
 		update();
 	}
 	

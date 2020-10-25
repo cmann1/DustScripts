@@ -20,6 +20,7 @@ const string EMBED_spr_prop_tool_show_info			= PROP_TOOL_SPRITES_BASE + 'prop_to
 const string EMBED_spr_prop_tool_show_selection		= PROP_TOOL_SPRITES_BASE + 'prop_tool_show_selection.png';
 const string EMBED_spr_prop_tool_tiles_blocking		= PROP_TOOL_SPRITES_BASE + 'prop_tool_tiles_blocking.png';
 const string EMBED_spr_prop_tool_export				= PROP_TOOL_SPRITES_BASE + 'prop_tool_export.png';
+const string EMBED_spr_prop_tool_correct			= PROP_TOOL_SPRITES_BASE + 'prop_tool_correct.png';
 
 class PropToolToolbar
 {
@@ -42,6 +43,7 @@ class PropToolToolbar
 	private PopupOptions@ origin_tooltip;
 	
 	private Button@ custom_anchor_snap_button;
+	private Button@ correct_button;
 	
 	private Button@ align_button;
 	private PopupOptions@ align_tooltip;
@@ -80,6 +82,7 @@ class PropToolToolbar
 		build_sprite(msg, 'prop_tool_show_selection');
 		build_sprite(msg, 'prop_tool_tiles_blocking');
 		build_sprite(msg, 'prop_tool_export');
+		build_sprite(msg, 'prop_tool_correct');
 	}
 	
 	void show(AdvToolScript@ script, PropTool@ tool)
@@ -195,6 +198,13 @@ class PropToolToolbar
 		@button.tooltip = PopupOptions(ui, 'Snap anchor');
 		button.mouse_click.on(button_click);
 		@custom_anchor_snap_button = button;
+		
+		// Correct
+		
+		@correct_button = toolbar.add_button('script', 'prop_tool_correct', Settings::IconSize, Settings::IconSize);
+		correct_button.name = 'correct';
+		@correct_button.tooltip = PopupOptions(ui, 'Correct values');
+		correct_button.mouse_click.on(button_click);
 		
 		// Align button
 		
@@ -492,6 +502,10 @@ class PropToolToolbar
 		else if(name == 'show_info')
 		{
 			show_info.value = button.selected;
+		}
+		else if(name == 'correct')
+		{
+			tool.correct_prop_values();
 		}
 		else if(name == 'align')
 		{

@@ -1881,4 +1881,42 @@ class PropTool : Tool
 				break;
 		}
 	}
+	
+	void correct_prop_values()
+	{
+		const float anchor_x = has_custom_anchor ? custom_anchor_x : selection_x;
+		const float anchor_y = has_custom_anchor ? custom_anchor_y : selection_y;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			PropData@ data = @selected_props[i];
+			prop@ p = data.prop;
+			
+			data.anchor_world(anchor_x, anchor_y);
+			data.set_prop_rotation(round(p.rotation()));
+			data.update();
+			data.init_anchors();
+			
+			data.start_scale(anchor_x, anchor_y);
+			puts(
+				p.scale_x(),
+				get_valid_prop_scale(p.scale_x()),
+				p.scale_x() * (get_valid_prop_scale(p.scale_x()) / p.scale_x())
+				);
+			data.do_scale(
+				get_valid_prop_scale(p.scale_x()) / p.scale_x(),
+				get_valid_prop_scale(p.scale_y()) / p.scale_y()
+			);
+			data.stop_scale(false);
+			
+			p.x(round(p.x()));
+			p.y(round(p.y()));
+			
+			data.update();
+		}
+		
+		selection_angle = 0;
+		update_selection_bounds();
+	}
+	
 }
