@@ -49,6 +49,8 @@ prop@ create_prop(uint set, uint group, uint index, float x=0, float y=0, int la
 	return p;
 }
 
+/// Due to the way scale values are stored in the dustmod map format, prop scale has a limited accuracy.
+/// Given the desired value, this function will return a valid scale.
 float get_valid_prop_scale(const float scale)
 {
 	int scale_lg = int(round(log(scale) / log(50.0) * 24.0)) + 32;
