@@ -241,11 +241,17 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		{
 			if(script.escape_press)
 			{
-				on_cancel_click(null);
+				if(!colour_swatch.open)
+				{
+					on_cancel_click(null);
+				}
 			}
 			else if(script.return_press)
 			{
-				select(null);
+				if(!colour_swatch.open)
+				{
+					select(null);
+				}
 			}
 		}
 		
