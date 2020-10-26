@@ -237,28 +237,31 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	
 	void tool_step(Tool@ tool) override
 	{
-		if(@script.ui.focus == null)
+		if(@selected_trigger != null)
 		{
-			if(script.escape_press)
+			if(@script.ui.focus == null)
 			{
-				if(!colour_swatch.open)
+				if(script.escape_press)
 				{
-					on_cancel_click(null);
+					if(!colour_swatch.open)
+					{
+						on_cancel_click(null);
+					}
+				}
+				else if(script.return_press)
+				{
+					if(!colour_swatch.open)
+					{
+						select(null);
+					}
 				}
 			}
-			else if(script.return_press)
+			
+			if(@entity_by_id(selected_trigger.id()) == null)
 			{
-				if(!colour_swatch.open)
-				{
-					select(null);
-				}
+				select(null);
+				show_edit_button(null, true);
 			}
-		}
-		
-		if(@selected_trigger != null && @entity_by_id(selected_trigger.id()) == null)
-		{
-			select(null);
-			show_edit_button(null, true);
 		}
 		
 		if(@hovered_trigger != null && @entity_by_id(hovered_trigger.id()) == null)
