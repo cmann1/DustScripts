@@ -257,7 +257,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 				}
 			}
 			
-			if(@entity_by_id(selected_trigger.id()) == null)
+			if(@selected_trigger != null && @entity_by_id(selected_trigger.id()) == null)
 			{
 				select(null);
 				show_edit_button(null, true);
