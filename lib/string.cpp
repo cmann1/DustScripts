@@ -259,6 +259,29 @@ namespace string
 		return output;
 	}
 	
+	string replace(const string str, const string search, const string replacement)
+	{
+		string output = '';
+		int start_index = 0;
+		int index;
+		const int str_size = int(str.length());
+		const int search_term_size = int(search.length());
+		
+		while(start_index < str_size && (index = str.findFirst(search, start_index)) >= 0)
+		{
+			output += str.substr(start_index, index - start_index) + replacement;
+			
+			start_index = index + search_term_size;
+		}
+		
+		if(start_index < str_size)
+		{
+			output += str.substr(start_index);
+		}
+		
+		return output;
+	}
+	
 	bool is_whitespace(const int chr)
 	{
 		return chr >= 9 && chr <= 13 || chr == 32;
