@@ -1,3 +1,4 @@
+template <class T>
 class array
 {
 	
@@ -47,6 +48,8 @@ class array
 
 	int findByRef(const T in)
 	int findByRef(uint startAt, const T in);
+  
+  T& operator[] (int i);
 	
 }
 
