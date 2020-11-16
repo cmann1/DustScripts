@@ -152,6 +152,11 @@ class Tool
 		return @this;
 	}
 	
+	void on_reselect()
+	{
+		
+	}
+	
 	bool on_before_select()
 	{
 		return true;

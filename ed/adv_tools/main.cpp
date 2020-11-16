@@ -101,6 +101,8 @@ class AdvToolScript
 	private bool pressed_key_active;
 	private int pressed_timer;
 	
+	private bool ignore_toolbar_select_event;
+	
 	//
 	
 	float view_x, view_y;
@@ -209,6 +211,7 @@ class AdvToolScript
 		toolbar.x = 400;
 		toolbar.y = 200;
 		
+		button_group.allow_reselect = true;
 		button_group.select.on(EventCallback(on_tool_button_select));
 		
 		for(uint i = 0; i < tool_groups.length(); i++)
@@ -323,7 +326,7 @@ class AdvToolScript
 		if(new_tab != selected_tab && new_tab != 'Help')
 		{
 			selected_tab = new_tab;
-			select_tool(selected_tab);
+			select_tool(selected_tab, false);
 			persist_state();
 		}
 		
@@ -457,12 +460,12 @@ class AdvToolScript
 		return cast<Tool@>(tools_map[name]);
 	}
 	
-	bool select_tool(const string name)
+	bool select_tool(const string name, const bool update_editor_tab=true)
 	{
 		if(!tools_map.exists(name))
 			return false;
 		
-		select_tool(cast<Tool@>(tools_map[name]));
+		select_tool(cast<Tool@>(tools_map[name]), update_editor_tab);
 		
 		return true;
 	}
@@ -816,10 +819,21 @@ class AdvToolScript
 	}
 	
 	/// Select the specified tool and call the relevant callbacks. Cannot be null.
-	private void select_tool(Tool@ tool)
+	private void select_tool(Tool@ tool, const bool update_editor_tab=true)
 	{
-		if(@tool == null || @tool == @selected_tool)
+		if(@tool == null)
 			return;
+		
+		if(@tool == @selected_tool)
+		{
+			if(@selected_tool != null)
+			{
+				selected_tool.on_reselect();
+			}
+			
+			do_update_editor_tab(update_editor_tab);
+			return;
+		}
 		
 		if(!tool.on_before_select())
 		{
@@ -831,25 +845,38 @@ class AdvToolScript
 			return;
 		}
 		
+		ignore_toolbar_select_event = true;
+		
 		if(@selected_tool != null)
 		{
 			selected_tool.on_deselect();
 			selected_tool.group.on_deselect();
 		}
 		
-		editor.editor_tab(tool.name);
+		@selected_tool = tool;
+		selected_tool_name = selected_tool.name;
+		do_update_editor_tab(update_editor_tab);
 		
-		if(editor.editor_tab() != tool.name)
+		selected_tool.on_select();
+		selected_tool.group.on_select();
+		ignore_toolbar_select_event = false;
+		
+		selected_tab = editor.editor_tab() != selected_tool.name
+			? 'Scripts' : selected_tool.name;
+		ui.mouse_enabled = true;
+	}
+	
+	private void do_update_editor_tab(const bool do_update)
+	{
+		if(!do_update || @selected_tool == null)
+			return;
+		
+		editor.editor_tab(selected_tool.name);
+		
+		if(editor.editor_tab() != selected_tool.name)
 		{
 			editor.editor_tab(selected_tab = 'Scripts');
 		}
-		
-		selected_tool_name = tool.name;
-		@selected_tool = tool;
-		selected_tool.on_select();
-		selected_tool.group.on_select();
-		
-		ui.mouse_enabled = true;
 	}
 	
 	private void position_toolbar()
@@ -909,6 +936,9 @@ class AdvToolScript
 	
 	private void on_tool_button_select(EventInfo@ event)
 	{
+		if(ignore_toolbar_select_event)
+			return;
+		
 		if(@event.target == null)
 			return;
 		
