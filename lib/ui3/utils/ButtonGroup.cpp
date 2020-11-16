@@ -6,6 +6,9 @@ class ButtonGroup : IGenericEventTarget
 	
 	string _name = '';
 	bool allow_deselect;
+	/// Dispatch the select event even if the button is already selected.
+	/// Will also cause the ButtonGroups select event to be fired if the button belongs to one
+	bool allow_reselect;
 	
 	Event select;
 	
@@ -78,7 +81,15 @@ class ButtonGroup : IGenericEventTarget
 			return true;
 		
 		if(!allow_deselect && @button == @_selected_button)
+		{
+			if(allow_reselect)
+			{
+				ui._event_info.reset(EventType::SELECT, @_selected_button, @this);
+				select.dispatch(ui._event_info);
+			}
+			
 			return false;
+		}
 		
 		if(selected && @button != @_selected_button && @_selected_button != null)
 		{
