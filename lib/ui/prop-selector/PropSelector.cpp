@@ -1,5 +1,6 @@
-#include '../../props.cpp';
-#include '../../props_list.cpp';
+#include '../../props/common.cpp';
+#include '../../props/Prop.cpp';
+#include '../../props/data.cpp';
 #include '../UI.cpp';
 #include '../Align.cpp';
 #include '../ScrollView.cpp';

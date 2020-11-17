@@ -1,5 +1,5 @@
 #include '../std.cpp';
-#include '../Mouse.cpp';
+#include '../input/Mouse.cpp';
 #include '../math/Vec2.cpp';
 #include '../math/Rect.cpp';
 #include 'Align.cpp';
@@ -43,6 +43,7 @@ class UI
 	UI()
 	{
 		@g = get_scene();
+    mouse.scale_hud = true;
 		
 		@text_field = create_textfield();
 		text_field.set_font('ProximaNovaReg', 26);

@@ -30,7 +30,7 @@ class Button : Element
 	void fit_to_height(float height)
 	{
 		this.height = height;
-		const float padding = max(height - icon.height, 0);
+		const float padding = max(height - icon.height, 0.0);
 		width = icon.width + padding;
 	}
 	

@@ -116,7 +116,7 @@ class ScrollView : Container
 			}
 		}
 		
-		scroll_max = max(content_size - axis1_size, 0);
+		scroll_max = max(content_size - axis1_size, 0.0);
 		
 		float scrollbarScroll = scrollbar.draw(g, rect, scroll, scroll_max, direction);
 		
