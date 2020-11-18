@@ -2,8 +2,9 @@
 #include '../../lib/math/math.cpp';
 #include '../../lib/tiles/closest_tile.cpp';
 #include '../../lib/drawing/circle.cpp';
-#include '../../lib/props.cpp';
-#include '../../lib/props_bounds.cpp';
+#include '../../lib/props/common.cpp';
+#include '../../lib/props/Prop.cpp';
+#include '../../lib/props/bounds_data.cpp';
 #include '../../lib/drawing/Sprite.cpp';
 #include '../../lib/ui/prop-selector/PropSelector.cpp';
 #include 'BrushDef.cpp';
@@ -55,6 +56,9 @@ class script
 	{
 		@g = get_scene();
 		@sprite = create_sprites();
+    
+    brushes.resize(1);
+    brushes[0].props.resize(1);
 	}
 	
 	void start()
@@ -95,7 +99,7 @@ class script
 		{
 			if(adjust_spread)
 			{
-				place_on_tiles_distance = max(0, place_on_tiles_distance + spread_adjustment);
+				place_on_tiles_distance = max(0.0, place_on_tiles_distance + spread_adjustment);
 			}
 		}
 		
@@ -388,9 +392,9 @@ class script
 			const uint on_alpha = 0xaa000000;
 			const uint off_alpha = 0x44000000;
 			const uint alpha = do_draw ? off_alpha : on_alpha;
-			const float brush_radius = @brush != null ? max(brush.spread * spread_mul, 0) : 0;
+			const float brush_radius = @brush != null ? max(brush.spread * spread_mul, 0.0) : 0;
 			const float real_radius = !place_on_tiles ? brush_radius : place_on_tiles_distance;
-			const float radius = max(real_radius, 15);
+			const float radius = max(real_radius, 15.0);
 			const float thickness = 2;
 			const uint colour = alpha | 0xffffff;
 			const uint range_colour = alpha | 0x4444ff;

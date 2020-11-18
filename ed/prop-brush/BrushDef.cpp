@@ -106,7 +106,7 @@ class BrushDef
 	
 	void adjust_spread(float amount)
 	{
-		spread = max(0, spread + amount);
+		spread = max(0.0, spread + amount);
 	}
 	
 	void update_prop(const PropIndex@ prop_data, uint palette = 0)
@@ -200,7 +200,7 @@ class BrushDef
 			{
 				// Uniform random point in circle
 				float angle = rand_range(-PI, PI);
-				float circ_dist = max(0, sqrt(frand()) * spread * spread_mul);
+				float circ_dist = max(0.0, sqrt(frand()) * spread * spread_mul);
 				const float dt = uniform
 					? (t_delta != 0 ? (next_t - start_t - offset_t) / t_delta : 0)
 					: frand();
