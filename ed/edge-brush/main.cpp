@@ -284,19 +284,19 @@ class script
 				int c_end_x = int(min(chunk.start_tile_x + TILES_CACHE_CHUNK_SIZE - 1, end_x));
 				int c_end_y = int(min(chunk.start_tile_y + TILES_CACHE_CHUNK_SIZE - 1, end_y));
 				
-//				outline_rect(g,
+//				outline_rect(g, 22, 24,
 //					(c_start_x) * TILE2PIXEL + 5,
 //					(c_start_y) * TILE2PIXEL + 5,
 //					(c_end_x + 1) * TILE2PIXEL - 5,
 //					(c_end_y + 1) * TILE2PIXEL - 5,
-//					22, 24, 2, 0xff00ff00);
+//					2, 0xff00ff00);
 //				
-//				outline_rect(g,
+//				outline_rect(g, 22, 23,
 //					chunk_x * TILES_CACHE_CHUNK_SIZE * TILE2PIXEL,
 //					chunk_y * TILES_CACHE_CHUNK_SIZE * TILE2PIXEL,
 //					(chunk_x * TILES_CACHE_CHUNK_SIZE + TILES_CACHE_CHUNK_SIZE) * TILE2PIXEL,
 //					(chunk_y * TILES_CACHE_CHUNK_SIZE + TILES_CACHE_CHUNK_SIZE) * TILE2PIXEL,
-//					22, 23, 2, 0xffff0000);
+//					2, 0xffff0000);
 				
 				for(int tile_y = c_start_y; tile_y <= c_end_y; tile_y++)
 				{
