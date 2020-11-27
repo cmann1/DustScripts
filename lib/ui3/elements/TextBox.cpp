@@ -179,32 +179,32 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 	/// If character_validation is set to Hex or the text starts with '#' or '0x' the text will be parsed as a hexidecimal string
 	int int_value
 	{
-		get const { return try_parse_int(lines[0]); }
-		set { text = try_convert_int(value); }
+		get const { return string::try_parse_int(lines[0], _character_validation == Hex); }
+		set { text = string::try_convert_int(value, _character_validation == Hex); }
 	}
 	
 	/// Get or set this TextBox's content as an unsigned integer value.
 	/// If character_validation is set to Hex or the text starts with '#' or '0x' the text will be parsed as a hexidecimal string
 	uint uint_value
 	{
-		get const { return try_parse_uint(lines[0]); }
-		set { text = try_convert_uint(value); }
+		get const { return string::try_parse_uint(lines[0], _character_validation == Hex); }
+		set { text = string::try_convert_uint(value, _character_validation == Hex); }
 	}
 	
 	/// Interpret the TextBox's content as hexidecimal, even if character_validation is not set to Hex
 	/// and the text does not start with '#' or '0x'
 	uint hex_value
 	{
-		get const { return try_parse_uint(lines[0], true); }
-		set { text = try_convert_uint(value, true); }
+		get const { return string::try_parse_uint(lines[0], true); }
+		set { text = string::try_convert_uint(value, true); }
 	}
 	
 	/// Interpret the TextBox's content an RGB hexidecimal string with an option alpha.
 	/// This allows the short forms #ARGB and #RGB
 	uint rgb_value
 	{
-		get const { return try_parse_rgb(lines[0]); }
-		set { text = try_convert_uint(value, true); }
+		get const { return string::try_parse_rgb(lines[0], true, _character_validation == Hex); }
+		set { text = string::try_convert_uint(value, true); }
 	}
 	
 	/// The length of the text
@@ -2488,81 +2488,6 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 		}
 		
 		return line_index;
-	}
-	
-	string try_convert_int(const int value)
-	{
-		return _character_validation == Hex
-			? formatInt(value, 'H')
-			: value + '';
-	}
-	
-	string try_convert_uint(const uint value, const bool force_hex=false)
-	{
-		return force_hex || _character_validation == Hex
-			? formatInt(value, 'H')
-			: value + '';
-	}
-	
-	protected int try_parse_int(string text, const bool force_hex=false)
-	{
-		uint base = parse_hex_prefix(text, text) || force_hex ? 16 : 10;
-		return parseInt(text, base);
-	}
-	
-	protected uint try_parse_uint(string text, const bool force_hex=false)
-	{
-		uint base = parse_hex_prefix(text, text) || force_hex ? 16 : 10;
-		return parseUInt(text, base);
-	}
-	
-	protected uint try_parse_rgb(string text)
-	{
-		text = string::trim(text);
-		parse_hex_prefix(text, text);
-		
-		if(text.length() == 3)
-		{
-			text =
-				text.substr(0, 1) + text.substr(0, 1) +
-				text.substr(1, 1) + text.substr(1, 1) +
-				text.substr(2, 1) + text.substr(2, 1);
-		}
-		else if(text.length() == 4)
-		{
-			text =
-				text.substr(0, 1) + text.substr(0, 1) +
-				text.substr(1, 1) + text.substr(1, 1) +
-				text.substr(2, 1) + text.substr(2, 1) +
-				text.substr(3, 1) + text.substr(3, 1);
-		}
-		
-		return parseInt(text, 16);
-	}
-	
-	protected bool parse_hex_prefix(string text, string &out output)
-	{
-		text = string::trim(text);
-		bool is_hex = false;
-		
-		// 35 = #
-		if(text.length() > 1 && text[0] == 35)
-		{
-			output = text.substr(1);
-			is_hex = true;
-		}
-		// 48 = 0, 88 = X, 120 = x
-		else if(text.length() > 2 && text[0] == 48 && (text[1] == 88 || text[1] == 120))
-		{
-			output = text.substr(2);
-			is_hex = true;
-		}
-		else
-		{
-			output = text;
-		}
-		
-		return is_hex || _character_validation == Hex;
 	}
 	
 	protected void after_change(const bool changed=true)
