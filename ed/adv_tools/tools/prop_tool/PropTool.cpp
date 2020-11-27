@@ -139,6 +139,16 @@ class PropTool : Tool
 	// Callbacks
 	// //////////////////////////////////////////////////////////
 	
+	void on_editor_unloaded() override
+	{
+		select_none();
+		clear_highlighted_props(true);
+		clear_temporary_selection();
+		state = PropToolState::Idle;
+		
+		Tool::on_editor_unloaded();
+	}
+	
 	Tool@ on_shortcut_key() override
 	{
 		return selected ? script.get_tool('Props') : @this;

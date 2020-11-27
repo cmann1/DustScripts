@@ -134,12 +134,18 @@ class AdvToolScript
   
 	void editor_loaded()
 	{
-//		puts('>> AdvToolScript.editor_loaded');
+		if(@selected_tool != null)
+		{
+			selected_tool.on_editor_loaded();
+		}
 	}
 
 	void editor_unloaded()
 	{
-//		puts('>> AdvToolScript.editor_unloaded');
+		if(@selected_tool != null)
+		{
+			selected_tool.on_editor_unloaded();
+		}
 	}
 	
 	void build_sprites(message@ msg)

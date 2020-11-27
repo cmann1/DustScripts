@@ -1,3 +1,11 @@
+interface IToolEditorLoadListener
+{
+	
+	void tool_editor_loaded(Tool@ tool);
+	void tool_editor_unloaded(Tool@ tool);
+	
+}
+
 interface IToolSelectListener
 {
 	

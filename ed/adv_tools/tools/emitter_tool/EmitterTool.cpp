@@ -78,6 +78,21 @@ class EmitterTool : Tool
 	// Callbacks
 	// //////////////////////////////////////////////////////////
 	
+	void on_editor_unloaded() override
+	{
+		for(int j = 0; j < selected_emitters_count; j++)
+		{
+			selected_emitters[j].pre_step_validate();
+		}
+		
+		select_none();
+		clear_highlighted_emitters();
+		clear_pending_emitters();
+		state = EmitterToolState::Idle;
+		
+		Tool::on_editor_unloaded();
+	}
+	
 	protected void on_select_impl()
 	{
 		properties_window.show(script, this);

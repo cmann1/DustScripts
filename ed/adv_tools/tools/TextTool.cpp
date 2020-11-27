@@ -11,7 +11,7 @@
 
 const string EMBED_spr_icon_text	= SPRITES_BASE + 'icon_text.png';
 
-class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
+class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener, IToolEditorLoadListener
 {
 	
 	private Container@ dummy_overlay;
@@ -56,6 +56,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		
 		if(@tool != null)
 		{
+			tool.register_editor_load_listener(this);
 			tool.register_select_listener(this);
 			tool.register_step_listener(this);
 			tool.register_draw_listener(this);
@@ -224,6 +225,22 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	// //////////////////////////////////////////////////////////
 	// Tool Callbacks
 	// //////////////////////////////////////////////////////////
+	
+	void tool_editor_loaded(Tool@ tool) override
+	{
+	}
+	
+	void tool_editor_unloaded(Tool@ tool) override
+	{
+		if(@window != null)
+		{
+			window.hide('user', false);
+			puts("tool_editor_unloaded");
+		}
+		
+		select(null);
+		show_edit_button(null, true);
+	}
 	
 	void tool_select(Tool@ tool) override
 	{

@@ -18,9 +18,11 @@ class Tool
 	int shortcut_key = -1;
 	bool register_shortcut_key = true;
 	
+	protected array<IToolEditorLoadListener@> editor_load_listeners;
 	protected array<IToolSelectListener@> select_listeners;
 	protected array<IToolStepListener@> step_listeners;
 	protected array<IToolDrawListener@> draw_listeners;
+	protected int num_editor_load_listeners;
 	protected int num_select_listeners;
 	protected int num_step_listeners;
 	protected int num_draw_listeners;
@@ -76,6 +78,28 @@ class Tool
 	// //////////////////////////////////////////////////////////
 	// Methods
 	// //////////////////////////////////////////////////////////
+	
+	// Select
+	
+	void register_editor_load_listener(IToolEditorLoadListener@ listener)
+	{
+		if(editor_load_listeners.findByRef(listener) != -1)
+			return;
+		
+		editor_load_listeners.insertLast(listener);
+		num_editor_load_listeners++;
+	}
+	
+	void deregister_editor_load_listener(IToolEditorLoadListener@ listener)
+	{
+		const int index = editor_load_listeners.findByRef(listener);
+		
+		if(index == -1)
+			return;
+		
+		editor_load_listeners.removeAt(index);
+		num_editor_load_listeners--;
+	}
 	
 	// Select
 	
@@ -146,6 +170,22 @@ class Tool
 	// //////////////////////////////////////////////////////////
 	// Callbacks
 	// //////////////////////////////////////////////////////////
+	
+	void on_editor_loaded()
+	{
+		for(int i = num_editor_load_listeners - 1; i >= 0; i--)
+		{
+			editor_load_listeners[i].tool_editor_loaded(this);
+		}
+	}
+
+	void on_editor_unloaded()
+	{
+		for(int i = num_editor_load_listeners - 1; i >= 0; i--)
+		{
+			editor_load_listeners[i].tool_editor_unloaded(this);
+		}
+	}
 	
 	Tool@ on_shortcut_key()
 	{
