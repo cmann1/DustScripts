@@ -117,6 +117,7 @@ class AdvToolScript
 	
 	AdvToolScript()
 	{
+		puts('>> Initialising AdvTools');
 		@g = get_scene();
 		@editor = get_editor_api();
 		@cam = get_active_camera();
@@ -129,6 +130,16 @@ class AdvToolScript
 		
 		editor.hide_gui(false);
 		create_tools();
+	}
+  
+	void editor_loaded()
+	{
+//		puts('>> AdvToolScript.editor_loaded');
+	}
+
+	void editor_unloaded()
+	{
+//		puts('>> AdvToolScript.editor_unloaded');
 	}
 	
 	void build_sprites(message@ msg)
@@ -340,7 +351,7 @@ class AdvToolScript
 			{
 				select_next_tool(1);
 			}
-			else if(!shift && !ctrl && !alt)
+			else if(!shift && !ctrl && !alt && !editor.is_polling_keyboard())
 			{
 				for(int i = num_tools_shortcut - 1; i >= 0; i--)
 				{
@@ -398,7 +409,7 @@ class AdvToolScript
 		{
 			pressed_key_active = false;
 			
-			if(!editor.key_check_gvb(pressed_key))
+			if(editor.is_polling_keyboard() || !editor.key_check_gvb(pressed_key))
 			{
 				pressed_key = -1;
 			}
@@ -414,17 +425,20 @@ class AdvToolScript
 			}
 		}
 		
-		for(int i = int(Settings::RepeatKeys.length()) - 1; i >= 0; i--)
+		if(!editor.is_polling_keyboard())
 		{
+		  for(int i = int(Settings::RepeatKeys.length()) - 1; i >= 0; i--)
+		  {
 			const int key = Settings::RepeatKeys[i];
 			
 			if(!editor.key_check_pressed_gvb(key))
-				continue;
+			  continue;
 			
 			pressed_key = key;
 			pressed_timer = Settings::KeyPressDelay;
 			pressed_key_active = true;
 			break;
+		  }
 		}
 	}
 	
