@@ -92,6 +92,7 @@ class Window : MoveableDialog
 			alpha = 1;
 			fading = false;
 			mouse_enabled = true;
+			this.fade = ui.style.tooltip_fade_frames;
 		}
 		else
 		{
@@ -118,13 +119,13 @@ class Window : MoveableDialog
 		if(!fade)
 		{
 			alpha = 0;
+			this.fade = 0;
 			visible = false;
 			fading = false;
 		}
 		else
 		{
 			fading = true;
-			this.fade = ui.style.tooltip_fade_frames;
 			step_subscribed = ui._step_subscribe(@this, step_subscribed);
 		}
 		
@@ -670,7 +671,10 @@ class Window : MoveableDialog
 		MoveableDialog::ui_step();
 		
 		if(!fading)
+		{
+			step_subscribed = false;
 			return step_subscribed;
+		}
 		
 		if(open)
 		{
