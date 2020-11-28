@@ -100,7 +100,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 	
 	private bool is_mouse_over;
 	private bool _mouse_enabled = true;
-	private bool mouse_down_inside_ui = false;
+	private bool mouse_down_inside_ui = true;
 	
 	/// Used for processing element layouts
 	private ElementStack element_stack;
