@@ -670,39 +670,42 @@ class Window : MoveableDialog
 	{
 		MoveableDialog::ui_step();
 		
-		if(!fading)
+		if(!fading && !busy_dragging)
 		{
 			step_subscribed = false;
 			return step_subscribed;
 		}
 		
-		if(open)
+		if(fading)
 		{
-			if(++fade == ui.style.tooltip_fade_frames)
+			if(open)
 			{
-				mouse_enabled = true;
-				fading = false;
+				if(++fade == ui.style.tooltip_fade_frames)
+				{
+					mouse_enabled = true;
+					fading = false;
+				}
+				else
+				{
+					step_subscribed = true;
+				}
+				
+				alpha = (fade / ui.style.tooltip_fade_frames);
 			}
-			else
+			else if(fade > 0)
 			{
-				step_subscribed = true;
+				if(--fade == 0)
+				{
+					visible = false;
+					fading = false;
+				}
+				else
+				{
+					step_subscribed = true;
+				}
+				
+				alpha = (fade / ui.style.tooltip_fade_frames);
 			}
-			
-			alpha = (fade / ui.style.tooltip_fade_frames);
-		}
-		else if(fade > 0)
-		{
-			if(--fade == 0)
-			{
-				visible = false;
-				fading = false;
-			}
-			else
-			{
-				step_subscribed = true;
-			}
-			
-			alpha = (fade / ui.style.tooltip_fade_frames);
 		}
 		
 		return step_subscribed;
