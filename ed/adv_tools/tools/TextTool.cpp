@@ -78,7 +78,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		
 		@window = Window(ui, 'Edit Text');
 		window.name = 'TextToolTextProperties1';
-		window.set_icon('script', 'icon_text', 24, 24);
+		window.set_icon(SPRITE_SET, 'icon_text', 24, 24);
 		ui.add_child(window);
 		window.x = 200;
 		window.y = 20;
@@ -423,7 +423,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		dummy_overlay.mouse_self = false;
 		script.ui.add_child(dummy_overlay);
 		
-		@edit_button = Button(script.ui, 'script', 'icon_edit', 24, 24);
+		@edit_button = Button(script.ui, SPRITE_SET, 'icon_edit', 24, 24);
 		edit_button.fit_to_contents(true);
 		edit_button.mouse_click.on(EventCallback(on_edit_click));
 		
