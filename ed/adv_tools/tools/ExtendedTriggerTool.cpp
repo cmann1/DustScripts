@@ -1,6 +1,8 @@
 class ExtendedTriggerTool : Tool, IToolStepListener
 {
 	
+	entity@ clipboard;
+	
 	ExtendedTriggerTool()
 	{
 		super('Extended Trigger Tool');
@@ -26,7 +28,12 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 	{
 		if(script.mouse.left_double_click && script.shift)
 		{
-			copy_trigger();
+			duplicate_trigger();
+		}
+		
+		if(script.ctrl && script.editor.key_check_pressed_vk(VK::V))
+		{
+			paste_trigger(script.mouse.x, script.mouse.y);
 		}
 	}
 	
@@ -34,16 +41,26 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 	// Methods
 	// //////////////////////////////////////////////////////////
 	
-	private void copy_trigger()
+	private void duplicate_trigger()
 	{
 		entity@ trigger = script.pick_trigger();
 			
 		if(@trigger == null)
 			return;
 		
-		entity@ copy = create_entity(trigger.type_name());
-		copy.set_xy(trigger.x() - 48, trigger.y());
-		copy_vars(trigger, copy);
+		@clipboard = trigger;
+		
+		paste_trigger(trigger.x() - 48, trigger.y());
+	}
+	
+	private void paste_trigger(const float x, const float y)
+	{
+		if(@clipboard == null)
+			return;
+		
+		entity@ copy = create_entity(clipboard.type_name());
+		copy.set_xy(x, y);
+		copy_vars(clipboard, copy);
 		script.g.add_entity(copy);
 	}
 	
