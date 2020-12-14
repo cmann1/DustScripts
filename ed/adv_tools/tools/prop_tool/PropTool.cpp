@@ -1094,6 +1094,7 @@ class PropTool : Tool
 			}
 		}
 		
+		selection_angle = 0;
 		update_selection_bounds(true, selection_x, selection_y);
 	}
 	
