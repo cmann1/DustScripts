@@ -37,7 +37,8 @@ const string SCRIPT_BASE			= 'ed/adv_tools/';
 const string SPRITES_BASE			= SCRIPT_BASE + 'sprites/';
 const string EMBED_spr_icon_edit	= SPRITES_BASE + 'icon_edit.png';
 
-const string SPRITE_SET = 'plugin';
+const bool AS_EDITOR_PLUGIN = false;
+const string SPRITE_SET = AS_EDITOR_PLUGIN ? 'plugin' : 'script';
 
 class script : AdvToolScript {}
 
