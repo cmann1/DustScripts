@@ -264,12 +264,12 @@ class AdvToolScript
 	{
 		// Built in
 		
-		add_tool(Tool('Select')			.set_icon('editor',  'selecticon'));
-		add_tool(Tool('Tiles')			.set_icon('editor',  'tilesicon'));
+		add_tool(Tool('Select')			.set_icon('editor',  'selecticon').init_shortcut_key(VK::R));
+		add_tool(Tool('Tiles')			.set_icon('editor',  'tilesicon').init_shortcut_key(VK::W));
 		add_tool(Tool('Props')			.set_icon('editor',  'propsicon').init_shortcut_key(VK::Q, false));
 		add_tool(Tool('Entities')		.set_icon('editor',  'entityicon').init_shortcut_key(VK::E));
 		add_tool(Tool('Triggers')		.set_icon('editor',  'triggersicon').init_shortcut_key(VK::T));
-		add_tool(Tool('Camera')			.set_icon('editor',  'cameraicon'));
+		add_tool(Tool('Camera')			.set_icon('editor',  'cameraicon').init_shortcut_key(VK::C));
 		add_tool(EmitterTool());
 		add_tool(Tool('Level Settings')	.set_icon('editor',  'settingsicon'));
 		add_tool(Tool('Scripts')		.set_icon('dustmod', 'scripticon').init_shortcut_key(VK::S));
