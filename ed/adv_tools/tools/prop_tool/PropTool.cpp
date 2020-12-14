@@ -1908,14 +1908,13 @@ class PropTool : Tool
 			data.init_anchors();
 			
 			data.start_scale(anchor_x, anchor_y);
-			puts(
-				p.scale_x(),
-				get_valid_prop_scale(p.scale_x()),
-				p.scale_x() * (get_valid_prop_scale(p.scale_x()) / p.scale_x())
-				);
+//			puts(
+//				p.scale_y(),
+//				get_valid_prop_scale(abs(p.scale_y())),
+//				get_valid_prop_scale(abs(p.scale_y())) / abs(p.scale_y()) );
 			data.do_scale(
-				get_valid_prop_scale(p.scale_x()) / p.scale_x(),
-				get_valid_prop_scale(p.scale_y()) / p.scale_y()
+				get_valid_prop_scale(abs(p.scale_x())) / abs(p.scale_x()),
+				get_valid_prop_scale(abs(p.scale_y())) / abs(p.scale_y())
 			);
 			data.stop_scale(false);
 			
