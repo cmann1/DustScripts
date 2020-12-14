@@ -54,6 +54,8 @@ class EmitterTool : Tool
 	EmitterTool()
 	{
 		super('Emitter Tool');
+		
+		init_shortcut_key(VK::G);
 	}
 	
 	void create(AdvToolScript@ script, ToolGroup@ group) override
