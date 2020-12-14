@@ -840,6 +840,7 @@ class PropTool : Tool
 		
 		float x, y;
 		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
+		const float new_drag_distance = distance(x, y, anchor_x, anchor_y);
 		const float length = magnitude(drag_start_x - anchor_x, drag_start_y - anchor_y);
 		project(
 			x - anchor_x, y - anchor_y,
@@ -848,7 +849,7 @@ class PropTool : Tool
 		const float distance_sign = dot(
 				x, y,
 				drag_start_x - anchor_x, drag_start_y - anchor_y) < 0 ? -1 : 1;
-		const float scale = magnitude(x, y) / drag_scale_start_distance * distance_sign;
+		const float scale = new_drag_distance / drag_scale_start_distance * distance_sign;
 		
 		for(int i = 0; i < selected_props_count; i++)
 		{
