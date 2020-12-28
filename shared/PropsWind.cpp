@@ -43,8 +43,8 @@ class PropsWind : callback_base
 	array<string> step_cells_hash;
 	
 	dictionary cells;
-	dictionary prop_ids;
 	
+	uint timestamp;
 	float t = 0;
 	[text] float wind_speed = 3;
 	[text] float wind_strength = 4;
@@ -91,6 +91,7 @@ class PropsWind : callback_base
 		{
 			for(int iy = top; iy <= bottom; iy++)
 			{
+				
 				const string key = ix + "," + iy;
 				if(step_cells_hash.find(key) < 0)
 				{
@@ -107,11 +108,12 @@ class PropsWind : callback_base
 		step_cells.resize(0);
 		step_cells_hash.resize(0);
 		cells.deleteAll();
-		prop_ids.deleteAll();
 	}
 	
 	void step()
 	{
+		timestamp++;
+		
 		for(uint i = 0; i < step_cells.length(); i += 2)
 		{
 			const int x = step_cells[i];
@@ -122,10 +124,10 @@ class PropsWind : callback_base
 			
 			if(cell is null)
 			{
-				@cells[key] = @cell = PropsWindCell(x, y, cell_size, @props, @prop_ids);
+				@cells[key] = @cell = PropsWindCell(x, y, cell_size, @props);
 			}
 			
-			cell.step(t, wind_strength * strength_factor);
+			cell.step(t, wind_strength * strength_factor, timestamp);
 		}
 		
 		t += wind_speed * DT * speed_factor;
@@ -142,7 +144,7 @@ class PropsWindCell
 {
 	array<PropData@> prop_list;
 	
-	PropsWindCell(int x, int y, float cell_size, dictionary@ props, dictionary@ prop_ids)
+	PropsWindCell(int x, int y, float cell_size, dictionary@ props)
 	{
 		scene@ g = get_scene();
 		const float cx = x * cell_size;
@@ -157,28 +159,32 @@ class PropsWindCell
 			prop@ p = g.get_prop_collision_index(i);
 			const string key = p.prop_set() + "/" + p.prop_group() + "/" + p.prop_index();
 			
-			if(prop_ids.exists(p.id() + ''))
+			PropSettings@ settings = cast<PropSettings>(props[key]);
+			
+			if(settings is null)
 				continue;
 			
-			PropSettings@ settings = cast<PropSettings>(props[key]);
-			if(settings is null) continue;
-			
 			prop_list.insertLast(PropData(p, settings));
-			prop_ids[p.id() + ''] = true;
 		}
 	}
 	
-	void step(float t, float wind_strength)
+	void step(const float t, const float wind_strength, const uint timestamp)
 	{
 		const uint count = prop_list.length();
 		
 		for(uint i = 0; i < count; i++)
 		{
 			PropData@ data = prop_list[i];
+			
+			if(data.timestamp == timestamp)
+				continue;
+			
 			prop@ p = data.prop;
 			const float pr = (sin(p.x() + p.y()) * 0.25 + 1) * data.settings.wind_speed;
 			const float wind = sin(t * pr + (p.x() + p.y()) * 0.1f) * wind_strength * data.settings.wind_strength;
 			p.rotation(data.rotation + wind);
+			
+			data.timestamp = timestamp;
 		}
 	}
 	
@@ -202,6 +208,7 @@ class PropData
 {
 	
 	uint id;
+	uint timestamp;
 	float rotation;
 	PropSettings@ settings;
 	prop@ prop = null;
