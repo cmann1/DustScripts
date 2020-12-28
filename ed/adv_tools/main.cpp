@@ -350,7 +350,7 @@ class AdvToolScript
 			persist_state();
 		}
 		
-		if(@ui.focus == null && shortcut_keys_enabled)
+		if(@ui.focus == null && shortcut_keys_enabled && !editor.is_polling_keyboard())
 		{
 			if(shift && editor.key_check_pressed_vk(VK::W))
 			{
@@ -360,7 +360,7 @@ class AdvToolScript
 			{
 				select_next_tool(1);
 			}
-			else if(!shift && !ctrl && !alt && !editor.is_polling_keyboard())
+			else if(!shift && !ctrl && !alt)
 			{
 				for(int i = num_tools_shortcut - 1; i >= 0; i--)
 				{

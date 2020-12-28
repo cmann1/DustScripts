@@ -5,7 +5,6 @@
 #include '../../../../lib/emitters/names.cpp';
 #include '../../../../lib/emitters/common.cpp';
 
-
 class EmitterTool : Tool
 {
 	
