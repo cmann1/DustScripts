@@ -26,10 +26,9 @@ class SpringSystem
 	private int constraint_count;
 	
 	private float _drag;
-	private float drag_a;
-	private float drag_b;
+	private float delta_prev = DT;
 	
-	SpringSystem(const float drag=0.01)
+	SpringSystem(const float drag=0.99)
 	{
 		set_drag(drag);
 	}
@@ -37,8 +36,6 @@ class SpringSystem
 	void set_drag(const float drag)
 	{
 		this._drag = drag;
-		drag_a = 2 - drag;
-		drag_b = 1 - drag;
 	}
 	
 	Force@ add_force(const float x, const float y)
@@ -121,8 +118,10 @@ class SpringSystem
 		constraints.resize(--constraint_count);
 	}
 	
-	void step()
+	void step(const float time_scale)
 	{
+		const float delta = DT * time_scale;
+		
 		// Accumulate forces
 		for(int i = 0; i < particle_count; i++)
 		{
@@ -143,8 +142,8 @@ class SpringSystem
 			
 			// Verlet
 			particle.set_position(
-				drag_a * particle.x - particle.prev_x * drag_b + particle.force_x * DT * DT,
-				drag_a * particle.y - particle.prev_y * drag_b + particle.force_y * DT * DT
+				particle.x + (particle.x - particle.prev_x) * _drag * (delta / delta_prev) + particle.force_x * delta * delta,
+				particle.y + (particle.y - particle.prev_y) * _drag * (delta / delta_prev) + particle.force_y * delta * delta
 			);
 		}
 		
@@ -156,6 +155,8 @@ class SpringSystem
 				constraints[j].resolve();
 			}
 		}
+		
+		delta_prev = delta;
 	}
 	
 	void resolve_constraints(const int constraint_iterations=4)
