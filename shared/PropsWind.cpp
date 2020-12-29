@@ -43,6 +43,7 @@ class PropsWind : callback_base
 	array<string> step_cells_hash;
 	
 	dictionary cells;
+	dictionary prop_ids;
 	
 	uint timestamp;
 	float t = 0;
@@ -108,6 +109,7 @@ class PropsWind : callback_base
 		step_cells.resize(0);
 		step_cells_hash.resize(0);
 		cells.deleteAll();
+		prop_ids.deleteAll();
 	}
 	
 	void step()
@@ -124,7 +126,7 @@ class PropsWind : callback_base
 			
 			if(cell is null)
 			{
-				@cells[key] = @cell = PropsWindCell(x, y, cell_size, @props);
+				@cells[key] = @cell = PropsWindCell(x, y, cell_size, @props, @prop_ids);
 			}
 			
 			cell.step(t, wind_strength * strength_factor, timestamp);
@@ -144,7 +146,7 @@ class PropsWindCell
 {
 	array<PropData@> prop_list;
 	
-	PropsWindCell(int x, int y, float cell_size, dictionary@ props)
+	PropsWindCell(int x, int y, float cell_size, dictionary@ props, dictionary@ prop_ids)
 	{
 		scene@ g = get_scene();
 		const float cx = x * cell_size;
@@ -164,7 +166,11 @@ class PropsWindCell
 			if(settings is null)
 				continue;
 			
-			prop_list.insertLast(PropData(p, settings));
+			PropData@ data = prop_ids.exists(p.id() + '')
+				? cast<PropData@>(prop_ids[p.id() + ''])
+				: PropData(p, settings);
+			prop_list.insertLast(data);
+			@prop_ids[p.id() + ''] = data;
 		}
 	}
 	
