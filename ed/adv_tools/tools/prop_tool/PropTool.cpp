@@ -403,7 +403,7 @@ class PropTool : Tool
 		}
 		
 		// Move with arrow keys
-		// Flip
+		// Flip/Mirror
 		
 		if(script.scene_focus)
 		{
@@ -425,11 +425,17 @@ class PropTool : Tool
 			}
 			else if(script.editor.key_check_pressed_gvb(GVB::BracketOpen))
 			{
-				flip_props(true, false);
+				if(script.shift)
+					mirror_selected(true);
+				else
+					flip_props(true, false);
 			}
 			else if(script.editor.key_check_pressed_gvb(GVB::BracketClose))
 			{
-				flip_props(false, true);
+				if(script.shift)
+					mirror_selected(false);
+				else
+					flip_props(false, true);
 			}
 		}
 		
@@ -1096,6 +1102,48 @@ class PropTool : Tool
 		
 		selection_angle = 0;
 		update_selection_bounds(true, selection_x, selection_y);
+	}
+	
+	private void mirror_selected(const bool x_axis=true)
+	{
+		const float anchor_x = has_custom_anchor ? custom_anchor_x : selection_x;
+		const float anchor_y = has_custom_anchor ? custom_anchor_y : selection_y;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			PropData@ data = @selected_props[i];
+			prop@ p = data.prop;
+			
+			if(x_axis)
+			{
+				p.x(anchor_x - (p.x() - anchor_x));
+				p.scale_x(-p.scale_x());
+			}
+			else
+			{
+				p.y(anchor_y - (p.y() - anchor_y));
+				p.scale_y(-p.scale_y());
+			}
+			
+			// Make sure the angle is in the range -180 < 0 < 180
+			const float rotation_normalised = shortest_angle_degress(p.rotation(), 0);
+			// Angle relative to up - up=0, left/right=90, down=180
+			const float y_axis_angle = abs(shortest_angle_degress(rotation_normalised, -90));
+			// How much to adjust the rotation by to account for the flipped scale.
+			const float angle_flip =
+				// up=+180, left/right=no rotation, down=-180
+				(y_axis_angle - 90) / 90.0 * 180
+				// The amount needs to be flipped when the current angle points
+				// in the other direction
+				* (abs(rotation_normalised) > 90 ? -1 : 1);
+			
+			p.rotation(p.rotation() + angle_flip);
+			
+			data.update();
+		}
+		
+		selection_angle = 0;
+		update_selection_bounds();
 	}
 	
 	// //////////////////////////////////////////////////////////
