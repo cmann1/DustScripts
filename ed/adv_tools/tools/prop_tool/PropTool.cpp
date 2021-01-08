@@ -230,9 +230,12 @@ class PropTool : Tool
 		{
 			// Highlights
 			
+			int rendered_lines_count = 0;
+			
 			for(int i = 0; i < highlighted_props_count; i++)
 			{
-				highlighted_props[i].draw();
+				PropData@ data = @highlighted_props[i];
+				rendered_lines_count += data.draw(rendered_lines_count);
 			}
 			
 			// Bounding box

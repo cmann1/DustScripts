@@ -67,10 +67,10 @@ class PropData : SelectableData
 		script.transform(x, y, prop.layer(), 22, aabb_x, aabb_y);
 	}
 	
-	void draw()
+	int draw(const int rendered_lines_count)
 	{
 		if(pending_selection == -2)
-			return;
+			return 0;
 		
 		float line_width;
 		uint line_colour, fill_colour;
@@ -81,13 +81,19 @@ class PropData : SelectableData
 			draw_scale_x, draw_scale_y,
 			fill_colour);
 		
-		for(int i = lines_count - 4; i >= 0; i -= 4)
+		// Stop drawing outlines after some amount to prevent a black screen
+		if(rendered_lines_count < 16000 || primary_selected || hovered)
 		{
-			script.g.draw_rectangle_world(22, 22,
-				aabb_x + lines[i] - line_width, aabb_y + lines[i + 1] - lines[i + 2] * 0.5,
-				aabb_x + lines[i] + line_width, aabb_y + lines[i + 1] + lines[i + 2] * 0.5,
-				lines[i + 3],
-				line_colour);
+			for(int i = lines_count - 4; i >= 0; i -= 4)
+			{
+				script.g.draw_rectangle_world(22, 22,
+					aabb_x + lines[i] - line_width, aabb_y + lines[i + 1] - lines[i + 2] * 0.5,
+					aabb_x + lines[i] + line_width, aabb_y + lines[i + 1] + lines[i + 2] * 0.5,
+					lines[i + 3],
+					line_colour);
+			}
+			
+			return lines_count;
 		}
 		
 //		if(selected)
@@ -97,6 +103,8 @@ class PropData : SelectableData
 //				aabb_x + aabb_x2, aabb_y + aabb_y2,
 //				1 / script.zoom, 0xaaff0000);
 //		}
+		
+		return 0;
 	}
 	
 	void update()
