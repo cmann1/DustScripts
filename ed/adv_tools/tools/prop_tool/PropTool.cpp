@@ -28,7 +28,7 @@ class PropTool : Tool
 	private bool mouse_press_moved;
 	private bool mouse_press_modified;
 	
-	private int prop_data_pool_size;
+	private int prop_data_pool_size = 32;
 	private int prop_data_pool_count;
 	private array<PropData@> prop_data_pool(prop_data_pool_size);
 	
@@ -890,12 +890,13 @@ class PropTool : Tool
 	
 	private void state_selecting()
 	{
-		clear_highlighted_props(true);
+		clear_pending_highlighted_props();
 		
 		if(script.escape_press)
 		{
 			state = Idle;
 			script.ui.mouse_enabled = true;
+			clear_highlighted_props(true);
 			return;
 		}
 		
@@ -962,6 +963,8 @@ class PropTool : Tool
 			state = Idle;
 			script.ui.mouse_enabled = true;
 		}
+		
+		clear_highlighted_props();
 	}
 	
 	//
@@ -1484,6 +1487,14 @@ class PropTool : Tool
 		return prop_data;
 	}
 	
+	private void clear_pending_highlighted_props()
+	{
+		for(int i = highlighted_props_count - 1; i >= 0; i--)
+		{
+			highlighted_props[i].pending_selection = 0;
+		}
+	}
+	
 	private void clear_highlighted_props(const bool clear_pending=false)
 	{
 		for(int i = highlighted_props_count - 1; i >= 0; i--)
@@ -1497,14 +1508,15 @@ class PropTool : Tool
 				if(prop_data.selected)
 					continue;
 			}
-			else if(prop_data.hovered || prop_data.selected)
+			else if(prop_data.hovered || prop_data.selected || prop_data.pending_selection != 0)
 			{
 				continue;
 			}
 			
 			if(prop_data_pool_count >= prop_data_pool_size)
 			{
-				prop_data_pool.resize(prop_data_pool_size += 32);
+				prop_data_pool_size = ceil_int(prop_data_pool_size * 1.5);
+				prop_data_pool.resize(prop_data_pool_size);
 			}
 			
 			@prop_data_pool[prop_data_pool_count++] = @prop_data;
