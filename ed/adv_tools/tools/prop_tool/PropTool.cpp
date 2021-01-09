@@ -213,6 +213,10 @@ class PropTool : Tool
 				@previous_hovered_prop = hovered_prop;
 			}
 		}
+		else if(selected_props_count > 0)
+		{
+			toolbar.show_custom_info(selected_props_count + ' prop' + (selected_props_count != 1 ? 's' : '') + ' selected');
+		}
 		else
 		{
 			toolbar.hide_info_popup();

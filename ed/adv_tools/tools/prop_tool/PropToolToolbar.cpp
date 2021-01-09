@@ -401,6 +401,15 @@ class PropToolToolbar
 	// Methods
 	// //////////////////////////////////////////////////////////
 	
+	void show_custom_info(const string &in info)
+	{
+		if(!show_info.value)
+			return;
+		
+		info_label.text = info;
+		script.ui.show_tooltip(info_popup, toolbar);
+	}
+	
 	void show_prop_info(PropData@ prop_data)
 	{
 		if(!show_info.value)
@@ -422,9 +431,7 @@ class PropToolToolbar
 			text += '\nScale: ' + string::nice_float(p.scale_x(), 4);
 		}
 		
-		info_label.text = text;
-		
-		script.ui.show_tooltip(info_popup, toolbar);
+		show_custom_info(text);
 	}
 	
 	void hide_info_popup()
