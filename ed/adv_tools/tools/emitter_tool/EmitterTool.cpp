@@ -98,7 +98,7 @@ class EmitterTool : Tool
 	{
 		properties_window.show(script, this);
 		
-		script.hide_gui();
+		script.editor.hide_panels_gui(true);
 	}
 	
 	protected void on_deselect_impl()
@@ -109,11 +109,13 @@ class EmitterTool : Tool
 		
 		properties_window.hide();
 		
-		script.hide_gui(false);
+		script.editor.hide_panels_gui(false);
 	}
 	
 	protected void step_impl() override
 	{
+		properties_window.update_layer();
+		
 		for(int j = 0; j < selected_emitters_count; j++)
 		{
 			selected_emitters[j].pre_step_validate();

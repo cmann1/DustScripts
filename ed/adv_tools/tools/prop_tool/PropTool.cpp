@@ -156,7 +156,7 @@ class PropTool : Tool
 	
 	protected void on_select_impl()
 	{
-		script.hide_gui(true);
+		script.editor.hide_panels_gui(true);
 		
 		toolbar.show(script, this);
 		
@@ -166,7 +166,7 @@ class PropTool : Tool
 	
 	protected void on_deselect_impl()
 	{
-		script.hide_gui(false);
+		script.editor.hide_panels_gui(false);
 		
 		select_none();
 		state = Idle;
@@ -916,6 +916,10 @@ class PropTool : Tool
 		while(i-- > 0)
 		{
 			prop@ p = script.g.get_prop_collision_index(i);
+			
+			if(!script.editor.check_layer_filter(p.layer()))
+				continue;
+			
 			const array<array<float>>@ outline = @PROP_OUTLINES[p.prop_set() - 1][p.prop_group()][p.prop_index() - 1];
 			PropData@ prop_data = highlight_prop(p, outline);
 			
@@ -1551,6 +1555,9 @@ class PropTool : Tool
 		while(i-- > 0)
 		{
 			prop@ p = script.g.get_prop_collision_index(i);
+			
+			if(!script.editor.check_layer_filter(p.layer()))
+				continue;
 			
 			const float prop_x = p.x();
 			const float prop_y = p.y();

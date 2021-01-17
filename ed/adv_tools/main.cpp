@@ -7,6 +7,7 @@
 #include '../../lib/drawing/common.cpp';
 #include '../../lib/drawing/circle.cpp';
 #include '../../lib/debug/Debug.cpp';
+#include '../../lib/editor/common.cpp';
 #include '../../lib/enums/ColType.cpp';
 #include '../../lib/input/Mouse.cpp';
 #include '../../lib/math/Line.cpp';
@@ -106,6 +107,10 @@ class AdvToolScript
 	
 	private bool ignore_toolbar_select_event;
 	
+	private bool hide_gui;
+	private bool hide_panels_gui;
+	private bool hide_layers_gui;
+	
 	//
 	
 	float view_x, view_y;
@@ -141,6 +146,12 @@ class AdvToolScript
 		{
 			selected_tool.on_editor_loaded();
 		}
+		
+		editor.hide_toolbar_gui(true);
+		
+		editor.hide_gui(hide_gui);
+		editor.hide_panels_gui(hide_panels_gui);
+		editor.hide_layers_gui(hide_layers_gui);
 	}
 
 	void editor_unloaded()
@@ -149,6 +160,15 @@ class AdvToolScript
 		{
 			selected_tool.on_editor_unloaded();
 		}
+		
+		editor.hide_toolbar_gui(false);
+		
+		hide_gui = editor.hide_gui();
+		hide_panels_gui = editor.hide_panels_gui();
+		hide_layers_gui = editor.hide_layers_gui();
+		editor.hide_gui(false);
+		editor.hide_panels_gui(false);
+		editor.hide_layers_gui(false);
 	}
 	
 	void build_sprites(message@ msg)
@@ -612,12 +632,6 @@ class AdvToolScript
 		return g.get_entity_collision(y1 - padding, y2 + padding, x1 - padding, x2 + padding, type);
 	}
 	
-	void hide_gui(const bool hide=true)
-	{
-		editor.hide_gui(hide);
-		position_toolbar();
-	}
-	
 	BoolSetting@ get_bool(Tool@ tool, const string name, const bool default_value=false)
 	{
 		const string key = tool.name + '.bool.' + name;
@@ -905,9 +919,7 @@ class AdvToolScript
 	private void position_toolbar()
 	{
 		toolbar.x = (ui.region_width - toolbar.width) * 0.5;
-//		toolbar.y = ui.region_height - toolbar.height;
-		toolbar.y = editor.hide_gui() ? 0 : 60;
-//		toolbar.y = 0;
+		toolbar.y = 0;
 	}
 	
 	private void update_shortcut_keys_enabled_popup()

@@ -29,6 +29,8 @@ class EmitterToolWindow
 	private const array<EmitterData@>@ selected_emitters;
 	private int selected_emitters_count;
 	
+	private int selected_layer;
+	
 	IntSetting@ emitter_id;
 	IntSetting@ layer;
 	IntSetting@ sublayer;
@@ -163,6 +165,8 @@ class EmitterToolWindow
 			create_ui();
 		}
 		
+		selected_layer = script.editor.selected_layer;
+		layer_button.layer_select.set_selected_layer(selected_layer);
 		update_selection(null, 0);
 		window.show();
 	}
@@ -207,6 +211,9 @@ class EmitterToolWindow
 			layer_button.layer_select.set_selected_sub_layer(sublayer.value);
 			rotation_wheel.degrees = rotation.value;
 			id_label.text = emitter_id.value < 0 ? '-' : emitter_id.value + '';
+			
+			selected_layer = data.layer;
+			script.editor.selected_layer = selected_layer;
 		}
 		else
 		{
@@ -285,6 +292,17 @@ class EmitterToolWindow
 		set_ui_events_enabled(false);
 		rotation_wheel.degrees = rotation;
 		set_ui_events_enabled(true);
+	}
+	
+	void update_layer()
+	{
+		const int new_layer = script.editor.selected_layer;
+		
+		if(new_layer != selected_layer)
+		{
+			selected_layer = new_layer;
+			layer_button.layer_select.set_selected_layer(selected_layer);
+		}
 	}
 	
 	private void set_ui_events_enabled(const bool enabled=true)
@@ -370,6 +388,7 @@ class EmitterToolWindow
 			selected_emitters[i].update_layer(layer.value);
 		}
 		
+		script.editor.selected_layer = value;
 		update_selection();
 	}
 	
