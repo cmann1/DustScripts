@@ -1,9 +1,20 @@
+#define uint unsigned int
+#define int64 long int
+#define uint64 unsigned long int
+#define delete remove
+
 template <class T>
 class array
 {
 	
+	uint length;
+	uint size;
+
+	array(const uint size);
+
 	// Returns the length of the array.
 	uint length() const;
+	uint size() const;
 
 	// Sets the new length of the array.
 	void resize(uint);
@@ -38,7 +49,7 @@ class array
 
 	// This method takes as input a callback function to use for comparing two elements when sorting the array.
 	// The callback function should take as parameters two references of the same type of the array elements and it should return a bool. The return value should be true if the first argument should be placed before the second argument.
-	void sort(const less compareFunc, uint startAt=0, uint count-1);
+	void sort(const void* compareFunc, uint startAt=0, uint count);
 
 	// These will return the index of the first element that has the same value as the wanted value.
 	// For object types, this will use the type's opEquals or opCmp method to compare the value. For arrays of handles any null handle will be skipped.
@@ -46,23 +57,23 @@ class array
 	int find(const T in);
 	int find(uint startAt, const T in);
 
-	int findByRef(const T in)
+	int findByRef(const T in);
 	int findByRef(uint startAt, const T in);
   
   T& operator[] (int i);
 	
-}
+};
 
 class dictionary
 {
-	
+
 	// Sets a key/value pair in the dictionary. If the key already exists, the value will be changed.
-	void set(const string key, ? value);
+	void set(const string key, void* value);
 	void set(const string key, int64 value);
 	void set(const string key, double value);
 
 	// Retrieves the value corresponding to the key. The methods return false if the key is not found, and in this case the value will maintain its default value based on the type.
-	bool get(const string key, ? value) const;
+	bool get(const string key, void* value) const;
 	bool get(const string key, int64 value) const;
 	bool get(const string key, double value) const;
 
@@ -82,8 +93,8 @@ class dictionary
 	bool isEmpty() const;
 
 	uint getSize() const;
-	
-}
+
+};
 
 class string
 {
@@ -123,7 +134,7 @@ class string
 	// Splits the string in smaller strings where the delimiter is found
 	array<string>@ split(const string delimiter) const;
 	
-}
+};
 
 // String functions
 //{
@@ -151,7 +162,7 @@ class string
 	 */
 	string formatInt(int64 val, const string options, uint width = 0);
 	string formatUInt(uint64 val, const string options, uint width = 0);
-	string formatFloat(double val, const string options, uint width = 0, uint precision = 0){}
+	string formatFloat(double val, const string options, uint width = 0, uint precision = 0);
 
 //}
 
