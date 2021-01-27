@@ -1590,6 +1590,11 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 			persist_caret_time--;
 		}
 		
+		if(ui._has_editor)
+		{
+			ui._editor.poll_keyboard();
+		}
+		
 		return focused;
 	}
 	
