@@ -35,10 +35,6 @@ class ListView : ScrollView
 	{
 		super(@ui);
 		
-		border_size = ui.style.border_size;
-		border_colour = ui.style.normal_border_clr;
-		background_colour = ui.style.normal_bg_clr;
-		
 		_width  = _set_width  = 200;
 		_height = _set_height = 200;
 		
@@ -472,6 +468,29 @@ class ListView : ScrollView
 		{
 			return _num_selected_items > 0 ? _items.findByRef(_selected_items[0]) : -1;
 		}
+		set
+		{
+			if(_num_items == 0 || value < 0 || value >= int(_num_items))
+				return;
+
+			if(_num_selected_items == 1 && _items[_num_items]._selected)
+				return;
+
+			busy_updating_selection = true;
+
+			for(uint i = 0; i < _num_selected_items; i++)
+			{
+				_selected_items[i]._selected = false;
+			}
+
+			_num_selected_items = 1;
+			_selected_items.resize(1);
+			@_selected_items[0] = _items[value];
+			_selected_items[0]._selected = true;
+
+			busy_updating_selection = false;
+			dispatch_select_event(_selected_items[0]);
+		}
 	}
 	
 	int get_selected_items(array<ListViewItem@>@ list, const bool ordered=true)
@@ -564,8 +583,15 @@ class ListView : ScrollView
 		if(@item != null && @item._list_view == @this)
 		{
 			busy_drag_select = true;
-			drag_select_select = allow_deselect && (_num_selected_items > min_select)
-				? !item.selected : true;
+			if(multi_select_key == 0 || !ui._has_editor || ui._editor.key_check_vk(multi_select_key))
+			{
+				drag_select_select = allow_deselect && (_num_selected_items > min_select)
+					? !item.selected : true;
+			}
+			else
+			{
+				drag_select_select = true;
+			}
 
 			check_multi_select_key = true;
 			if(drag_select_select)
