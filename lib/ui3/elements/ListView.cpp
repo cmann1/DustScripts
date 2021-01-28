@@ -504,8 +504,8 @@ class ListView : ScrollView
 			if(@item != null && @item._list_view == @this)
 			{
 				busy_drag_select = true;
-				item.selected = !item.selected;
-				drag_select_select = item.selected;
+				drag_select_select = allow_deselect ? !item.selected : true;
+				item.selected = drag_select_select;
 			}
 		}
 	}
