@@ -11,12 +11,12 @@ class ListViewItem : Container
 	string value;
 	
 	ListView@ _list_view;
-	
-	protected bool _selected;
+	bool _selected;
+
 	protected Image@ _icon;
 	protected Label@ _label;
-	protected bool _has_custom_content;
-	
+	 bool _has_custom_content;
+
 	string element_type { get const override { return ListViewItem::TYPE_NAME; } }
 	
 	ListViewItem(UI@ ui, const string value)
@@ -185,7 +185,7 @@ class ListViewItem : Container
 		{
 			if(_selected == value)
 				return;
-			
+
 			if(@_list_view != null)
 			{
 				if(value)
@@ -193,8 +193,10 @@ class ListViewItem : Container
 				else
 					_list_view.deselect_item(this);
 			}
-			
-			_selected = value;
+			else
+			{
+				_selected = value;
+			}
 		}
 	}
 	
@@ -306,13 +308,5 @@ class ListViewItem : Container
 	}
 	
 	// Events
-	
-	void _mouse_click(EventInfo@ event) override
-	{
-		if(@_list_view == null || !_list_view.drag_select)
-		{
-			selected = _list_view.allow_deselect ? !_selected : true;
-		}
-	}
 	
 }

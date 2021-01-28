@@ -11,19 +11,25 @@ class ListView : ScrollView
 	
 	bool drag_select = false;
 	bool allow_deselect = true;
-	
+	/// Force at least this many items to remain selected at all times
+	uint min_select = 0;
+	/// Which key to hold for multiple select. If set, clicking without holding
+	/// this key will single select the clicked item
+	int multi_select_key = 0;
+
 	Event select;
 	
 	protected GridLayout@ grid_layout;
 	protected bool _allow_multiple_selection;
 	protected array<ListViewItem@> _items;
 	protected array<ListViewItem@> _selected_items;
-	protected int _num_items;
-	protected int _num_selected_items;
+	protected uint _num_items;
+	protected uint _num_selected_items;
 	protected bool busy_updating_selection;
 	
 	protected bool busy_drag_select;
 	protected bool drag_select_select;
+	protected bool check_multi_select_key;
 	
 	ListView(UI@ ui)
 	{
@@ -43,9 +49,9 @@ class ListView : ScrollView
 	
 	string element_type { get const override { return ListView::TYPE_NAME; } }
 	
-	int num_items { get const { return _num_items; } }
+	uint num_items { get const { return _num_items; } }
 	
-	int num_selected_items { get const { return _num_selected_items; } }
+	uint num_selected_items { get const { return _num_selected_items; } }
 	
 	bool allow_multiple_selection
 	{
@@ -81,10 +87,10 @@ class ListView : ScrollView
 	
 	int get_items(array<ListViewItem@>@ list)
 	{
-		if(int(list.length()) < _num_items)
+		if(list.length() < _num_items)
 			list.resize(_num_items);
 		
-		for(int i = 0; i < _num_items; i++)
+		for(uint i = 0; i < _num_items; i++)
 		{
 			@list[i] = @_items[i];
 		}
@@ -107,7 +113,7 @@ class ListView : ScrollView
 			@item._list_view.remove_item(item);
 		}
 			
-		if(index < 0 || index >= _num_items)
+		if(index < 0 || index >= int(_num_items))
 		{
 			_items.insertLast(@item);
 		}
@@ -193,7 +199,7 @@ class ListView : ScrollView
 	
 	ListViewItem@ remove_item(const int index)
 	{
-		if(index < 0 || index >= _num_items)
+		if(index < 0 || index >= int(_num_items))
 			return null;
 		
 		return remove_item(@_items[index]);
@@ -203,12 +209,12 @@ class ListView : ScrollView
 	
 	ListViewItem@ set_item_index(int old_index, int index)
 	{
-		if(old_index < 0 || old_index >= _num_items)
+		if(old_index < 0 || old_index >= int(_num_items))
 			return null;
 		
 		if(index < 0)
 			index = 0;
-		else if(index >= _num_items)
+		else if(index >= int(_num_items))
 			index = _num_items - 1;
 		
 		if(old_index == index)
@@ -258,7 +264,7 @@ class ListView : ScrollView
 		
 		int index = _items.findByRef(@item);
 		
-		if(index == -1 || index == _num_items - 1)
+		if(index == -1 || index == int(_num_items) - 1)
 			return @item;
 		
 		@_items[index] = @_items[index + 1];
@@ -289,7 +295,7 @@ class ListView : ScrollView
 	
 	ListViewItem@ get_item(const int index)
 	{
-		if(index < 0 || index >= _num_items)
+		if(index < 0 || index >= int(_num_items))
 			return null;
 		
 		return @_items[index];
@@ -302,7 +308,7 @@ class ListView : ScrollView
 		
 		if(first)
 		{
-			for(int i = 0; i < _num_items; i++)
+			for(uint i = 0; i < _num_items; i++)
 			{
 				if(_items[i].value == value)
 				{
@@ -347,26 +353,39 @@ class ListView : ScrollView
 	
 	void select_item(ListViewItem@ item)
 	{
-		if(busy_updating_selection || @item == null || @item._list_view != @this || item.selected)
+		if(busy_updating_selection || @item == null || @item._list_view != @this)
 			return;
-		
-		busy_updating_selection = true;
-		
-		if(!_allow_multiple_selection && _num_selected_items == 1)
+
+		if(item.selected)
 		{
-			_selected_items[0].selected = false;
-			@_selected_items[0] = @item;
+			if(multi_select_key == 0 || !ui._has_editor)
+				return;
+			if(ui._editor.key_check_vk(multi_select_key))
+				return;
 		}
-		else
+
+		busy_updating_selection = true;
+
+		if(!do_multiple_selection())
+		{
+			for(uint i = 0; i < _num_selected_items; i++)
+			{
+				_selected_items[i]._selected = false;
+			}
+
+			_num_selected_items = 1;
+			_selected_items.resize(1);
+			@_selected_items[0] = @item;
+			item._selected = true;
+		}
+		else if(!item._selected)
 		{
 			_selected_items.insertLast(@item);
 			_num_selected_items++;
+			item._selected = true;
 		}
 		
-		item.selected = true;
-		
 		busy_updating_selection = false;
-		
 		dispatch_select_event(item);
 	}
 	
@@ -380,7 +399,9 @@ class ListView : ScrollView
 	{
 		if(busy_updating_selection || @item == null || @item._list_view != @this || !item.selected)
 			return;
-		
+		if(_num_selected_items <= min_select)
+			return;
+
 		busy_updating_selection = true;
 		
 		int index = _selected_items.findByRef(@item);
@@ -388,7 +409,7 @@ class ListView : ScrollView
 		if(index != -1)
 		{
 			_selected_items.removeAt(index);
-			item.selected = false;
+			item._selected = false;
 			_num_selected_items--;
 		}
 		
@@ -399,12 +420,12 @@ class ListView : ScrollView
 	
 	void select_all()
 	{
-		if(_num_selected_items == _num_items || !_allow_multiple_selection)
+		if(_num_selected_items == _num_items || !do_multiple_selection())
 			return;
 		
 		busy_updating_selection = true;
 		
-		for(int i = 0; i < _num_items; i++)
+		for(uint i = 0; i < _num_items; i++)
 		{
 			ListViewItem@ item = @_items[i];
 			
@@ -428,7 +449,7 @@ class ListView : ScrollView
 		
 		busy_updating_selection = true;
 		
-		for(int i = 0; i < _num_selected_items; i++)
+		for(uint i = 0; i < _num_selected_items; i++)
 		{
 			_selected_items[i].selected = false;
 		}
@@ -455,14 +476,14 @@ class ListView : ScrollView
 	
 	int get_selected_items(array<ListViewItem@>@ list, const bool ordered=true)
 	{
-		if(int(list.length()) < _num_selected_items)
+		if(list.length < _num_selected_items)
 			list.resize(_num_selected_items);
 		
 		if(ordered)
 		{
 			int index = 0;
 			
-			for(int i = 0; i < _num_items; i++)
+			for(uint i = 0; i < _num_items; i++)
 			{
 				ListViewItem@ item = @_items[i];
 				
@@ -474,7 +495,7 @@ class ListView : ScrollView
 		}
 		else
 		{
-			for(int i = 0; i < _num_selected_items; i++)
+			for(uint i = 0; i < _num_selected_items; i++)
 			{
 				@list[i] = @_selected_items[i];
 			}
@@ -482,31 +503,76 @@ class ListView : ScrollView
 		
 		return _num_selected_items;
 	}
-	
+
 	//
 	
 	protected void dispatch_select_event(ListViewItem@ item=null)
 	{
 		ui._dispatch_event(@select, EventType::SELECT, this, @item != null ? item.value : '');
 	}
-	
+
+	protected bool do_multiple_selection()
+	{
+		if(!check_multi_select_key || multi_select_key == 0)
+			return _allow_multiple_selection;
+
+		return
+			!ui._has_editor || ui._editor.key_check_vk(multi_select_key);
+	}
+
 	// Events
+	//
+	void _mouse_click(EventInfo@ event) override
+	{
+		if(event.src.element_type != ListViewItem::TYPE_NAME)
+			return;
+
+		if(drag_select)
+			return;
+		
+		check_multi_select_key = true;
+		ListViewItem@ item = cast<ListViewItem@>(event.src);
+		
+		if(
+			item._selected && _allow_multiple_selection && ui._has_editor &&
+			(multi_select_key != 0 || !ui._editor.key_check_vk(multi_select_key)))
+		{
+			select_item(item);
+			drag_select_select = true;
+		}
+		else
+		{
+			drag_select_select = allow_deselect &&
+					(!item.selected || _num_selected_items > min_select)
+				? !item.selected : true;
+			item.selected = drag_select_select;
+		}
+
+		check_multi_select_key = false;
+	}
 	
 	void _mouse_press(EventInfo@ event) override
 	{
 		if(event.button != ui.primary_button)
 			return;
+
+		if(!drag_select)
+			return;
 		
-		if(drag_select)
+		ListViewItem@ item = cast<ListViewItem>(@ui.mouse_over_element);
+
+		if(@item != null && @item._list_view == @this)
 		{
-			ListViewItem@ item = cast<ListViewItem>(@ui.mouse_over_element);
-			
-			if(@item != null && @item._list_view == @this)
-			{
-				busy_drag_select = true;
-				drag_select_select = allow_deselect ? !item.selected : true;
-				item.selected = drag_select_select;
-			}
+			busy_drag_select = true;
+			drag_select_select = allow_deselect && (_num_selected_items > min_select)
+				? !item.selected : true;
+
+			check_multi_select_key = true;
+			if(drag_select_select)
+				select_item(item);
+			else
+				deselect_item(item);
+			check_multi_select_key = false;
 		}
 	}
 	
@@ -522,9 +588,14 @@ class ListView : ScrollView
 			{
 				ListViewItem@ item = cast<ListViewItem>(@ui.mouse_over_element);
 				
-				if(@item != null && @item._list_view == @this)
+				if(@item != null && @item._list_view == @this && (!item.selected || _num_selected_items > min_select))
 				{
-					item.selected = drag_select_select;
+					check_multi_select_key = true;
+					if(drag_select_select)
+						select_item(item);
+					else
+						deselect_item(item);
+					check_multi_select_key = false;
 				}
 			}
 		}
