@@ -21,7 +21,7 @@ class SplitPane : LockedContainer, IStepHandler
 	protected float _right_min = 0;
 	protected float _right_max = MAX_FLOAT;
 	
-	protected float divider_spacing = 2;
+	protected float _divider_spacing = 2;
 	
 	protected bool busy_dragging;
 	protected float drag_offset;
@@ -138,7 +138,14 @@ class SplitPane : LockedContainer, IStepHandler
 		get const { return _resizable; }
 		set { _resizable = value; }
 	}
-	
+
+	/// How much spacing to have around the divider
+	float divider_spacing
+	{
+		get const { return _divider_spacing; }
+		set { _divider_spacing = value; }
+	}
+
 	/// Controls the behaviour of the split position. See SplitBehaviour for details
 	SplitBehaviour behaviour
 	{
@@ -267,7 +274,7 @@ class SplitPane : LockedContainer, IStepHandler
 		}
 		else if(_behaviour == FixedRight)
 		{
-			const float divider_size = ui.style.gripper_required_space + divider_spacing * 2;
+			const float divider_size = ui.style.gripper_required_space + _divider_spacing * 2;
 			new_position = clamp(size - (mouse_x - drag_offset + divider_size), 0, size);
 		}
 		else
@@ -317,7 +324,7 @@ class SplitPane : LockedContainer, IStepHandler
 		
 		if(_resizable)
 		{
-			style.draw_gripper(_orientation, x + left + divider_spacing,
+			style.draw_gripper(_orientation, x + left + _divider_spacing,
 				max(y + height * 0.5 - gripper_size ,y),
 				min(y + height * 0.5 + gripper_size, is_horizontal ? y2 : x2),
 				divider_hovered, busy_dragging);
@@ -330,7 +337,7 @@ class SplitPane : LockedContainer, IStepHandler
 	
 	protected void calculate_sizes(float &out left, float &out right)
 	{
-		const float divider_size = ui.style.gripper_required_space + divider_spacing * 2;
+		const float divider_size = ui.style.gripper_required_space + _divider_spacing * 2;
 		const float available_space = max((_orientation == Horizontal ? _width : _height) - divider_size, 0.0);
 		
 		if(_left_min + _right_min > available_space)
