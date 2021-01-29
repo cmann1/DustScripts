@@ -1,70 +1,75 @@
-/** Empty script with all callbacks. */
+/* Empty script with all callbacks. */
+
 class script {
   script() {
-    /** Initialize any state variables here. */
+    /* Initialize any state variables here. */
   }
 
   void checkpoint_save() {
-    /** Called just prior to a checkpoint being saved. */
+    /* Called just prior to a checkpoint being saved. */
   }
 
   void checkpoint_load() {
-    /** Called after a checkpoint has been loaded. All entities and prop objects
+    /* Called after a checkpoint has been loaded. All entities and prop objects
      * will have been recreated and therefore existing handles will no longer
      * refer to objects in the scene and should be requeried. */
   }
 
   void entity_on_add(entity@ e) {
-    /** Called when an entity is added to the scene. */
+    /* Called when an entity is added to the scene. */
   }
 
   void entity_on_remove(entity@ e) {
-    /** Called when an entity is removed from the scene. */
+    /* Called when an entity is removed from the scene. */
   }
 
   void move_cameras() {
-    /** Called before the entity list to process has been constructed as an
+    /* Called before the entity list to process has been constructed as an
      * opportunity to move the camera. Moving the camera in step() will
      * be too late to affect what segments and entities are loaded and stepped.
      */
   }
 
   void step(int entities) {
-    /** Called every frame (60fps) prior to all entities having their step
+    /* Called every frame (60fps) prior to all entities having their step
      * function called. The list of entities going to be stepped can be accessed
      * with entity_by_index(i) for 0 <= i < entities.
      */
   }
 
   void step_post(int entities) {
-    /** Like step except called after all entities have had their step functions
+    /* Like step except called after all entities have had their step functions
      * called. */
   }
 
   void pre_draw(float sub_frame) {
-    /** Setup the camera/transform prior to anything being drawn. Do not actually
+    /* Setup the camera/transform prior to anything being drawn. Do not actually
      * draw anything here. */
   }
 
   void draw(float sub_frame) {
-    /** Do any drawing required by your script. This function should have no side
+    /* Do any drawing required by your script. This function should have no side
      * effects outside of the draw calls it makes. */
   }
 
   void editor_step() {
-    /** Called each frame while in the editor instead of step/step_post. */
+    /* Called each frame while in the editor instead of step/step_post. */
   }
 
   void editor_pre_draw(float sub_frame) {
-    /** Called each pre draw frame while in the editor instead of pre_draw. */
+    /* Called each pre draw frame while in the editor instead of pre_draw. */
   }
 
   void editor_draw(float sub_frame) {
-    /** Called each draw frame while in the editor instead of draw. */
+    /* Called each draw frame while in the editor instead of draw. */
+  }
+
+  void editor_var_changed(var_info@) {
+    /* Called when one of this script's variables is modified in the editor */
   }
 
   void spawn_player(message@ msg) {
-    /** Spawn a player controllable. The following parameters will be set
+    /* Spawn a player controllable. The following parameters will be set
      * in the passed message:
      *   msg.get_float("x"): The x coordinate to spawn the player.
      *   msg.get_float("y"): The y coordinate to spawn the player.
@@ -77,7 +82,7 @@ class script {
   }
 
   void build_sprites(message@ msg) {
-    /** Used to set custom sprite data from embedded values. See
+    /* Used to set custom sprite data from embedded values. See
      * has_embed_value() for more details on how to embed a value. Sprites
      * should be in PNG format.
      *
@@ -94,7 +99,7 @@ class script {
   }
 
   void build_sounds(message@ msg) {
-    /** Userd to set custom sound data from embedded values similar to
+    /* Userd to set custom sound data from embedded values similar to
      * build_sprites.
      *
      * For each sound you wish to create add a string to the message with the
@@ -108,28 +113,31 @@ class script {
   }
 
   void on_level_start() {
-    /** Called when the level begins play either by loading the level normally or
+    /* Called when the level begins play either by loading the level normally or
      * by tabbing in from the editor. */
   }
 
   void on_level_end() {
-    /** Called when an end condition for the level has been triggered and the
+    /* Called when an end condition for the level has been triggered and the
      * replay is about to be uploaded. You may still modify plugin_score at
      * this point. */
   }
+
+  void editor_loaded() {
+    /* Called when entering editor mode. Only applicable to editor plugins */
+  }
+
+  void editor_unloaded() {
+    /* Called before entering play mode. Only applicable to editor plugins */
+  }
+
 }
 
-class trigger_base { }
-
-class enemy_base { }
-
-class callback_base { }
-
-/** A script-backed trigger. */
+/* A script-backed trigger. */
 class mytrigger : trigger_base {
   scripttrigger@ self;
 
-  /** Non handle variables can be persisted and made editable in the editor
+  /* Non handle variables can be persisted and made editable in the editor
    * using annotations. These annotated values will be modifiable in the editor
    * and persisted across checkpoints. These values will be set by the time
    * init() is called. You should still set sensible defaults in the object's
@@ -137,12 +145,38 @@ class mytrigger : trigger_base {
    *
    * You can control how a variable is modified in the editor using annotations.
    * Annotations appear before the variable declaration and can take additional
-   * parameters afterwards. Here is the full list of supported annotations
+   * parameters afterwards.
+   * Variable name labels will be CamelCased and underscores removed by default.
+   * Keys or values that have spaces in them must be wrapped in single or double
+   * quotes.
+   *
+   * Multiple annotations can be added to a single variable by separating
+   * them with '|':
+   *   [attribute1|attribute2|...]
+   * Useful for example when adding a tooltip to a variable that already has
+   * other annotations:
+   *   [color,alpha|tooltip:'Select a colour']
+   *
+   * Certain attributes take a colour value in the form of a hex value,
+   * AARRGGBB or ARGB.
+   * Alpha values are optional and will default to 0xFF. The optional prefixes
+   * '#' and '0x' are also allowed.
+   *
+   * Here is the full list of supported annotations
    * (fields in all caps are meant to be customized).
    *
    *
    * [hidden]
    *   Persist the variable but don't show it in the editor.
+   *   Can also be added to classes to hide it in the editor's
+   *   type select menu.
+   * [label:TEXT]
+   *   Use TEXT for the variables label instead of the variable's name.
+   * [tooltip:TEXT,delay:DELAY,font:STRING,size:INT,colour/color:COLOUR]
+   *   Will display the tooltip TEXT after DELAY frames (default 20).
+   *   Fields with a tooltip will be highlighted in blue.
+   *   Optionaly the font, size, and colour can be set. For a list of
+   *   valid font/size pairs, see https://pastebin.com/YcNKSXd9
    * [text]
    *   Use a simple text field to modify the variable. This is the default
    *   annotation
@@ -152,9 +186,10 @@ class mytrigger : trigger_base {
    * [angle,MODE]
    *   Use to set an angle. MODE can be set to 'rad' or 'radian' to use radians
    *   otherwise it defaults to degrees.
-   * [color] or [colour]
-   *   Use to specify a colour parameter. The alpha channel is always set to
-   *   0xFF.
+   * [color,alpha] or [colour,alpha]
+   *   Use to specify a colour parameter. The optional 'alpha' parameter will
+   *   display a slider allowing the colour's alpha channel to be changed,
+   *   otherwise it will always set to 0xFF.
    * [slider,min:MINVAL,max:MAXVAL]
    *   Use a slider element to set a value between MINVAL and MAXVAL uniformly
    *   distributed.
@@ -162,7 +197,12 @@ class mytrigger : trigger_base {
    *   Use this annotation on an x-variable, naming the corresponding y variable
    *   as YPARAM. MODE can be 'world' or 'hud', defaulting to 'world'. LAYER is
    *   the layer to calculate the coordinates of from the user's mouse.
-   * 
+   * [fixed:MODE]
+   *   If present it will not be possible to add or remove items from arrays.
+   *   MODE can be 'all' (default), or 'top'.
+   *   If MODE is 'top', only the top level of a multidimensional array will be
+   *   fixed and subsequent levels will be modifiable.
+   *
    * Additionally, bools, arrays, and non-handle classes have the following
    * semantics.
    *
@@ -194,155 +234,175 @@ class mytrigger : trigger_base {
   [hidden] float pos_y; // Declare the var hidden so it is persisted.
 
   mytrigger() {
-		/** Setup initial variables. An empty constructor must be present (unless
+    /* Setup initial variables. An empty constructor must be present (unless
      * there are no constructors at all in which a default one is implied) for
      * triggers to be usable. */
   }
 
   void init(script@ s, scripttrigger@ self) {
-		/** Called after the trigger is constructed, passing the corresponding game
+    /* Called after the trigger is constructed, passing the corresponding game
      * scripttrigger handle. */
-		@this.self = @self;
+    @this.self = @self;
   }
 
   void on_add() {
-    /** Called after the entity has been added to the scene. */
+    /* Called after the entity has been added to the scene. */
   }
 
   void on_remove() {
-    /** Called after the entity has been removed from the scene. */
+    /* Called after the entity has been removed from the scene. */
   }
 
   void step() {
-		/** Called when the trigger is stepped. */
+    /* Called when the trigger is stepped. */
   }
 
   void editor_step() {
-		/** Called when the trigger is stepped while in editor mode. */
+    /* Called when the trigger is stepped while in editor mode. */
+  }
+
+  void editor_var_changed(var_info@) {
+    /* Called when one of this trigger's variables is modified in the editor */
   }
 
   void draw(float sub_frame) {
-		/** Do drawing related to the script trigger. */
+    /* Do drawing related to the script trigger. */
   }
 
   void editor_draw(float sub_frame) {
-		/** Do drawing in the editor related to the script trigger. The base
+    /* Do drawing in the editor related to the script trigger. The base
      * implementation will draw a square for the trigger and, if the activate()
      * function is present, the trigger radius. */
   }
 
+  void editor_var_changed(var_info@) {
+    /* Called when a variable is edited in the editor */
+  }
+
   void activate(controllable@ e) {
-		/** Called when any controllable object within the region associated with
+    /* Called when any controllable object within the region associated with
      * the trigger. activate() is called for each object each frame it is within
-		 * the trigger. */
+     * the trigger. */
   }
 
   void on_message(string id, message@ msg) {
-    /** Called when a message has been sent to the entity with
+    /* Called when a message has been sent to the entity with
      * entity.send_message(id, @msg). */
   }
 }
 
 class myenemy : enemy_base {
-  /** See triger_base documentation for discussion on member variables. */
+  /* See triger_base documentation for discussion on member variables. */
 
   myenemy() {
-		/** Setup initial variables. An empty constructor must be present (unless
+    /* Setup initial variables. An empty constructor must be present (unless
      * there are no constructors at all in which a default one is implied) for
      * enemies to be usable. */
   }
 
   void init(script@ s, scriptenemy@ self) {
-		/** Called after the enemy is constructed, passing the corresponding game
+    /* Called after the enemy is constructed, passing the corresponding game
      * controllable handle. */
   }
 
   void on_add() {
-    /** Called after the entity has been added to the scene. */
+    /* Called after the entity has been added to the scene. */
   }
 
   void on_remove() {
-    /** Called after the entity has been removed from the scene. */
+    /* Called after the entity has been removed from the scene. */
   }
 
   void on_change_scale(float new_scale) {
-    /** Called when the scale of the object has changed and collisions should be
+    /* Called when the scale of the object has changed and collisions should be
      * updated. */
   }
 
   void step() {
-		/** Called when the enemy is stepped. */
+    /* Called when the enemy is stepped. */
   }
 
   void editor_step() {
-		/** Called when the enemy is stepped while in editor mode. */
+    /* Called when the enemy is stepped while in editor mode. */
   }
 
   void draw(float sub_frame) {
-		/** Do drawing related to the enemy. */
+    /* Do drawing related to the enemy. */
   }
 
   void editor_draw(float sub_frame) {
-		/** Do drawing in the editor related to the enemy trigger. */
+    /* Do drawing in the editor related to the enemy trigger. */
+  }
+
+  void editor_var_changed(var_info@) {
+    /* Called when one of this enemy's variables is modified in the editor */
   }
 
   void on_message(string id, message@ msg) {
-    /** Called when a message has been sent to the entity with
+    /* Called when a message has been sent to the entity with
      * entity.send_message(id, @msg). */
   }
 }
 
-/** API methods included here are globally accessible within a script. */
-//class user_script, var_callback {
+/* API methods included here are globally accessible within a script. */
 //{
-  /** Returns the name of this script. Script names are used as a way of
+  /* Returns the name of this script. Script names are used as a way of
    * identifiying scripts for use when working with script triggers/enemies. */
   string script_name();
 
-  /** Return the current scene object.  This scene object will be valid for
+  /* Returns false in the editor and true in game */
+  bool is_playing();
+
+  /* Returns true if a replay is being watched */
+  bool is_replay();
+
+  /* Use after changing persistent variables via script to update values in the script panel. */
+  void editor_sync_vars_menu();
+
+  /* Return the current scene object.  This scene object will be valid for
    * the entire execution of the script. */
   scene@ get_scene();
 
-  /** Return the global script object associated with this script. For technical
+  /* Return the global script object associated with this script. For technical
    * reasons the script must implement the "script_base" interface, otherwise
    * this api will return null. */
   script_base@ get_script();
 
-  /** Return the camera following player 'player'. Like the scene object this
+  /* Return the camera following player 'player'. Like the scene object this
    * object never needs to be reloaded. */
   camera@ get_camera(uint player);
 
-  /** Returns the number of cameras/players currently active. */
+  /* Returns the number of cameras/players currently active. */
   uint num_cameras();
 
-  /** Get the camera that is currently being viewed. */
+  /* Get the camera that is currently being viewed. */
   camera@ get_active_camera();
 
-  /** Get the player index that is currently being viewed. Shorthand for
+  /* Get the player index that is currently being viewed. Shorthand for
    * get_active_camera.player(). */
   int get_active_player();
 
-  /** This is deprecated, use controller_controllable which returns the same
+  /* This is deprecated, use controller_controllable which returns the same
    * result except cast as a controllable. */
   entity@ controller_entity(uint player);
 
-  /** Return the entity being controlled by player 'player'. This object
+  /* Return the entity being controlled by player 'player'. This object
    * is no longer valid and should be requeried when a checkpoint is loaded.
    */
   controllable@ controller_controllable(uint player);
 
-  /** Change the controllable controlled by player 'player'. */
+  /* Change the controllable controlled by player 'player'. */
   void controller_entity(uint player, controllable@ pl);
 
-  /** Reset all camera state based on the player's current position. */
+  /* Reset all camera state based on the player's current position. */
   void reset_camera(uint player);
 
-  /** Get the player name for the player id. Defaults to "Player " + (player + 1)
+  /* Get the player name for the player id. Defaults to "Player " + (player + 1)
    * if not in networking mode or the player name is not known. Returns an empty
    * string if the player does not exist. */
   string player_name(int player);
 
-  /** Return the entity with the given id. The returned entity object is no
+  /* Return the entity with the given id. The returned entity object is no
    * longer valid if the entity is removed from the scene either by being
    * destroyed, unloaded, or a checkpoint is loaded. The safest thing to do
    * is requery the entity every frame it will be used.
@@ -353,49 +413,49 @@ class myenemy : enemy_base {
 
   prop@ prop_by_id(uint id);
 
-  /** Return the 'index'th entity that will be steped this frame. Should only
+  /* Return the 'index'th entity that will be steped this frame. Should only
    * be called from 'step' and 'step_post'. See * entity_by_id() for notes on
    * liveness of this object. */
   entity@ entity_by_index(uint index);
 
-  /** Seed the random generator. */
+  /* Seed the random generator. */
   void srand(uint32 sd);
 
-  /** Generate a random 30-bit number. */
+  /* Generate a random 30-bit number. */
   uint32 rand();
 
-  /** Create an tileinfo structure. Defaults to a square virtual tile. */
+  /* Create an tileinfo structure. Defaults to a square virtual tile. */
   tileinfo@ create_tileinfo();
 
-  /** Create a tilefilth structure. Defaults to no filth on any edge. */
+  /* Create a tilefilth structure. Defaults to no filth on any edge. */
   tilefilth@ create_tilefilth();
 
-  /** Create a sprites object that can be used to draw sprites to the screen. */
+  /* Create a sprites object that can be used to draw sprites to the screen. */
   sprites@ create_sprites();
 
-  /** Create a prop. */
+  /* Create a prop. */
   prop@ create_prop();
 
-  /** Create an entity object of the given type.  See
+  /* Create an entity object of the given type.  See
    * https://gist.github.com/msg555/dcdc9d0644a813259072fe7b1cbdac30 for a
    * list of types that can be created. */
   entity@ create_entity(string type_name);
 
-  /** Create a new textfield that can be used to draw text to the screen. */
+  /* Create a new textfield that can be used to draw text to the screen. */
   textfield@ create_textfield();
 
-  /** Create a new script trigger backed by the passed trigger_base object. */
+  /* Create a new script trigger backed by the passed trigger_base object. */
   scripttrigger@ create_scripttrigger(
       trigger_base@ obj);
 
-  /** Create a new script enemy backed by the passed enemy_base object. */
+  /* Create a new script enemy backed by the passed enemy_base object. */
   scriptenemy@ create_scriptenemy(
       enemy_base@ obj);
 
-  /** Create an empty message object. */
+  /* Create an empty message object. */
   message@ create_message();
 
-  /** Create a hitbox object. Note that the entity is not automatically added
+  /* Create a hitbox object. Note that the entity is not automatically added
    * to the scene. However, hitboxes do automatically remove themselves from the
    * scene sometime after activated. Hitboxes cannot be persisted and should be
    * added to the scene with persist set to false. */
@@ -406,15 +466,15 @@ class myenemy : enemy_base {
   canvas@ create_canvas(
           bool is_hud, int layer, int sub_layer);
 
-  /** Add a callback to receive all broadcasted messages with the given id. If id
+  /* Add a callback to receive all broadcasted messages with the given id. If id
    * is blank then this receiver will instead receive all messages. */
   void add_broadcast_receiver(string id,
           callback_base@ obj, string methName);
 
-  /** Send a message to all registered broadcast receivers. */
+  /* Send a message to all registered broadcast receivers. */
   void broadcast_message(string id, message@ msg);
 
-  /** Returns true if there is an embedded file associated with the passed key.
+  /* Returns true if there is an embedded file associated with the passed key.
    *
    * To embed a file into a script use a declaration like
    *   const string EMBED_key = "file.dat"
@@ -425,11 +485,11 @@ class myenemy : enemy_base {
    */
   bool has_embed_value(string key);
 
-  /** Returns the embedded file data associated with the passed key. See
+  /* Returns the embedded file data associated with the passed key. See
    * has_embed_value for more details on how to embed a value in a script. */
   string get_embed_value(string key);
 
-  /** Add/replace the embed key with the file present at
+  /* Add/replace the embed key with the file present at
    * "content/plugins/embeds/" + path. Use forward slashes to represent
    * path separation.
    *
@@ -439,83 +499,83 @@ class myenemy : enemy_base {
    */
   bool load_embed(string key, string path);
 
-  /** Return the current unix timestamp. */
+  /* Return the current unix timestamp. */
   int timestamp_now();
 
-  /** Convert a timestamp to a timedate structure in the local timezone. */
+  /* Convert a timestamp to a timedate structure in the local timezone. */
   timedate@ localtime(int timestamp);
 
-  /** Convert the current time to a timedate structure in the local timezone. */
+  /* Convert the current time to a timedate structure in the local timezone. */
   timedate@ localtime();
 
-  /** Convert a timestamp to a timedate structure in the UTC timezone. */
+  /* Convert a timestamp to a timedate structure in the UTC timezone. */
   timedate@ gmtime(int timestamp);
 
-  /** Convert the current time to a timedate structure in the UTC timezone. */
+  /* Convert the current time to a timedate structure in the UTC timezone. */
   timedate@ gmtime();
 
-  /** Get editor api object if currently in editor mode. */
+  /* Get editor api object if currently in editor mode. */
   editor_api@ get_editor_api();
 
-  /** Get nexus api object if currently in nexus. */
+  /* Get nexus api object if currently in nexus. */
   nexus_api@ get_nexus_api();
 //}
 
 class scene {
-  /** Get the current level name. */
+  /* Get the current level name. */
   string map_name();
 
-  /** Get the current level type. */
+  /* Get the current level type. */
   int level_type();
 
-  /** Trigger a checkpoint to be saved. Note that the checkpoint is only saved at
+  /* Trigger a checkpoint to be saved. Note that the checkpoint is only saved at
    * the start of the next frame. */
   void save_checkpoint(int x, int y);
 
-  /** Trigger the last checkpoint to be loaded. If no checkpoint has been set
+  /* Trigger the last checkpoint to be loaded. If no checkpoint has been set
    * yet the level will be reloaded. */
   void load_checkpoint();
 
-  /** Get the x coordinate for the identified player of where they should respawn
+  /* Get the x coordinate for the identified player of where they should respawn
    * on death. */
   float get_checkpoint_x(int player);
 
-  /** Get the y coordinate for the identified player of where they should respawn
+  /* Get the y coordinate for the identified player of where they should respawn
    * on death. */
   float get_checkpoint_y(int player);
 
-  /** Get the tileinfo structure for the tile at the given position on
+  /* Get the tileinfo structure for the tile at the given position on
    * layer 19. */
   tileinfo@ get_tile(int x, int y);
 
-  /** Get the tileinfo structure for the tile at the given position and layer. */
+  /* Get the tileinfo structure for the tile at the given position and layer. */
   tileinfo@ get_tile(int x, int y, int layer);
 
-  /** Overwrite a tile in the scene.  See tileinfo documentation for what each
+  /* Overwrite a tile in the scene.  See tileinfo documentation for what each
    * of these parameters mean.
    */
   void set_tile(int x, int y, int layer, bool solid, int16 type,
                     int16 spriteSet, int16 spriteTile, int16 palette);
 
-  /** Overwrite a tile in the scene using the passed tileinfo structure. */
+  /* Overwrite a tile in the scene using the passed tileinfo structure. */
   void set_tile(int x, int y, int layer, tileinfo@ tile,
                              bool updateEdges);
 
-  /** Get the tilefilth structure for the tile at the given location.
+  /* Get the tilefilth structure for the tile at the given location.
    * Filth includes all things that can be on a side of a tile,
    * i.e. all dust types and all spike types. */
   tilefilth@ get_tile_filth(int x, int y);
 
-  /** Set the filth for a given tile position. See tilefilth documentation for
+  /* Set the filth for a given tile position. See tilefilth documentation for
    * a description of how to interpret the top/bottom/left/right fields. */
   uint set_tile_filth(int x, int y, uint8 top, uint8 bottom,
                           uint8 left, uint8 right,
                           bool affectSpikes, bool overwrite);
 
-  /** Set the filth for a given tile position using a tilefilth object. */
+  /* Set the filth for a given tile position using a tilefilth object. */
   uint set_tile_filth(int x, int y, tilefilth@ filth);
 
-  /** Project filth onto surfaces using the same line of sight system that is
+  /* Project filth onto surfaces using the same line of sight system that is
    * used e.g. to clear dust with attacks. Roughly speaking, the projection will
    * be applied to any tile edge with a center that's within 'distance' pixels
    * from the rectangle centered at (x, y) with size (baseWidth, baseHeight) in
@@ -532,38 +592,38 @@ class scene {
       float spreadAngle, bool top, bool bottom, bool left, bool right,
       bool affectSpikes, bool overwrite);
 
-  /** Returns the current default collision layer. Normally this will be layer
+  /* Returns the current default collision layer. Normally this will be layer
    * 19 unless modified. */
   int default_collision_layer();
 
-  /** Sets the default collision layer. Note that this value is not persisted
+  /* Sets the default collision layer. Note that this value is not persisted
    * across checkpoints. It is up to the script to set the value appropriately
    * after a checkpoint has been loaded.
    */
   void default_collision_layer(int layer);
 
-  /** Return information about the first tile surface hit from the ray starting
+  /* Return information about the first tile surface hit from the ray starting
    * at (x1, y1) going to (x2, y2). */
   raycast@ ray_cast_tiles(
           float x1, float y1, float x2, float y2);
 
-  /** Like the other ray_cast_tiles call except reuse the raycast object result.
+  /* Like the other ray_cast_tiles call except reuse the raycast object result.
    * This avoids unnecessary allocations if you're making a lot of calls per
    * frame. */
   raycast@ ray_cast_tiles(
           float x1, float y1, float x2, float y2,
           raycast@ result);
 
-  /** Like the other ray_cast_tiles except provide a layer. */
+  /* Like the other ray_cast_tiles except provide a layer. */
   raycast@ raycast_ray_cast_tiles_ex(
           float x1, float y1, float x2, float y2, uint layer);
 
-  /** Like the other ray_cast_tiles except provide a layer. */
+  /* Like the other ray_cast_tiles except provide a layer. */
   raycast@ ray_cast_tiles_ex(
           float x1, float y1, float x2, float y2, uint layer,
           raycast@ result);
 
-  /** Return information about the first tile surface hit from the ray starting
+  /* Return information about the first tile surface hit from the ray starting
    * at (x1, y1) going to (x2, y2). 'edges' is a bitset indicating which types
    * of edges it should look for collisions with. The 1, 2, 4, and 8 bits
    * correspond to the top, bottom, left, and right edges respectively.
@@ -574,77 +634,77 @@ class scene {
   raycast@ ray_cast_tiles(
           float x1, float y1, float x2, float y2, int edges);
 
-  /** Like the other ray_cast_tiles call except reuse the raycast object result.
+  /* Like the other ray_cast_tiles call except reuse the raycast object result.
    * This avoids unnecessary allocations if you're making a lot of calls per
    * frame. */
   raycast@ ray_cast_tiles(
           float x1, float y1, float x2, float y2, int edges,
           raycast@ result);
 
-  /** Like the other ray_cast_tiles except provide a layer. */
+  /* Like the other ray_cast_tiles except provide a layer. */
   raycast@ ray_cast_tiles_ex(
           float x1, float y1, float x2, float y2, int edges, uint layer);
 
-  /** Like the other ray_cast_tiles except provide a layer. */
+  /* Like the other ray_cast_tiles except provide a layer. */
   raycast@ ray_cast_tiles_ex(
           float x1, float y1, float x2, float y2, int edges,
           uint layer, raycast@ result);
 
-  /** Find the collision of the horizontal line segment (x1, y1), (x2, y1) with
+  /* Find the collision of the horizontal line segment (x1, y1), (x2, y1) with
    * tiles as it moves downward to y2. Only collides with ground edges. */
   tilecollision@ collision_ground(float x1, float y1,
           float x2, float y2);
 
-  /** Find the collision of the horizontal line segment (x1, y1), (x2, y1) with
+  /* Find the collision of the horizontal line segment (x1, y1), (x2, y1) with
    * tiles as it moves upward to y2. Only collides with roof edges. */
   tilecollision@ collision_roof(float x1, float y1,
           float x2, float y2);
 
-  /** Find the collision of the vertical line segment (x1, y1), (x1, y2) with
+  /* Find the collision of the vertical line segment (x1, y1), (x1, y2) with
    * tiles as it moves leftward to x2. Only collides with left edges. */
   tilecollision@ collision_left(float x1, float y1,
           float x2, float y2);
 
-  /** Find the collision of the vertical line segment (x1, y1), (x1, y2) with
+  /* Find the collision of the vertical line segment (x1, y1), (x1, y2) with
    * tiles as it moves rightward to x2. Only collides with right edges. */
   tilecollision@ collision_right(float x1, float y1,
           float x2, float y2);
 
-  /** Like collision_ground except provide a layer. */
+  /* Like collision_ground except provide a layer. */
   tilecollision@ collision_ground_ex(
           float x1, float y1, float x2, float y2, uint layer);
 
-  /** Like collision_roof except provide a layer. */
+  /* Like collision_roof except provide a layer. */
   tilecollision@ collision_roof_ex(
           float x1, float y1, float x2, float y2, uint layer);
 
-  /** Like collision_left except provide a layer. */
+  /* Like collision_left except provide a layer. */
   tilecollision@ collision_left_ex(
           float x1, float y1, float x2, float y2, uint layer);
 
-  /** Like collision_right except provide a layer. */
+  /* Like collision_right except provide a layer. */
   tilecollision@ collision_right_ex(
           float x1, float y1, float x2, float y2, uint layer);
 
-  /** Get all the entity collisions of a given type in the rectangle. 'type'
+  /* Get all the entity collisions of a given type in the rectangle. 'type'
    * should be an element from the col_type enum at the bottom of this
    * documentation. The return value is the number of collisions found. Use
    * get_entity_collision_index to query the index'th result. */
   int get_entity_collision(float top, float bottom, float left, float right,
       uint type);
 
-  /** Returns the index'th entity from the last get_..._collision call. */
+  /* Returns the index'th entity from the last get_..._collision call. */
   entity@ get_entity_collision_index(uint index);
 
-  /** Get all the prop collisions within the query rectangle. The return value is
+  /* Get all the prop collisions within the query rectangle. The return value is
    * the number of prop collisions detected. Use get_prop_collision_index to
    * query the index'th result. */
   int get_prop_collision(float top, float bottom, float left, float right);
 
-  /** Returns the index'th prop from the last get_..._collision call. */
+  /* Returns the index'th prop from the last get_..._collision call. */
   prop@ get_prop_collision_index(uint index);
 
-  /** Override the default stream sizes if for instance you have a large level
+  /* Override the default stream sizes if for instance you have a large level
    * that you need loaded into memory at all times. 'load_size' indicates how
    * big of a square of 16x16 tile regions to load around the camera into
    * memory. 'step_size' is a smaller region controlling the region of entities
@@ -658,42 +718,42 @@ class scene {
    */
   void override_stream_sizes(int load_size, int step_size);
 
-  /** Returns the number of combo breaks that have been recorded for the current
+  /* Returns the number of combo breaks that have been recorded for the current
    * replay. This translates to finess scores as 0=S, 1=A, 2-3=B, 4-5=C, 6+=D */
   int combo_break_count();
 
-  /** Set the current combo break count. */
+  /* Set the current combo break count. */
   void combo_break_count(int combo_break_count);
 
-  /** Add a prop into the scene to be rendered each frame. */
+  /* Add a prop into the scene to be rendered each frame. */
   void add_prop(prop@ prop);
 
-  /** Remove a prop from the scene. */
+  /* Remove a prop from the scene. */
   void remove_prop(prop@ prop);
 
-  /** Add an entity to the scene to be step'ed and drawn. */
+  /* Add an entity to the scene to be step'ed and drawn. */
   void add_entity(entity@ entity);
 
-  /** Add an entity to the scene to be step'ed and drawn. 'persist' indicates if
+  /* Add an entity to the scene to be step'ed and drawn. 'persist' indicates if
    * the entity should be saved and loaded using the checkpoint system. */
   void add_entity(entity@ entity, bool persist);
 
-  /** Remove an entity from the scene. */
+  /* Remove an entity from the scene. */
   void remove_entity(entity@ entity);
 
-  /** Access the visibility of each layer. */
+  /* Access the visibility of each layer. */
   bool layer_visible(uint layer);
   void layer_visible(uint layer, bool visible);
 
-  /** Access the scaling factor of the layer. 1.0 is the standard foreground
+  /* Access the scaling factor of the layer. 1.0 is the standard foreground
    * scale with lower values being used for the background. */
   float layer_scale(uint layer);
   void layer_scale(uint layer, float scale);
 
-  /** Reset the render order of the layers to the default. */
+  /* Reset the render order of the layers to the default. */
   void reset_layer_order();
 
-  /** Swap the rendering order of two layers. Note that this only changes the
+  /* Swap the rendering order of two layers. Note that this only changes the
    * order that draw commands are applied and does not affect other layer
    * attributes like fog colour or scale.
    *
@@ -703,33 +763,33 @@ class scene {
    */
   void swap_layer_order(uint layer1, uint layer2);
 
-  /** Get the render position of a layer. Normally this is just the layer index
+  /* Get the render position of a layer. Normally this is just the layer index
    * itself unless swap_layer_order has been used.
    */
   uint get_layer_position(uint layer);
 
-  /** Draw a rectangle in the world scene's coordinates. colour is an ARGB value
+  /* Draw a rectangle in the world scene's coordinates. colour is an ARGB value
    * in big endian byte order (alpha is the high byte). */
   void draw_rectangle_world(uint layer, uint sub_layer, float x1, float y1,
       float x2, float y2, float rotation, uint colour);
 
-  /** Like draw rectangle except a blur shader is used. */
+  /* Like draw rectangle except a blur shader is used. */
   void draw_glass_world(uint layer, uint sub_layer, float x1, float y1,
       float x2, float y2, float rotation, uint colour);
 
-  /** Draws a gradient to the screen like how the background is drawn. */
+  /* Draws a gradient to the screen like how the background is drawn. */
   void draw_gradient_world(uint layer, uint sub_layer, float x1, float y1,
       float x2, float y2, uint c00, uint c10, uint c11, uint c01);
 
-  /** Deprecated, use draw_line_world instead. */
+  /* Deprecated, use draw_line_world instead. */
   void draw_line(uint layer, uint sub_layer, float x1, float y1,
       float x2, float y2, float width, uint colour);
 
-  /** Draws a line between the two points. */
+  /* Draws a line between the two points. */
   void draw_line_world(uint layer, uint sub_layer, float x1, float y1,
       float x2, float y2, float width, uint colour);
 
-  /** Generic call to draw an arbitrary quadralateral. Specify points in counter
+  /* Generic call to draw an arbitrary quadralateral. Specify points in counter
    * clockwise order. Glass is not actually supported and so is_glass is
    * currently ignored.
    *
@@ -743,7 +803,7 @@ class scene {
       float x3, float y3, float x4, float y4,
       uint c1, uint c2, uint c3, uint c4);
 
-  /** Analagous draw routines for the hud coordinate space. To scripts the hud is
+  /* Analagous draw routines for the hud coordinate space. To scripts the hud is
    * a 1600 by 900 pixel rectangle centered at the origin. */
   void draw_rectangle_hud(uint layer, uint sub_layer, float x1, float y1,
       float x2, float y2, float rotation, uint colour);
@@ -757,7 +817,7 @@ class scene {
   void draw_line_hud(uint layer, uint sub_layer, float x1, float y1,
       float x2, float y2, float width, uint colour);
 
-  /** Generic call to draw an arbitrary quadralateral. Specify points in counter
+  /* Generic call to draw an arbitrary quadralateral. Specify points in counter
    * clockwise order. If is_glass is true the color information
    * is ignored, otherwise it is used as a gradient between the points.
    *
@@ -771,65 +831,99 @@ class scene {
       float x3, float y3, float x4, float y4,
       uint c1, uint c2, uint c3, uint c4);
 
-  /** Prevent the normal score overlay (including the combo, combo-meter, and
+  /* Prevent the normal score overlay (including the combo, combo-meter, and
    * time displays) from rendering. */
   void disable_score_overlay(bool disable_overlay);
 
-  /** See https://gist.github.com/msg555/46f46b8b943ee93393a0a192c7703c57
+  /* See https://gist.github.com/msg555/46f46b8b943ee93393a0a192c7703c57
    * for a list of sound and stream names to use. */
   audio@ play_sound(string name, float x, float y,
           float volume, bool loop, bool positional);
 
-  /** 'soundGroup' determines which global volume slider to apply to this sound.
+  /* 'soundGroup' determines which global volume slider to apply to this sound.
    * 1 for music, 2 for ambience, and anything else is considered a sound
    * effect. */
   audio@ play_stream(string name, uint soundGroup,
           float x, float y, bool loop, float volume);
 
-  /** Play a stream that was loaded in using the script.build_sounds() callback.
+  /* Play a stream that was loaded in using the script.build_sounds() callback.
    */
   audio@ play_script_stream(string name, uint soundGroup,
           float x, float y, bool loop, float volume);
 
-  /** Insert a new collision object into the scene. */
+  /* Play a sound that will continue to play after a reset, similar to in game music.
+   * If the specified audio is already playing nothing will happen.
+   * script_sound indicates if the sound to be played is a script, or built in sound.
+   * Note that calling audio.stop() on the returned audio won't automatically remove it from
+   * the script music registry, use scene.stop_persistent_stream instead.
+   */
+  audio@ play_persistent_stream(string name, uint sound_group, bool loop, float volume, const bool script_sound);
+
+  /* Returns true if the specified persistent stream was stopped.
+   */
+  bool stop_persistent_stream(string name);
+
+  /* Returns the specified persitent sound if it is playing, or null otherwise. */
+  audio@ get_persistent_stream(string name);
+
+  /* Overrides the built in sound named "sound" with "override_sound".
+   * Any time the game tries to play that sound, the override will be played instead.
+   * script_sound indicates whether an embedded, or built in sound will be used for the override */
+  void override_sound(string sound, string override_sound, bool script_sound);
+
+  /* Returns true if the sound has been overridden */
+  bool has_sound_override(string sound);
+
+  /* Returns the override for the specified sound, or an empty string */
+  string get_sound_override(string sound);
+
+  /* Returns true if the specified override uses a script sound */
+  bool is_sound_override_script(string sound);
+
+  /* Clears the specified sound overrides if there is one */
+  void clear_sound_override(string sound);
+
+  /* Clears all sound overrides */
+  void clear_sound_overrides();
+
+  /* Insert a new collision object into the scene. */
   collision@ add_collision(entity@ e,
           float top, float bottom, float left, float right,
           uint32 collision_type);
 
-  /** Returns the x coordinate of the mouse in the hud coordinate space. If scale
+  /* Returns the x coordinate of the mouse in the hud coordinate space. If scale
    * is set to true will auto scale the coordinates to simulate a 1600-900
    * screen size. Will range between -width/2 and width/2.
    */
   float mouse_x_hud(int player, bool scale);
-  /** Equivalent to mouse_x_hud(player, true) */
+  /* Equivalent to mouse_x_hud(player, true) */
   float mouse_x_hud(int player);
 
-  /** Returns the y coordinate of the mouse in the hud coordinate space. If scale
+  /* Returns the y coordinate of the mouse in the hud coordinate space. If scale
    * is set to true will auto scale the coordinates to simulate a 1600-900
    * screen size. Will range between -height/2 and height/2.
    */
   float mouse_y_hud(int player, bool scale);
-  /** Equivalent to mouse_y_hud(player, true) */
+  /* Equivalent to mouse_y_hud(player, true) */
   float mouse_y_hud(int player);
 
-  /** Returns the x coordinate of the mouse for the given player's camera in the
+  /* Returns the x coordinate of the mouse for the given player's camera in the
    * given layer. */
   float mouse_x_world(int player, int layer);
 
-  /** Returns the y coordinate of the mouse for the given player's camera in the
+  /* Returns the y coordinate of the mouse for the given player's camera in the
    * given layer. */
   float mouse_y_world(int player, int layer);
 
-  /** Return the current HUD screen width in pixels. If scale is true this
+  /* Return the current HUD screen width in pixels. If scale is true this
    * always returns 1600. */
   float hud_screen_width(bool scale);
-  /** Return the current HUD screen height in pixels. If scale is true this
+  /* Return the current HUD screen height in pixels. If scale is true this
    * always returns 900. */
   float hud_screen_height(bool scale);
 
-  /** Returns the mouse state for the given player as a bitmask. The
+  /* Returns the mouse state for the given player as a bitmask. The
      bits correspond to the following button states:
-
      1: wheel up
      2: wheel down
      4: left click
@@ -838,14 +932,14 @@ class scene {
    */
   int mouse_state(int player);
 
-  /** Trigger the level to be ended. Note that the replay won't actually end
+  /* Trigger the level to be ended. Note that the replay won't actually end
    * until the next frame if the frame has already begun. (x, y) are the respawn
    * location if the player dies. */
   void end_level(float x, float y);
 
-  /** Access the plugin score used to add an extra criteria for ranks on
+  /* Access the plugin score used to add an extra criteria for ranks on
    * leaderboards (only) when plugins are used. Lower scores rank better.
-   * The Score leaderboard is ranked by 
+   * The Score leaderboard is ranked by
    * (completion, plugin_score, finesse, time) while the Time leaderboard is
    * ranked by (plugin_score, time, completion + finesse).
    *
@@ -855,13 +949,12 @@ class scene {
   int plugin_score();
   void plugin_score(int plugin_score);
 
-  /** Create a new effect based off a sprite animation. */
+  /* Create a new effect based off a sprite animation. */
   entity@ add_effect(string sprite_set,
           string sprite_name, float x, float y, float rotation,
           float scale_x, float scale_y, float frame_rate);
 
-  /** Create a new effect based off a sprite animation that follows an entity.
-
+  /* Create a new effect based off a sprite animation that follows an entity.
     follow_x indicates that the effect x coordinate should be computed as
     follow.x + x. follow_y means similar for y coordinates. If follow_x and
     follow_y are both false then this behaves the same as add_effect.
@@ -871,20 +964,19 @@ class scene {
           float scale_x, float scale_y, float frame_rate,
           entity@ follow, bool follow_x, bool follow_y);
 
-  /** Writes the total initial amount of filth, dustblocks, and enemy life
+  /* Writes the total initial amount of filth, dustblocks, and enemy life
      in the level to the passed variables.
    */
   void get_filth_level(int &out filth, int &out filth_block,
                            int &out enemy);
 
-  /** Writes the current amoutn of filth, dustblocks, and enemy life
+  /* Writes the current amoutn of filth, dustblocks, and enemy life
     in the level to the passed variables.
    */
   void get_filth_remaining(int &out filth, int &out filth_block,
                                int &out enemy);
 
-  
-  /** The time warp field can be used to dilate time. e.g. a time_warp of
+  /* The time warp field can be used to dilate time. e.g. a time_warp of
      0.5 will make the world scene run in half time.
    */
   float time_warp();
@@ -909,39 +1001,50 @@ class rectangle {
   float get_height();
 }
 
-/** Represents a ray cast result. */
+/* Represents a ray cast result. */
 class raycast {
-  /** Returns true if the ray cast hit a tile. */
+  /* Returns true if the ray cast hit a tile. */
   bool hit();
 
-  /** Returns the (tile) coordinates of the hit tile. */
+  /* Returns the (tile) coordinates of the hit tile. */
   int tile_x();
   int tile_y();
 
-  /** Returns the coordinates pixel coordinates where the ray actually intersects
+  /* Returns the coordinates pixel coordinates where the ray actually intersects
    * the tile face. */
   float hit_x();
   float hit_y();
 
-  /** Returns 0-3 indicating the side of the edge hit from
+  /* Returns 0-3 indicating the side of the edge hit from
    * top, bottom, left, right in that order. */
   int tile_side();
 
-  /** Returns the angle of hit tile surface. */
+  /* Returns the angle of hit tile surface. */
   int angle();
 }
 
 class tilecollision {
+  void reset();
+
   bool hit();
+  void hit(bool is_solid);
+
   float hit_x();
+  void hit_x(float outside_x);
+
   float hit_y();
+  void hit_y(float outside_y);
+
   float angle();
+
+  int type();
+  void type(int type);
 }
 
-/** Represents what tile shape and sprite is present at a tile and which edges
+/* Represents what tile shape and sprite is present at a tile and which edges
  * have collisions. Does not include filth information. */
 class tileinfo {
-  /** See the notes in the TileShape class at
+  /* See the notes in the TileShape class at
    * https://github.com/msg555/dustmaker/blob/master/dustmaker/Tile.py
    * for how the `type` parameter maps to the shape of the tile.
    *
@@ -951,17 +1054,17 @@ class tileinfo {
   uint8 type();
   void type(int _type);
 
-  /** Indicates whether a tile is present. The rest of the fields are irrelevant
+  /* Indicates whether a tile is present. The rest of the fields are irrelevant
    * if solid is set to false. */
   bool solid();
   void solid(bool _solid);
 
-  /** Angle is a function of the type 'type'. It indicates the angle
+  /* Angle is a function of the type 'type'. It indicates the angle
    * that the non-flat edge is oriented. A square tile (type 0) has
    * an angle of 0. */
   int32 angle();
 
-  /** See C's reference on the different available sprite set/tile/palettes
+  /* See C's reference on the different available sprite set/tile/palettes
    * available.
    *
    * https://github.com/cmann1/PropUtils/blob/master/tile-data.json
@@ -976,7 +1079,7 @@ class tileinfo {
   uint8 sprite_palette();
   void sprite_palette(uint8 _sprite_palette);
 
-  /** Each tile edge is represented by four bits. These are their meanings from 
+  /* Each tile edge is represented by four bits. These are their meanings from
    * least significant bit to most significant bit.
    *
    * 1 bit - indicates edge "priority"?
@@ -996,19 +1099,19 @@ class tileinfo {
   uint8 edge_right();
   void edge_right(uint8 _edge_right);
 
-  /** Returns true if the tile is a dustblock tile. */
+  /* Returns true if the tile is a dustblock tile. */
   bool is_dustblock();
 
-  /** Set the tile's sprite_tile and sprite_palette parameters to be the
+  /* Set the tile's sprite_tile and sprite_palette parameters to be the
    * dustblock tile type in the given sprite set. */
   void set_dustblock(int _sprite_set);
 }
 
-/** Describes the filth or spikes on a tile. */
+/* Describes the filth or spikes on a tile. */
 class tilefilth {
-  /** Each tile filth value indicates if and what type of filth or spikes are
+  /* Each tile filth value indicates if and what type of filth or spikes are
    * present on a given face of a tile.  These values should be:
-   * 
+   *
    * 0: no filth/spikes
    * 1-5: dust, leaves, trash, slime, virtual filth
    * 9-13: mansion spikes, forest spikes, cones, wires, virtual spikes
@@ -1029,18 +1132,18 @@ class tilefilth {
 class camera {
   string camera_type();
 
-  /** A flag to disable the normal camera behavior. Set this to true if you wish
+  /* A flag to disable the normal camera behavior. Set this to true if you wish
    * to manage the camera position and zoom entirely within the script. */
   bool script_camera();
   void script_camera(bool script_camera);
 
-  /** The entity the camera is following. */
+  /* The entity the camera is following. */
   entity@ puppet();
 
-  /** Get the player index for this camera. */
+  /* Get the player index for this camera. */
   int player();
 
-  /** The controller mode controls how raw game inputs are converted into
+  /* The controller mode controls how raw game inputs are converted into
    * intents. ispressed, posedge, negedge each convert the corresponding intent
    * to match the corresponding key's state: whether it's currently pressed, was
    * just pushed, or just released. fall_intent is always 0 with a non-standard
@@ -1049,14 +1152,14 @@ class camera {
   int controller_mode();
   void controller_mode(int controller_mode);
 
-  /** Camera center coordinates. */
+  /* Camera center coordinates. */
   float x();
   void x(float x);
 
   float y();
   void y(float y);
 
-  /** The prev x/y values are used to interpolate the camera position. If you
+  /* The prev x/y values are used to interpolate the camera position. If you
    * don't want the camera to move between the new and old camera positions
    * reset these values appropriately. This is not necessary if you use
    * camera.reset(). */
@@ -1066,36 +1169,36 @@ class camera {
   float prev_y();
   void prev_y(float prev_y);
 
-  /** Deprecated, use screen height instead.*/
+  /* Deprecated, use screen height instead.*/
   float zoom();
   void zoom(float zoom);
 
-  /** Access the height of the camera in pixels. */
+  /* Access the height of the camera in pixels. */
   float screen_height();
   void screen_height(float screen_height);
 
-  /** Access the width of the camera in pixels. */
+  /* Access the width of the camera in pixels. */
   float screen_width();
   void screen_width(float screen_width);
 
-  /** Access editor zoom setting.  */
+  /* Access editor zoom setting.  */
   float editor_zoom();
   void editor_zoom(float editor_zoom);
 
-  /** Get the size of the world layer in the current frame at a given
+  /* Get the size of the world layer in the current frame at a given
    * sub_frame position. This accounts for camera animations and should
    * match the sizes used by the game. */
   void get_layer_draw_rect(float sub_frame, int layer,
                                float &out left, float &out top,
                                float &out width, float &out height);
 
-  /** The camera rotation in degrees. */
+  /* The camera rotation in degrees. */
   float rotation();
   void rotation(float rotation);
   float rotation_prev();
   void rotation_prev(float rotation_prev);
 
-  /** These do the same thing as zoom but allow you to manipulate each axis
+  /* These do the same thing as zoom but allow you to manipulate each axis
    * individually. Negative values are support for axis flips. */
   float scale_x();
   void scale_x(float scale_x);
@@ -1109,20 +1212,20 @@ class camera {
   float prev_scale_y();
   void prev_scale_y(float prev_scale_y);
 
-  /** Add a screen shake. Only works if script_camera is false, otherwise you
+  /* Add a screen shake. Only works if script_camera is false, otherwise you
    * need to simulate your own screen shake. */
   void add_screen_shake(float x, float y, float dir, float force);
 
-  /** Get the current camera fog colours. */
+  /* Get the current camera fog colours. */
   fog_setting@ get_fog();
 
-  /** Change the fog colour. fog_time controls how long the transition time
+  /* Change the fog colour. fog_time controls how long the transition time
    * from the current fog colour to this updated colour should take measured
    * in seconds. */
   void _change_fog(fog_setting@ fog, float fog_time);
 }
 
-/** Represents a collision hitbox used throughout the game engine. Collisions are
+/* Represents a collision hitbox used throughout the game engine. Collisions are
  * made up of a collision type, a hitbox, and an entity. Collisions are used
  * (e.g. when you attack an area) by querying all collision hitboxes of a certain
  * type that intersect with a query rectangle (see scene.get_entity_collision)
@@ -1132,22 +1235,22 @@ class camera {
  * used to detect tile collisions and when the entity is clicked in the editor.
  * The hit collision is used to detect when an enemy is attacked. */
 class collision {
-  /** Access the hitbox of the collisio. */
+  /* Access the hitbox of the collisio. */
   void rectangle(float top, float bottom, float left, float right);
   void rectangle(rectangle@ rect,
       float x_offset, float y_offset);
   rectangle@ rectangle();
 
-  /** Access the collision type of this collision. See col_type for predefined
+  /* Access the collision type of this collision. See col_type for predefined
    * types. New values may be used for custom purposes as well. */
   uint32 collision_type();
   void collision_type(uint32 collision_type);
 
-  /** Remove the collision from the scene. This collision will no longer be
+  /* Remove the collision from the scene. This collision will no longer be
    * picked up by calls to get_entity_collision. */
   void remove();
 
-  /** Access the entity associated with this collision. */
+  /* Access the entity associated with this collision. */
   void entity(entity@ e);
   entity@ entity();
 }
@@ -1169,7 +1272,7 @@ class audio {
 }
 
 class entity {
-  /** Returns true if the underlying entity objects point to the same object.
+  /* Returns true if the underlying entity objects point to the same object.
    * This is to help deal with the issue of different entity handles pointing to
    * the same entity object in the scene. */
   bool is_same(entity@ obj);
@@ -1178,48 +1281,48 @@ class entity {
 
   message@ metadata();
 
-  /** Returns the entities' sprite object. */
+  /* Returns the entities' sprite object. */
   sprites@ get_sprites();
 
   void set_sprites(sprites@ obj);
 
-  /** Returns the type name of the entity. This is the same string that can
+  /* Returns the type name of the entity. This is the same string that can
    * be passed to create_entity to make an object of the same type. */
   string type_name();
 
   varstruct@ vars();
 
-  /** Recast this object as an entity. Unfortunately with the way the API types
+  /* Recast this object as an entity. Unfortunately with the way the API types
    * are setup a controllable object cannot be casted to an entity using
    * the normal cast<T>() operator. */
   entity@ as_entity();
 
-  /** Attempt to recast this object as a controllable. Returns null if the
+  /* Attempt to recast this object as a controllable. Returns null if the
    * entity is not a controllable. */
   controllable@ as_controllable();
 
-  /** Attempt to recast this object as a dustman object. Returns null if
+  /* Attempt to recast this object as a dustman object. Returns null if
    * the entity is not a dustman object. */
   dustman@ as_dustman();
 
-  /** Attempt to recast this object as a hitbox object. Returns null if
+  /* Attempt to recast this object as a hitbox object. Returns null if
    * the entity is not a hitbox object. */
   hitbox@ as_hitbox();
 
-  /** Attempt to recast this object as a scripttrigger object. Returns null if
+  /* Attempt to recast this object as a scripttrigger object. Returns null if
    * the entity is not a scripttrigger object. */
   scripttrigger@ as_scripttrigger();
 
-  /** Attempt to recast this object as a scriptenemy object. Returns null if
+  /* Attempt to recast this object as a scriptenemy object. Returns null if
    * the entity is not a scriptenemy object. */
   scriptenemy@ as_scriptenemy();
 
-  /** Return the ID associated with this entity that can be used with the
+  /* Return the ID associated with this entity that can be used with the
    * entity_by_id() function. Non-persistant entities (i.e. the player
    * entities) will have an id of 0 and cannot be found with entity_by_id(). */
   uint id();
 
-  /** The position of the entity. For most entities the position is the bottom
+  /* The position of the entity. For most entities the position is the bottom
    * center of their collision rectangle. These functions will automatically
    * adjust the base and hit collisions associated with this entity. */
   float x();
@@ -1230,194 +1333,194 @@ class entity {
 
   void set_xy(float x, float y);
 
-  /** The rotation of the entity in degrees. This should be in the interval
+  /* The rotation of the entity in degrees. This should be in the interval
    * [-180, 180]. */
   float rotation();
   void rotation(float rot);
 
-  /** The layer that the entity should be drawn in. */
+  /* The layer that the entity should be drawn in. */
   int layer();
   void layer(int layer);
 
-  /** The direction the entity is facing. Should be -1 for left or 1 for right.
+  /* The direction the entity is facing. Should be -1 for left or 1 for right.
    * If this is a controllable entity and the attack state is not
    * attack_type_idle (i.e. non-zero) then the controllable will temporarily
    * be facing the direction given by attack_face() instead. */
   int face();
   void face(int face);
 
-  /** The palette of sprites to use. Typically this should just be set to 1 as
+  /* The palette of sprites to use. Typically this should just be set to 1 as
    * most entities don't have alternative palettes for their animations. */
   int palette();
   void palette(int palette);
 
-  /** Changes the perceived game speed for the entity. */
+  /* Changes the perceived game speed for the entity. */
   float time_warp();
   void time_warp(float time_warp);
 
-  /** Returns the collision rectangle used to select the entity in the editor. */
+  /* Returns the collision rectangle used to select the entity in the editor. */
   collision@ base_collision();
   rectangle@ base_rectangle();
   void base_rectangle(float top, float bottom, float left, float right);
   void base_rectangle(rectangle@ rect);
 
-  /** Send a message to the entity. Currently, scripttrigger and scriptenemy
+  /* Send a message to the entity. Currently, scripttrigger and scriptenemy
    * entities are the only entities that can do anything with the message. */
   void send_message(string id, message@ msg);
 };
 
 class controllable : entity {
-  /** Reset the entity state to its defaults. */
+  /* Reset the entity state to its defaults. */
   void reset();
 
-  /** The prev x/y values are used to interpolate the entity position. */
+  /* The prev x/y values are used to interpolate the entity position. */
   float prev_x();
   void prev_x(float prev_x);
 
   float prev_y();
   void prev_y(float prev_y);
 
-  /** Returns the x/y component of the velocity measured in pixels per second. */
+  /* Returns the x/y component of the velocity measured in pixels per second. */
   float x_speed();
   float y_speed();
 
-  /** Sets the velocity using x/y components. */
+  /* Sets the velocity using x/y components. */
   void set_speed_xy(float x_speed, float y_speed);
 
-  /** Returns magnitude of the velocity. */
+  /* Returns magnitude of the velocity. */
   float speed();
-  /** Returns the direction of the velocity vector. Right is 90, Left is -90,
+  /* Returns the direction of the velocity vector. Right is 90, Left is -90,
    * Up is 0, Down is -180 or 180. */
   float direction();
 
-  /** Sets the velocity using polar components. */
+  /* Sets the velocity using polar components. */
   void set_speed_direction(float speed, int direction);
 
-  /** Returns a copy of the collision rectangle for the entity. */
+  /* Returns a copy of the collision rectangle for the entity. */
   rectangle@ collision_rect();
 
-  /** Returns a copy of the hurtbox rectangle for the entity. */
+  /* Returns a copy of the hurtbox rectangle for the entity. */
   rectangle@ hurt_rect();
 
-  /** Access the scale of the entity. A scale of 2.0 means double the usual size.
+  /* Access the scale of the entity. A scale of 2.0 means double the usual size.
    * A scale of 0.5 means half the usual size. If 'animate' is true the scale
    * changes will gradually take affect. */
   float scale();
   void scale(float scale);
   void scale(float scale, bool animate);
 
-  /** Returns the current state of the entity. See the 'state_types' enum at the
+  /* Returns the current state of the entity. See the 'state_types' enum at the
    * end of this documentation for details on the different states names.
    * The majorify of the states are only used by dustman. */
   int state();
   void state(int state);
 
-  /** The sprite name currently being rendered for this entity. */
+  /* The sprite name currently being rendered for this entity. */
   string sprite_index();
   void sprite_index(string spr_index);
 
-  /** The sprite name currently being rendered for this entity. */
+  /* The sprite name currently being rendered for this entity. */
   string attack_sprite_index();
   void attack_sprite_index(string attack_spr_index);
 
-  /** The state timer for this entity. This tracks where the entity is in
+  /* The state timer for this entity. This tracks where the entity is in
    * the state animation. */
   float state_timer();
   void state_timer(float state_timer);
 
-  /** The stun timer for this entity. This counts down to 0 which ends the stun
+  /* The stun timer for this entity. This counts down to 0 which ends the stun
    * animation. */
   float stun_timer();
   void stun_timer(float stun_timer);
 
-  /** The attack state for this entity. See 'attack_types' at the bottom of this
+  /* The attack state for this entity. See 'attack_types' at the bottom of this
    * documentation for the attack state types. */
   int attack_state();
   void attack_state(int attack_state);
 
-  /** The timer that keeps track of how long the attack has been active. */
+  /* The timer that keeps track of how long the attack has been active. */
   float attack_timer();
   void attack_timer(float attack_timer);
 
-  /** The direction the controllable is facing while attack state is not
+  /* The direction the controllable is facing while attack state is not
    * attack_type_idle. */
   int attack_face();
   void attack_face(int attack_face);
 
-  /** Intents control most enemies that move, inclusing the player object. If you
+  /* Intents control most enemies that move, inclusing the player object. If you
    * wish to control an enemy in a map make sure to delete its AI_controller
    * node so it does not overwrite any changes you make to its intents. */
 
-  /** Indicates what direction the entity wants to move in the x direction. -1
+  /* Indicates what direction the entity wants to move in the x direction. -1
    * for left, 0 for neutral, 1 for right. */
   int x_intent();
   void x_intent(int x_intent);
 
-  /** Indicates what direction the entity wants to move in the y direction. -1
+  /* Indicates what direction the entity wants to move in the y direction. -1
    * for up, 0 for neutral, 1 for down. */
   int y_intent();
   void y_intent(int y_intent);
 
-  /** 0 indicates taunt not pressed. 1 indicates taunt is pressed. 2 indicates 
+  /* 0 indicates taunt not pressed. 1 indicates taunt is pressed. 2 indicates
    * taunt is pressed and the intent has been used. */
   int taunt_intent();
   void taunt_intent(int taunt_intent);
 
-  /** 0 indicates no heavy intended. 10 indicates heavy pressed. When heavy is
+  /* 0 indicates no heavy intended. 10 indicates heavy pressed. When heavy is
    * released and the intent was never used it counts down from 10 to 0 until
    * the intent ends up being used or it hits 0. 11 indicates heavy is pressed
    * and the intent has been used. */
   int heavy_intent();
   void heavy_intent(int heavy_intent);
 
-  /** Functions the same as heavy_intent() */
+  /* Functions the same as heavy_intent() */
   int light_intent();
   void light_intent(int light_intent);
 
-  /** 0 indicates no dash key press. 1 indicates the dash key pushed this frame.
+  /* 0 indicates no dash key press. 1 indicates the dash key pushed this frame.
    * 2 indicates the dash key pushed this frame and the intent has been used. */
   int dash_intent();
   void dash_intent(int dash_intent);
 
-  /** Same as taunt_intent() */
+  /* Same as taunt_intent() */
   int jump_intent();
   void jump_intent(int jump_intent);
 
-  /** Same as dash_intent() */
+  /* Same as dash_intent() */
   int fall_intent();
   void fall_intent(int fall_intent);
 
-  /** Gives the initial life associated with this entity. This also usually
+  /* Gives the initial life associated with this entity. This also usually
    * corresponds to how much dust the enemy contributes toward completion
    * score calculations. */
   int life_initial();
 
-  /** Access the number of hits remaining on this enemy. Setting the life
+  /* Access the number of hits remaining on this enemy. Setting the life
    * negative will not destroy the enemy until it is hit again. A few
    * controllables don't make use of this field (e.g. hittable_apple). */
   int life();
   void life(int life);
 
-  /** Returns the current hitbox controller for this entity. This may be null
+  /* Returns the current hitbox controller for this entity. This may be null
    * if the controllabe isn't attacking. The hitbox object associated with each
    * controllable is recreated with each attack. */
   hitbox@ hitbox();
 
-  /** Set a callback when the entity is hit. The callback should have the
+  /* Set a callback when the entity is hit. The callback should have the
    * signature "void func_name(controllable@ attacker, controllable@ attacked,
    * hitbox@ attack_hitbox, int arg)". The 'arg' value passed to on_hit_callback
    * will match the 'arg' parameter passed to the callback. */
   void on_hit_callback(callback_base@ base_obj,
       string callback_method, int arg);
 
-  /** Set a callback when the entity is hurt. The callback should have the
+  /* Set a callback when the entity is hurt. The callback should have the
    * signature "void func_name(controllable@ attacked, controllable@ attacker,
    * hitbox@ attack_hitbox, int arg)". The 'arg' value passed to
    * on_hurt_callback will match the 'arg' parameter passed to the callback. */
   void on_hurt_callback(callback_base@ base_obj,
       string callback_method, int arg);
 
-  /** Returns true if the controllable is in contact with the corresponding
+  /* Returns true if the controllable is in contact with the corresponding
    * surface type. */
   bool ground();
   void ground(bool ground);
@@ -1431,34 +1534,95 @@ class controllable : entity {
   bool wall_right();
   void wall_right(bool wall_right);
 
-  /** If the corresponding surface flag is set then these fields contain the
+  /* If the corresponding surface flag is set then these fields contain the
    * angle of the surface the entity is touching. */
   int ground_surface_angle();
   int roof_surface_angle();
   int left_surface_angle();
   int right_surface_angle();
 
-  /** Returns the hurt collision object for this controlable. */
+  /* Change which ground surface angles this entity considers slopes, or slants.
+   * Slopes default to 45, and slants to 26.
+   * Required to allow non-45 degress slope sliding and for the player sprite to
+   * automatically rotate to match the ground angle. */
+  void set_ground_angles(int slope_min, int slope_max, int slant_min, int slant_max);
+  /* Change which roof surface angles this entity considers slopes, or slants.
+   * Slopes defaults to 135, and slants to 154.
+   * Required for the player sprite to automatically rotate to match the
+   * ceiling angle. */
+  void set_roof_angles(int slope_min, int slope_max, int slant_min, int slant_max);
+  /* Change which wall surface angles this entity considers down and up facing
+   * slants.
+   * Down facing defaults to 116, and up facing to 64.
+   * Required or wall angles outside of the range
+   * slant_up_min < 90 < slant_down_max
+   * won't work, even if the custom collision handler returns a collision. */
+  void set_wall_angles(int slant_down_min, int slant_down_max, int slant_up_min, int slant_up_max);
+
+  /* Performs the default collision check on the specified side used by
+   * all entities and writes the result into t.
+   *
+   * `moving` indicates if the collision should compensate for movement of
+   * the hitbox over the previous subframe (i.e. for checking for collisions
+   * between subframes).
+   *
+   * `snap_offset` indicates an additional offset outside of the collision
+   * for the entity to look for a surface used in e.g. wall snap jumps/dashes.
+   *
+   * Returns true if the collision hits anything.
+   */
+  bool check_collision(tilecollision@ t, int side,
+                                         bool moving, float snap_offset);
+
+  /* Overrides the default ground collision checking for this entity. Setting
+   * this to null will clear the handler.
+   *
+   * The callback should have the signature:
+   *
+   * void func_name(controllable@ ec, tilecollision@ tc, int side, bool moving, float snap_offset, int arg)
+   *   `ec`: The entity to check collisions for
+   *   `tc`: The tile collision object to write results to
+   *   `side`: which surface type to check for collisions, see the `side_types` enum.
+   *   `moving`: Indicates if the collision should compensate for movement over the last subframe.
+   *   `snap_offset`: Indicates an extra offset to look for collisions used in e.g. snap jumps/dashes
+   *
+   * Use the provided tilecollision object to return the results of the custom collision:
+   *  hit(): Set to true to indicate a collision happened
+   *  type(): Sets the surface angle of the collision (angle() is not used)
+   *  hit_x/y(): The position of the collision
+   * Calling controllable::check_collision_ground() can be used
+   * perform the default tile collision handling when needed
+   * */
+  void set_collision_handler(callback_base@ base_obj, string callback_method, int arg);
+
+  /* Overrides the default surface texture type lookup for entity.
+   * Setting this to null will clear the handler. The callback should have
+   * the signature void func_name(controllable@, texture_type_query@, int)
+   * See texture_type_query for details.
+   * */
+  void set_texture_type_handler(callback_base@ base_obj, string callback_method, int arg);
+
+  /* Returns the hurt collision object for this controlable. */
   collision@ hit_collision();
   rectangle@ hit_rectangle();
   void hit_rectangle(float top, float bottom, float left, float right);
   void hit_rectangle(rectangle@ rect);
 
-  /** Access the team of the controllable. See the team_types enum for predefined
+  /* Access the team of the controllable. See the team_types enum for predefined
    * values. Normally entities will only hit/target entities of the opposite
    * team. */
   int team();
   void team(int team);
 
-  /** Stuns the controllable. This does not break combo. */
+  /* Stuns the controllable. This does not break combo. */
   void stun(float stun_x_speed, float stun_y_speed);
 
-  /** Access the freeze frame timer for this entity. This timer usually runs
+  /* Access the freeze frame timer for this entity. This timer usually runs
    * at 24 units/s. */
   float freeze_frame_timer();
   void freeze_frame_timer(float freeze_frame_timer);
 
-  /** The game offsets the rendering of the sprites when on some surfaces or
+  /* The game offsets the rendering of the sprites when on some surfaces or
    * when stunned (and perhaps more). Added draw_offset_x() and draw_offset_y()
    * to the entity's actual coordinates if you wish to compensate for this. Note
    * that stun offsets are RNG and shouldn't affect game play.
@@ -1467,7 +1631,13 @@ class controllable : entity {
 
   float draw_offset_y();
 
-  /** Return the player index of this controllable entity. If the entity is not
+  /* Set the drawing offsets. This does not include stun offsets.
+   */
+  void draw_offset_x(float x_offset);
+
+  void draw_offset_y(float y_offset);
+
+  /* Return the player index of this controllable entity. If the entity is not
    * associated with a player returns -1. This is the reverse function of
    * controller_entity(player). */
   int player_index();
@@ -1551,7 +1721,7 @@ class dustman : controllable {
 
   float roof_run_length();
   void roof_run_length(float roof_run_length);
-  
+
   float attack_force_light();
   void attack_force_light(float attack_force_light);
 
@@ -1569,42 +1739,42 @@ class dustman : controllable {
 
   int total_filth();
 
-  /** Query/set the number of air charges the player has. */
+  /* Query/set the number of air charges the player has. */
   int dash();
   void dash(int dash);
 
-  /** Query/set the maximum number of air charges the player has. */
+  /* Query/set the maximum number of air charges the player has. */
   int dash_max();
   void dash_max(int dash_max);
 
-  /** Should be one of dustman, dustgirl, dustkid, dustworth, dustwraith,
+  /* Should be one of dustman, dustgirl, dustkid, dustworth, dustwraith,
    * leafsprite, trashking, slimeboss. Optionally add 'v' to the start of the
    * name to make it a virtual character. Using the string "default" will return
    * the character choice to what the player initially selected. */
   string character();
   void character(string character);
 
-  /** Normally dustman entities that aren't attached to a camera are taken over
+  /* Normally dustman entities that aren't attached to a camera are taken over
    * by the default AI implementation. Set this flag to disable this behavior.
    */
   bool ai_disabled();
   void ai_disabled(bool ai_disabled);
 
-  /** Determines if the player is considered 'dead'. This is useful if you
+  /* Determines if the player is considered 'dead'. This is useful if you
    * disable auto respawning or want to make the player invincible. */
   bool dead();
   void dead(bool dead);
 
-  /** Disable the player from respawning on death automatically. */
+  /* Disable the player from respawning on death automatically. */
   bool auto_respawn();
   void auto_respawn(bool auto_respawn);
 
-  /** Simulate the player hitting a death zone if as_spikes=false, otherwise
+  /* Simulate the player hitting a death zone if as_spikes=false, otherwise
    * simulate them hitting spikes. Sets the dead flag but doesn't check if it
    * was already set. */
   void kill(bool as_spikes);
 
-  /** Set a callback after every substep of this dustman object.
+  /* Set a callback after every substep of this dustman object.
    * The callback should have the
    * signature "void func_name(dustman@ dm, int arg).
    * The 'arg' value passed to on_subframe_end_callback
@@ -1623,7 +1793,7 @@ class hitbox : entity {
   int filth_type();
   void filth_type(int filth_type);
 
-  /** Used to indicate that the force from this hitbox should be applied radially
+  /* Used to indicate that the force from this hitbox should be applied radially
    * outward from the center rather than using the attack_dir. */
   bool aoe();
   void aoe(bool aoe);
@@ -1637,7 +1807,7 @@ class hitbox : entity {
   float timer_speed();
   void timer_speed(float timer_speed);
 
-  /** Attack freeze frame strength. Controls how long the hit entity is fronzen.
+  /* Attack freeze frame strength. Controls how long the hit entity is fronzen.
    */
   float attack_ff_strength();
   void attack_ff_strength(float attack_ff_strength);
@@ -1668,74 +1838,82 @@ class hitbox : entity {
 
   bool triggered();
 
-  /** See the hit_outcomes enumeration for possible values. */
+  /* See the hit_outcomes enumeration for possible values. */
   int hit_outcome();
 }
 
-/** Represents a generic script-backed trigger. */
+/* Represents a generic script-backed trigger. */
 class scripttrigger : entity {
-  /** Returns the script object backing this trigger. If this object is from a
+  /* Returns the script object backing this trigger. If this object is from a
    * different script than the calling script this will return null instead. */
   trigger_base@ get_object();
 
-  /** Returns the name of the script this trigger comes from. */
+  /* Returns the name of the script this trigger comes from. */
   string script_name();
 
-  /** Returns the class name of this trigger within its script. */
+  /* Returns the class name of this trigger within its script. */
   string type_name();
 
   bool editor_selected();
 
-  /** Access the radius of the activation circle or square around this trigger.
+  /* Access the radius of the activation circle or square around this trigger.
    * If the trigger has a square shape then the square extends width() out in
    * each direction from the center of the trigger, i.e. it's side length is
    * 2*width(). */
   int radius();
   void radius(int radius);
 
-  /** Access if the trigger has a square or circle activation area. */
+  /* Access if the trigger has a square or circle activation area. */
   bool square();
   void square(bool square);
 
-  /** Access whether the radius is visible in the editor or not. */
+  /* Access whether the radius is visible in the editor or not. */
   bool editor_show_radius();
   void editor_show_radius(bool show_radius);
 
-  /** Access the size of the trigger handle in the editor. The handle size is how
+  /* Access the size of the trigger handle in the editor. The handle size is how
    * many pixels in each direction the handle should extend, default is 10. */
   int editor_handle_size();
   void editor_handle_size(int handle_size);
 
-  /** Access the colour of the trigger handle when it is selected. */
+  /* Access the colour of the trigger handle when it is selected. */
   uint editor_colour_active();
   void editor_colour_active(uint colour);
 
-  /** Access the colour of the trigger handle when it is not selected. */
+  /* Access the colour of the trigger handle when it is not selected. */
   uint editor_colour_inactive();
   void editor_colour_inactive(uint colour);
 
-  /** Access the colour of the activation circle/square. */
+  /* Access the colour of the activation circle/square. */
   uint editor_colour_circle();
   void editor_colour_circle(uint colour);
+
+  /* Use after changing persistent variables via script to update values in the trigger script panel. */
+  void editor_sync_vars_menu();
+
 }
 
-/** Represents a generic script-backed enemy. */
+/* Represents a generic script-backed enemy. */
 class scriptenemy : controllable {
-  /** Returns the enemy object backing this enemy. If this object is from a
+  /* Returns the enemy object backing this enemy. If this object is from a
    * different script than the calling script this will return null instead. */
   enemy_base@ get_object();
 
-  /** Returns the name of the script this enemy comes from. */
+  /* Returns the name of the script this enemy comes from. */
   string script_name();
 
-  /** Returns the class name of this enemy within its script. */
+  /* Returns the class name of this enemy within its script. */
   string type_name();
 
   bool auto_physics();
   void auto_physics(bool auto_physics);
+
+  /* Use after changing persistent variables via script to update values in the enemy script panel. */
+  void editor_sync_vars_menu();
+
 }
 
-/** Represents a set of sprites that can be drawn. Sprites are organized into
+/* Represents a set of sprites that can be drawn. Sprites are organized into
  * sprite set files that can be seen in 'content/sprites' and can be added
  * into this sprite object using 'add_sprite_set' call.
  *
@@ -1752,32 +1930,32 @@ class scriptenemy : controllable {
  * folder structure doesn't always match the sprite set structure used in game.
  */
 class sprites {
-  /** Add a sprite set's sprites into this sprites object. After this call we can
+  /* Add a sprite set's sprites into this sprites object. After this call we can
    * refer to any contained sprites with
    * draw/get_palette_count/get_animation_length.  Any duplicate sprite
    * names will be overwritten to point to the most recently added sprite set.
    */
   void add_sprite_set(string sprite_set);
 
-  /** Returns the number of frames the named sprite last. */
+  /* Returns the number of frames the named sprite last. */
   int get_animation_length(string sprite_name);
 
-  /** Returns the number of palettes associated with the sprite. Tile sprites are
+  /* Returns the number of palettes associated with the sprite. Tile sprites are
    * typically the only sprites to have multiple palettes. */
   uint get_palette_count(string sprite_name);
 
-  /** Returns the number of sprites contained in the sprite set. */
+  /* Returns the number of sprites contained in the sprite set. */
   uint get_sprite_count(string sprite_set);
 
-  /** Returns the name of the index'th sprite in sprite_set. */
+  /* Returns the name of the index'th sprite in sprite_set. */
   string get_sprite_name(string sprite_set, uint index);
 
-  /** Returns the bounding rectangle around the sprite if it were rendered at the
+  /* Returns the bounding rectangle around the sprite if it were rendered at the
    * origin. */
   rectangle@ get_sprite_rect(
       string sprite_name, uint32 frame);
 
-  /** Draw a sprite to the world.
+  /* Draw a sprite to the world.
    * 1 <= palette <= get_palette_count(spriteName)
    * 0 <= frame < get_animation_length(spriteName)
    *
@@ -1790,14 +1968,14 @@ class sprites {
       uint32 frame, uint32 palette, float x, float y, float rotation,
       float scale_x, float scale_y, uint32 colour);
 
-  /** Like draw_world except drawing in the hud. */
+  /* Like draw_world except drawing in the hud. */
   void draw_hud(int layer, int sub_layer, string spriteName,
       uint32 frame, uint32 palette, float x, float y, float rotation,
       float scale_x, float scale_y, uint32 colour);
 }
 
 class prop {
-  /** Return the ID associated with this prop that can be used with the
+  /* Return the ID associated with this prop that can be used with the
    * prop_by_id() function. All props that have been added to the scene should
    * have an ID. */
   uint id();
@@ -1817,7 +1995,7 @@ class prop {
   float scale_y();
   void scale_y(float scale_y);
 
-  /** C has an excellent reference to find the prop set/group/index for props
+  /* C has an excellent reference to find the prop set/group/index for props
    * which can be found at
    * https://github.com/cmann1/PropUtils/tree/master/files/prop_reference. The
    * three numbers listed under each prop correspond to the set, group, and
@@ -1831,53 +2009,53 @@ class prop {
   uint prop_index();
   void prop_index(uint prop_index);
 
-  /** The palette for the prop. Most (all?) props only support palette 1. */
+  /* The palette for the prop. Most (all?) props only support palette 1. */
   uint palette();
   void palette(uint palette);
 
-  /** The layer to render the prop in. */
+  /* The layer to render the prop in. */
   uint layer();
   void layer(uint layer);
 
-  /** The sublayer to render the prop in. */
+  /* The sublayer to render the prop in. */
   uint sub_layer();
   void sub_layer(uint sub_layer);
 }
 
-/** Represents a text field used to render text to the screen. */
+/* Represents a text field used to render text to the screen. */
 class textfield {
-  /** Access the text to be rendered or measured. */
+  /* Access the text to be rendered or measured. */
   string text();
   void text(string text);
 
-  /** Get and set the font used to render the text. See
+  /* Get and set the font used to render the text. See
    * https://pastebin.com/YcNKSXd9 for a list of supported fonts and font
    * sizes. */
   string font();
   uint font_size();
   void set_font(string font, uint font_size);
 
-  /** Set the colour of the text as an ARGB value. */
+  /* Set the colour of the text as an ARGB value. */
   uint colour();
   void colour(uint colour);
 
-  /** Set the horizontal alignment when drawing the text. -1 aligns the left of
+  /* Set the horizontal alignment when drawing the text. -1 aligns the left of
    * the text to the given x coordinate. 0 centers the text at the given x
    * coordinate. 1 aligns the right of the text to the given x coordinate. */
   int align_horizontal();
   void align_horizontal(int align_h);
 
-  /** Set the vertical alignment when drawing the text. -1 aligns the top of the
+  /* Set the vertical alignment when drawing the text. -1 aligns the top of the
    * text to the given y coordinate.  0 centers the text at the given y
    * coordinate. 1 aligns the bottom of the text to the given y coordinate.
    */
   int align_vertical();
   void align_vertical(int align_v);
 
-  /** Measures the width of the text when drawn. */
+  /* Measures the width of the text when drawn. */
   int text_width();
 
-  /** Measures the height of the text when drawn. */
+  /* Measures the height of the text when drawn. */
   int text_height();
 
   void draw_world(int layer, int sub_layer, float x, float y,
@@ -1887,13 +2065,13 @@ class textfield {
       float scale_x, float scale_y, float rotation);
 }
 
-/** A common interface used to represent a variable of any type. */
+/* A common interface used to represent a variable of any type. */
 class varvalue {
-  /** Returns the type of the variable.  See 'var_types' at the end of this
+  /* Returns the type of the variable.  See 'var_types' at the end of this
    * documentation for details on the different types. */
   int type_id();
 
-  /** Get or set the value. The getter or setter used must match the type_id() of
+  /* Get or set the value. The getter or setter used must match the type_id() of
    * the var. */
   bool get_bool();
   void set_bool(bool val);
@@ -1913,42 +2091,42 @@ class varvalue {
   float get_vec2_y();
   void set_vec2(float x, float y);
 
-  /** Returns a modifiable handle to the struct pointed to by this var. */
+  /* Returns a modifiable handle to the struct pointed to by this var. */
   varstruct@ get_struct();
 
-  /** Returns a modifiable handle to the array pointed to by this var. */
+  /* Returns a modifiable handle to the array pointed to by this var. */
   vararray@ get_array();
 }
 
-/** Represents an array of variables. */
+/* Represents an array of variables. */
 class vararray {
-  /** Get the i-th value in this array. Returns null for indicies outside the
+  /* Get the i-th value in this array. Returns null for indicies outside the
    * bounds of the array. */
   varvalue@ at(uint32 index);
 
-  /** Returns the element type of this array. */
+  /* Returns the element type of this array. */
   int element_type_id();
 
-  /** Returns the size of this array. */
+  /* Returns the size of this array. */
   uint32 size();
 
-  /** Resizes this array. If the array size is extended the new elements are not
+  /* Resizes this array. If the array size is extended the new elements are not
    * initialized. */
   void resize(uint32 size);
 }
 
-/** Represents a dictionary of string keys to vars. */
+/* Represents a dictionary of string keys to vars. */
 class varstruct {
-  /** Retrieves a var based on its name. */
+  /* Retrieves a var based on its name. */
   varvalue@ get_var(string var);
 
-  /** Retrieves the index'th var. */
+  /* Retrieves the index'th var. */
   varvalue@ get_var(uint32 index);
 
-  /** Returns the number of vars in this struct. */
+  /* Returns the number of vars in this struct. */
   uint32 num_vars();
 
-  /** Returns the name of the index'th var. */
+  /* Returns the name of the index'th var. */
   string var_name(uint32 index);
 }
 
@@ -1981,7 +2159,60 @@ class message {
   string get_key_entity(uint index);
 }
 
-/** A configurable drawing surface that supports affine transformations.
+class var_info {
+  void add_path_component(const string &in var_name, const int index=-1);
+
+  /* Returns the name of the variable that changed */
+  string get_name();
+
+  /* Returns the index that was changed, or -1 if this variable is not an array */
+  int get_index();
+
+  /* For nested variables returns the number of variables above this one */
+  int get_path_length();
+
+  /* Returns the name of the parent variable at the specified level */
+  string get_name(uint index);
+
+  /* Returns the array index of the parent variable at the specified level, or -1 if it is not an array */
+  int get_index(uint index);
+
+  /* Convenience method that returns the entire path as a string
+   * in the format: "parent_var.parent_var2.var"
+   * If include_array_indices is true, arrays in the path will also
+   * include an index, e.g. "parent_var[i]" */
+  string get_path(bool include_array_indices);
+
+}
+
+/* Certain sounds, e.g. player footstep sounds, check the tiles around the
+ * player's feet to determine which sounds to play based on the tile
+ * sprite set and index. controllable::set_texture_type_handler can be used
+ * to bypass that behaviour and provide a custom texture type.
+ *
+ * This class is used to pass values back and forth during a texture
+ * type callback registered with controllable::set_texture_type_handler.
+ * */
+class texture_type_query {
+  /* The location to check */
+  int x();
+  /* The location to check */
+  int y();
+  /* Is the query for a ground surface? */
+  bool top_surface();
+
+  string result();
+  /* Set this to return the texture type. Valid values are:
+   *    none, stone, dirt, metal, grass,
+   *    water,  wood, carpet, poly
+   * or return an empty string to indicate that the built
+   * in tile texture lookup should be run.
+   * */
+  void result(string _result);
+
+}
+
+/* A configurable drawing surface that supports affine transformations.
  *
  * The transformaton matrix is stored in the form
  * [x']   [m00 m01 ox] [x]
@@ -1989,19 +2220,19 @@ class message {
  * [1 ]   [0   0   1 ] [1]
  */
 class canvas {
-  /** Access whether this canvas draws to the hud or world. */
+  /* Access whether this canvas draws to the hud or world. */
   bool hud();
   void hud(bool hud);
 
-  /** Access what layer this canvas draws to. */
+  /* Access what layer this canvas draws to. */
   int layer();
   void layer(int layer);
 
-  /** Access what sub layer this canvas draws to. */
+  /* Access what sub layer this canvas draws to. */
   int sub_layer();
   void sub_layer(int sub_layer);
 
-  /** These draw routines mirror the existing draw routines using the canvas
+  /* These draw routines mirror the existing draw routines using the canvas
    * specific options and transformation. */
   void draw_rectangle(float x1, float y1,
       float x2, float y2, float rotation, uint colour);
@@ -2027,18 +2258,18 @@ class canvas {
   void draw_text(textfield@ txt, float x, float y,
       float scale_x, float scale_y, float rotation);
 
-  /** Compute the x/y coordinates of the underlying canvas transform. */
+  /* Compute the x/y coordinates of the underlying canvas transform. */
   void transform_point(float x, float y, float &out tx, float &out ty);
 
-  /** Right multiply a generic affine matrix. */
+  /* Right multiply a generic affine matrix. */
   void multiply(float m00, float m01, float m10, float m11,
                     float ox, float oy);
 
-  /** Left multiply a generic affine matrix. */
+  /* Left multiply a generic affine matrix. */
   void multiply_left(float m00, float m01, float m10, float m11,
                          float ox, float oy);
 
-  /** Each transformation option has a right (default) and left multiply variant.
+  /* Each transformation option has a right (default) and left multiply variant.
    * A right multiply transformation is applied to the source coordinates, a
    * left multiply is applied to the transformed coordinates.
    */
@@ -2054,18 +2285,18 @@ class canvas {
 
   void rotate_left(float degrees, float center_x, float center_y);
 
-  /** Push the current transform settings onto a stack. pop() can later be used
+  /* Push the current transform settings onto a stack. pop() can later be used
    * to return these settings. Note that this only affects the transform
    * settings of this canvas. */
   void push();
 
   void pop();
 
-  /** Reset the transform to the identity transform and clear the transform
+  /* Reset the transform to the identity transform and clear the transform
    * stack. */
   void reset();
 
-  /** Control whether or not the coordinates should be auto-scaled to simulate a
+  /* Control whether or not the coordinates should be auto-scaled to simulate a
    * 1600-900 sized screen. Only changes behavior for hud canvases. By default
    * this is set to true.
    */
@@ -2073,7 +2304,7 @@ class canvas {
   void scale_hud(bool scale_hud);
 };
 
-/** Definitions match those described in
+/* Definitions match those described in
  * http://www.cplusplus.com/reference/ctime/tm/
  */
 class timedate {
@@ -2091,12 +2322,12 @@ class timedate {
 class fog_setting {
   uint layer_index(uint layer, uint sublayer);
 
-  /** Access the layer and sublayer fog colours. */
+  /* Access the layer and sublayer fog colours. */
   uint colour(uint layer, uint sublayer);
   void colour(uint layer, uint sublayer, uint colour);
   void layer_colour(uint layer, uint colour);
 
-  /** Access the layer and sublayer fog percents. The percent for each
+  /* Access the layer and sublayer fog percents. The percent for each
    * layer/sublayer indicates how to mix the fog colour with the graphics
    * on that layer. A percent of 0 ignores the fog colour and a percent
    * of 1 replaces all colours in drawn graphics with the fog colour. */
@@ -2104,130 +2335,135 @@ class fog_setting {
   void percent(uint layer, uint sublayer, float percent);
   void layer_percent(uint layer, float percent);
 
-  /** Access where on the screen the screen the middle background colour
+  /* Access where on the screen the screen the middle background colour
    * is rendered. Should be between 0 and 1 with 0 indicating the top of
    * the screen and 1 the bottom. */
   float bg_mid_point();
   void bg_mid_point(float bg_mid_point);
 
-  /** Access the background colour at the top of the screen. */
+  /* Access the background colour at the top of the screen. */
   uint bg_top();
   void bg_top(uint bg_top);
 
-  /** Access the background colour in the middle of the screen. */
+  /* Access the background colour in the middle of the screen. */
   uint bg_mid();
   void bg_mid(uint bg_mid);
 
-  /** Access the background colour at the bottom of the screen. */
+  /* Access the background colour at the bottom of the screen. */
   uint bg_bot();
   void bg_bot(uint bg_bot);
 
-  /** Access the star saturation at the top of the screen. Should be
+  /* Access the star saturation at the top of the screen. Should be
    * a number between 0 and 1. */
   float stars_top();
   void stars_top(float s_top);
 
-  /** Access the star saturation in the middle of the screen. */
+  /* Access the star saturation in the middle of the screen. */
   float stars_mid();
   void stars_mid(float s_mid);
 
-  /** Access the star saturation at the bottom of the screen. */
+  /* Access the star saturation at the bottom of the screen. */
   float stars_bot();
   void stars_bot(float s_bot);
 };
 
 class editor_api {
-  /** Returns true if the key is currently pressed. vk should be a 
+  /* Returns true if the key is currently pressed. vk should be a
    * virtual key keycode. See
    * https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes.
    * This is raw access to the underlying key state and will never work
    * in net games. Button states should only be accessed in step() functions.
    */
   bool key_check_vk(int vk);
-  /** Returns true if the key was pressed this frame. */
+  /* Returns true if the key was pressed this frame. */
   bool key_check_pressed_vk(int vk);
 
-  /** Returns true if the "global virtual button" is currently pressed.
+  /* Returns true if the "global virtual button" is currently pressed.
    * Refer to the GLOBAL_VIRTUAL_BUTTON enum for options for this value.
    * These button states are fully managed in net games.
    */
   bool key_check_gvb(int gvb);
-  /** Returns true if the global virtual button is pressed this frame. */
+  /* Returns true if the global virtual button is pressed this frame. */
   bool key_check_pressed_gvb(int gvb);
-  /** Unset the global virtual button state. */
+  /* Unset the global virtual button state. */
   void key_clear_gvb(int gvb);
 
-  /** Returns true if the "player virtual button" is currently pressed.
+  /* Returns true if the "player virtual button" is currently pressed.
    * Refer to the PLAYER_VIRTUAL_BUTTON enum for options for this value.
    * These button states are fully managed in net games.
    */
   bool key_check_vb(int player, int vb);
-  /** Returns true if the global virtual button is pressed this frame. */
+  /* Returns true if the global virtual button is pressed this frame. */
   bool key_check_pressed_vb(int player, int vb);
-  /** Unset the global virtual button state. */
+  /* Unset the global virtual button state. */
   void key_clear_vb(int player, int vb);
 
-  /** Return the currently active editor tab. */
+  /* Returns true if a control in the editor has focus */
+  bool has_focus();
+  /* Returns true if a control in the editor, e.g. a text box, is taking keyboard input */
+  bool is_polling_keyboard();
+
+  /* Return the currently active editor tab. */
   string editor_tab();
-  /** Returns true if the change succeeded. */
+  /* Returns true if the change succeeded. */
   bool editor_tab(string tab_name);
 
-  /** Access whether the help menu is visible. */
+  /* Access whether the help menu is visible. */
   bool help_screen_vis();
   void help_screen_vis(bool vis);
 
   bool hide_gui();
   void hide_gui(bool hide);
 
-  /** Returns true if the mouse is within the editor GUI menus */
+  /* Returns true if the mouse is within the editor GUI menus */
   bool mouse_in_gui();
-  /** Returns the width of the left menu panel. */
+  /* Returns the width of the left menu panel. */
   int menu_left_panel_width();
-  /** Returns the width of the right menu panel. */
+  /* Returns the width of the right menu panel. */
   int menu_right_panel_width();
 
   rectangle@ select_rectangle();
 
-  /** Return the number of selected entities. */
+  /* Return the number of selected entities. */
   uint selected_entity_count();
-  /** Return the index-th selected entity or null if no entity exists at that index. */
+  /* Return the index-th selected entity or null if no entity exists at that index. */
   entity@ selected_entity(uint index);
 
-  /** Return the number of selected props. */
+  /* Return the number of selected props. */
   uint selected_prop_count();
-  /** Return the index-th selected prop or null if no prop exists at that index. */
+  /* Return the index-th selected prop or null if no prop exists at that index. */
   prop@ selected_prop(uint index);
 };
 
 class nexus_api {
-  /** Get the number of keys that have been used of each time. This reflects
+  /* Get the number of keys that have been used of each time. This reflects
    * directly what is persisted to disk. ngplus controls whether all doors
    * are automatically in an open state.
    */
   void get_keys_used(int &out wood, int &out silver, int &out gold,
                          int &out red, bool &out ngplus);
-  /** Update key usage and save to disk. */
+  /* Update key usage and save to disk. */
   void set_keys_used(int wood, int silver, int gold, int red, bool ngplus);
 
-  /** Convenience function to calculate number of keys that have been earned
+  /* Convenience function to calculate number of keys that have been earned
    * of each type. Subtract out the used key counts to get the number of
    * available keys. */
   void get_keys_earned(int &out wood, int &out silver, int &out gold, int &out red);
 
-  /** Get count of levels that have score data in this nexus root */
+  /* Get count of levels that have score data in this nexus root */
   uint score_count();
 
-  /** Get the name of the i-th level in this nexus root */
+  /* Get the name of the i-th level in this nexus root */
   string score_level(uint index);
 
-  /** Lookup the score data for a given level */
+  /* Lookup the score data for a given level */
   bool score_lookup(string level, int &out thorough, int &out finesse,
                         float &out time, int &out key_type);
-  /** Set the score data for a given level */
+  /* Set the score data for a given level */
   void score_set(string level, int thorough, int finesse, float time, int key_type);
 };
 
-/** For reference, here is the state_types enum used in DF
+/* For reference, here is the state_types enum used in DF
 enum state_types{
   st_idle=0,
   st_victory=1,
@@ -2265,14 +2501,12 @@ enum state_types{
   st_block=33,
   st_wall_dash=34,
 };
-
 enum attack_types{
   attack_type_idle=0,
   attack_type_light=1,
   attack_type_heavy=2,
   attack_type_special=3,
 };
-
 enum var_types{
   var_type_none=0,
   var_type_bool=1,
@@ -2286,7 +2520,6 @@ enum var_types{
   var_type_struct=9,
   var_type_vec2=10,
 }
-
 enum col_type{
   col_type_enemy = 1,
   col_type_filth = 2,
@@ -2311,13 +2544,11 @@ enum col_type{
   col_type_kill_zone = 21,
   col_type_null = 22,
 };
-
 enum team_types{
   team_filth = 0,
   team_cleaner = 1,
   team_none = 2,
 };
-
 enum level_types {
   lt_normal = 0,
   lt_nexus = 1,
@@ -2327,14 +2558,12 @@ enum level_types {
   lt_rush = 5,
   lt_dustmod = 6,
 };
-
 enum controller_modes {
   controller_mode_standard = 0,
   controller_mode_ispressed = 1,
   controller_mode_posedge = 2,
   controller_mode_negedge = 3,
 };
-
 enum hit_outcomes{
   ho_start = 0,
   ho_hit = 1,
@@ -2344,7 +2573,6 @@ enum hit_outcomes{
   ho_parry_hit,
   ho_canceled
 };
-
 enum PLAYER_VIRTUAL_BUTTON {
   VB_UP = 0,
   VB_DOWN = 1,
@@ -2357,7 +2585,6 @@ enum PLAYER_VIRTUAL_BUTTON {
   VB_TAUNT = 8,
   VB_NETWORK_PLAYER = 9,
 };
-
 enum GLOBAL_VIRTUAL_BUTTON {
   GVB_WHEEL_UP = 0,
   GVB_WHEEL_DOWN = 1,
@@ -2384,4 +2611,10 @@ enum GLOBAL_VIRTUAL_BUTTON {
   GVB_DELETE = 22,
   GVB_EDITOR_AUX = 23,
 };
+enum side_types {
+  side_left = 0,
+  side_right = 1,
+  side_roof = 2,
+  side_ground = 3,
+}
 */
