@@ -632,8 +632,19 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			mouse_down_inside_ui = true;
 		}
 		
-		if(block_editor_input && mouse_down_inside_ui && _hud && _has_editor && @_mouse_over_element != null)
+		if(mouse_down_inside_ui && _hud && _has_editor && @_mouse_over_element != null)
 		{
+			_editor.force_mouse_in_gui();
+			
+			if(block_editor_input)
+			{
+				editor_api::block_all_mouse(_editor);
+			}
+		}
+		
+		if(@_active_mouse_element != null && _has_editor && block_editor_input)
+		{
+			_editor.force_mouse_in_gui();
 			editor_api::block_all_mouse(_editor);
 		}
 		
