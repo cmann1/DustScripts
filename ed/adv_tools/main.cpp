@@ -315,8 +315,6 @@ class AdvToolScript
 		{
 			initialise();
 			initialised = true;
-			
-//			select_tool(get_tool('Prop Tool'));
 		}
 		
 		screen_w = g.hud_screen_width(false);
@@ -330,10 +328,6 @@ class AdvToolScript
 		view_y2 = view_y1 + view_h;
 		
 		zoom = cam.editor_zoom();
-		
-		const string new_tab = editor.editor_tab();
-//		debug.print('selected_tab: ' + new_tab, 'selected_tab');
-//		debug.print('selected_tool: ' + selected_tool.name, 'selected_tool');
 		
 		handle_keyboard();
 		handles.step();
@@ -361,14 +355,6 @@ class AdvToolScript
 		
 		return_press = editor.key_check_pressed_gvb(GVB::Return);
 		escape_press = editor.key_check_pressed_gvb(GVB::Escape);
-		
-		// `editor_tab` returns 'Help' when switching to the particle editor. As a workaround just ignore it for now.
-		if(new_tab != selected_tab && new_tab != 'Help')
-		{
-			selected_tab = new_tab;
-			select_tool(selected_tab, false);
-			persist_state();
-		}
 		
 		if(@ui.focus == null && shortcut_keys_enabled && !editor.is_polling_keyboard())
 		{
