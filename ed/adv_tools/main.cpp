@@ -228,19 +228,19 @@ class AdvToolScript
 		ui.clipboard_change.on(EventCallback(on_clipboard_change));
 		ui.auto_fit_screen = true;
 		
-//		ui.style.text_clr                        = 0xffffffff;
-//		ui.style.normal_bg_clr                   = 0xd9050505;
-//		ui.style.normal_border_clr               = 0x33ffffff;
-//		ui.style.highlight_bg_clr                = 0xd933307c;
-//		ui.style.highlight_border_clr            = 0xd96663c2;
-//		ui.style.selected_bg_clr                 = 0xd933307c;
-//		ui.style.selected_border_clr             = 0xff7d7acb;
-//		ui.style.selected_highlight_bg_clr       = 0xd9423fa0;
-//		ui.style.selected_highlight_border_clr   = 0xff7d7acb;
-//		ui.style.disabled_bg_clr                 = 0xa6000000;
-//		ui.style.disabled_border_clr             = 0x26ffffff;
-//		ui.style.secondary_bg_clr                = 0x667f7daf;
-//		ui.style.scrollbar_light_bg_clr          = 0xd9111111;
+		// ui.style.text_clr                        = 0xffffffff;
+		// ui.style.normal_bg_clr                   = 0xd9050505;
+		// ui.style.normal_border_clr               = 0x33ffffff;
+		// ui.style.highlight_bg_clr                = 0xd933307c;
+		// ui.style.highlight_border_clr            = 0xd96663c2;
+		// ui.style.selected_bg_clr                 = 0xd933307c;
+		// ui.style.selected_border_clr             = 0xff7d7acb;
+		// ui.style.selected_highlight_bg_clr       = 0xd9423fa0;
+		// ui.style.selected_highlight_border_clr   = 0xff7d7acb;
+		// ui.style.disabled_bg_clr                 = 0xa6000000;
+		// ui.style.disabled_border_clr             = 0x26ffffff;
+		// ui.style.secondary_bg_clr                = 0x667f7daf;
+		// ui.style.scrollbar_light_bg_clr          = 0xd9111111;
 		
 		selected_tab = editor.editor_tab();
 		
@@ -387,7 +387,7 @@ class AdvToolScript
 			selected_tool.step();
 		}
 		
-//		get_tool('Prop Tool').step();
+		// get_tool('Prop Tool').step();
 		
 		info_overlay.step();
 		
@@ -464,7 +464,7 @@ class AdvToolScript
 			selected_tool.draw(sub_frame);
 		}
 		
-//		get_tool('Prop Tool').draw(sub_frame);
+		// get_tool('Prop Tool').draw(sub_frame);
 		
 		handles.draw();
 		ui.draw();

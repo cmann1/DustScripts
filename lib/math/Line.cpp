@@ -134,11 +134,11 @@ class Line
 		return dx * dx + dy * dy;
 	}
 	
-  float length
-  {
-    get const { return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)); }
-  }
-  
+	float length
+	{
+		get const { return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)); }
+	}
+
 	string to_string()
 	{
 		return 'Line(' + x1 + ',' + y1+ ' > ' + x2 + ',' + y2 + ')';
