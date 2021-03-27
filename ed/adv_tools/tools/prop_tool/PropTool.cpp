@@ -1630,6 +1630,9 @@ class PropTool : Tool
 			if(layer == prop_layer && prop_sublayer >= 10)
 				continue;
 			
+			if(!script.editor.get_layer_visible(layer))
+				continue;
+			
 			const float mx = script.g.mouse_x_world(0, layer);
 			const float my = script.g.mouse_y_world(0, layer);
 			const int tx = floor_int(mx / 48);
