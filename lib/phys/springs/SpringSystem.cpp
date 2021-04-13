@@ -47,7 +47,7 @@ class SpringSystem
 		return f;
 	}
 	
-	Particle@ add_partice(const float x, const float y)
+	Particle@ add_particle(const float x, const float y)
 	{
 		Particle@ particle = Particle(x, y);
 		particles.insertLast(particle);
@@ -56,7 +56,7 @@ class SpringSystem
 		return particle;
 	}
 	
-	Particle@ add_particle(Particle@ p)
+	Particle@ add_particlle(Particle@ p)
 	{
 		particles.insertLast(p);
 		particle_count++;
