@@ -91,7 +91,7 @@ void draw_arc(scene@ g, float x, float y, float size_x, float size_y, float star
 		angle_delta = -PI2;
 	}
 	
-	int steps = clamp(ceil_int(abs(angle_delta / angle_step)), 0, segments);
+	int steps = clamp(ceil_int(abs(angle_delta / angle_step)), 2, segments);
 	
 	float prev_x = x + cos(angle_start) * size_x;
 	float prev_y = y + sin(angle_start) * size_y;
