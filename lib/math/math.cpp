@@ -310,3 +310,18 @@ bool line_rectangle_intersection(
 	
 	return false;
 }
+
+/// -1 = Left side
+///  0 = The point is on the line
+///  1 = Right side
+int line_side(
+	const float p1x, const float p1y, const float p2x, const float p2y,
+	const float px, const float py)
+{
+	const float d = (px - p1x) * (p2y - p1y) - (py - p1y) * (p2x - p1x);
+	
+	return d > EPSILON
+		? -1
+		: (d < -EPSILON
+			? 1 : 0);
+}
