@@ -235,7 +235,6 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		if(@window != null)
 		{
 			window.hide('user', false);
-			puts("tool_editor_unloaded");
 		}
 		
 		select(null);
