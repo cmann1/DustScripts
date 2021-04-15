@@ -1,4 +1,4 @@
-#include "../std.cpp";
+#include '../std.cpp';
 
 const float PI = 3.1415926535897932384626433832795;
 const float PI2 = PI * 2;
@@ -71,7 +71,7 @@ float lerp(float a, float b, float x)
 	return a * (1.0 - x) + b * x;
 }
 
-// current and target are in radians
+/// Current and target are in radians
 float shortest_angle(float current, float target)
 {
 	const float num = repeat(target - current, PI2);
@@ -83,7 +83,7 @@ float shortest_angle(float current, float target)
 //	return 2 * da % PI2 - da;
 }
 
-// current and target are in radians
+/// Current and target are in radians
 float shortest_angle_degress(float current, float target)
 {
 	const float num = repeat(target - current, 360);
@@ -119,14 +119,18 @@ float normalize_angle(float theta)
 	return theta - PI2 * floor((theta + PI) / PI2);
 }
 
-void project(float ax, float ay, float bx, float by, float &out out_x, float &out out_y)
+void project(
+	float ax, float ay, float bx, float by,
+	float &out out_x, float &out out_y)
 {
 	const float dp = dot(ax, ay, bx, by);
 	out_x = ( dp / (bx * bx + by * by) ) * bx;
 	out_y = ( dp / (bx * bx + by * by) ) * by;
 }
 
-void reflect(float x, float y, float normal_x, float normal_y, float &out out_x, float &out out_y)
+void reflect(
+	float x, float y, float normal_x, float normal_y,
+	float &out out_x, float &out out_y)
 {
 	float d = dot(x, y, normal_x, normal_y);
 	out_x = x - 2 * normal_x * d;
@@ -139,7 +143,9 @@ void rotate(float x, float y, float angle, float &out out_x, float &out out_y)
 	out_y = sin(angle) * x + cos(angle) * y;
 }
 
-void rotate(float x, float y, float centre_x, float centre_y, float angle, float &out out_x, float &out out_y)
+void rotate(
+	float x, float y, float centre_x, float centre_y, float angle,
+	float &out out_x, float &out out_y)
 {
 	x -= centre_x;
 	y -= centre_y;
@@ -201,22 +207,29 @@ float map_clamped(float value, float from_min, float from_max, float to_min, flo
 	return to_min + value * (to_max - to_min);
 }
 
-// Returns the z-component of the cross product of a and b
-float cross_product_z(float a_x, float a_y, float b_x, float b_y) {
-    return a_x * b_y - a_y * b_x;
+/// Returns the z-component of the cross product of a and b
+float cross_product_z(float a_x, float a_y, float b_x, float b_y)
+{
+	return a_x * b_y - a_y * b_x;
 }
 
-// Orientation is positive if abc is counterclockwise, negative if clockwise.
-// Note: Dustforce has positive y going down the screen, so clockwise becomes
-// counterclockwise and vice versa.
-// (It is actually twice the area of triangle abc, calculated using the
-// Shoelace formula: http://en.wikipedia.org/wiki/Shoelace_formula .)
-float orientation(float a_x, float a_y, float b_x, float b_y, float c_x, float c_y) {
-    return cross_product_z(a_x, a_y, b_x, b_y) + cross_product_z(b_x, b_y, c_x, c_y) + cross_product_z(c_x, c_y, a_x, a_y);
+/// Orientation is positive if abc is counterclockwise, negative if clockwise.
+/// Note: Dustforce has positive y going down the screen, so clockwise becomes
+/// counterclockwise and vice versa.
+/// (It is actually twice the area of triangle abc, calculated using the
+/// Shoelace formula: http://en.wikipedia.org/wiki/Shoelace_formula .)
+float orientation(float a_x, float a_y, float b_x, float b_y, float c_x, float c_y)
+{
+	return
+		cross_product_z(a_x, a_y, b_x, b_y) +
+		cross_product_z(b_x, b_y, c_x, c_y) +
+		cross_product_z(c_x, c_y, a_x, a_y);
 }
 
-// Does line ab intersect line cd?
-bool lines_intersect(float a_x, float a_y, float b_x, float b_y, float c_x, float c_y, float d_x, float d_y)
+/// Does line ab intersect line cd?
+bool lines_intersect(
+	float a_x, float a_y, float b_x, float b_y,
+	float c_x, float c_y, float d_x, float d_y)
 {
 	// Before expanding cross products:
 	// return (
@@ -234,7 +247,10 @@ bool lines_intersect(float a_x, float a_y, float b_x, float b_y, float c_x, floa
 	);
 }
 
-bool line_line_intersection(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy, float &out x, float &out y, float & out t)
+bool line_line_intersection(
+	float ax, float ay, float bx, float by,
+	float cx, float cy, float dx, float dy,
+	float &out x, float &out y, float & out t)
 {
 	float s1x = bx - ax;
 	float s1y = by - ay;
@@ -274,7 +290,10 @@ bool line_line_intersection(float ax, float ay, float bx, float by, float cx, fl
 	return true;
 }
 
-bool line_rectangle_intersection(float ax, float ay, float bx, float by, float r1x, float r1y, float r2x, float r2y, float &out x, float &out y, float &out t)
+bool line_rectangle_intersection(
+	float ax, float ay, float bx, float by,
+	float r1x, float r1y, float r2x, float r2y,
+	float &out x, float &out y, float &out t)
 {
 	// Top
 	if(line_line_intersection(ax, ay, bx, by, r1x, r1y, r2x, r1y, x, y, t))
