@@ -1,8 +1,10 @@
 #include '../std.cpp';
 #include '../fonts.cpp';
 #include '../input/Mouse.cpp';
+#include '../drawing/common.cpp';
 #include '../drawing/canvas.cpp';
 #include '../math/math.cpp';
+#include 'DebugDot.cpp';
 #include 'DebugItemList.cpp';
 #include 'DebugTextLineList.cpp';
 #include 'DebugTextLine.cpp';
@@ -48,6 +50,7 @@ class Debug
 	private uint text_sub_layer = 16;
 	
 	private DebugItemList items;
+	private DebugDotPool dot_pool;
 	private DebugLinePool line_pool;
 	private DebugRectPool rect_pool;
 	private DebugTextPool text_pool;
@@ -398,7 +401,10 @@ class Debug
 		}
 	}
 	
-	DebugLine@ line(uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness=2, uint colour=0xFFFFFFFF, bool world=true, int frames=1)
+	DebugLine@ line(
+		uint layer, uint sub_layer,
+		float x1, float y1, float x2, float y2,
+		float thickness=2, uint colour=0xFFFFFFFF, bool world=true, int frames=1)
 	{
 		DebugLine@ line = line_pool.get();
 		line.set(layer, sub_layer, x1, y1, x2, y2, thickness, colour, world, frames);
@@ -406,7 +412,10 @@ class Debug
 		return line;
 	}
 	
-	DebugRect@ rect(uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float rotation=0, float thickness=-1, uint colour=0xFFFFFFFF, bool world=true, int frames=1)
+	DebugRect@ rect(
+		uint layer, uint sub_layer,
+		float x1, float y1, float x2, float y2,
+		float rotation=0, float thickness=-1, uint colour=0xFFFFFFFF, bool world=true, int frames=1)
 	{
 		DebugRect@ rect = rect_pool.get();
 		rect.set(layer, sub_layer, x1, y1, x2, y2, rotation, thickness, colour, world, frames);
@@ -430,6 +439,17 @@ class Debug
 		return text_item;
 	}
 	
+	
+	DebugDot@ dot(
+		uint layer, uint sub_layer,
+		float x, float y,
+		float size=1, uint colour=0xffffffff, float rotation=0, bool world=true, int frames=1)
+	{
+		DebugDot@ dot = dot_pool.get();
+		dot.set(layer, sub_layer, x, y, size, colour, rotation, world, frames);
+		items.insert(dot);
+		return dot;
+	}
 	// TO DO: Add more drawing types
 	
 	/*
