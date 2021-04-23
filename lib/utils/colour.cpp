@@ -153,18 +153,18 @@ uint rgba(float r, float g, float b, float a = 1)
 
 void int_to_rgba(uint colour, int &out r, int &out g, int &out b, int &out a)
 {
-	a = (colour >> 24) & 0xFF;
-	r = (colour >> 16) & 0xFF;
-	g = (colour >> 8) & 0xFF;
-	b = (colour) & 0xFF;
+	a = (colour >> 24) & 0xff;
+	r = (colour >> 16) & 0xff;
+	g = (colour >> 8) & 0xff;
+	b = (colour) & 0xff;
 }
 
 void int_to_rgba(uint colour, float &out r, float &out g, float &out b, float &out a)
 {
-	a = ((colour >> 24) & 0xFF) / 255;
-	r = ((colour >> 16) & 0xFF) / 255;
-	g = ((colour >> 8) & 0xFF) / 255;
-	b = ((colour) & 0xFF) / 255;
+	a = ((colour >> 24) & 0xff) / 255;
+	r = ((colour >> 16) & 0xff) / 255;
+	g = ((colour >> 8) & 0xff) / 255;
+	b = ((colour) & 0xff) / 255;
 }
 
 uint adjust_lightness(const uint colour, const float &in amount)
@@ -231,4 +231,23 @@ uint random_colour_nice(float alpha_min = 1, float alpha_max = 1)
 		rand_range(0.8, 0.9),
 		rand_range(0.65, 0.75)
 	) | (int(round(rand_range(alpha_min, alpha_max) * 255)) << 24);
+}
+
+uint lerp_colour(const uint start, const uint end, const float t)
+{
+	const float sa = (start >> 24) & 0xff;
+	const float sr = (start >> 16) & 0xff;
+	const float sg = (start >>  8) & 0xff;
+	const float sb = (start      ) & 0xff;
+
+	const float ea = (end >> 24) & 0xff;
+	const float er = (end >> 16) & 0xff;
+	const float eg = (end >>  8) & 0xff;
+	const float eb = (end      ) & 0xff;
+
+	return
+		(uint(sa + (ea - sa) * t) << 24) |
+		(uint(sr + (er - sr) * t) << 16) |
+		(uint(sg + (eg - sg) * t) << 8) |
+		 uint(sb + (eb - sb) * t);
 }
