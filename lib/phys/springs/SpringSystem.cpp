@@ -56,7 +56,7 @@ class SpringSystem
 		return particle;
 	}
 	
-	Particle@ add_particlle(Particle@ p)
+	Particle@ add_particle(Particle@ p)
 	{
 		particles.insertLast(p);
 		particle_count++;
