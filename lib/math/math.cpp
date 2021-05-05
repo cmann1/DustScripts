@@ -213,17 +213,19 @@ float cross_product_z(float a_x, float a_y, float b_x, float b_y)
 	return a_x * b_y - a_y * b_x;
 }
 
-/// Orientation is positive if abc is counterclockwise, negative if clockwise.
+/// Orientation is positive if abc is counterclockwise, negative if clockwise, or 0 if colinear.
 /// Note: Dustforce has positive y going down the screen, so clockwise becomes
 /// counterclockwise and vice versa.
-/// (It is actually twice the area of triangle abc, calculated using the
-/// Shoelace formula: http://en.wikipedia.org/wiki/Shoelace_formula .)
-float orientation(float a_x, float a_y, float b_x, float b_y, float c_x, float c_y)
+/// https://www.geeksforgeeks.org/orientation-3-ordered-points/
+/// http://e-maxx.ru/algo/oriented_area
+float orientation(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3)
 {
-	return
-		cross_product_z(a_x, a_y, b_x, b_y) +
-		cross_product_z(b_x, b_y, c_x, c_y) +
-		cross_product_z(c_x, c_y, a_x, a_y);
+	// Same thing but fewer steps
+	return (y3 - y2) * (x2 - x1) - (y2 - y1) * (x3 - x2);
+	// return
+	// 	cross_product_z(a_x, a_y, b_x, b_y) +
+	// 	cross_product_z(b_x, b_y, c_x, c_y) +
+	// 	cross_product_z(c_x, c_y, a_x, a_y);
 }
 
 /// Does line ab intersect line cd?
