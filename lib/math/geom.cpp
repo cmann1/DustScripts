@@ -132,7 +132,9 @@ float distance_to_polygon_sqr(const float x, const float y, const array<float>@ 
 	return min_distance;
 }
 
-void closest_point_to_rect(const float x, const float y, const float x1, const float y1, const float x2, const float y2, float &out out_x, float &out out_y)
+void closest_point_to_rect(
+	const float x, const float y, const float x1, const float y1, const float x2, const float y2,
+	float &out out_x, float &out out_y)
 {
 	// Top
 	
@@ -190,17 +192,27 @@ void closest_point_to_rect(const float x, const float y, const float x1, const f
 	}
 }
 
-bool point_in_triangle(const float x, const float y, const float x1, const float y1, const float x2, const float y2, const float x3, const float y3)
+bool point_in_triangle(
+	const float x, const float y, const float x1, const float y1, const float x2, const float y2,
+	const float x3, const float y3)
 {
-	const float s = y1 * x3 - x1 * y3 + (y3 - y1) * x + (x1 - x3) * y;
-	const float t = x1 * y2 - y1 * x2 + (y1 - y2) * x + (x2 - x1) * y;
-
-	if((s < 0) != (t < 0))
-		return false;
-
-	const float a = -y2 * x3 + y1 * (x3 - x2) + x1 * (y2 - y3) + x2 * y3;
-
-	return a < 0
-		? (s <= 0 && s + t >= a)
-		: (s >= 0 && s + t <= a);
+	// Not fully tested but seems to also returns true for points on a triangle edge
+	const float l1 = (x - x1) * (y3 - y1) - (x3 - x1) * (y - y1);
+	const float l2 = (x - x2) * (y1 - y2) - (x1 - x2) * (y - y2);
+	const float l3 = (x - x3) * (y2 - y3) - (x2 - x3) * (y - y3);
+	return
+		(l1 >= 0 && l2 >= 0 && l3 >= 0) ||
+		(l1 <= 0 && l2 <= 0 && l3 <= 0);
+	
+	// const float s = y1 * x3 - x1 * y3 + (y3 - y1) * x + (x1 - x3) * y;
+	// const float t = x1 * y2 - y1 * x2 + (y1 - y2) * x + (x2 - x1) * y;
+	// 
+	// if((s <= 0) != (t <= 0))
+	// 	return false;
+	// 
+	// const float a = -y2 * x3 + y1 * (x3 - x2) + x1 * (y2 - y3) + x2 * y3;
+	// 
+	// return a < 0
+	// 	? (s <= 0 && s + t >= a)
+	// 	: (s >= 0 && s + t <= a);
 }
