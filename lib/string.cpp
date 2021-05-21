@@ -13,7 +13,7 @@ namespace string
 		return hash;
 	}
 	
-	string repeat(const string str, int times)
+	string repeat(const string &in str, int times)
 	{
 		if(times < 1)
 			return '';
@@ -151,16 +151,6 @@ namespace string
 		return text;
 	}
 	
-	uint unique_colour(const string id, const uint alpha=0xff)
-	{
-		const float hash = float(string::hash(id));
-		return hsl_to_rgb(
-			sin(hash) * 0.5 + 0.5,
-			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
-			map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
-			) | (alpha << 24);
-	}
-  
 	string join(const array<int>@ arr, const string delimiter, int start=0, int count=-1)
 	{
 		const int arr_length = int(arr.length());

@@ -233,6 +233,16 @@ uint random_colour_nice(float alpha_min = 1, float alpha_max = 1)
 	) | (int(round(rand_range(alpha_min, alpha_max) * 255)) << 24);
 }
 
+uint unique_colour(const string id, const uint alpha=0xff)
+{
+	const float hash = float(string::hash(id));
+	return hsl_to_rgb(
+		sin(hash) * 0.5 + 0.5,
+		map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
+		map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
+		) | (alpha << 24);
+}
+
 uint lerp_colour(const uint start, const uint end, const float t)
 {
 	const float sa = (start >> 24) & 0xff;
