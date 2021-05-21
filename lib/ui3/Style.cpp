@@ -75,7 +75,7 @@ class Style
 	float tooltip_fade_offset = 5;
 	float tooltip_default_spacing = spacing * 1.5;
 	
-	float default_scrollbar_size = 8;
+	float default_scrollbar_size = 10;
 	float scrollbar_fixed_size = 20;
 	
 	float default_list_view_item_width  = 100;
@@ -111,7 +111,7 @@ class Style
 	private uint _sub_layer;
 	private bool _hud;
 	
-	Style(){}
+	Style() { }
 	
 	Style(bool hud)
 	{
