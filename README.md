@@ -8,12 +8,12 @@ At the very least I'll include "lib/std.cpp" in most projects, which contains so
 - **enums** - Built-in constants defined as enums, such as entity and var types.
 - **math** - Math and geometry related classes and functions. Use `math.cpp` for most commonly needed functionality, eg. `dot`, `distance`, `lerp`.
 - **tiles** - Tile related utilities.
-- **ui** - UI related code. Contains scrollbars, mouse handling, etc. used by `PropSelector`, currently probably not very general purpose or useful.
+- **ui3** - A general purpose UI library with a variety of common controls.
 
 # [Shared]
 A collection of stand-alone scripts to add predefined functionality to a map, eg. outlining entities.
 Once added to a map and compiled, left click the script name to save it as a preset so that it can easily be added to other maps in the future.
-- **Entity outliner** - Draws a configurable outlines around entities
+- **Entity outliner** - Draws configurable outlines around entities
 - **Breakable wall** - Allows you to mark rectangular regions of tiles as breakable
 - **Prop wind** - Will make certain props sway in the wind
 - **Shadows** - Casts shadows from tiles
@@ -24,11 +24,10 @@ Once added to a map and compiled, left click the script name to save it as a pre
 1. Copy **lib**  and **ed** to your **script_src** directory.
 2. All scripts are contained in the **ed** directory, or a subdirectory with that.
 2. Open the script tab in the editor.
-3. Click the text box, type **ed/prop-path.cpp** and hit enter
+3. Click the text box, type **ed/path/to/script.cpp** and hit enter
 
 ### AdvTools
 Combines and improves some of the old editor scripts using the new editor api.
-Currently both the emitter (**em.cpp**) and prop (**pp.cpp**) have been removed.  
 See [this map](https://www.dropbox.com/s/15mq10gethutkml/__AdvTools?dl=0) for an overview of everything it can do.  
 Compiling as an editor plugin is recommended.
 
@@ -65,7 +64,7 @@ Compiling as an editor plugin is recommended.
     - **External:** Only edges adjacent empty space will be modified.
     - **Internal:** Only edges shared by two tiles will be modified.
     - **Both:** All edges will be modified.
-- **external_different_sprites:** When checked, internal edges where shared by two tiles with different sprite sets will be considered external.
+- **external_different_sprites:** When checked, internal edges which are shared by two tiles with different sprite sets will be considered external.
 - **precision_mode:** In precision mode, only the closest edge on the closest tile can will be modified.
 - **precision_inside_only:** If checked only the tile the mouse is positioned inside of will be modified.
 - **precision_update_neighbour:** When turning the edge rendering on for a tile, should the edge on adjacent tile be turned off?
@@ -98,7 +97,6 @@ When you're happy with the results, press the "place" button and delete the trig
 	* **scale_ex/y:** The ending scale of the prop
 
 ##### Controls
-NOTE: These are now supported in-editor in the latest Dustmod.
 * **Left mouse**: Move handles.
 * **Middle mouse**: Move handles as if the **smart_handles** option is off.
 
@@ -160,7 +158,5 @@ An editor script for quickly placing props.
 
 ##### Prop Selection Window:
 - Click a prop to select it.
-- If there are alternate palettes, they are shown below, otherwise the prop is selected, and the window closed.
+- If there are alternate palettes, they are shown below, otherwise the prop is selected, and the window is closed.
 - Click the selected prop again to quickly select the first palette, or click one of the palettes to select that.
-- **IMPORTANT:** Mouse hud values are not reported properly by Dustmod, if the mouse is not aligning with the hud correctly, move it to the edge of the Dustmod window to "calibrate" it.
-- **IMPORTANT:** There's an issue with Dustforce that causes rendering glitches when there are too many textures on screen. Some prop icons might display incorrectly because of this - when that happens hold the right mouse button to show only that icon. 
