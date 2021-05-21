@@ -1031,11 +1031,11 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		return true;
 	}
 	
-	float _pixel_floor(const float value) { return _hud || true && pixel_perfect ? floor(value) : value; }
+	float _pixel_floor(const float value) { return _hud && pixel_perfect ? floor(value) : value; }
 	
-	float _pixel_round(const float value) { return _hud || true && pixel_perfect ? round(value) : value; }
+	float _pixel_round(const float value) { return _hud && pixel_perfect ? round(value) : value; }
 	
-	float _pixel_ceil(const float value) { return _hud || true && pixel_perfect ? ceil(value) : value; }
+	float _pixel_ceil(const float value) { return _hud && pixel_perfect ? ceil(value) : value; }
 	
 	void _dispatch_event(Event@ event, const string type, Element@ target, const string value='')
 	{
