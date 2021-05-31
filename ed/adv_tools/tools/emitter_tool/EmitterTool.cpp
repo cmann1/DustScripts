@@ -34,6 +34,7 @@ class EmitterTool : Tool
 	private int hover_index_offset;
 	
 	private bool force_create;
+	private bool queued_create;
 	private int select_rect_pending;
 	private int action_layer;
 	private float drag_start_x, drag_start_y;
@@ -305,6 +306,12 @@ class EmitterTool : Tool
 	// States
 	// //////////////////////////////////////////////////////////
 	
+	private void start_idle()
+	{
+		state = Idle;
+		queued_create = false;
+	}
+	
 	private void state_idle()
 	{
 		// Start Creating
@@ -312,15 +319,22 @@ class EmitterTool : Tool
 		if(mouse.left_press)
 		{
 			force_create = script.mouse_in_scene && script.editor.key_check_vk(VK::A);
+			queued_create = true;
 		}
 		
 		if(
 			script.mouse_in_scene && script.pressed_in_scene &&
-			!mouse.left_press && mouse.left_down && !script.space_on_press && !script.alt &&
+			(mouse.left_press || queued_create) && !script.space_on_press && !script.alt &&
 			(@pressed_emitter == null || force_create) && mouse.moved)
 		{
+			queued_create = false;
 			idle_start_create();
 			return;
+		}
+		
+		if(mouse.moved || mouse.left_release)
+		{
+			queued_create = false;
 		}
 		
 		// Start moving
@@ -572,7 +586,7 @@ class EmitterTool : Tool
 				selected_emitters[i].stop_drag(!script.escape_press);
 			}
 			
-			state = Idle;
+			start_idle();
 			script.ui.mouse_enabled = true;
 			return;
 		}
@@ -603,7 +617,7 @@ class EmitterTool : Tool
 				primary_selected.hovered = false;
 			}
 			
-			state = Idle;
+			start_idle();
 			script.ui.mouse_enabled = true;
 			return;
 		}
@@ -676,7 +690,7 @@ class EmitterTool : Tool
 				primary_selected.hovered = false;
 			}
 			
-			state = Idle;
+			start_idle();
 			script.ui.mouse_enabled = true;
 			return;
 		}
@@ -707,7 +721,7 @@ class EmitterTool : Tool
 		
 		if(script.escape_press)
 		{
-			state = Idle;
+			start_idle();
 			script.ui.mouse_enabled = true;
 			return;
 		}
@@ -766,7 +780,7 @@ class EmitterTool : Tool
 		
 		if(!mouse.left_down)
 		{
-			state = Idle;
+			start_idle();
 			script.ui.mouse_enabled = true;
 		}
 	}
@@ -775,7 +789,7 @@ class EmitterTool : Tool
 	{
 		if(script.escape_press)
 		{
-			state = Idle;
+			start_idle();
 			script.ui.mouse_enabled = true;
 			return;
 		}
@@ -802,7 +816,7 @@ class EmitterTool : Tool
 		data.update();
 		data.visible = true;
 		
-		state = Idle;
+		start_idle();
 		script.ui.mouse_enabled = true;
 	}
 	
