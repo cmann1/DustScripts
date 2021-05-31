@@ -268,12 +268,20 @@ class EmitterTool : Tool
 		
 		if(state == EmitterToolState::Creating)
 		{
+			const bool drag_centre = script.alt;
 			float sx, sy;
 			script.transform(drag_start_x, drag_start_y, layer.value, 22, sx, sy);
 			float lx, ly;
 			rotate(mouse.x - sx, mouse.y - sy, -rotation.value * DEG2RAD, lx, ly);
-			const float ox = (sx + mouse.x) * 0.5;
-			const float oy = (sy + mouse.y) * 0.5;
+			
+			if(drag_centre)
+			{
+				lx *= 2;
+				ly *= 2;
+			}
+			
+			const float ox = !drag_centre ? (sx + mouse.x) * 0.5 : sx;
+			const float oy = !drag_centre ? (sy + mouse.y) * 0.5 : sy;
 			
 			script.g.draw_rectangle_world(22, 22,
 				ox - lx * 0.5, oy - ly * 0.5,
@@ -821,13 +829,20 @@ class EmitterTool : Tool
 		if(mouse.left_down)
 			return;
 		
+		const bool drag_centre = script.alt;
 		float mx, my;
 		script.transform(mouse.x, mouse.y, 22, layer.value, mx, my);
 		float lx, ly;
 		rotate(mx - drag_start_x, my - drag_start_y, -rotation.value * DEG2RAD, lx, ly);
 		
-		const float ox = (drag_start_x + mx) * 0.5;
-		const float oy = (drag_start_y + my) * 0.5;
+		if(drag_centre)
+		{
+			lx *= 2;
+			ly *= 2;
+		}
+		
+		const float ox = !drag_centre ? (drag_start_x + mx) * 0.5 : drag_start_x;
+		const float oy = !drag_centre ? (drag_start_y + my) * 0.5 : drag_start_y;
 		
 		entity@ emitter = create_emitter(emitter_id.value,
 			ox, oy,
