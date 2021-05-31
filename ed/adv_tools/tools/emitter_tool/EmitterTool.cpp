@@ -41,6 +41,7 @@ class EmitterTool : Tool
 	private float drag_anchor_x, drag_anchor_y;
 	private float drag_offset_angle;
 	private float drag_base_rotation;
+	private bool drag_centre;
 	private DragHandleType dragged_handle = DragHandleType::None;
 	
 	private WorldBoundingBox selection_bounding_box;
@@ -541,7 +542,10 @@ class EmitterTool : Tool
 	
 	private void idle_start_scaling()
 	{
-		primary_selected.get_handle_position(DragHandle::opposite(dragged_handle), drag_anchor_x, drag_anchor_y);
+		drag_centre = script.alt;
+		primary_selected.get_handle_position(
+			!drag_centre ? DragHandle::opposite(dragged_handle) : DragHandle::Centre,
+			drag_anchor_x, drag_anchor_y);
 		
 		float local_x, local_y;
 		script.world_to_local(
@@ -550,8 +554,13 @@ class EmitterTool : Tool
 			primary_selected.layer,
 			drag_start_x, drag_start_y);
 		
-		drag_start_x = drag_start_x > 0 ? drag_start_x - primary_selected.width : drag_start_x + primary_selected.width;
-		drag_start_y = drag_start_y > 0 ? drag_start_y - primary_selected.height : drag_start_y + primary_selected.height;
+		const float multiplier = drag_centre ? 0.5 : 1;
+		drag_start_x = drag_start_x > 0
+			? drag_start_x - primary_selected.width * multiplier
+			: drag_start_x + primary_selected.width * multiplier;
+		drag_start_y = drag_start_y > 0
+			? drag_start_y - primary_selected.height * multiplier
+			: drag_start_y + primary_selected.height * multiplier;
 		
 		primary_selected.start_scale();
 		primary_selected.hovered = true;
@@ -644,8 +653,8 @@ class EmitterTool : Tool
 		local_x -= drag_start_x;
 		local_y -= drag_start_y;
 		
+		const float multiplier = drag_centre ? 2 : 1;
 		float width, height;
-		float ix = 0, iy = 0;
 		
 		switch(dragged_handle)
 		{
@@ -655,8 +664,7 @@ class EmitterTool : Tool
 			case DragHandleType::BottomLeft:
 			case DragHandleType::TopLeft:
 			case DragHandleType::Left:
-				width = abs(local_x);
-				ix = 1;
+				width = abs(local_x) * multiplier;
 				break;
 			default:
 				width = data.width;
@@ -672,8 +680,7 @@ class EmitterTool : Tool
 			case DragHandleType::Top:
 			case DragHandleType::TopLeft:
 			case DragHandleType::TopRight:
-				height = abs(local_y);
-				iy = 1;
+				height = abs(local_y) * multiplier;
 				break;
 			default:
 				height = data.height;
@@ -681,9 +688,19 @@ class EmitterTool : Tool
 				break;
 		}
 		
-		rotate(local_x, local_y, data.rotation * DEG2RAD, local_x, local_y);
+		if(!drag_centre)
+		{
+			rotate(local_x, local_y, data.rotation * DEG2RAD, local_x, local_y);
+		}
+		else
+		{
+			local_x = 0;
+			local_y = 0;
+		}
 		
-		data.do_scale(width, height, drag_anchor_x + local_x * 0.5, drag_anchor_y + local_y * 0.5);
+		data.do_scale(width, height,
+			drag_anchor_x + local_x * 0.5,
+			drag_anchor_y + local_y * 0.5);
 		data.do_handles(dragged_handle);
 		data.hovered = true;
 	}

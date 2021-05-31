@@ -10,6 +10,7 @@ enum DragHandleType
 	TopLeft,
 	Top,
 	TopRight,
+	Centre,
 	Rotate,
 	
 }
