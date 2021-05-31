@@ -337,7 +337,7 @@ class Window : MoveableDialog
 	
 	bool remove_title_before(Element@ child)
 	{
-		if(_title_before.remove_child(child))
+		if(@_title_before != null && _title_before.remove_child(child))
 		{
 			_title_before.fit_to_contents(true);
 			validate_layout = true;
@@ -349,30 +349,45 @@ class Window : MoveableDialog
 	
 	void set_title_before_index(Element@ child, int index)
 	{
+		if(@_title_before == null)
+			return;
+		
 		_title_before.set_child_index(child, index);
 		validate_layout = true;
 	}
 	
 	void move_title_before_to_front(Element@ child)
 	{
+		if(@_title_before == null)
+			return;
+		
 		_title_before.move_to_front(child);
 		validate_layout = true;
 	}
 	
 	void move_title_before_to_back(Element@ child)
 	{
+		if(@_title_before == null)
+			return;
+		
 		_title_before.move_to_back(child);
 		validate_layout = true;
 	}
 	
 	void move_title_before_up(Element@ child)
 	{
+		if(@_title_before == null)
+			return;
+		
 		_title_before.move_up(child);
 		validate_layout = true;
 	}
 	
 	void move_title_before_down(Element@ child)
 	{
+		if(@_title_before == null)
+			return;
+		
 		_title_before.move_down(child);
 		validate_layout = true;
 	}
@@ -404,7 +419,7 @@ class Window : MoveableDialog
 	
 	bool remove_title_after(Element@ child)
 	{
-		if(_title_after.remove_child(child))
+		if(@_title_after != null && _title_after.remove_child(child))
 		{
 			_title_after.fit_to_contents(true);
 			validate_layout = true;
@@ -416,30 +431,45 @@ class Window : MoveableDialog
 	
 	void set_title_after_index(Element@ child, int index)
 	{
+		if(@_title_after == null)
+			return;
+		
 		_title_after.set_child_index(child, index);
 		validate_layout = true;
 	}
 	
 	void move_title_after_to_front(Element@ child)
 	{
+		if(@_title_after == null)
+			return;
+		
 		_title_before.move_to_front(child);
 		validate_layout = true;
 	}
 	
 	void move_title_after_to_back(Element@ child)
 	{
+		if(@_title_after == null)
+			return;
+		
 		_title_after.move_to_back(child);
 		validate_layout = true;
 	}
 	
 	void move_title_after_up(Element@ child)
 	{
+		if(@_title_after == null)
+			return;
+		
 		_title_after.move_up(child);
 		validate_layout = true;
 	}
 	
 	void move_title_after_down(Element@ child)
 	{
+		if(@_title_after == null)
+			return;
+		
 		_title_after.move_down(child);
 		validate_layout = true;
 	}
