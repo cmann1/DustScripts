@@ -363,8 +363,8 @@ class Keyboard
 	{
 		process_input = true;
 		
-		register_vk(VK::Return, ModifierKey::None);
-		register_vk(VK::Space, ModifierKey::None);
+		register_vk(VK::Return, ModifierKey::Shift);
+		register_vk(VK::Space, ModifierKey::Shift);
 		register_range_vk(VK::Numpad0, VK::Divide);
 		register_range_vk(VK::Digit0, VK::Z, ModifierKey::Shift);
 		register_range_vk(VK::Oem1, VK::Oem7);
