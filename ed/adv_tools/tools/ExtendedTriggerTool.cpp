@@ -31,7 +31,9 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 			duplicate_trigger();
 		}
 		
-		if(script.ctrl && script.editor.key_check_pressed_vk(VK::V))
+		if(
+			script.ctrl && script.editor.key_check_pressed_vk(VK::V) &&
+			!script.ui.is_mouse_active && @script.ui.focus == null)
 		{
 			paste_trigger(script.mouse.x, script.mouse.y);
 		}
