@@ -1,4 +1,5 @@
 #include '../std.cpp';
+#include '../string.cpp';
 
 // See https://gist.github.com/mjackson/5311256 for functions if needed
 
