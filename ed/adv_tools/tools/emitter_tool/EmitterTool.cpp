@@ -114,7 +114,7 @@ class EmitterTool : Tool
 	
 	protected void step_impl() override
 	{
-		properties_window.update_layer();
+		properties_window.update_selected_layer();
 		
 		for(int j = 0; j < selected_emitters_count; j++)
 		{
@@ -509,6 +509,8 @@ class EmitterTool : Tool
 		{
 			script.show_layer_sublayer_overlay(@selection_bounding_box, data.layer, data.sublayer);
 		}
+		
+		properties_window.update_layer();
 	}
 	
 	private void idle_start_scaling()

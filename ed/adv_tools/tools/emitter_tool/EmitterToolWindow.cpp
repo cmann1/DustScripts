@@ -296,6 +296,55 @@ class EmitterToolWindow
 	
 	void update_layer()
 	{
+		set_ui_events_enabled(false);
+		
+		if(selected_emitters_count == 0)
+			return;
+		
+		if(selected_emitters_count == 1)
+		{
+			EmitterData@ data = @selected_emitters[0];
+			layer.value		= data.layer;
+			sublayer.value	= data.sublayer;
+			layer_button.layer_select.set_selected_layer(layer.value);
+			layer_button.layer_select.set_selected_sub_layer(sublayer.value);
+		}
+		else
+		{
+			EmitterData@ data = @selected_emitters[0];
+			int layer = data.layer;
+			int sublayer = data.sublayer;
+			
+			for(int i = 1; i < selected_emitters_count; i++)
+			{
+				@data = @selected_emitters[i];
+				if(layer != data.layer)
+				{
+					layer = -1;
+				}
+				
+				if(sublayer != data.sublayer)
+				{
+					sublayer = -1;
+				}
+			}
+			
+			if(layer != -1)
+				layer_button.layer_select.set_selected_layer(layer);
+			else
+				layer_button.layer_select.select_layers_none(false, true);
+			
+			if(sublayer != -1)
+				layer_button.layer_select.set_selected_sub_layer(sublayer);
+			else
+				layer_button.layer_select.select_sub_layers_none(false, true);
+		}
+		
+		set_ui_events_enabled(true);
+	}
+	
+	void update_selected_layer()
+	{
 		const int new_layer = script.editor.selected_layer;
 		
 		if(new_layer != selected_layer)
