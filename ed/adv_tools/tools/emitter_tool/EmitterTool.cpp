@@ -175,7 +175,9 @@ class EmitterTool : Tool
 		
 		int hover_index = 0;
 		
-		if(script.mouse_in_scene && mouse_inside_count > 0)
+		if(
+			script.mouse_in_scene && mouse_inside_count > 0 &&
+			(@primary_selected == null || !primary_selected.mouse_over_handle))
 		{
 			for(i = highlighted_emitters_count - 1; i >= 0; i--)
 			{

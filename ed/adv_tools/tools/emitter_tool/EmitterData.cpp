@@ -105,6 +105,8 @@ class EmitterData : SelectableData
 	
 	DragHandleType do_handles(DragHandleType current_handle=DragHandleType::None)
 	{
+		mouse_over_handle = false;
+		
 		DragHandleType handle = DragHandleType::Right;
 		DragHandleType dragged_handle = current_handle;
 		
@@ -112,7 +114,6 @@ class EmitterData : SelectableData
 		const float ny = sin(rotation * DEG2RAD);
 		
 		const array<float>@ o = Settings::ScaleHandleOffsets;
-		
 		
 		for(int i = 0; i < 32; i += 4)
 		{
