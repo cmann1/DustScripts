@@ -45,6 +45,14 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 			{
 				paste_trigger(script.mouse.x, script.mouse.y);
 			}
+			if(script.ctrl && script.editor.key_check_pressed_vk(VK::H))
+			{
+				entity@ trigger = script.editor.get_selected_trigger();
+				if(@trigger != null && trigger.type_name() == 'text_trigger')
+				{
+					trigger.vars().get_var('hide').set_bool(!trigger.vars().get_var('hide').get_bool());
+				}
+			}
 		}
 	}
 	
