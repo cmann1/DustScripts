@@ -183,6 +183,16 @@ class Select : SelectBase, IStepHandler
 			pressed, disabled);
 	}
 	
+	protected void update_custom_value(const string &in value, const bool has_value) override
+	{
+		SelectBase::update_custom_value(value, has_value);
+		
+		if(has_value)
+		{
+			list_view.select_none();
+		}
+	}
+	
 	// Events
 	
 	void _mouse_press(EventInfo@ event)

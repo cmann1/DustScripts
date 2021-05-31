@@ -26,6 +26,7 @@ class ListView : ScrollView
 	protected uint _num_items;
 	protected uint _num_selected_items;
 	protected bool busy_updating_selection;
+	protected bool internal_select;
 	
 	protected bool busy_drag_select;
 	protected bool drag_select_select;
@@ -349,7 +350,7 @@ class ListView : ScrollView
 	
 	void select_item(ListViewItem@ item)
 	{
-		if(busy_updating_selection || @item == null || @item._list_view != @this)
+		if((busy_updating_selection && !internal_select) || @item == null || @item._list_view != @this)
 			return;
 
 		if(item.selected)
@@ -393,12 +394,15 @@ class ListView : ScrollView
 	
 	void deselect_item(ListViewItem@ item)
 	{
-		if(busy_updating_selection || @item == null || @item._list_view != @this || !item.selected)
+		if((busy_updating_selection && !internal_select) || @item == null || @item._list_view != @this || !item.selected)
 			return;
 		if(_num_selected_items <= min_select)
 			return;
-
-		busy_updating_selection = true;
+		
+		if(!internal_select)
+		{
+			busy_updating_selection = true;
+		}
 		
 		int index = _selected_items.findByRef(@item);
 		
@@ -409,9 +413,11 @@ class ListView : ScrollView
 			_num_selected_items--;
 		}
 		
-		busy_updating_selection = false;
-		
-		dispatch_select_event(item);
+		if(!internal_select)
+		{
+			busy_updating_selection = false;
+			dispatch_select_event(item);
+		}
 	}
 	
 	void select_all()
@@ -420,6 +426,7 @@ class ListView : ScrollView
 			return;
 		
 		busy_updating_selection = true;
+		internal_select = true;
 		
 		for(uint i = 0; i < _num_items; i++)
 		{
@@ -427,14 +434,12 @@ class ListView : ScrollView
 			
 			if(!item.selected)
 			{
-				item.selected = true;
-				_selected_items.insertLast(@item);
+				select_item(item);
 			}
 		}
 		
 		busy_updating_selection = false;
-		
-		_num_selected_items = _num_items;
+		internal_select = false;
 		dispatch_select_event();
 	}
 	
@@ -444,16 +449,15 @@ class ListView : ScrollView
 			return;
 		
 		busy_updating_selection = true;
+		internal_select = true;
 		
-		for(uint i = 0; i < _num_selected_items; i++)
+		for(int i = int(_num_selected_items) - 1; i >= 0; i--)
 		{
-			_selected_items[i].selected = false;
+			deselect_item(_selected_items[i]);
 		}
 		
 		busy_updating_selection = false;
-		
-		_num_selected_items = 0;
-		_selected_items.resize(0);
+		internal_select = false;
 		dispatch_select_event();
 	}
 	

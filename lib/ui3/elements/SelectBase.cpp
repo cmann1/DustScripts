@@ -120,8 +120,7 @@ abstract class SelectBase : LockedContainer
 			
 			if(!value)
 			{
-				custom_value_selected = false;
-				custom_value = '';
+				update_custom_value('', false);
 			}
 		}
 	}
@@ -167,8 +166,7 @@ abstract class SelectBase : LockedContainer
 			
 			if(_allow_custom_value && index == -1)
 			{
-				custom_value = value;
-				custom_value_selected = true;
+				update_custom_value(value);
 				_selected_index = -1;
 				update_label();
 				update_icon();
@@ -468,4 +466,11 @@ abstract class SelectBase : LockedContainer
 		validate_layout = true;
 	}
 	
+	protected void update_custom_value(const string &in value, const bool has_value=true)
+	{
+		custom_value = value;
+		custom_value_selected = has_value;
+	}
+	
 }
+
