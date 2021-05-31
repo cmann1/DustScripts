@@ -302,6 +302,16 @@ class EmitterTool : Tool
 		}
 	}
 	
+	private void update_rotation_value()
+	{
+		if(selected_emitters_count == 1)
+		{
+			rotation.value = primary_selected.rotation;
+		}
+		
+		properties_window.update_rotation(primary_selected.rotation);
+	}
+	
 	// //////////////////////////////////////////////////////////
 	// States
 	// //////////////////////////////////////////////////////////
@@ -690,6 +700,8 @@ class EmitterTool : Tool
 				primary_selected.hovered = false;
 			}
 			
+			update_rotation_value();
+			
 			start_idle();
 			script.ui.mouse_enabled = true;
 			return;
@@ -706,12 +718,7 @@ class EmitterTool : Tool
 		data.do_handles(dragged_handle);
 		data.hovered = true;
 		
-		if(selected_emitters_count == 1)
-		{
-			rotation.value = data.rotation;
-		}
-		
-		properties_window.update_rotation(data.rotation);
+		update_rotation_value();
 	}
 	
 	private void state_selecting()
