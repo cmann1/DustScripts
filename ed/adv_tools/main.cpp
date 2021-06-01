@@ -28,6 +28,7 @@
 #include 'misc/WorldBoundingBox.cpp';
 #include 'settings/Config.cpp';
 #include 'settings/Settings.cpp';
+#include 'tools/edge_brush/EdgeBrushTool.cpp';
 #include 'tools/emitter_tool/EmitterTool.cpp';
 #include 'tools/prop_tool/PropTool.cpp';
 #include 'tools/TextTool.cpp';
@@ -70,19 +71,13 @@ class AdvToolScript
 	
 	InfoOverlay info_overlay;
 	
-	[text] bool debug_ui;
-	[hidden] string clipboard;
-	[hidden] WindowManager window_manager;
-	[hidden] array<BoolSetting> bool_settings;
-	[hidden] array<IntSetting> int_settings;
-	[hidden] array<FloatSetting> float_settings;
-	[hidden] array<StringSetting> string_settings;
-	[hidden] PropsClipboardData props_clipboard;
-	[hidden] string selected_tool_name;
+	bool debug_ui;
+	string clipboard;
+	WindowManager window_manager;
+	PropsClipboardData props_clipboard;
+	string selected_tool_name;
 	
 	Config config;
-	/// TODO: Remove and use config instead
-	private dictionary settings;
 	
 	private bool initialised;
 	private bool state_persisted = true;
@@ -238,7 +233,6 @@ class AdvToolScript
 	{
 		@ui = UI(true);
 		@toolbar = null;
-		settings.deleteAll();
 		tool_groups.resize(0);
 		tools.resize(0);
 		tools_shortcut.resize(0);
@@ -261,7 +255,6 @@ class AdvToolScript
 		@script_spr = create_sprites();
 		script_spr.add_sprite_set(SPRITE_SET);
 		
-		initialise_settings();
 		initialise_ui();
 		initialise_tools();
 		
@@ -269,29 +262,6 @@ class AdvToolScript
 		
 		info_overlay.init(this);
 		handles.init(this);
-	}
-	
-	private void initialise_settings()
-	{
-		for(uint i = 0; i < bool_settings.length(); i++)
-		{
-			@settings[bool_settings[i].key] = @bool_settings[i];
-		}
-		
-		for(uint i = 0; i < int_settings.length(); i++)
-		{
-			@settings[int_settings[i].key] = @int_settings[i];
-		}
-		
-		for(uint i = 0; i < float_settings.length(); i++)
-		{
-			@settings[float_settings[i].key] = @float_settings[i];
-		}
-		
-		for(uint i = 0; i < string_settings.length(); i++)
-		{
-			@settings[string_settings[i].key] = @string_settings[i];
-		}
 	}
 	
 	private void initialise_ui()
@@ -724,74 +694,6 @@ class AdvToolScript
 		
 		const float padding = 100;
 		return g.get_entity_collision(y1 - padding, y2 + padding, x1 - padding, x2 + padding, type);
-	}
-	
-	BoolSetting@ get_bool(Tool@ tool, const string name, const bool default_value=false)
-	{
-		const string key = tool.name + '.bool.' + name;
-		
-		if(!settings.exists(key))
-		{
-			bool_settings.resize(bool_settings.length() + 1);
-			BoolSetting@ setting = @bool_settings[bool_settings.length() - 1];
-			setting.key = key;
-			setting.value = default_value;
-			@settings[key] = @setting;
-			return setting;
-		}
-		
-		return cast<BoolSetting@>(settings[key]);
-	}
-	
-	IntSetting@ get_int(Tool@ tool, const string name, const int default_value=false)
-	{
-		const string key = tool.name + '.int.' + name;
-		
-		if(!settings.exists(key))
-		{
-			int_settings.resize(int_settings.length() + 1);
-			IntSetting@ setting = @int_settings[int_settings.length() - 1];
-			setting.key = key;
-			setting.value = default_value;
-			@settings[key] = @setting;
-			return setting;
-		}
-		
-		return cast<IntSetting@>(settings[key]);
-	}
-	
-	FloatSetting@ get_float(Tool@ tool, string name, const float default_value=0)
-	{
-		const string key = tool.name + '.float.' + name;
-		
-		if(!settings.exists(key))
-		{
-			float_settings.resize(float_settings.length() + 1);
-			FloatSetting@ setting = @float_settings[float_settings.length() - 1];
-			setting.key = key;
-			setting.value = default_value;
-			@settings[key] = @setting;
-			return setting;
-		}
-		
-		return cast<FloatSetting@>(settings[key]);
-	}
-	
-	StringSetting@ get_string(Tool@ tool, string name, const string default_value='')
-	{
-		const string key = tool.name + '.string.' + name;
-		
-		if(!settings.exists(key))
-		{
-			string_settings.resize(string_settings.length() + 1);
-			StringSetting@ setting = @string_settings[string_settings.length() - 1];
-			setting.key = key;
-			setting.value = default_value;
-			@settings[key] = @setting;
-			return setting;
-		}
-		
-		return cast<StringSetting@>(settings[key]);
 	}
 	
 	void draw_select_rect(const float x1, const float y1, const float x2, const float y2)

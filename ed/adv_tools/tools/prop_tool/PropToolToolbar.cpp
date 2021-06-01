@@ -56,16 +56,6 @@ class PropToolToolbar
 	private PopupButton@ export_button;
 	private Select@ export_type_select;
 	
-	// Settings
-	
-	private BoolSetting@ pick_through_tiles;
-	private FloatSetting@ custom_grid;
-	private StringSetting@ default_origin;
-	private BoolSetting@ custom_anchor_lock;
-	private BoolSetting@ show_selection;
-	private BoolSetting@ show_info;
-	private IntSetting@ export_type;
-	
 	void build_sprites(message@ msg)
 	{
 		build_sprite(msg, 'origin_centre');
@@ -92,7 +82,6 @@ class PropToolToolbar
 			@this.script = script;
 			@this.tool = tool;
 			
-			init_settings();
 			create_ui();
 		}
 		
@@ -102,17 +91,6 @@ class PropToolToolbar
 	void hide()
 	{
 		script.ui.remove_child(toolbar);
-	}
-	
-	private void init_settings()
-	{
-		@pick_through_tiles	= @tool.pick_through_tiles;
-		@custom_grid		= @tool.custom_grid;
-		@default_origin		= @tool.default_origin;
-		@custom_anchor_lock	= @tool.custom_anchor_lock;
-		@show_selection		= @tool.show_selection;
-		@show_info			= @tool.show_info;
-		@export_type		= @tool.export_type;
 	}
 	
 	private void create_ui()
@@ -134,7 +112,7 @@ class PropToolToolbar
 		script.init_secondary_toolbar_button(button);
 		button.name = 'pick_through_tiles';
 		button.selectable = true;
-		button.selected = pick_through_tiles.value;
+		button.selected = tool.pick_through_tiles;
 		@button.tooltip = PopupOptions(ui, 'Ignore Tiles');
 		button.mouse_click.on(button_click);
 		
@@ -148,7 +126,7 @@ class PropToolToolbar
 		update_custom_grid_tooltip();
 		
 		@custom_grid_slider = NumberSlider(ui);
-		custom_grid_slider.value = custom_grid.value;
+		custom_grid_slider.value = tool.custom_grid;
 		custom_grid_slider.change.on(EventCallback(on_custom_grid_slider_change));
 		
 		@custom_grid_popup = PopupOptions(ui, custom_grid_slider, true, PopupPosition::Below, PopupTriggerType::Manual, PopupHideType::MouseDownOutside, false);
@@ -192,7 +170,7 @@ class PropToolToolbar
 		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_custom_anchor_lock', Settings::IconSize, Settings::IconSize);
 		button.name = 'custom_anchor_lock';
 		button.selectable = true;
-		button.selected = custom_anchor_lock.value;
+		button.selected = tool.custom_anchor_lock;
 		@button.tooltip = PopupOptions(ui, 'Lock custom anchor');
 		button.mouse_click.on(button_click);
 		script.init_secondary_toolbar_button(button);
@@ -253,7 +231,7 @@ class PropToolToolbar
 		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_show_selection', Settings::IconSize, Settings::IconSize);
 		button.name = 'show_selection';
 		button.selectable = true;
-		button.selected = show_selection.value;
+		button.selected = tool.show_selection;
 		@button.tooltip = PopupOptions(ui, 'Always show selection');
 		button.mouse_click.on(button_click);
 		script.init_secondary_toolbar_button(button);
@@ -263,7 +241,7 @@ class PropToolToolbar
 		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_show_info', Settings::IconSize, Settings::IconSize);
 		button.name = 'show_info';
 		button.selectable = true;
-		button.selected = show_info.value;
+		button.selected = tool.show_info;
 		@button.tooltip = PopupOptions(ui, 'Show prop info');
 		button.mouse_click.on(button_click);
 		script.init_secondary_toolbar_button(button);
@@ -281,7 +259,7 @@ class PropToolToolbar
 		export_type_select.add_value('0', 'SpriteBatch');
 		export_type_select.add_value('1', 'SpriteGroup');
 		export_type_select.width = 160;
-		export_type_select.selected_index = export_type.value == PropExportType::SpriteBatch ? 0 : 1;
+		export_type_select.selected_index = tool.export_type == PropExportType::SpriteBatch ? 0 : 1;
 		export_type_select.change.on(EventCallback(on_export_type_change));
 		export_contents.add_child(export_type_select);
 		
@@ -379,12 +357,12 @@ class PropToolToolbar
 	
 	private void update_custom_grid_tooltip()
 	{
-		custom_grid_tooltip.content_string = 'Custom grid: ' + int(custom_grid.value) + 'px';
+		custom_grid_tooltip.content_string = 'Custom grid: ' + int(tool.custom_grid) + 'px';
 	}
 	
 	private void update_origin_tooltip()
 	{
-		origin_button.tooltip.content_string = 'Origin: ' + string::nice(default_origin.value);
+		origin_button.tooltip.content_string = 'Origin: ' + string::nice(tool.default_origin);
 	}
 	
 	private string get_origin_icon(const string origin, float &out rotation)
@@ -404,7 +382,7 @@ class PropToolToolbar
 	private void update_origin_icon()
 	{
 		float rotation;
-		origin_img.set_sprite(SPRITE_SET, get_origin_icon(default_origin.value, rotation), Settings::IconSize, Settings::IconSize);
+		origin_img.set_sprite(SPRITE_SET, get_origin_icon(tool.default_origin, rotation), Settings::IconSize, Settings::IconSize);
 		origin_img.rotation = rotation;
 	}
 	
@@ -414,7 +392,7 @@ class PropToolToolbar
 	
 	void show_custom_info(const string &in info)
 	{
-		if(!show_info.value)
+		if(!tool.show_info)
 			return;
 		
 		info_label.text = info;
@@ -423,7 +401,7 @@ class PropToolToolbar
 	
 	void show_prop_info(PropData@ prop_data)
 	{
-		if(!show_info.value)
+		if(!tool.show_info)
 			return;
 		
 		prop@ p = prop_data.prop;
@@ -497,7 +475,7 @@ class PropToolToolbar
 		
 		if(name == 'pick_through_tiles')
 		{
-			pick_through_tiles.value = button.selected;
+			tool.pick_through_tiles = button.selected;
 		}
 		else if(name == 'custom_grid')
 		{
@@ -507,7 +485,7 @@ class PropToolToolbar
 		}
 		else if(name == 'custom_anchor_lock')
 		{
-			custom_anchor_lock.value = button.selected;
+			tool.custom_anchor_lock = button.selected;
 		}
 		else if(name == 'custom_anchor_snap')
 		{
@@ -515,11 +493,11 @@ class PropToolToolbar
 		}
 		else if(name == 'show_selection')
 		{
-			show_selection.value = button.selected;
+			tool.show_selection = button.selected;
 		}
 		else if(name == 'show_info')
 		{
-			show_info.value = button.selected;
+			tool.show_info = button.selected;
 		}
 		else if(name == 'correct')
 		{
@@ -539,7 +517,7 @@ class PropToolToolbar
 		}
 		else if(name == 'export')
 		{
-			tool.export_selected_props(PropExportType(export_type.value));
+			tool.export_selected_props(PropExportType(tool.export_type));
 			export_button.close();
 		}
 	}
@@ -548,7 +526,7 @@ class PropToolToolbar
 	
 	private void on_custom_grid_slider_change(EventInfo@ event)
 	{
-		custom_grid.value = round(custom_grid_slider.value);
+		tool.custom_grid = round(custom_grid_slider.value);
 		update_custom_grid_tooltip();
 	}
 	
@@ -572,16 +550,16 @@ class PropToolToolbar
 		
 		origin_list_view.select.enabled = false;
 		origin_list_view.select_none();
-		origin_list_view.select_item(default_origin.value);
+		origin_list_view.select_item(tool.default_origin);
 		origin_list_view.select.enabled = true;
 	}
 	
 	private void on_origin_select(EventInfo@ event)
 	{
-		if(default_origin.value == event.value)
+		if(tool.default_origin == event.value)
 			return;
 		
-		default_origin.value = event.value;
+		tool.default_origin = event.value;
 		tool.update_alignments_from_origin(true);
 		
 		update_origin_icon();
@@ -628,7 +606,7 @@ class PropToolToolbar
 	
 	private void on_export_type_change(EventInfo@ event)
 	{
-		export_type.value = export_type_select.selected_index;
+		tool.export_type = PropExportType(export_type_select.selected_index);
 	}
 	
 }

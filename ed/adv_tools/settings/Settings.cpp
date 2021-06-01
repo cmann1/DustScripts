@@ -87,28 +87,3 @@ namespace Settings
 	const int KeyRepeatPeriod = 2;
 	
 }
-
-class Setting
-{
-	[text] string key;
-}
-
-class BoolSetting : Setting
-{
-	[text] bool value;
-}
-
-class IntSetting : Setting
-{
-	[text] int value;
-}
-
-class FloatSetting : Setting
-{
-	[text] float value;
-}
-
-class StringSetting : Setting
-{
-	[text] string value;
-}

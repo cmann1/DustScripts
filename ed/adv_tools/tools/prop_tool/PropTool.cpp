@@ -83,16 +83,16 @@ class PropTool : Tool
 	
 	// Settings
 	
-	BoolSetting@ pick_through_tiles;
-	FloatSetting@ custom_grid;
-	StringSetting@ default_origin;
-	BoolSetting@ custom_anchor_lock;
-	BoolSetting@ show_selection;
-	BoolSetting@ show_info;
-	IntSetting@ export_type;
+	bool pick_through_tiles = false;
+	float custom_grid = 5;
+	string default_origin = 'centre';
+	bool custom_anchor_lock = false;
+	bool show_selection = true;
+	bool show_info = true;
+	PropExportType export_type = PropExportType::SpriteBatch;
 	
-	BoolSetting@ pick_ignore_holes;
-	FloatSetting@ pick_radius;
+	bool pick_ignore_holes = true;
+	float pick_radius = 2;
 	
 	PropTool(AdvToolScript@ script)
 	{
@@ -120,18 +120,6 @@ class PropTool : Tool
 	
 	void on_init() override
 	{
-		@pick_through_tiles	= script.get_bool(this, 'pick_through_tiles', false);
-		@custom_grid		= script.get_float(this, 'custom_grid', 5);
-		@default_origin		= script.get_string(this, 'default_origin', 'centre');
-		@custom_anchor_lock	= script.get_bool(this, 'custom_anchor_lock', false);
-		@show_selection		= script.get_bool(this, 'show_selection', true);
-		@show_info			= script.get_bool(this, 'show_info', true);
-		
-		@pick_ignore_holes	= script.get_bool(this, 'pick_ignore_holes', true);
-		@pick_radius		= script.get_float(this, 'pick_radius', 2);
-		
-		@export_type		= script.get_int(this, 'export_type', PropExportType::SpriteBatch);
-		
 		update_alignments_from_origin();
 	}
 	
@@ -228,7 +216,7 @@ class PropTool : Tool
 	
 	protected void draw_impl(const float sub_frame) override
 	{
-		const bool highlight = !performing_action || show_selection.value;
+		const bool highlight = !performing_action || show_selection;
 		
 		if(highlight)
 		{
@@ -733,7 +721,7 @@ class PropTool : Tool
 			
 			clear_temporary_selection();
 			
-			if(show_selection.value)
+			if(show_selection)
 			{
 				check_rotation_handle();
 			}
@@ -746,8 +734,8 @@ class PropTool : Tool
 		float start_x, start_y;
 		float mouse_x, mouse_y;
 		script.transform(mouse.x, mouse.y, 22, action_layer, mouse_x, mouse_y);
-		script.snap(drag_start_x, drag_start_y, start_x, start_y, custom_grid.value);
-		script.snap(mouse_x, mouse_y, mouse_x, mouse_y, custom_grid.value);
+		script.snap(drag_start_x, drag_start_y, start_x, start_y, custom_grid);
+		script.snap(mouse_x, mouse_y, mouse_x, mouse_y, custom_grid);
 		const float drag_delta_x = mouse_x - start_x;
 		const float drag_delta_y = mouse_y - start_y;
 		
@@ -759,7 +747,7 @@ class PropTool : Tool
 		selection_x = selection_drag_start_x + drag_delta_x;
 		selection_y = selection_drag_start_y + drag_delta_y;
 		
-		if(show_selection.value)
+		if(show_selection)
 		{
 			check_rotation_handle();
 			check_scale_handle();
@@ -780,7 +768,7 @@ class PropTool : Tool
 				selection_angle = selection_drag_start_angle;
 			}
 			
-			if(!temporary_selection && show_selection.value)
+			if(!temporary_selection && show_selection)
 			{
 				check_rotation_handle();
 				check_scale_handle();
@@ -815,7 +803,7 @@ class PropTool : Tool
 			selection_y = custom_anchor_y + y;
 		}
 		
-		if(show_selection.value)
+		if(show_selection)
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
@@ -836,7 +824,7 @@ class PropTool : Tool
 				selected_props[i].stop_scale(script.escape_press);
 			}
 			
-			if(!temporary_selection && show_selection.value)
+			if(!temporary_selection && show_selection)
 			{
 				check_rotation_handle();
 				check_scale_handle(false);
@@ -880,7 +868,7 @@ class PropTool : Tool
 		selection_x2 = drag_selection_x2 * scale;
 		selection_y2 = drag_selection_y2 * scale;
 		
-		if(show_selection.value)
+		if(show_selection)
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
@@ -1541,7 +1529,7 @@ class PropTool : Tool
 	{
 		// Find all props under the mouse
 		
-		const float radius = max(PropToolSettings::SmallPropRadius, pick_radius.value) / script.zoom;
+		const float radius = max(PropToolSettings::SmallPropRadius, pick_radius) / script.zoom;
 		int i = script.g.get_prop_collision(mouse.y - radius, mouse.y + radius, mouse.x - radius, mouse.x + radius);
 		
 		array<PropSortingData>@ props_under_mouse = @this.props_under_mouse;
@@ -1582,7 +1570,7 @@ class PropTool : Tool
 			
 			PropData@ prop_data = is_prop_highlighted(p);
 			
-			if((@prop_data == null || !prop_data.selected) && !pick_through_tiles.value && hittest_tiles(p.layer(), p.sub_layer()))
+			if((@prop_data == null || !prop_data.selected) && !pick_through_tiles && hittest_tiles(p.layer(), p.sub_layer()))
 				continue;
 			
 			// Check if the mouse is inside to the prop
@@ -1661,7 +1649,7 @@ class PropTool : Tool
 		{
 			if(point_in_polygon(local_x, local_y, @outline[i]))
 			{
-				if(pick_ignore_holes.value)
+				if(pick_ignore_holes)
 					return true;
 				
 				inside = holes[i] ? !inside : true;
@@ -1678,14 +1666,14 @@ class PropTool : Tool
 		const string prop_key = p.prop_set() + '.' + p.prop_group() + '.' + p.prop_index();
 		const float prop_radius = (PropToolSettings::PropRadii.exists(prop_key)
 			? float(PropToolSettings::PropRadii[prop_key])
-			: pick_radius.value) / script.zoom;
+			: pick_radius) / script.zoom;
 		
 		for(uint i = 0; i < outline.length(); i++)
 		{
 			if(distance_to_polygon_sqr(local_x, local_y, @outline[0]) <= prop_radius * prop_radius)
 				return true;
 			
-			if(pick_ignore_holes.value)
+			if(pick_ignore_holes)
 				break;
 		}
 		
@@ -1698,7 +1686,7 @@ class PropTool : Tool
 	
 	private void clear_custom_anchor()
 	{
-		if(custom_anchor_lock.value)
+		if(custom_anchor_lock)
 			return;
 		
 		toolbar.update_buttons(selected_props_count);
@@ -1711,42 +1699,42 @@ class PropTool : Tool
 	
 	void update_alignments_from_origin(const bool force_selection_update=false)
 	{
-		if(default_origin.value == 'top_left')
+		if(default_origin == 'top_left')
 		{
 			origin_align_x = 0;
 			origin_align_y = 0;
 		}
-		else if(default_origin.value == 'top')
+		else if(default_origin == 'top')
 		{
 			origin_align_x = 0.5;
 			origin_align_y = 0;
 		}
-		else if(default_origin.value == 'top_right')
+		else if(default_origin == 'top_right')
 		{
 			origin_align_x = 1;
 			origin_align_y = 0;
 		}
-		else if(default_origin.value == 'right')
+		else if(default_origin == 'right')
 		{
 			origin_align_x = 1;
 			origin_align_y = 0.5;
 		}
-		else if(default_origin.value == 'bottom_right')
+		else if(default_origin == 'bottom_right')
 		{
 			origin_align_x = 1;
 			origin_align_y = 1;
 		}
-		else if(default_origin.value == 'bottom')
+		else if(default_origin == 'bottom')
 		{
 			origin_align_x = 0.5;
 			origin_align_y = 1;
 		}
-		else if(default_origin.value == 'bottom_left')
+		else if(default_origin == 'bottom_left')
 		{
 			origin_align_x = 0;
 			origin_align_y = 1;
 		}
-		else if(default_origin.value == 'left')
+		else if(default_origin == 'left')
 		{
 			origin_align_x = 0;
 			origin_align_y = 0.5;
@@ -1768,13 +1756,13 @@ class PropTool : Tool
 	{
 		if(has_custom_anchor)
 		{
-			script.snap(custom_anchor_x, custom_anchor_y, custom_anchor_x, custom_anchor_y, custom_grid.value, true);
+			script.snap(custom_anchor_x, custom_anchor_y, custom_anchor_x, custom_anchor_y, custom_grid, true);
 		}
 		else if(selected_props_count > 0)
 		{
 			const float x = selection_x;
 			const float y = selection_y;
-			script.snap(selection_x, selection_y, selection_x, selection_y, custom_grid.value, true);
+			script.snap(selection_x, selection_y, selection_x, selection_y, custom_grid, true);
 			const float dx = selection_x - x;
 			const float dy = selection_y - y;
 			selection_x1 -= dx;

@@ -31,11 +31,6 @@ class EmitterToolWindow
 	
 	private int selected_layer;
 	
-	IntSetting@ emitter_id;
-	IntSetting@ layer;
-	IntSetting@ sublayer;
-	FloatSetting@ rotation;
-	
 	private void create_ui()
 	{
 		UI@ ui = script.ui;
@@ -85,7 +80,7 @@ class EmitterToolWindow
 			emitter_names[id] = name;
 		}
 		
-		emitter_id_select.selected_value = get_emitter_name(emitter_id.value);
+		emitter_id_select.selected_value = get_emitter_name(tool.emitter_id);
 		emitter_id_select.change.on(EventCallback(on_emitter_id_change));
 		
 		// Other Emitters
@@ -105,8 +100,8 @@ class EmitterToolWindow
 		@layer_button = LayerButton(ui);
 		layer_button.y = emitter_id_select.y + emitter_id_select.height + style.spacing;
 		@layer_button.tooltip = PopupOptions(ui, 'Layer');
-		layer_button.layer_select.set_selected_layer(layer.value);
-		layer_button.layer_select.set_selected_sub_layer(sublayer.value);
+		layer_button.layer_select.set_selected_layer(tool.layer);
+		layer_button.layer_select.set_selected_sub_layer(tool.sublayer);
 		layer_button.layer_select.layer_select.on(EventCallback(on_layer_change));
 		layer_button.layer_select.sub_layer_select.on(EventCallback(on_sublayer_change));
 		window.add_child(layer_button);
@@ -121,7 +116,7 @@ class EmitterToolWindow
 		rotation_wheel.tooltip_prefix = 'Rotation: ';
 		rotation_wheel.x = layer_button.x + layer_button.width + style.spacing;
 		rotation_wheel.y = layer_button.y;
-		rotation_wheel.degrees = rotation.value;
+		rotation_wheel.degrees = tool.rotation;
 		rotation_wheel.change.on(EventCallback(on_rotation_change));
 		window.add_child(rotation_wheel);
 		
@@ -157,11 +152,6 @@ class EmitterToolWindow
 			@this.script = script;
 			@this.tool = tool;
 			
-			@emitter_id	= tool.emitter_id;
-			@layer		= tool.layer;
-			@sublayer	= tool.sublayer;
-			@rotation	= tool.rotation;
-			
 			create_ui();
 		}
 		
@@ -189,11 +179,11 @@ class EmitterToolWindow
 		{
 			window.title = 'None selected';
 			
-			emitter_id_select.selected_value = get_emitter_name(emitter_id.value);
-			layer_button.layer_select.set_selected_layer(layer.value);
-			layer_button.layer_select.set_selected_sub_layer(sublayer.value);
-			rotation_wheel.degrees = rotation.value;
-			id_label.text = emitter_id.value < 0 ? '-' : emitter_id.value + '';
+			emitter_id_select.selected_value = get_emitter_name(tool.emitter_id);
+			layer_button.layer_select.set_selected_layer(tool.layer);
+			layer_button.layer_select.set_selected_sub_layer(tool.sublayer);
+			rotation_wheel.degrees = tool.rotation;
+			id_label.text = tool.emitter_id < 0 ? '-' : tool.emitter_id + '';
 		}
 		else if(selected_emitters_count == 1)
 		{
@@ -201,16 +191,16 @@ class EmitterToolWindow
 			
 			window.title = 'Emitter Properties';
 			
-			emitter_id.value	= data.emitter_id;
-			layer.value			= data.layer;
-			sublayer.value		= data.sublayer;
-			rotation.value		= data.rotation;
+			tool.emitter_id	= data.emitter_id;
+			tool.layer			= data.layer;
+			tool.sublayer		= data.sublayer;
+			tool.rotation		= data.rotation;
 			
-			emitter_id_select.selected_value = get_emitter_name(emitter_id.value);
-			layer_button.layer_select.set_selected_layer(layer.value);
-			layer_button.layer_select.set_selected_sub_layer(sublayer.value);
-			rotation_wheel.degrees = rotation.value;
-			id_label.text = emitter_id.value < 0 ? '-' : emitter_id.value + '';
+			emitter_id_select.selected_value = get_emitter_name(tool.emitter_id);
+			layer_button.layer_select.set_selected_layer(tool.layer);
+			layer_button.layer_select.set_selected_sub_layer(tool.sublayer);
+			rotation_wheel.degrees = tool.rotation;
+			id_label.text = tool.emitter_id < 0 ? '-' : tool.emitter_id + '';
 			
 			selected_layer = data.layer;
 			script.editor.selected_layer = selected_layer;
@@ -304,10 +294,10 @@ class EmitterToolWindow
 		if(selected_emitters_count == 1)
 		{
 			EmitterData@ data = @selected_emitters[0];
-			layer.value		= data.layer;
-			sublayer.value	= data.sublayer;
-			layer_button.layer_select.set_selected_layer(layer.value);
-			layer_button.layer_select.set_selected_sub_layer(sublayer.value);
+			tool.layer		= data.layer;
+			tool.sublayer	= data.sublayer;
+			layer_button.layer_select.set_selected_layer(tool.layer);
+			layer_button.layer_select.set_selected_sub_layer(tool.sublayer);
 		}
 		else
 		{
@@ -401,7 +391,7 @@ class EmitterToolWindow
 	
 	private void update_emitter_id(const int id)
 	{
-		emitter_id.value = id;
+		tool.emitter_id = id;
 		
 		for(int i = 0; i < selected_emitters_count; i++)
 		{
@@ -430,11 +420,11 @@ class EmitterToolWindow
 		if(value == -1)
 			return;
 		
-		layer.value = value;
+		tool.layer = value;
 		
 		for(int i = 0; i < selected_emitters_count; i++)
 		{
-			selected_emitters[i].update_layer(layer.value);
+			selected_emitters[i].update_layer(tool.layer);
 		}
 		
 		script.editor.selected_layer = value;
@@ -448,11 +438,11 @@ class EmitterToolWindow
 		if(value == -1)
 			return;
 		
-		sublayer.value = value;
+		tool.sublayer = value;
 		
 		for(int i = 0; i < selected_emitters_count; i++)
 		{
-			selected_emitters[i].update_sublayer(sublayer.value);
+			selected_emitters[i].update_sublayer(tool.sublayer);
 		}
 		
 		update_selection();
@@ -460,11 +450,11 @@ class EmitterToolWindow
 	
 	private void on_rotation_change(EventInfo@ event)
 	{
-		rotation.value = rotation_wheel.degrees;
+		tool.rotation = rotation_wheel.degrees;
 		
 		for(int i = 0; i < selected_emitters_count; i++)
 		{
-			selected_emitters[i].update_rotation(rotation.value);
+			selected_emitters[i].update_rotation(tool.rotation);
 		}
 		
 		update_selection();
@@ -480,7 +470,7 @@ class EmitterToolWindow
 		other_ids_list_view.select.enabled = false;
 		other_ids_list_view.select_none();
 		
-		const int other_id_index = Emitters::OtherEmitterIds.find(emitter_id.value);
+		const int other_id_index = Emitters::OtherEmitterIds.find(tool.emitter_id);
 		
 		if(other_id_index != -1)
 		{

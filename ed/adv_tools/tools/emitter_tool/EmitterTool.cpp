@@ -47,10 +47,10 @@ class EmitterTool : Tool
 	private WorldBoundingBox selection_bounding_box;
 	
 	private EmitterToolWindow properties_window;
-	IntSetting@ emitter_id;
-	IntSetting@ layer;
-	IntSetting@ sublayer;
-	FloatSetting@ rotation;
+	int emitter_id = EmitterId::DustGround;
+	int layer = 19;
+	int sublayer = 12;
+	float rotation = 0;
 	
 	EmitterTool(AdvToolScript@ script)
 	{
@@ -67,14 +67,6 @@ class EmitterTool : Tool
 		
 		@mouse = @script.mouse;
 		@selection_bounding_box.script = script;
-	}
-	
-	void on_init() override
-	{
-		@emitter_id	= script.get_int(this, 'emitter_id', EmitterId::DustGround);
-		@layer		= script.get_int(this, 'layer', 19);
-		@sublayer	= script.get_int(this, 'sublayer', 12);
-		@rotation	= script.get_float(this, 'rotation', 0);
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -270,9 +262,9 @@ class EmitterTool : Tool
 		{
 			const bool drag_centre = script.alt;
 			float sx, sy;
-			script.transform(drag_start_x, drag_start_y, layer.value, 22, sx, sy);
+			script.transform(drag_start_x, drag_start_y, layer, 22, sx, sy);
 			float lx, ly;
-			rotate(mouse.x - sx, mouse.y - sy, -rotation.value * DEG2RAD, lx, ly);
+			rotate(mouse.x - sx, mouse.y - sy, -rotation * DEG2RAD, lx, ly);
 			
 			if(drag_centre)
 			{
@@ -286,15 +278,15 @@ class EmitterTool : Tool
 			script.g.draw_rectangle_world(22, 22,
 				ox - lx * 0.5, oy - ly * 0.5,
 				ox + lx * 0.5, oy + ly * 0.5,
-				rotation.value, Settings::HoveredFillColour);
+				rotation, Settings::HoveredFillColour);
 			
 			outline_rotated_rect(script.g, 22, 22,
 				ox, oy, lx * 0.5, ly * 0.5,
-				rotation.value, Settings::DefaultLineWidth / script.zoom,
+				rotation, Settings::DefaultLineWidth / script.zoom,
 				Settings::HoveredLineColour);
 			
-			const float nx = cos((rotation.value - 90) * DEG2RAD);
-			const float ny = sin((rotation.value - 90) * DEG2RAD);
+			const float nx = cos((rotation - 90) * DEG2RAD);
+			const float ny = sin((rotation - 90) * DEG2RAD);
 			const float arrow_length = max(min(30 / script.zoom, abs(ly) * 0.5), 0.0);
 			const float arrow_size = max(min(10 / script.zoom, min(abs(lx) * 0.5, abs(ly) * 0.5)), 0.0);
 			const float m = ly < 0 ? -1 : 1;
@@ -315,7 +307,7 @@ class EmitterTool : Tool
 	{
 		if(selected_emitters_count == 1)
 		{
-			rotation.value = primary_selected.rotation;
+			rotation = primary_selected.rotation;
 		}
 		
 		properties_window.update_rotation(primary_selected.rotation);
@@ -596,7 +588,7 @@ class EmitterTool : Tool
 	{
 		select_none();
 		
-		script.transform(mouse.x, mouse.y, 22, layer.value, drag_start_x, drag_start_y);
+		script.transform(mouse.x, mouse.y, 22, layer, drag_start_x, drag_start_y);
 		
 		state = EmitterToolState::Creating;
 		script.ui.mouse_enabled = false;
@@ -831,9 +823,9 @@ class EmitterTool : Tool
 		
 		const bool drag_centre = script.alt;
 		float mx, my;
-		script.transform(mouse.x, mouse.y, 22, layer.value, mx, my);
+		script.transform(mouse.x, mouse.y, 22, layer, mx, my);
 		float lx, ly;
-		rotate(mx - drag_start_x, my - drag_start_y, -rotation.value * DEG2RAD, lx, ly);
+		rotate(mx - drag_start_x, my - drag_start_y, -rotation * DEG2RAD, lx, ly);
 		
 		if(drag_centre)
 		{
@@ -844,10 +836,10 @@ class EmitterTool : Tool
 		const float ox = !drag_centre ? (drag_start_x + mx) * 0.5 : drag_start_x;
 		const float oy = !drag_centre ? (drag_start_y + my) * 0.5 : drag_start_y;
 		
-		entity@ emitter = create_emitter(emitter_id.value,
+		entity@ emitter = create_emitter(emitter_id,
 			ox, oy,
-			ceil_int(abs(lx)), ceil_int(abs(ly)), layer.value, sublayer.value,
-			round_int(rotation.value));
+			ceil_int(abs(lx)), ceil_int(abs(ly)), layer, sublayer,
+			round_int(rotation));
 		script.g.add_entity(emitter);
 		
 		EmitterData@ data = highlight(emitter, 0);
