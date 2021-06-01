@@ -258,6 +258,7 @@ class ToolGroup
 			y += button.height + script.ui.style.spacing;
 		}
 		
+		button.tooltip.spacing = script.ui.style.tooltip_default_spacing + y;
 		popup_content.fit_to_contents(true);
 	}
 	
