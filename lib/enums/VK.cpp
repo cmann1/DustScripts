@@ -231,8 +231,10 @@ namespace VK
 	const int RightControl = 0xA3;
 	/// Left MENU key
 	const int LeftMenu = 0xA4;
+	const int LeftAlt = LeftMenu;
 	/// Right MENU key
 	const int RightMenu = 0xA5;
+	const int RightAlt = RightMenu;
 	/// Browser Back key
 	const int BrowserBack = 0xA6;
 	/// Browser Forward key
