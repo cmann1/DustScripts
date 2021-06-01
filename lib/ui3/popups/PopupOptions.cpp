@@ -58,7 +58,7 @@ class PopupOptions : IGenericEventTarget
 	// and used to display the string
 	protected string _content_str;
 	protected bool has_content_element;
-	protected Label@ content_str_label;
+	/*protected*/ Label@ content_str_label;
 	
 	protected float _fade_max;
 	protected float _offset_max;
@@ -76,6 +76,8 @@ class PopupOptions : IGenericEventTarget
 	/*protected*/ bool _has_border_size = false;
 	/*protected*/ bool _has_shadow_colour = false;
 	/*protected*/ bool _has_blur_inset = false;
+	
+	/*protected*/ bool _invalidated = false;
 	
 	PopupOptions(
 		UI@ ui, Element@ content, bool interactable=false, PopupPosition position=PopupPosition::Above,
@@ -241,6 +243,7 @@ class PopupOptions : IGenericEventTarget
 		
 		@_content = content;
 		has_content_element = true;
+		invalidate();
 	}
 	
 	void set_content(string content)
@@ -252,6 +255,8 @@ class PopupOptions : IGenericEventTarget
 		{
 			content_str_label.text = _content_str;
 		}
+		
+		invalidate();
 	}
 	
 	Element@ content_element
@@ -313,6 +318,11 @@ class PopupOptions : IGenericEventTarget
 		}
 		
 		ui._queue_event(@hide, EventType::HIDE, @popup, @this);
+	}
+	
+	private void invalidate()
+	{
+		_invalidated = true;
 	}
 	
 }

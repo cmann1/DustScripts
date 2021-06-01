@@ -38,7 +38,6 @@ class Popup : SingleContainer, IStepHandler
 		super(ui, options.get_content_element());
 		
 		update(options, target);
-		
 		options._on_popup_show(this);
 	}
 	
@@ -78,6 +77,12 @@ class Popup : SingleContainer, IStepHandler
 	
 	bool ui_step() override
 	{
+		if(_options._invalidated)
+		{
+			fit();
+			_options._invalidated = false;
+		}
+		
 		// Fit the popup for two frames to give the child a chance to layout
 		if(pending_fit > 0)
 		{
@@ -245,7 +250,7 @@ class Popup : SingleContainer, IStepHandler
 				break;
 		}
 		
-		if(@content != null)
+		if(@_content != null)
 		{
 			_content._x = is_nan(_options.padding_left) ? ui.style.tooltip_padding : _options.padding_left;
 			_content._y = is_nan(_options.padding_top)  ? ui.style.tooltip_padding : _options.padding_top;
