@@ -1,6 +1,21 @@
 #include '../std.cpp';
 #include '../string.cpp';
 
+namespace colour
+{
+	
+	uint a(const uint clr)
+	{
+		return (clr >> 24) & 0xff;
+	}
+	
+	float a_f(const uint clr)
+	{
+		return ((clr >> 24) & 0xff) / 255.0;
+	}
+	
+}
+
 // See https://gist.github.com/mjackson/5311256 for functions if needed
 
 void rgb_to_hsl(uint r_in, uint g_in, uint b_in, float &out h, float &out s, float &out l)
@@ -33,7 +48,7 @@ void rgb_to_hsl(uint r_in, uint g_in, uint b_in, float &out h, float &out s, flo
 	}
 }
 
-uint hsl_to_rgb(float h, float s, float l)
+uint hsl_to_rgb(float h, float s, float l, float a=0)
 {
 	float r, g, b;
 
@@ -50,7 +65,11 @@ uint hsl_to_rgb(float h, float s, float l)
 		b = hue_to_rgb(p, q, h - 1.0/3.0);
 	}
 	
-	return (uint(round(r * 255)) << 16) | (uint(round(g * 255)) << 8) | (uint(round(b * 255)));
+	return
+		(uint(round(a * 255)) << 24) |
+		(uint(round(r * 255)) << 16) |
+		(uint(round(g * 255)) << 8) |
+		(uint(round(b * 255)));
 }
 
 float hue_to_rgb(float p, float q, float t)
@@ -210,6 +229,24 @@ uint adjust(const uint colour, const float hue, const float saturation, const fl
 		h += 1;
 	
 	return hsl_to_rgb(h, s, l) | (colour & 0xff000000);
+}
+
+uint scale(const uint colour, const float hue, const float saturation, const float lightness, const float alpha=1)
+{
+	float h, s, l;
+	
+	rgb_to_hsl(
+		(colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour) & 0xFF,
+		h, s, l);
+	
+	h = (h * hue) % 1;
+	s = clamp01(s * saturation);
+	l = clamp01(l * lightness);
+	
+	if(h < 0)
+		h += 1;
+	
+	return hsl_to_rgb(h, s, l, clamp01(colour::a_f(colour) * alpha));
 }
 
 uint set_alpha(uint colour, float a)
