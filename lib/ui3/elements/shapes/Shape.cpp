@@ -8,14 +8,9 @@ abstract class Shape : Graphic
 	bool use_highlight_colour = false;
 	bool use_parent_hover = false;
 	
-	protected bool _use_custom_colour;
-	protected uint _colour;
-	
 	Shape(UI@ ui)
 	{
 		super(ui);
-		
-		_use_custom_colour = false;
 		
 		init();
 	}
@@ -24,7 +19,7 @@ abstract class Shape : Graphic
 	{
 		super(ui);
 		
-		_use_custom_colour = true;
+		_has_colour = true;
 		_colour = colour;
 		
 		init();
@@ -37,7 +32,7 @@ abstract class Shape : Graphic
 		
 	}
 	
-	protected uint get_colour()
+	protected uint get_draw_colour() override
 	{
 		if(use_highlight_colour)
 		{
@@ -48,7 +43,7 @@ abstract class Shape : Graphic
 				return ui.style.highlight_border_clr;
 		}
 		
-		return _use_custom_colour ? _colour : ui.style.text_clr;
+		return _has_colour ? _colour : ui.style.text_clr;
 	}
 	
 }

@@ -29,7 +29,7 @@ class Cross : Shape
 	
 	void _draw(Style@ style, DrawingContext@ ctx)
 	{
-		const uint clr = get_colour();
+		const uint clr = get_draw_colour();
 		
 		const float draw_scale_x = is_transposed ? this.draw_scale_y : this.draw_scale_x;
 		const float draw_scale_y = is_transposed ? this.draw_scale_x : this.draw_scale_y;

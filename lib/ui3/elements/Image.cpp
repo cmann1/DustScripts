@@ -8,8 +8,6 @@ namespace Image { const string TYPE_NAME = 'Image'; }
 class Image : Graphic
 {
 	
-	uint colour = 0xffffffff;
-	
 	string _sprite_set;
 	string _sprite_name;
 	uint palette;
@@ -77,7 +75,7 @@ class Image : Graphic
 			_rotation,
 			is_transposed ? draw_scale_y : draw_scale_x,
 			is_transposed ? draw_scale_x : draw_scale_y,
-			colour);
+			get_draw_colour());
 	}
 	
 }

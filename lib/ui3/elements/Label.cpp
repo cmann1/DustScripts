@@ -12,8 +12,6 @@ class Label : Graphic
 	protected string _text;
 	protected string _font;
 	protected uint _size;
-	protected uint _colour;
-	protected bool _has_colour = false;
 	TextAlign text_align_h = TextAlign::Left;
 	
 	Label(UI@ ui, const string text, const bool auto_size=false, const string font='', const uint size=0)
@@ -90,28 +88,6 @@ class Label : Graphic
 		}
 	}
 	
-	bool has_colour
-	{
-		get const { return _has_colour; }
-		set { _has_colour = value; }
-	}
-	
-	uint colour
-	{
-		get const { return _has_colour ? _colour : ui.style.text_clr; }
-		set
-		{
-			_colour = value;
-			_has_colour = true;
-		}
-	}
-	
-	/// Resets the colour to the default text colour defined in the ui style
-	void clear_colour()
-	{
-		has_colour = false;
-	}
-	
 	Label@ fit_to_contents()
 	{
 		float w, h;
@@ -154,7 +130,7 @@ class Label : Graphic
 		style.draw_text(_text,
 			ui._pixel_round(x1) + draw_x + dx,
 			ui._pixel_round(y1) + draw_y + dy,
-			_has_colour ? _colour : ui.style.text_clr,
+			get_draw_colour(),
 			final_scale_x, final_scale_y,
 			_rotation, text_align_h, TextAlign::Top, _font, _size);
 	}
@@ -168,6 +144,11 @@ class Label : Graphic
 			return;
 		
 		fit_to_contents();
+	}
+	
+	protected uint get_draw_colour() override
+	{
+		return _has_colour ? _colour : ui.style.text_clr;
 	}
 	
 }

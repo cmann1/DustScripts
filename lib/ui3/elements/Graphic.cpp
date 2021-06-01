@@ -21,6 +21,9 @@ abstract class Graphic : Element
 	protected float _padding_top;
 	protected float _padding_bottom;
 	
+	protected uint _colour;
+	protected bool _has_colour = false;
+	
 	protected float _graphic_offset_x = 0;
 	protected float _graphic_offset_y = 0;
 	protected float _graphic_width;
@@ -147,6 +150,28 @@ abstract class Graphic : Element
 		validate_layout= true;
 	}
 	
+	bool has_colour
+	{
+		get const { return _has_colour; }
+		set { _has_colour = value; }
+	}
+	
+	uint colour
+	{
+		get const { return _has_colour ? _colour : ui.style.text_clr; }
+		set
+		{
+			_colour = value;
+			_has_colour = true;
+		}
+	}
+	
+	/// Resets the colour to the default text colour defined in the ui style
+	void clear_colour()
+	{
+		has_colour = false;
+	}
+	
 	float real_padding_left		{ get const { return is_nan(this._padding_left)		? ui.style.spacing : this._padding_left; } }
 	float real_padding_right	{ get const { return is_nan(this._padding_right)	? ui.style.spacing : this._padding_right; } }
 	float real_padding_top		{ get const { return is_nan(this._padding_top)		? ui.style.spacing : this._padding_top; } }
@@ -250,7 +275,12 @@ abstract class Graphic : Element
 		
 		draw_x = x + ui._pixel_ceil(dx * draw_scale_x);
 		draw_y = y + ui._pixel_ceil(dy * draw_scale_y);
-//		puts(id+str(x + ui._pixel_ceil(dx * draw_scale_x), y + ui._pixel_ceil(dy * draw_scale_y)));
+		//puts(id+str(x + ui._pixel_ceil(dx * draw_scale_x), y + ui._pixel_ceil(dy * draw_scale_y)));
+	}
+	
+	protected uint get_draw_colour()
+	{
+		return _has_colour ? _colour : 0xffffffff;
 	}
 	
 }
