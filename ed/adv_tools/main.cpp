@@ -77,7 +77,7 @@ class AdvToolScript
 	PropsClipboardData props_clipboard;
 	string selected_tool_name;
 	
-	Config config;
+	Config config(this);
 	
 	private bool initialised;
 	private bool state_persisted = true;
@@ -418,17 +418,17 @@ class AdvToolScript
 		return_press = editor.key_check_pressed_gvb(GVB::Return);
 		escape_press = editor.key_check_pressed_gvb(GVB::Escape);
 		
-		if(@ui.focus == null && shortcut_keys_enabled && !editor.is_polling_keyboard())
+		if(config.EnableShortcuts && @ui.focus == null && shortcut_keys_enabled && !editor.is_polling_keyboard())
 		{
-			if(shift && editor.key_check_pressed_vk(VK::W))
+			if(config.KeyPrevTool.check())
 			{
 				select_next_tool(-1);
 			}
-			else if(shift && editor.key_check_pressed_vk(VK::E))
+			else if(config.KeyNextTool.check())
 			{
 				select_next_tool(1);
 			}
-			else if(!shift && !ctrl && !alt && config.EnableShortcuts)
+			else if(!shift && !ctrl && !alt)
 			{
 				for(int i = num_tools_shortcut - 1; i >= 0; i--)
 				{

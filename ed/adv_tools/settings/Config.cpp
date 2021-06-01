@@ -3,6 +3,7 @@
 #include '../../../lib/string.cpp';
 
 #include 'ConfigState.cpp';
+#include 'ShortcutKey.cpp';
 
 class Config
 {
@@ -10,8 +11,16 @@ class Config
 	bool EnableShortcuts;
 	float ToolbarIconSize;
 	uint UIIconColour;
+	ShortcutKey KeyPrevTool;
+	ShortcutKey KeyNextTool;
 	
+	private AdvToolScript@ script;
 	private dictionary values;
+	
+	Config(AdvToolScript@ script)
+	{
+		@this.script = script;
+	}
 	
 	bool load()
 	{
@@ -117,6 +126,8 @@ class Config
 		EnableShortcuts = get_bool('EnableShortcuts', true);
 		ToolbarIconSize = round(get_float('ToolbarIconSize', 30));
 		UIIconColour = get_colour('UIIconColour', 0xffffffff);
+		KeyPrevTool.set(script, get_string('KeyPrevTool', 'Shift+W'));
+		KeyNextTool.set(script, get_string('KeyNextTool', 'Shift+E'));
 	}
 	
 	private void add(string &in key, const string &in value)
@@ -137,6 +148,14 @@ class Config
 			return true;
 		
 		return string::trim(string(values[name])) != '';
+	}
+	
+	string get_string(const string &in name, const string &in default_value='')
+	{
+		if(!values.exists(name))
+			return default_value;
+		
+		return string(values[name]);
 	}
 	
 	bool get_bool(const string &in name, const bool default_value=false)
