@@ -224,6 +224,9 @@ class AdvToolScript
 			{
 				tool_groups[i].on_settings_loaded();
 			}
+			
+			ui.after_layout.on(on_after_layout_delegate);
+			position_toolbar();
 		}
 		
 		return requires_reload;

@@ -177,6 +177,25 @@ class ToolGroup
 	
 	void on_settings_loaded()
 	{
+		Image@ icon = button.icon;
+		icon.width = script.config.ToolbarIconSize;
+		icon.height = script.config.ToolbarIconSize;
+		button.fit_to_contents();
+		
+		for(uint i = 0; i < tools.length; i++)
+		{
+			Button@ button = tools[i].toolbar_button;
+			if(@button == null)
+				continue;
+			@icon = button.icon;
+			if(@icon == null)
+				continue;
+			
+			icon.width = script.config.ToolbarIconSize;
+			icon.height = script.config.ToolbarIconSize;
+			button.fit_to_contents();
+		}
+		
 		update_tooltip();
 	}
 	
