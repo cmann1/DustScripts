@@ -35,7 +35,7 @@ class Popup : SingleContainer, IStepHandler
 	
 	Popup(UI@ ui, PopupOptions@ options, Element@ target)
 	{
-		super(ui, options.get_contenet_element());
+		super(ui, options.get_content_element());
 		
 		update(options, target);
 		
@@ -47,7 +47,7 @@ class Popup : SingleContainer, IStepHandler
 	void update(PopupOptions@ options, Element@ target)
 	{
 		@_options = options;
-		@content = @options.get_contenet_element();
+		@content = @options.get_content_element();
 		
 		@this._target = target;
 		waiting_for_mouse = _options.wait_for_mouse;

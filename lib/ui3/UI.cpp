@@ -2270,7 +2270,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			return;
 		
 		Popup@ tooltip = cast<Popup@>(tooltips[id]);
-		@tooltip.content = @options.get_contenet_element();
+		@tooltip.content = @options.get_content_element();
 		tooltip.fit_to_contents();
 	}
 	

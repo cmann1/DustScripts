@@ -266,7 +266,7 @@ class PopupOptions : IGenericEventTarget
 		set { set_content(value); }
 	}
 	
-	Element@ get_contenet_element()
+	Element@ get_content_element()
 	{
 		if(has_content_element)
 			return _content;
