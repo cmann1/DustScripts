@@ -137,11 +137,6 @@ class PropTool : Tool
 		Tool::on_editor_unloaded();
 	}
 	
-	Tool@ on_shortcut_key() override
-	{
-		return selected ? script.get_tool('Props') : @this;
-	}
-	
 	protected void on_select_impl()
 	{
 		script.editor.hide_panels_gui(true);

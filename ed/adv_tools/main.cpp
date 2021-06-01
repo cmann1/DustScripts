@@ -24,6 +24,7 @@
 #include 'misc/DragHandleType.cpp';
 #include 'misc/InfoOverlay.cpp';
 #include 'misc/IWorldBoundingBox.cpp';
+#include 'misc/ShortcutKeySorter.cpp';
 #include 'misc/ToolListenerInterfaces.cpp';
 #include 'misc/WorldBoundingBox.cpp';
 #include 'settings/Config.cpp';
@@ -348,7 +349,7 @@ class AdvToolScript
 		
 		add_tool(Tool(this, 'Select')			.set_icon('editor',  'selecticon').init_shortcut_key(VK::R));
 		add_tool(Tool(this, 'Tiles')			.set_icon('editor',  'tilesicon').init_shortcut_key(VK::W));
-		add_tool(Tool(this, 'Props')			.set_icon('editor',  'propsicon').init_shortcut_key(VK::Q, false));
+		add_tool(Tool(this, 'Props')			.set_icon('editor',  'propsicon').init_shortcut_key(VK::Q));
 		add_tool(Tool(this, 'Entities')			.set_icon('editor',  'entityicon').init_shortcut_key(VK::E));
 		add_tool(Tool(this, 'Triggers')			.set_icon('editor',  'triggersicon').init_shortcut_key(VK::T));
 		add_tool(Tool(this, 'Camera')			.set_icon('editor',  'cameraicon').init_shortcut_key(VK::C));
@@ -362,6 +363,34 @@ class AdvToolScript
 		add_tool('Props',		PropTool(this));
 		add_tool('Triggers',	TextTool(this));
 		add_tool('Triggers',	ExtendedTriggerTool(this));
+		
+		sort_shortcut_tools();
+	}
+	
+	private void sort_shortcut_tools()
+	{
+		array<ShortcutKeySorter> sort_list(tools_shortcut.length);
+		for(uint i = 0; i < tools_shortcut.length; i++)
+		{
+			@sort_list[i].tool = tools_shortcut[i];
+			sort_list[i].index = i;
+		}
+		
+		dictionary shortcut_map;
+		sort_list.sortAsc();
+		for(uint i = 0; i < sort_list.length; i++)
+		{
+			Tool@ tool = sort_list[i].tool;
+			const string map_key = tool.shortcut_key + '';
+			
+			@tool.shortcut_key_group = shortcut_map.exists(map_key)
+				? cast<Tool@>(shortcut_map[map_key]).shortcut_key_group
+				: array<Tool@>();
+			tool.shortcut_key_group.insertLast(tool);
+			
+			@tools_shortcut[i] = tool;
+			@shortcut_map[map_key] = tool;
+		}
 	}
 	
 	// //////////////////////////////////////////////////////////

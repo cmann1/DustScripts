@@ -16,6 +16,8 @@ class Tool
 	ToolGroup@ group;
 	Button@ toolbar_button;
 	
+	array<Tool@>@ shortcut_key_group;
+	int shortcut_key_priority = 0;
 	int shortcut_key = -1;
 	bool register_shortcut_key = true;
 	
@@ -79,17 +81,20 @@ class Tool
 		return this;
 	}
 	
-	Tool@ init_shortcut_key(const string &in config_name, const int shortcut_key, bool register_shortcut_key=true)
+	Tool@ init_shortcut_key(
+		const string &in config_name, const int shortcut_key,
+		const int priority=0, bool register_shortcut_key=true)
 	{
 		this.shortcut_key = script.config.get_vk('Key' + config_name, shortcut_key);
+		this.shortcut_key_priority = priority;
 		this.register_shortcut_key = register_shortcut_key;
 		
 		return @this;
 	}
 	
-	Tool@ init_shortcut_key(const int shortcut_key, bool register_shortcut_key=true)
+	Tool@ init_shortcut_key(const int shortcut_key, const int priority=0, bool register_shortcut_key=true)
 	{
-		return init_shortcut_key(base_tool_name, shortcut_key, register_shortcut_key);
+		return init_shortcut_key(base_tool_name, shortcut_key, priority, register_shortcut_key);
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -206,7 +211,24 @@ class Tool
 	
 	Tool@ on_shortcut_key()
 	{
-		return @this;
+		if(@shortcut_key_group == null)
+			return this;
+		
+		Tool@ tool = this;
+		
+		// Cycle through tools with the same shortcut key
+		for(uint i = 0, length = shortcut_key_group.length; i < length; i++)
+		{
+			Tool@ t = shortcut_key_group[i];
+			
+			if(t.selected)
+			{
+				@tool = shortcut_key_group[((int(i) - 1) % length + length) % length];
+				break;
+			}
+		}
+		
+		return tool;
 	}
 	
 	void on_reselect()
