@@ -3,9 +3,9 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 	
 	entity@ clipboard;
 	
-	ExtendedTriggerTool()
+	ExtendedTriggerTool(AdvToolScript@ script)
 	{
-		super('Extended Trigger Tool');
+		super(script, 'Extended Trigger Tool');
 		
 		selectable = false;
 	}

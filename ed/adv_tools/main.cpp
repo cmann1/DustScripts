@@ -26,6 +26,7 @@
 #include 'misc/IWorldBoundingBox.cpp';
 #include 'misc/ToolListenerInterfaces.cpp';
 #include 'misc/WorldBoundingBox.cpp';
+#include 'settings/Config.cpp';
 #include 'settings/Settings.cpp';
 #include 'tools/emitter_tool/EmitterTool.cpp';
 #include 'tools/prop_tool/PropTool.cpp';
@@ -79,6 +80,8 @@ class AdvToolScript
 	[hidden] PropsClipboardData props_clipboard;
 	[hidden] string selected_tool_name;
 	
+	Config config;
+	/// TODO: Remove and use config instead
 	private dictionary settings;
 	
 	private bool initialised;
@@ -137,6 +140,7 @@ class AdvToolScript
 		}
 		
 		editor.hide_gui(false);
+		load_settings(false);
 		create_tools();
 	}
   
@@ -178,6 +182,27 @@ class AdvToolScript
 		for(uint i = 0; i < tools.length(); i++)
 		{
 			tools[i].build_sprites(msg);
+		}
+	}
+	
+	void load_settings(const bool trigger_load=true)
+	{
+		if(!config.load())
+			return;
+		
+		ui.style.spacing = config.get_float('UISpacing');
+		
+		if(trigger_load)
+		{
+			for(uint i = 0; i < tools.length(); i++)
+			{
+				tools[i].on_settings_loaded();
+			}
+			
+			for(uint i = 0; i < tool_groups.length(); i++)
+			{
+				tool_groups[i].on_settings_loaded();
+			}
 		}
 	}
 	
@@ -284,22 +309,22 @@ class AdvToolScript
 	{
 		// Built in
 		
-		add_tool(Tool('Select')			.set_icon('editor',  'selecticon').init_shortcut_key(VK::R));
-		add_tool(Tool('Tiles')			.set_icon('editor',  'tilesicon').init_shortcut_key(VK::W));
-		add_tool(Tool('Props')			.set_icon('editor',  'propsicon').init_shortcut_key(VK::Q, false));
-		add_tool(Tool('Entities')		.set_icon('editor',  'entityicon').init_shortcut_key(VK::E));
-		add_tool(Tool('Triggers')		.set_icon('editor',  'triggersicon').init_shortcut_key(VK::T));
-		add_tool(Tool('Camera')			.set_icon('editor',  'cameraicon').init_shortcut_key(VK::C));
-		add_tool(EmitterTool());
-		add_tool(Tool('Level Settings')	.set_icon('editor',  'settingsicon'));
-		add_tool(Tool('Scripts')		.set_icon('dustmod', 'scripticon').init_shortcut_key(VK::S));
-		add_tool(HelpTool('Help')		.set_icon('editor',  'helpicon'));
+		add_tool(Tool(this, 'Select')			.set_icon('editor',  'selecticon').init_shortcut_key(VK::R));
+		add_tool(Tool(this, 'Tiles')			.set_icon('editor',  'tilesicon').init_shortcut_key(VK::W));
+		add_tool(Tool(this, 'Props')			.set_icon('editor',  'propsicon').init_shortcut_key(VK::Q, false));
+		add_tool(Tool(this, 'Entities')			.set_icon('editor',  'entityicon').init_shortcut_key(VK::E));
+		add_tool(Tool(this, 'Triggers')			.set_icon('editor',  'triggersicon').init_shortcut_key(VK::T));
+		add_tool(Tool(this, 'Camera')			.set_icon('editor',  'cameraicon').init_shortcut_key(VK::C));
+		add_tool(EmitterTool(this));
+		add_tool(Tool(this, 'Level Settings')	.set_icon('editor',  'settingsicon'));
+		add_tool(Tool(this, 'Scripts')			.set_icon('dustmod', 'scripticon').init_shortcut_key(VK::S));
+		add_tool(HelpTool(this, 'Help')			.set_icon('editor',  'helpicon'));
 		
 		// Custom
 		
-		add_tool('Props',		PropTool());
-		add_tool('Triggers',	TextTool());
-		add_tool('Triggers',	ExtendedTriggerTool());
+		add_tool('Props',		PropTool(this));
+		add_tool('Triggers',	TextTool(this));
+		add_tool('Triggers',	ExtendedTriggerTool(this));
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -366,7 +391,7 @@ class AdvToolScript
 			{
 				select_next_tool(1);
 			}
-			else if(!shift && !ctrl && !alt)
+			else if(!shift && !ctrl && !alt && config.EnableShortcuts)
 			{
 				for(int i = num_tools_shortcut - 1; i >= 0; i--)
 				{

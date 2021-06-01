@@ -1,7 +1,8 @@
 class Tool
 {
 	
-	string name;
+	string name = '';
+	string base_tool_name = '';
 	string icon_sprite_set;
 	string icon_sprite_name;
 	float icon_width;
@@ -29,19 +30,30 @@ class Tool
 	
 	protected bool selected = false;
 	
-	Tool()
+	protected void construct(AdvToolScript@ script, const string & in base_tool_name, const string &in name)
 	{
-		
-	}
-	
-	Tool(const string name)
-	{
+		@this.script = script;
+		this.base_tool_name = base_tool_name;
 		this.name = name;
 	}
 	
-	void create(AdvToolScript@ script, ToolGroup@ group)
+	Tool(AdvToolScript@ script)
 	{
-		@this.script = script;
+		construct(script, '', '');
+	}
+	
+	Tool(AdvToolScript@ script, const string name)
+	{
+		construct(script, name, name);
+	}
+	
+	Tool(AdvToolScript@ script, const string & in base_tool_name, const string &in name)
+	{
+		construct(script, base_tool_name, name);
+	}
+	
+	void create(ToolGroup@ group)
+	{
 		@this.group = group;
 	}
 	
@@ -67,12 +79,17 @@ class Tool
 		return this;
 	}
 	
-	Tool@ init_shortcut_key(const int shortcut_key, bool register_shortcut_key=true)
+	Tool@ init_shortcut_key(const string &in config_name, const int shortcut_key, bool register_shortcut_key=true)
 	{
-		this.shortcut_key = shortcut_key;
+		this.shortcut_key = script.config.get_vk('Key' + config_name, shortcut_key);
 		this.register_shortcut_key = register_shortcut_key;
 		
 		return @this;
+	}
+	
+	Tool@ init_shortcut_key(const int shortcut_key, bool register_shortcut_key=true)
+	{
+		return init_shortcut_key(base_tool_name, shortcut_key, register_shortcut_key);
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -265,6 +282,11 @@ class Tool
 		{
 			draw_listeners[i].tool_draw(this, sub_frame);
 		}
+	}
+	
+	void on_settings_loaded()
+	{
+		
 	}
 	
 	protected void draw_impl(const float sub_frame)

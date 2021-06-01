@@ -46,14 +46,15 @@ class ToolGroup
 			if(@tool.toolbar_button == null)
 				continue;
 			
-			Image@ icon = cast<Image@>(tool.toolbar_button.content);
+			Image@ icon = tool.toolbar_button.icon;
 			
 			icon.set_sprite(tool.icon_sprite_set,
 				tool.icon_sprite_name, tool.icon_width, tool.icon_height,
 				tool.icon_offset_x, tool.icon_offset_y);
 			
-			icon.width = Settings::ToolbarIconSize;
-			icon.height = Settings::ToolbarIconSize;
+			icon.width = script.config.ToolbarIconSize;
+			icon.height = script.config.ToolbarIconSize;
+			icon.sizing = ImageSize::FitInside;
 		}
 	}
 	
@@ -71,8 +72,9 @@ class ToolGroup
 		const float offset_x=0, const float offset_y=0)
 	{
 		Image@ icon = Image(script.ui, sprite_set, sprite_name, width, height, offset_x, offset_y);
-		icon.width = Settings::ToolbarIconSize;
-		icon.height = Settings::ToolbarIconSize;
+		icon.width = script.config.ToolbarIconSize;
+		icon.height = script.config.ToolbarIconSize;
+		icon.sizing = ImageSize::FitInside;
 		
 		Button@ button = Button(script.ui, icon);
 		button.name = name;
@@ -106,7 +108,7 @@ class ToolGroup
 			}
 		}
 		
-		tool.create(script, this);
+		tool.create(this);
 		
 		if(@current_tool == null)
 		{
@@ -118,12 +120,12 @@ class ToolGroup
 	{
 		@current_tool = tool;
 		
-		button.tooltip.content_string = get_tooltip(tool.name, tool.shortcut_key);
+		update_tooltip();
 		button.name = tool.name;
 		
 		icon.set_sprite(tool.icon_sprite_set, tool.icon_sprite_name, tool.icon_width, tool.icon_height, tool.icon_offset_x, tool.icon_offset_y);
-		icon.width = Settings::ToolbarIconSize;
-		icon.height = Settings::ToolbarIconSize;
+		icon.width = script.config.ToolbarIconSize;
+		icon.height = script.config.ToolbarIconSize;
 		
 		update_popup_buttons();
 	}
@@ -171,6 +173,16 @@ class ToolGroup
 	{
 		button.selected = false;
 		button.override_alpha = -1;
+	}
+	
+	void on_settings_loaded()
+	{
+		update_tooltip();
+	}
+	
+	private void update_tooltip()
+	{
+		button.tooltip.content_string = get_tooltip(current_tool.name, current_tool.shortcut_key);
 	}
 	
 	private void create_popup()
@@ -232,7 +244,7 @@ class ToolGroup
 	
 	private string get_tooltip(const string name, const int shortcut_key)
 	{
-		if(shortcut_key == -1)
+		if(shortcut_key == -1 || !script.config.EnableShortcuts)
 			return name;
 		
 		string s = ' ';

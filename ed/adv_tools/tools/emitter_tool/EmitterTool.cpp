@@ -52,16 +52,16 @@ class EmitterTool : Tool
 	IntSetting@ sublayer;
 	FloatSetting@ rotation;
 	
-	EmitterTool()
+	EmitterTool(AdvToolScript@ script)
 	{
-		super('Emitter Tool');
+		super(script, 'Emitter Tool');
 		
-		init_shortcut_key(VK::G);
+		init_shortcut_key('Emitter', VK::G);
 	}
 	
-	void create(AdvToolScript@ script, ToolGroup@ group) override
+	void create(ToolGroup@ group) override
 	{
-		Tool::create(script, group);
+		Tool::create(group);
 		
 		set_icon('editor', 'emittericon');
 		

@@ -1,9 +1,12 @@
 namespace Settings
 {
 	
+	const string ConfigEmbedKey = 'adv_tools_settings';
+	const string ConfigFile = 'advtools.ini';
+	
 	const float IconSize = 22;
 	
-	const float ToolbarIconSize = 33;
+	const float ToolbarIconSize = 50;
 	const float UIFadeAlpha = 0.35;
 	const float UIFadeSpeed = 4;
 	

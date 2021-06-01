@@ -94,9 +94,9 @@ class PropTool : Tool
 	BoolSetting@ pick_ignore_holes;
 	FloatSetting@ pick_radius;
 	
-	PropTool()
+	PropTool(AdvToolScript@ script)
 	{
-		super('Prop Tool');
+		super(script, 'Props', 'Prop Tool');
 		
 		init_shortcut_key(VK::Q);
 	}
@@ -108,9 +108,9 @@ class PropTool : Tool
 		toolbar.build_sprites(msg);
 	}
 	
-	void create(AdvToolScript@ script, ToolGroup@ group) override
+	void create(ToolGroup@ group) override
 	{
-		Tool::create(script, group);
+		Tool::create(group);
 		
 		set_icon(SPRITE_SET, 'icon_prop_tool', 33, 33);
 		

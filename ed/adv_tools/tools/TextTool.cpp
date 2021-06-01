@@ -44,9 +44,9 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	private int selected_font_size;
 	private bool ignore_next_font_size_update;
 	
-	TextTool()
+	TextTool(AdvToolScript@ script)
 	{
-		super('Text Tool');
+		super(script, 'Text Tool');
 		
 		selectable = false;
 	}
