@@ -16,7 +16,7 @@ class HelpTool : Tool
 	{
 		if(script.shift)
 		{
-			script.load_settings();
+			script.reload_config();
 			return false;
 		}
 		

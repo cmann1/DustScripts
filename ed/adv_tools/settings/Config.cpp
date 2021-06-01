@@ -9,6 +9,7 @@ class Config
 	
 	bool EnableShortcuts;
 	float ToolbarIconSize;
+	uint UIIconColour;
 	
 	private dictionary values;
 	
@@ -43,7 +44,7 @@ class Config
 				{
 					switch(chr)
 					{
-						case chr::Hash:
+						case chr::SemiColon:
 							state = ConfigState::Comment;
 							break;
 						case chr::Equals:
@@ -112,6 +113,7 @@ class Config
 	{
 		EnableShortcuts = get_bool('EnableShortcuts', true);
 		ToolbarIconSize = round(get_float('ToolbarIconSize', 0.66) * Settings::ToolbarIconSize);
+		UIIconColour = get_colour('UIIconColour', 0xffffffff);
 	}
 	
 	private void add(string &in key, const string &in value)
@@ -120,7 +122,19 @@ class Config
 		if(key == '')
 			return;
 		
+		//puts(key+'='+value);
 		values[key] = value;
+	}
+	
+	bool has_value(const string &in name, const bool ignore_empty=true)
+	{
+		if(!values.exists(name))
+			return false;
+		
+		if(!ignore_empty)
+			return true;
+		
+		return string::trim(string(values[name])) != '';
 	}
 	
 	bool get_bool(const string &in name, const bool default_value=false)
@@ -146,6 +160,27 @@ class Config
 		
 		const string key_name = string::trim(string(values[name]));
 		return key_name != '' ? VK::from_name(key_name) : -1;
+	}
+	
+	uint get_colour(const string &in name, const uint default_value=0x00000000)
+	{
+		if(!values.exists(name))
+			return default_value;
+		
+		return string::try_parse_rgb(string(values[name]), true, true);
+	}
+	
+	bool compare_float(const string &in name, const float value)
+	{
+		return !values.exists(name) || get_float(name, value) == value;
+	}
+	
+	bool compare_colour(const string &in name, const uint value)
+	{
+		if(!has_value(name))
+			return true;
+		
+		return get_colour(name, value) == value;
 	}
 	
 }

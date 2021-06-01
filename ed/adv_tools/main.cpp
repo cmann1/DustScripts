@@ -86,6 +86,8 @@ class AdvToolScript
 	
 	private bool initialised;
 	private bool state_persisted = true;
+	private bool queue_load_config;
+	private bool queue_load_config_trigger;
 	
 	private Toolbar@ toolbar;
 	private array<ToolGroup> tool_groups;
@@ -140,7 +142,7 @@ class AdvToolScript
 		}
 		
 		editor.hide_gui(false);
-		load_settings(false);
+		do_load_config(false);
 		create_tools();
 	}
   
@@ -185,14 +187,32 @@ class AdvToolScript
 		}
 	}
 	
-	void load_settings(const bool trigger_load=true)
+	void reload_config()
+	{
+		queue_load_config = true;
+	}
+	
+	private bool do_load_config(const bool trigger_load=true)
 	{
 		if(!config.load())
-			return;
+			return false;
 		
-		ui.style.spacing = config.get_float('UISpacing');
+		bool requires_reload = false;
 		
-		if(trigger_load)
+		if(!requires_reload && !config.compare_float('UISpacing', ui.style.spacing))
+			requires_reload = true;
+		if(!requires_reload && !config.compare_colour('UITextColour', ui.style.text_clr))
+			requires_reload = true;
+		if(!requires_reload && !config.compare_colour('UIBGColour', ui.style.normal_bg_clr))
+			requires_reload = true;
+		if(!requires_reload && !config.compare_colour('UIBorderColour', ui.style.normal_border_clr))
+			requires_reload = true;
+		if(!requires_reload && !config.compare_colour('UIAccentColour', ui.style.highlight_bg_clr))
+			requires_reload = true;
+		if(!requires_reload && !config.compare_colour('UIIconColour', config.UIIconColour))
+			requires_reload = true;
+		
+		if(trigger_load && !requires_reload)
 		{
 			for(uint i = 0; i < tools.length(); i++)
 			{
@@ -204,6 +224,27 @@ class AdvToolScript
 				tool_groups[i].on_settings_loaded();
 			}
 		}
+		
+		return requires_reload;
+	}
+	
+	private void do_full_reload()
+	{
+		@ui = UI(true);
+		@toolbar = null;
+		settings.deleteAll();
+		tool_groups.resize(0);
+		tools.resize(0);
+		tools_shortcut.resize(0);
+		num_tools_shortcut = 0;
+		tool_groups_map.deleteAll();
+		tools_map.deleteAll();
+		selected_tab = '';
+		@selected_tool = null;
+		num_tool_group_popups = 0;
+		
+		create_tools();
+		initialised = false;
 	}
 	
 	private void initialise()
@@ -252,6 +293,17 @@ class AdvToolScript
 		ui.clipboard = clipboard;
 		ui.clipboard_change.on(EventCallback(on_clipboard_change));
 		ui.auto_fit_screen = true;
+		
+		ui.style.spacing = config.get_float('UISpacing', ui.style.spacing);
+		
+		if(config.has_value('UITextColour'))
+			ui.style.auto_text_colour(config.get_colour('UITextColour'));
+		if(config.has_value('UIBGColour'))
+			ui.style.auto_base_colour(config.get_colour('UIBGColour'));
+		if(config.has_value('UIBorderColour'))
+			ui.style.auto_border_colour(config.get_colour('UIBorderColour'));
+		if(config.has_value('UIAccentColour'))
+			ui.style.auto_accent_colour(config.get_colour('UIAccentColour'));
 		
 		// ui.style.text_clr                        = 0xffffffff;
 		// ui.style.normal_bg_clr                   = 0xd9050505;
@@ -432,6 +484,16 @@ class AdvToolScript
 		}
 		
 		state_persisted = false;
+		
+		if(queue_load_config)
+		{
+			if(do_load_config())
+			{
+				do_full_reload();
+			}
+			
+			queue_load_config = false;
+		}
 	}
 	
 	private void handle_keyboard()
@@ -568,6 +630,14 @@ class AdvToolScript
 	void track_tool_group_popups(const bool open)
 	{
 		num_tool_group_popups += open ? 1 : -1;
+	}
+	
+	void init_secondary_toolbar_button(Button@ button)
+	{
+		if(@button.icon == null)
+			return;
+		
+		button.icon.colour = config.UIIconColour;
 	}
 	
 	void world_to_hud(const float x, const float y, float &out hud_x, float &out hud_y, const bool ui_coords=true)

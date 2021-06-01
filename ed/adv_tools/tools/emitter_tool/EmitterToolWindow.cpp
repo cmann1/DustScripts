@@ -130,7 +130,7 @@ class EmitterToolWindow
 		// Id Label
 		
 		@id_label = Label(ui, '999', true, font::ENVY_BOLD, 20);
-		id_label.colour = 0x99ffffff;
+		id_label.colour = multiply_alpha(ui.style.text_clr, 0.5);
 		id_label.fit_to_contents();
 		id_label.x = other_ids_button.x - style.spacing - id_label.width;
 		id_label.y = rotation_wheel.y;

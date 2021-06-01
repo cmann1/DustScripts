@@ -426,6 +426,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		@edit_button = Button(script.ui, SPRITE_SET, 'icon_edit', 24, 24);
 		edit_button.fit_to_contents(true);
 		edit_button.mouse_click.on(EventCallback(on_edit_click));
+		script.init_secondary_toolbar_button(edit_button);
 		
 		@popup = PopupOptions(script.ui, edit_button, true, PopupPosition::InsideTop, PopupTriggerType::Manual, PopupHideType::Manual);
 		popup.spacing = 0;
