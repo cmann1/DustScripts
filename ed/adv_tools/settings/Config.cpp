@@ -16,7 +16,10 @@ class Config
 	bool load()
 	{
 		if(!load_embed(Settings::ConfigEmbedKey, Settings::ConfigFile))
+		{
+			init();
 			return false;
+		}
 		
 		values.deleteAll();
 		const string data = get_embed_value(Settings::ConfigEmbedKey);
@@ -122,7 +125,6 @@ class Config
 		if(key == '')
 			return;
 		
-		//puts(key+'='+value);
 		values[key] = value;
 	}
 	
