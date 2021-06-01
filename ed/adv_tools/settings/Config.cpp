@@ -2,6 +2,8 @@
 #include '../../../lib/utils/vk_from_name.cpp';
 #include '../../../lib/string.cpp';
 
+#include 'ConfigState.cpp';
+
 class Config
 {
 	
@@ -145,15 +147,5 @@ class Config
 		const string key_name = string::trim(string(values[name]));
 		return key_name != '' ? VK::from_name(key_name) : -1;
 	}
-	
-}
-
-namespace ConfigState
-{
-	
-	const int Start = 1;
-	const int Comment = 2;
-	const int Key = 3;
-	const int Value = 4;
 	
 }
