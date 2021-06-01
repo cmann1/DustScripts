@@ -115,7 +115,7 @@ class Config
 	private void init()
 	{
 		EnableShortcuts = get_bool('EnableShortcuts', true);
-		ToolbarIconSize = round(get_float('ToolbarIconSize', 0.66) * Settings::ToolbarIconSize);
+		ToolbarIconSize = round(get_float('ToolbarIconSize', 30));
 		UIIconColour = get_colour('UIIconColour', 0xffffffff);
 	}
 	

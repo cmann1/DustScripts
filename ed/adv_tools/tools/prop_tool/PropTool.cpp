@@ -112,7 +112,7 @@ class PropTool : Tool
 	{
 		Tool::create(group);
 		
-		set_icon(SPRITE_SET, 'icon_prop_tool', 33, 33);
+		set_icon(SPRITE_SET, 'icon_prop_tool');
 		
 		@mouse = @script.mouse;
 		@selection_bounding_box.script = script;

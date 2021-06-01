@@ -6,7 +6,7 @@ namespace Settings
 	
 	const float IconSize = 22;
 	
-	const float ToolbarIconSize = 50;
+	const float ToolbarIconSize = 60;
 	const float UIFadeAlpha = 0.35;
 	const float UIFadeSpeed = 4;
 	
