@@ -9,19 +9,21 @@
 class Style
 {
 	
+	// Base colours
 	uint text_clr						= 0xffffffff;
 	uint normal_bg_clr					= 0xd9050505;
 	uint normal_border_clr				= 0x33ffffff;
+	uint scrollbar_light_bg_clr			= 0xd9111111;
+	uint disabled_bg_clr				= 0x88050505;
+	uint disabled_border_clr			= 0x12ffffff;
+	// Accent colours
 	uint highlight_bg_clr				= 0xd9521c17;
 	uint highlight_border_clr			= 0xd9933c34;
 	uint selected_bg_clr				= 0xd9702d26;
-	uint selected_border_clr			= 0xffb16860;
+	uint selected_border_clr			= 0xffa24239;
 	uint selected_highlight_bg_clr		= 0xd982352c;
-	uint selected_highlight_border_clr	= 0xffb16860;
-	uint disabled_bg_clr				= 0xa6000000;
-	uint disabled_border_clr			= 0x26ffffff;
+	uint selected_highlight_border_clr	= 0xffb1483e;
 	uint secondary_bg_clr				= 0x66864d48;
-	uint scrollbar_light_bg_clr			= 0xd9111111;
 	
 	uint popup_bg_clr					= normal_bg_clr;
 	uint popup_border_clr				= 0;
@@ -283,6 +285,75 @@ class Style
 	}
 	
 	float gripper_required_space { get { return gripper_thickness + gripper_margin * 2; } }
+	
+	// -----------------------------------------------------------------
+	// Auto colour
+	// -----------------------------------------------------------------
+	
+	void auto_text_colour(const uint clr)
+	{
+		text_clr = clr;
+		tooltip_text_colour = clr;
+	}
+	
+	void auto_base_colour(const uint clr)
+	{
+		//calc_hsl_diff('normal_bg_clr', normal_bg_clr, normal_bg_clr);
+		//calc_hsl_diff('normal_border_clr', normal_bg_clr, normal_border_clr);
+		//calc_hsl_diff('scrollbar_light_bg_clr', normal_bg_clr, scrollbar_light_bg_clr);
+		//calc_hsl_diff('disabled_bg_clr', normal_bg_clr, disabled_bg_clr);
+		//calc_hsl_diff('disabled_border_clr', normal_bg_clr, disabled_border_clr);
+		
+		normal_bg_clr = clr;
+		normal_border_clr		= scale(normal_bg_clr, 0, 0, 51, 0.235023);
+		scrollbar_light_bg_clr	= scale(normal_bg_clr, 0, 0, 3.4, 1);
+		disabled_bg_clr			= scale(normal_bg_clr, 0, 0, 1, 0.764977);
+		disabled_border_clr		= scale(normal_bg_clr, 0, 0, 51, 0.0829493);
+		
+		popup_bg_clr	= normal_bg_clr;
+		dialog_bg_clr	= normal_bg_clr;
+	}
+	
+	void auto_border_colour(const uint clr)
+	{
+		//calc_hsl_diff('normal_border_clr', normal_border_clr, normal_border_clr);
+		//calc_hsl_diff('disabled_bg_clr', normal_border_clr, disabled_border_clr);
+		
+		normal_border_clr = clr;
+		disabled_border_clr = scale(normal_border_clr, 0, 0, 1, 0.35);
+	}
+	
+	void auto_accent_colour(const uint clr)
+	{
+		//calc_hsl_diff('highlight_bg_clr', highlight_bg_clr, highlight_bg_clr);
+		//calc_hsl_diff('highlight_border_clr', highlight_bg_clr, highlight_border_clr);
+		//calc_hsl_diff('selected_bg_clr', highlight_bg_clr, selected_bg_clr);
+		//calc_hsl_diff('selected_border_clr', highlight_bg_clr, selected_border_clr);
+		//calc_hsl_diff('selected_highlight_bg_clr', highlight_bg_clr, selected_highlight_bg_clr);
+		//calc_hsl_diff('selected_highlight_border_clr', highlight_bg_clr, selected_highlight_border_clr);
+		//calc_hsl_diff('secondary_bg_clr', highlight_bg_clr, secondary_bg_clr);
+		
+		highlight_bg_clr = clr;
+		highlight_border_clr			= scale(highlight_bg_clr, 1, 0.849587, 1.89524, 1);
+		selected_bg_clr					= scale(highlight_bg_clr, 1, 0.877966, 1.42857, 1);
+		selected_border_clr				= scale(highlight_bg_clr, 1, 0.853262, 2.08571, 1.17512);
+		selected_highlight_bg_clr		= scale(highlight_bg_clr, 1, 0.879603, 1.65714, 1);
+		selected_highlight_border_clr	= scale(highlight_bg_clr, 1, 0.856322, 2.27619, 1.17512);
+		secondary_bg_clr				= scale(highlight_bg_clr, 1, 0.535626, 1.9619, 0.470046);
+	}
+	
+	//void calc_hsl_diff(const string label, const uint from, const uint to)
+	//{
+	//	int r, g, b, a;
+	//	int_to_rgba(from, r, g, b, a);
+	//	int r2, g2, b2, a2;
+	//	int_to_rgba(to, r2, g2, b2, a2);
+	//	float h, s, l;
+	//	rgb_to_hsl(r, g, b, h, s, l);
+	//	float h2, s2, l2;
+	//	rgb_to_hsl(r2, g2, b2, h2, s2, l2);
+	//	puts(label + ': ' + (h != 0 ? (h2) / h:0)+' '+(s!=0?(s2)/s:0)+' '+(l!=0?(l2)/l:0)+' '+(a!=0?float(a2)/a:0));
+	//}
 	
 	// -----------------------------------------------------------------
 	// Basic drawing methods
