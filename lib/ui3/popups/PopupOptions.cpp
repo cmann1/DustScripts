@@ -277,7 +277,7 @@ class PopupOptions : IGenericEventTarget
 				ui, _content_str, true,
 				text_align_h,
 				GraphicAlign::Left, GraphicAlign::Top,
-				ui.style.tooltip_text_scale, ui.style.tooltip_text_colour,
+				ui.style.tooltip_text_scale, ui.style.tooltip_has_text_colour, ui.style.tooltip_text_colour,
 				ui.style.tooltip_font, ui.style.tooltip_text_size);
 		}
 		

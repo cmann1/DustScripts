@@ -69,6 +69,7 @@ class Style
 	string tooltip_font = default_font;
 	uint tooltip_text_size = default_text_size;
 	float tooltip_text_scale = default_text_scale;
+	bool tooltip_has_text_colour = false;
 	uint tooltip_text_colour = text_clr;
 	float tooltip_padding = spacing * 2;
 	float tooltip_blur_inset = 0;
@@ -294,6 +295,7 @@ class Style
 	{
 		text_clr = clr;
 		tooltip_text_colour = clr;
+		tooltip_has_text_colour = false;
 	}
 	
 	void auto_base_colour(const uint clr)

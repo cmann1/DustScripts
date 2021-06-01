@@ -35,7 +35,7 @@ class Button : SingleContainer
 		Label@ label = ui._label_pool.get(
 			ui, text, true,
 			text_align_h, GraphicAlign::Centre, GraphicAlign::Middle,
-			ui.style.default_text_scale, ui.style.text_clr,
+			ui.style.default_text_scale, false, 0,
 			ui.style.default_font, ui.style.default_text_size);
 		
 		super(ui, label);
