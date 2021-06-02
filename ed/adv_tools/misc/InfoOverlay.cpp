@@ -11,31 +11,46 @@ class InfoOverlay
 	private Container@ dummy_overlay;
 	private PopupOptions@ popup;
 	private IWorldBoundingBox@ target;
+	private Mouse@ mouse;
 	
 	void init(AdvToolScript@ script)
 	{
 		@this.script = script;
 	}
 	
-	void show(IWorldBoundingBox@ target, const string text, const float display_time=-1)
+	void show(IWorldBoundingBox@ target, const string &in text, const float display_time=-1)
 	{
 		@this.target = target;
 		
 		show(text, display_time);
 	}
 	
-	void show(const float x1, const float y1, const float x2, const float y2, const string text, const float display_time=-1)
+	void show(Mouse@ mouse, const string &in text, const float display_time=-1)
+	{
+		show(mouse.x, mouse.y, mouse.x, mouse.y, text, display_time);
+		@this.mouse = mouse;
+	}
+	
+	void show(const float x, const float y, const string &in text, const float display_time=-1)
+	{
+		show(x, y, x, y, text, display_time);
+	}
+	
+	void show(
+		const float x1, const float y1, const float x2, const float y2,
+		const string text, const float display_time=-1)
 	{
 		this.x1 = x1;
 		this.y1 = y1;
 		this.x2 = x2;
 		this.y2 = y2;
-		@this.target = null;
+		@target = null;
+		@mouse = null;
 		
 		show(text, display_time);
 	}
 	
-	private void show(const string text, const float display_time=-1)
+	private void show(const string &in text, const float display_time=-1)
 	{
 		this.max_display_time = display_time;
 		this.display_time = display_time;
@@ -61,9 +76,20 @@ class InfoOverlay
 		this.display_time = max_display_time;
 	}
 	
-	void set_info(const string text)
+	void set_info(const string &in text)
 	{
 		popup.content_string = text;
+	}
+	
+	void update(Mouse@ mouse)
+	{
+		update(mouse.x, mouse.y, mouse.x, mouse.y);
+		@this.mouse = mouse;
+	}
+	
+	void update(const float x, const float y)
+	{
+		update(x, y, x, y);
 	}
 	
 	void update(const float x1, const float y1, const float x2, const float y2)
@@ -73,6 +99,7 @@ class InfoOverlay
 		this.x2 = x2;
 		this.y2 = y2;
 		@target = null;
+		@mouse = null;
 		
 		update_popup_position();
 	}
@@ -82,15 +109,12 @@ class InfoOverlay
 		if(@dummy_overlay == null)
 			return;
 		
-		@target = null;
-		dummy_overlay.visible = false;
-		
 		script.ui.hide_tooltip(popup);
 	}
 	
 	void step()
 	{
-		if(@target != null)
+		if(@target != null || @mouse != null)
 		{
 			update_popup_position();
 		}
@@ -113,10 +137,12 @@ class InfoOverlay
 		
 		@dummy_overlay = Container(script.ui);
 		dummy_overlay.mouse_enabled = false;
-//		dummy_overlay.background_colour = 0x55ff0000;
+		//dummy_overlay.background_colour = 0x55ff0000;
 		script.ui.add_child(dummy_overlay);
 		
-		@popup = PopupOptions(script.ui, '', false, PopupPosition::Above, PopupTriggerType::Manual, PopupHideType::Manual);
+		@popup = PopupOptions(script.ui, '', false,
+			PopupPosition::Above, PopupTriggerType::Manual, PopupHideType::Manual);
+		popup.hide.on(EventCallback(on_popup_hide));
 	}
 	
 	private void update_popup_position()
@@ -124,6 +150,13 @@ class InfoOverlay
 		if(@target != null)
 		{
 			target.get_bounding_box_world(this.x1, this.y1, this.x2, this.y2);
+		}
+		else if(@mouse != null)
+		{
+			this.x1 = mouse.x;
+			this.y1 = mouse.y;
+			this.x2 = mouse.x;
+			this.y2 = mouse.y;
 		}
 		
 		float x1, y1, x2, y2;
@@ -136,6 +169,13 @@ class InfoOverlay
 		dummy_overlay.height = y2 - y1;
 		dummy_overlay.visible = true;
 		dummy_overlay.force_calculate_bounds();
+	}
+	
+	private void on_popup_hide(EventInfo@ event)
+	{
+		@target = null;
+		@mouse = null;
+		dummy_overlay.visible = false;
 	}
 	
 }
