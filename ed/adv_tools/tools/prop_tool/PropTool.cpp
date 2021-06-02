@@ -326,7 +326,7 @@ class PropTool : Tool
 		
 		if(lock)
 		{
-			draw_circle(script.g, x, y, 4 * size / script.zoom, 12, 22, 22, 1 / script.zoom, clr);
+			drawing::circle(script.g, 22, 22, x, y, 4 * size / script.zoom, 12, 1 / script.zoom, clr);
 		}
 	}
 	

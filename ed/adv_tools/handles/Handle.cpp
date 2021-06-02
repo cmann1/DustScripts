@@ -71,8 +71,8 @@ class Handle
 				break;
 			case HandleShape::Circle:
 			{
-				fill_circle(script.g, 22, 22, x, y, size + shadow_outset, 12, 0x44000000, 0x44000000);
-				fill_circle(script.g, 22, 22, x, y, size, 12, hit ? highlight_colour : colour, hit ? highlight_colour : colour);
+				drawing::fill_circle(script.g, 22, 22, x, y, size + shadow_outset, 12, 0x44000000, 0x44000000);
+				drawing::fill_circle(script.g, 22, 22, x, y, size, 12, hit ? highlight_colour : colour, hit ? highlight_colour : colour);
 			}
 				break;
 		}
