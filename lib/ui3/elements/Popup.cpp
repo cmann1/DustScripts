@@ -519,7 +519,7 @@ class Popup : SingleContainer, IStepHandler
 			target_x2 = ui.mouse.x;
 			target_y2 = ui.mouse.y;
 		}
-		else if(!fading_out && @_target != null)
+		else if(@_target != null)
 		{
 			target_x1 = _target.x1;
 			target_y1 = _target.y1;
