@@ -229,7 +229,7 @@ class EdgeBrushTool : Tool
 	
 	protected void draw_impl(const float sub_frame) override
 	{
-		if(!script.mouse_in_scene || !is_layer_valid)
+		if((!script.mouse_in_scene && state == Idle) || !is_layer_valid)
 			return;
 		
 		const float line_width = min(1.5 / script.zoom, 10.0);
