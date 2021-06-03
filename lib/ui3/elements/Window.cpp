@@ -328,6 +328,7 @@ class Window : MoveableDialog
 		if(_title_before.add_child(child, index))
 		{
 			_title_before.fit_to_contents(true);
+			_title_before.visible = true;
 			validate_layout = true;
 			return true;
 		}
@@ -340,6 +341,10 @@ class Window : MoveableDialog
 		if(@_title_before != null && _title_before.remove_child(child))
 		{
 			_title_before.fit_to_contents(true);
+			if(_title_before.child_count == 0)
+			{
+				_title_before.visible = false;
+			}
 			validate_layout = true;
 			return true;
 		}
@@ -403,13 +408,15 @@ class Window : MoveableDialog
 			@_title_after = Container(ui);
 			@_title_after.layout = @title_flow_layout;
 			_title_after.name = 'title_after';
-			Container::add_child(_title_before);
+			Container::add_child(_title_after);
+			puts('create title_after');
 			validate_layout = true;
 		}
 		
 		if(_title_after.add_child(child, index))
 		{
 			_title_after.fit_to_contents(true);
+			_title_after.visible = true;
 			validate_layout = true;
 			return true;
 		}
@@ -422,6 +429,10 @@ class Window : MoveableDialog
 		if(@_title_after != null && _title_after.remove_child(child))
 		{
 			_title_after.fit_to_contents(true);
+			if(_title_after.child_count == 0)
+			{
+				_title_after.visible = false;
+			}
 			validate_layout = true;
 			return true;
 		}
