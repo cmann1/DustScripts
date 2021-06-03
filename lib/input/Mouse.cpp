@@ -89,19 +89,12 @@ class Mouse
 		right_down = (state & 8) != 0;
 		middle_down = (state & 16) != 0;
 		
-		if(block_mouse)
+		if(!block_mouse)
 		{
-			if(left_down && !prev_left_down)
-				left_down = false;
-			if(right_down && !prev_right_down)
-				right_down = false;
-			if(middle_down && !prev_middle_down)
-				middle_down = false;
+			left_press = left_down && !prev_left_down;
+			right_press = right_down && !prev_right_down;
+			middle_press = middle_down && !prev_middle_down;
 		}
-		
-		left_press = left_down && !prev_left_down;
-		right_press = right_down && !prev_right_down;
-		middle_press = middle_down && !prev_middle_down;
 		
 		left_release = !left_down && prev_left_down;
 		right_release = !right_down && prev_right_down;
