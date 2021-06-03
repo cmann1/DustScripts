@@ -19,7 +19,7 @@ class TileEdgeData
 	bool has_reset;
 	
 	/// The currently selected edge points
-	float cx1, cy1, cx2, cy2;
+	float ex1, ey1, ex2, ey2;
 	/// The currently selected edge bits
 	uint edge;
 	
@@ -77,23 +77,23 @@ class TileEdgeData
 		switch(edge)
 		{
 			case TileEdge::Top:
-				cx1 = x1; cy1 = y1;
-				cx2 = x2; cy2 = y2;
+				ex1 = x1; ey1 = y1;
+				ex2 = x2; ey2 = y2;
 				this.edge = edge_top;
 				break;
 			case TileEdge::Bottom:
-				cx1 = x3; cy1 = y3;
-				cx2 = x4; cy2 = y4;
+				ex1 = x3; ey1 = y3;
+				ex2 = x4; ey2 = y4;
 				this.edge = edge_bottom;
 				break;
 			case TileEdge::Left:
-				cx1 = x4; cy1 = y4;
-				cx2 = x1; cy2 = y1;
+				ex1 = x4; ey1 = y4;
+				ex2 = x1; ey2 = y1;
 				this.edge = edge_left;
 				break;
 			case TileEdge::Right:
-				cx1 = x2; cy1 = y2;
-				cx2 = x3; cy2 = y3;
+				ex1 = x2; ey1 = y2;
+				ex2 = x3; ey2 = y3;
 				this.edge = edge_right;
 				break;
 		}

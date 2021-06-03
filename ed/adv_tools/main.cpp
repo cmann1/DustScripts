@@ -863,7 +863,7 @@ class AdvToolScript
 		
 		drawing::fill_circle(
 			g, layer, sub_layer,
-			x, y, radius, segments,
+			x, y, radius / zoom, segments,
 			inner_colour, outer_colour, world);
 	}
 	

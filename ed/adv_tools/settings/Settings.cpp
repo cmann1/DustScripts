@@ -99,4 +99,8 @@ namespace Settings
 	/// Priority on, collision off
 	const uint EdgeVisibleColour = 0xffffff00;
 	
+	const float EdgeMarkerLineWidth = 1.5;
+	const float EdgeMarkerRadius = 7;
+	const uint EdgeArrowMarkerColour = 0x55ffffff;
+	
 }
