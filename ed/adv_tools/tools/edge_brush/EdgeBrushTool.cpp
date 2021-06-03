@@ -109,9 +109,10 @@ class EdgeBrushTool : Tool
 		if((data.valid_edges & (1 << edge)) == 0)
 			return false;
 		
+		data.select_edge(edge);
+		
 		if(!fast && radius > 0)
 		{
-			data.select_edge(edge);
 			if(!line_circle_intersect(cx, cy, brush_radius, data.cx1, data.cy1, data.cx2, data.cy2))
 				return false;
 		}
