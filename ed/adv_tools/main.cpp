@@ -427,13 +427,13 @@ class AdvToolScript
 		alt		= editor.key_check_gvb(GVB::Alt);
 		space	= editor.key_check_gvb(GVB::Space);
 		
-		handle_keyboard();
-		handles.step();
-		mouse.step(space);
-		
 		mouse_in_gui = editor.mouse_in_gui();
 		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui && !ui.is_mouse_active && !space;
 		scene_focus = @ui.focus ==  null;
+		
+		handle_keyboard();
+		handles.step();
+		mouse.step(space || !mouse_in_scene);
 		
 		if(mouse.left_press)
 		{
