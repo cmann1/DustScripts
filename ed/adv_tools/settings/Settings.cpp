@@ -92,6 +92,8 @@ namespace Settings
 	
 	const int TileChunkSize = 24;
 	
+	const bool EdgeBrushDebugTiming = false;
+	
 	/// Both priority and collision on
 	const uint EdgeOnColour    = 0xff00ffff;
 	/// Both priority and collision off

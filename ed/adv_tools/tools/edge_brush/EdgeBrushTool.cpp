@@ -257,7 +257,8 @@ class EdgeBrushTool : Tool
 		
 		const float line_width = min(Settings::EdgeMarkerLineWidth / script.zoom, 10.0);
 		
-		const int start_time = get_time_us();
+		const int start_time = Settings::EdgeBrushDebugTiming && mode != Precision
+			? get_time_us() : 0;
 		int stats_draw_count = 0;
 		
 		for(int i = 0; i < draw_list_index; i++)
@@ -281,14 +282,21 @@ class EdgeBrushTool : Tool
 					: (priority_on ? Settings::EdgeVisibleColour : Settings::EdgeOffColour);
 				
 				draw_line(script.g, 22, 22, x1, y1, x2, y2, line_width, clr, true);
-				stats_draw_count++;
+				
+				if(Settings::EdgeBrushDebugTiming)
+				{
+					stats_draw_count++;
+				}
 			}
 		}
 		
-		const int total_time = get_time_us() - start_time;
-		int idx = 100;
-		script.debug.print('count: ' + stats_draw_count, 0xff00ffff, idx++);
-		script.debug.print('DrawTime: ' + (total_time / 1000) + 'ms', 0xff00ffff, idx++);
+		if(Settings::EdgeBrushDebugTiming && mode != Precision)
+		{
+			const int total_time = get_time_us() - start_time;
+			int idx = 100;
+			script.debug.print('DrawCount: ' + stats_draw_count, 0xff00ffff, idx++);
+			script.debug.print('DrawTime: ' + (total_time / 1000) + 'ms', 0xff00ffff, idx++);
+		}
 		
 		switch(mode)
 		{
@@ -496,7 +504,7 @@ class EdgeBrushTool : Tool
 		const int tx2 = floor_int((mx + layer_radius) * PIXEL2TILE);
 		const int ty2 = floor_int((my + layer_radius) * PIXEL2TILE);
 		
-		const int start_time = get_time_us();
+		const int start_time = Settings::EdgeBrushDebugTiming ? get_time_us() : 0;
 		int stats_tile_update_count = 0;
 		int stats_tile_skip_count = 0;
 		
@@ -539,7 +547,10 @@ class EdgeBrushTool : Tool
 						
 						if(!data.solid)
 						{
-							stats_tile_skip_count++;
+							if(Settings::EdgeBrushDebugTiming)
+							{
+								stats_tile_skip_count++;
+							}
 							continue;
 						}
 						
@@ -591,21 +602,30 @@ class EdgeBrushTool : Tool
 								data.has_reset = true;
 							}
 							
-							stats_tile_update_count++;
+							if(Settings::EdgeBrushDebugTiming)
+							{
+								stats_tile_update_count++;
+							}
 						}
 					} // tile y
 				} // tile x
 			} // chunk x
 		} // chunk y
 		
-		const int total_time = get_time_us() - start_time;
-		int idx = 0;
-		const int tw = tx2 - tx1 + 1;
-		const int th = ty2 - ty1 + 1;
-		script.debug.print((total_time / 1000) + 'ms', idx++);
-		script.debug.print('NotSolid: ' + stats_tile_skip_count, idx++);
-		script.debug.print('Updated: ' + stats_tile_update_count, idx++);
-		script.debug.print('Tiles: ' + tw + ',' + th + ' ' + (tw * th), idx++);
+		if(Settings::EdgeBrushDebugTiming)
+		{
+			const int total_time = get_time_us() - start_time;
+			int idx = 0;
+			const int tw = tx2 - tx1 + 1;
+			const int th = ty2 - ty1 + 1;
+			if(stats_tile_update_count > 0)
+				script.debug.print('Updated: ' + stats_tile_update_count, 0xffffffff, idx++, 120);
+			else
+				idx++;
+			script.debug.print('Tiles: ' + tw + ',' + th + ' ' + (tw * th), idx++);
+			script.debug.print('NotSolid: ' + stats_tile_skip_count, idx++);
+			script.debug.print('UpdateTime: ' + (total_time / 1000) + 'ms', idx++);
+		}
 	}
 	
 	private void do_precision_mode(const int update_edges)
