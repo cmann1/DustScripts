@@ -473,10 +473,8 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 				window.remove_title_before(hidden_checkbox);
 			}
 		}
-		else if(@properties_container != null)
+		else
 		{
-			properties_container.visible = false;
-			
 			if(@hidden_checkbox == null)
 			{
 				@hidden_checkbox = Checkbox(script.ui);
@@ -484,8 +482,14 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 				hidden_checkbox.change.on(EventCallback(on_hidden_change));
 			}
 			
-			hidden_checkbox.checked = !vars.get_var('hide').get_bool();
 			window.add_title_before(hidden_checkbox);
+			
+			if(@properties_container != null)
+			{
+				properties_container.visible = false;
+				
+				hidden_checkbox.checked = !vars.get_var('hide').get_bool();
+			}
 		}
 		
 		window.title = is_z_trigger ? 'Edit Z Text Prop' : 'Edit Text Trigger';
