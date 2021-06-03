@@ -202,7 +202,7 @@ class MultiButton : SingleContainer
 		}
 		
 		tooltip.enabled = true;
-		tooltip.content_string = tooltips[_selected_index];
+		tooltip.content_string = tooltips[_selected_index % int(tooltips.length)];
 		ui.update_tooltip(this);
 	}
 	
