@@ -81,7 +81,9 @@ class Mouse
 		}
 		
 		state = g.mouse_state(0);
-		scroll = (state & 1 != 0) ? -1 : ((state & 2 != 0) ? 1 : 0);
+		scroll = !block_mouse
+			? (state & 1 != 0) ? -1 : ((state & 2 != 0) ? 1 : 0)
+			: 0;
 		
 		left_down = (state & 4) != 0;
 		right_down = (state & 8) != 0;
