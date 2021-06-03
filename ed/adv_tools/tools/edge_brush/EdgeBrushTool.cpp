@@ -16,7 +16,6 @@ const string EMBED_spr_icon_edge_brush = SPRITES_BASE + 'icon_edge_brush.png';
 class EdgeBrushTool : Tool
 {
 	
-	private EdgeBrushMode mode = EdgeBrushMode::Brush;
 	private EdgeBrushState state = Idle;
 	private Mouse@ mouse;
 	private int layer;
@@ -39,21 +38,22 @@ class EdgeBrushTool : Tool
 	// Settings
 	// //////////////////////////////////////////////////////////
 	
+	// TODO: Set to Brush
+	EdgeBrushMode mode = Precision;
+	float brush_radius = 48;
+	/// Which edges must be updated: Top, Bottom, Left, Right
+	uint edge_mask = 0x8 | 0x4 | 0x2 | 0x1;
 	/// Each edge has two bits/flags controlling whether an edge has collision and is rendered: collision and priority
 	/// If the collision bit is on, or collision is off and priority is one, an edge is rendered.
 	/// If the collision and priorty bit are both off no edge is rendered.
 	bool update_collision = true;
 	bool update_priority = true;
-	//float brush_radius = 48;
-	float brush_radius = 7500;
-	EdgeBrushRenderMode render_mode = EdgeBrushRenderMode::Always;
-	/// Which edges must be updated: Top, Bottom, Left, Right
-	uint edge_mask = 0x8 | 0x4 | 0x2 | 0x1;
 	/// Must internal edges (edges shared by two tiles) by updated
 	// TODO: Set to external
-	EdgeFacing edge_facing = EdgeFacing::External;
+	EdgeFacing edge_facing = External;
 	/// If true, edges shared by tiles with different sprites will be considered "external"
 	bool check_internal_sprites = true;
+	EdgeBrushRenderMode render_mode = Always;
 	
 	private bool is_layer_valid { get const { return layer >= 6 && layer <= 20; } }
 	
@@ -81,7 +81,49 @@ class EdgeBrushTool : Tool
 		@mouse = @script.mouse;
 	}
 	
-	private void update_brush_radius(const float new_radius, const float overlay_time=0.1)
+	void update_layer(int new_layer)
+	{
+		const int prev_layer = layer;
+		layer = clamp(new_layer, 6, 20);
+		layer += layer == 18 ? mouse.scroll : 0;
+		script.editor.selected_layer = layer;
+		
+		if(layer != prev_layer)
+		{
+			script.info_overlay.show(mouse, 'LAYER: ' + layer + '', 0.5);
+			clear_tile_cache();
+		}
+	}
+	
+	void update_mode(const EdgeBrushMode new_mode)
+	{
+		if(mode == new_mode)
+			return;
+		
+		mode = new_mode;
+		
+		string mode_name;
+		switch(mode)
+		{
+			case Brush: mode_name = 'Brush'; break;
+			case Precision: mode_name = 'Precision'; break;
+			default:
+				mode = Brush;
+				mode_name = 'Brush';
+				break;
+		}
+		
+		script.info_overlay.show(mouse, mode_name + ' Mode', 0.5);
+	}
+	
+	void cycle_mode(const int direction=1)
+	{
+		update_mode(EdgeBrushMode(
+			(mode + (direction >= 0 ? 1 : -1)) % (Precision + 1)
+		));
+	}
+	
+	void update_brush_radius(const float new_radius, const float overlay_time=0.1)
 	{
 		brush_radius = max(5.0, new_radius);
 		
@@ -156,7 +198,6 @@ class EdgeBrushTool : Tool
 	
 	protected void step_impl() override
 	{
-		// TODO: Make sure both settings aren't set to Auto
 		// TODO: Add mouse/key shortcuts for toggling update_collision/priority
 		
 		layer = script.editor.selected_layer;
@@ -263,17 +304,13 @@ class EdgeBrushTool : Tool
 		// Change layer with mouse wheel
 		if(script.ctrl && mouse.scroll != 0)
 		{
-			const int prev_layer = layer;
-			layer = clamp(layer + mouse.scroll, 6, 20);
-			layer += layer == 18 ? mouse.scroll : 0;
-			script.editor.selected_layer = layer;
-			
-			if(layer != prev_layer)
-			{
-				clear_tile_cache();
-			}
-			
-			script.info_overlay.show(mouse, 'LAYER: ' + layer + '', 0.5);
+			update_layer(layer + mouse.scroll);
+		}
+		
+		// Cycle mode
+		if(mouse.middle_press)
+		{
+			cycle_mode();
 		}
 		
 		switch(mode)
