@@ -98,6 +98,7 @@ class Container : Element
 		if(_remove_child_internal(child))
 		{
 			child._removed();
+			return true;
 		}
 		
 		return false;
