@@ -14,7 +14,6 @@ class MultiButton : SingleContainer
 	
 	Event select;
 	
-	int selected_index { get const { return _selected_index; } }
 	string selected_name { get const { return _selected_name; } }
 	Image@ selected_image { get { return @_selected_image; } }
 	
@@ -60,7 +59,7 @@ class MultiButton : SingleContainer
 		
 		if(@_selected_image == null)
 		{
-			set_selected(insert_index, name, image);
+			selected_index = insert_index;
 		}
 		
 		return image;
@@ -110,6 +109,44 @@ class MultiButton : SingleContainer
 		update_tooltip();
 	}
 	
+	int selected_index
+	{
+		get const { return _selected_index; }
+		set
+		{
+			if(value < 0)
+			{
+				_selected_index = -1;
+				@_selected_image = null;
+				_selected_name = '';
+				return;
+			}
+			
+			const int num_items = int(item_names.length());
+			if(num_items == 0)
+				return;
+			
+			value %= num_items;
+			
+			if(_selected_index == value)
+				return;
+			
+			_selected_index = value;
+			@_selected_image = images[value];
+			_selected_name = item_names[value];
+			
+			@content = _selected_image;
+			
+			if(auto_tooltips)
+			{
+				update_tooltip();
+			}
+			
+			ui._event_info.reset(EventType::SELECT, this);
+			select.dispatch(ui._event_info);
+		}
+	}
+	
 	void _do_layout(LayoutContext@ ctx) override
 	{
 		if(@_content != null)
@@ -143,7 +180,7 @@ class MultiButton : SingleContainer
 			if(num_children == 1)
 			{
 				@content = null;
-				set_selected(-1, '', null);
+				selected_index == -1;
 			}
 			else
 			{
@@ -161,27 +198,10 @@ class MultiButton : SingleContainer
 		
 		if(@new_image != null)
 		{
-			set_selected(new_index, new_name, new_image);
+			selected_index = new_index;
 		}
 		
 		return image;
-	}
-	
-	private void set_selected(const int index, const string name, Image@ image)
-	{
-		_selected_index = index;
-		@_selected_image = @image;
-		_selected_name = name;
-		
-		@content = @image;
-		
-		if(auto_tooltips)
-		{
-			update_tooltip();
-		}
-		
-		ui._event_info.reset(EventType::SELECT, this);
-		select.dispatch(ui._event_info);
 	}
 	
 	private void update_tooltip()
@@ -240,17 +260,7 @@ class MultiButton : SingleContainer
 	
 	void _mouse_click(EventInfo@ event) override
 	{
-		const int num_items = int(item_names.length());
-		
-		if(num_items > 0)
-		{
-			const int new_index = (_selected_index + 1) % num_items;
-			
-			if(new_index != _selected_index)
-			{
-				set_selected(new_index, item_names[new_index], images[new_index]);
-			}
-		}
+		selected_index += 1;
 	}
 	
 }
