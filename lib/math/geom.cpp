@@ -216,3 +216,55 @@ bool point_in_triangle(
 	// 	? (s <= 0 && s + t >= a)
 	// 	: (s >= 0 && s + t <= a);
 }
+
+/// https://stackoverflow.com/a/402010/153844
+bool circle_rectangle_intersect(
+	const float cx, const float cy, const float radius,
+	const float x, const float y, const float hw, const float hh)
+{
+	const float dx = abs(cx - x);
+	const float dy = abs(cy - y);
+
+	if(dx > hw + radius)
+		return false;
+	if(dy > hh + radius)
+		return false;
+
+	if(dx <= hw)
+		return true;
+	if(dy <= hh)
+		return true;
+
+	const float corner_dist_sqr = (dx - hw) * (dx - hw) + (dy - hh) * (dy - hh);
+
+	return corner_dist_sqr <= radius * radius;
+}
+
+/// https://stackoverflow.com/a/10392860/153844
+bool line_circle_intersect(
+	const float cx, const float cy, const float radius,
+	const float x1, const float y1, const float x2, const float y2)
+{
+	const float acx = cx - x1;
+	const float acy = cy - y1;
+	const float abx = x2 - x1;
+	const float aby = y2 - y1;
+	const float ab2 = abx * abx + aby * aby; // dot(ab, ab)
+	const float acab = acx * abx + acy * aby; // dot(ac, ab)
+	float t = acab / ab2;
+	
+	if(t < 0)
+	{
+		t = 0;
+	}
+	else if(t > 1)
+	{
+		t = 1;
+	}
+	
+	const float hx = abx * t + x1 - cx;
+	const float hy = aby * t + y1 - cy;
+	const float h2 = hx * hx + hy * hy; // dot(h, h)
+
+	return h2 <= radius * radius;
+}

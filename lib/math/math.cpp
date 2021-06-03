@@ -61,8 +61,8 @@ float length_sqr(float x, float y)
 
 float dist_sqr(float x1, float y1, float x2, float y2)
 {
-	float dx = x2 - x1;
-	float dy = y2 - y1;
+	const float dx = x2 - x1;
+	const float dy = y2 - y1;
 	return dx * dx + dy * dy;
 }
 
