@@ -257,21 +257,20 @@ bool get_tile_right_edge_points(int shape, float &out x1, float &out y1, float &
 	return true;
 }
 
-void get_edge_points(int shape, int edge, float &out x1, float &out y1, float &out x2, float &out y2, const float x=0, const float y=0)
+bool get_edge_points(const int shape, const int edge, float &out x1, float &out y1, float &out x2, float &out y2,
+	const float x=0, const float y=0)
 {
 	switch(edge)
 	{
 		case TileEdge::Top:
-			get_tile_top_edge_points(shape, x1, y1, x2, y2, x, y);
-			break;
+			return get_tile_top_edge_points(shape, x1, y1, x2, y2, x, y);
 		case TileEdge::Bottom:
-			get_tile_bottom_edge_points(shape, x1, y1, x2, y2, x, y);
-			break;
+			return get_tile_bottom_edge_points(shape, x1, y1, x2, y2, x, y);
 		case TileEdge::Left:
-			get_tile_left_edge_points(shape, x1, y1, x2, y2, x, y);
-			break;
+			return get_tile_left_edge_points(shape, x1, y1, x2, y2, x, y);
 		case TileEdge::Right:
-			get_tile_right_edge_points(shape, x1, y1, x2, y2, x, y);
-			break;
+			return get_tile_right_edge_points(shape, x1, y1, x2, y2, x, y);
 	}
+	
+	return false;
 }
