@@ -35,7 +35,9 @@ class EdgeBrushTool : Tool
 	private int draw_list_size = 1024;
 	private array<TileEdgeData@> draw_list(draw_list_size);
 	
+	// //////////////////////////////////////////////////////////
 	// Settings
+	// //////////////////////////////////////////////////////////
 	
 	/// Each edge has two bits/flags controlling whether an edge has collision and is rendered: collision and priority
 	/// If the collision bit is on, or collision is off and priority is one, an edge is rendered.
@@ -474,6 +476,15 @@ class EdgeBrushTool : Tool
 						if(tile_requires_update)
 						{
 							script.g.set_tile(tx, ty, layer, data.tile, reset_edges);
+							
+							// Query the tile properties again since the properties might have changed
+							// after being updated
+							if(reset_edges && !data.has_reset)
+							{
+								data.init(script.g, tx, ty, layer, edge_mask, check_internal_sprites);
+								data.has_reset = true;
+							}
+							
 							stats_tile_update_count++;
 						}
 					} // tile y

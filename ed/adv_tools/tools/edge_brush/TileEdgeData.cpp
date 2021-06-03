@@ -16,6 +16,8 @@ class TileEdgeData
 	/// Bit flags marking which edges have been updated this pass
 	uint updated_edges;
 	
+	bool has_reset;
+	
 	/// The currently selected edge points
 	float cx1, cy1, cx2, cy2;
 	/// The currently selected edge bits
@@ -29,7 +31,8 @@ class TileEdgeData
 	uint8 edges_facing;
 	
 	void init(scene@ g, const int tx, const int ty, const int layer,
-		const uint edge_mask, const bool check_internal_sprites)
+		const uint edge_mask, const bool check_internal_sprites,
+		const bool update_vertices=true)
 	{
 		@tile = g.get_tile(tx, ty, layer);
 		solid = tile.solid();
@@ -55,15 +58,18 @@ class TileEdgeData
 			(is_external_edge(g, layer, tx, ty, tile, type, TileEdge::Left, check_internal_sprites)   ? 0x4 : 0) |
 			(is_external_edge(g, layer, tx, ty, tile, type, TileEdge::Right, check_internal_sprites)  ? 0x8 : 0); 
 		
-		const float x = tx * 48;
-		const float y = ty * 48;
-		get_tile_quad(type,
-			x1, y1, x2, y2,
-			x3, y3, x4, y4);
-		x1 += x; y1 += y;
-		x2 += x; y2 += y;
-		x3 += x; y3 += y;
-		x4 += x; y4 += y;
+		if(update_vertices)
+		{
+			const float x = tx * 48;
+			const float y = ty * 48;
+			get_tile_quad(type,
+				x1, y1, x2, y2,
+				x3, y3, x4, y4);
+			x1 += x; y1 += y;
+			x2 += x; y2 += y;
+			x3 += x; y3 += y;
+			x4 += x; y4 += y;
+		}
 	}
 	
 	void select_edge(const int edge)
