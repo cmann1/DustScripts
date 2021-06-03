@@ -1,6 +1,7 @@
 #include '../../lib/std.cpp';
 #include '../../lib/layer.cpp';
 #include '../../lib/math/math.cpp';
+#include '../../lib/math/geom.cpp';
 #include '../../lib/enums/GVB.cpp';
 #include '../../lib/enums/VK.cpp';
 #include '../../lib/embed_utils.cpp';
@@ -53,7 +54,7 @@ class AdvToolScript
 	editor_api@ editor;
 	camera@ cam;
 	UI@ ui = UI(true);
-	Mouse mouse(false);
+	Mouse mouse(false, 22);
 	Handles handles;
 	Debug debug();
 	Line line;
@@ -360,6 +361,7 @@ class AdvToolScript
 		
 		// Custom
 		
+		add_tool('Tiles',		EdgeBrushTool(this));
 		add_tool('Props',		PropTool(this));
 		add_tool('Triggers',	TextTool(this));
 		add_tool('Triggers',	ExtendedTriggerTool(this));
@@ -420,14 +422,14 @@ class AdvToolScript
 		
 		zoom = cam.editor_zoom();
 		
-		handle_keyboard();
-		handles.step();
-		mouse.step();
-		
 		ctrl	= editor.key_check_gvb(GVB::Control);
 		shift	= editor.key_check_gvb(GVB::Shift);
 		alt		= editor.key_check_gvb(GVB::Alt);
 		space	= editor.key_check_gvb(GVB::Space);
+		
+		handle_keyboard();
+		handles.step();
+		mouse.step(space);
 		
 		mouse_in_gui = editor.mouse_in_gui();
 		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui && !ui.is_mouse_active && !space;
@@ -667,16 +669,28 @@ class AdvToolScript
 		}
 	}
 	
-	void transform(const float x, const float y, const int from_layer, const int to_layer, float &out out_x, float &out out_y)
+	void transform(const float x, const float y, const int from_layer, const int to_layer,
+		float &out out_x, float &out out_y)
 	{
 		transform_layer_position(g, view_x, view_y, x, y, from_layer, to_layer, out_x, out_y);
 	}
 	
-	void transform_size(const float x, const float y, const int from_layer, const int to_layer, float &out out_x, float &out out_y)
+	float transform_size(const float size, const int from_layer, const int to_layer)
+	{
+		return size * get_layer_scale(g, from_layer, to_layer);
+	}
+	
+	void transform_size(const float x, const float y, const int from_layer, const int to_layer,
+		float &out out_x, float &out out_y)
 	{
 		const float scale = get_layer_scale(g, from_layer, to_layer);
 		out_x = x * scale;
 		out_y = y * scale;
+	}
+	
+	void mouse_layer(const int to_layer, float &out out_x, float &out out_y)
+	{
+		transform_layer_position(g, view_x, view_y, mouse.x, mouse.y, mouse.layer, to_layer, out_x, out_y);
 	}
 	
 	entity@ pick_trigger()
@@ -740,7 +754,8 @@ class AdvToolScript
 			Settings::SelectRectLineWidth / zoom, Settings::SelectRectLineColour);
 	}
 	
-	void snap(const float x, const float y, float &out out_x, float &out out_y, const float custom_snap_size=5, const bool default_shift=false)
+	void snap(const float x, const float y, float &out out_x, float &out out_y, const float custom_snap_size=5,
+		const bool default_shift=false)
 	{
 		const float snap = get_snap_size(custom_snap_size, default_shift);
 		
@@ -798,12 +813,67 @@ class AdvToolScript
 		return 0;
 	}
 	
+	bool circle_segments(const float radius, const uint segments, uint &out out_segments,
+		const float threshold=0, const bool world=true)
+	{
+		// Dynamically adjust the number of segments used to draw the circle
+		// based on how big it is on screen
+		const float view_height = 1080 / (world ? zoom : 1);
+		float t = clamp01((radius * 2) / (view_height * 0.5));
+		// Adjust the curve between high and low detail so the transition
+		// to low detail doesn't happen too soon.
+		// Easing out cubic
+		t--;
+		t = t * t * t + 1;
+		
+		// Don't draw circles that get too small
+		if(segments * t < threshold)
+		{
+			out_segments = 0;
+			return false;
+		}
+		
+		out_segments = int(min(float(segments), 5 + segments * t));
+		return true;
+	}
+	
+	void circle(
+		const uint layer, const uint sub_layer,
+		const float x, const float y, const float radius, uint segments,
+		const float thickness=2, const uint colour=0xFFFFFFFF,
+		const float threshold=0, const bool world=true)
+	{
+		if(!circle_segments(radius, segments, segments, threshold, world))
+			return;
+		
+		drawing::circle(
+			g, layer, sub_layer,
+			x, y, radius, segments,
+			thickness / zoom, colour, world);
+	}
+	
+	void fill_circle(
+		const uint layer, const uint sub_layer,
+		const float x, const float y, const float radius, uint segments,
+		const uint inner_colour, const uint outer_colour,
+		const float threshold=0, const bool world=true)
+	{
+		if(!circle_segments(radius, segments, segments, threshold, world))
+			return;
+		
+		drawing::fill_circle(
+			g, layer, sub_layer,
+			x, y, radius, segments,
+			inner_colour, outer_colour, world);
+	}
+	
 	bool is_same_parallax(const int layer1, const int layer2)
 	{
 		return layer1 >= 12 && layer2 >= 12 || layer1 == layer2;
 	}
 	
-	void show_layer_sublayer_overlay(const float x1, const float y1, const float x2, const float y2, const int layer, const int sublayer)
+	void show_layer_sublayer_overlay(const float x1, const float y1, const float x2, const float y2,
+		const int layer, const int sublayer)
 	{
 		info_overlay.show(x1, y1, x2, y2, layer + '.' + sublayer, 0.75);
 	}

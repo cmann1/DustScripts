@@ -10,6 +10,10 @@ namespace Settings
 	const float UIFadeAlpha = 0.35;
 	const float UIFadeSpeed = 4;
 	
+	const float CursorLineWidth			= 1;
+	const uint CursorLineColour			= 0xaaffffff;
+	const uint CursorFillColour			= 0x10ffffff;
+	
 	const float SelectRectLineWidth			= 1.5;
 	const uint SelectRectFillColour			= 0x1144ff44;
 	const uint SelectRectLineColour			= 0x55aaffaa;
@@ -85,5 +89,14 @@ namespace Settings
 	const int KeyPressDelay = 25;
 	/// While a key is pressed, this specifies the speed (in frames) at which it will trigger
 	const int KeyRepeatPeriod = 2;
+	
+	const int TileChunkSize = 24;
+	
+	/// Both priority and collision on
+	const uint EdgeOnColour    = 0xff00ffff;
+	/// Both priority and collision off
+	const uint EdgeOffColour   = 0x88ff00ff;
+	/// Priority on, collision off
+	const uint EdgeVisibleColour = 0xffffff00;
 	
 }

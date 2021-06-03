@@ -476,7 +476,7 @@ class PropTool : Tool
 				
 				if(!script.ctrl)
 				{
-					script.transform(mouse.x, mouse.y, 22, custom_anchor_layer, custom_anchor_x, custom_anchor_y);
+					script.mouse_layer(custom_anchor_layer, custom_anchor_x, custom_anchor_y);
 				}
 				else
 				{
