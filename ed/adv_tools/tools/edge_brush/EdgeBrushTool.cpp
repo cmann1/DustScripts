@@ -3,10 +3,12 @@
 #include '../../../../lib/tiles/get_tile_quad.cpp';
 #include '../../../../lib/tiles/closest_point_on_tile.cpp';
 #include '../../../../lib/tiles/EdgeFlags.cpp';
+#include '../../../../lib/tiles/TileEdge.cpp';
 
 #include 'EdgeBrushMode.cpp';
 #include 'EdgeBrushRenderMode.cpp';
 #include 'EdgeBrushState.cpp';
+#include 'EdgeBrushToolbar.cpp';
 #include 'EdgeFacing.cpp';
 #include 'TileEdgeData.cpp';
 
@@ -37,6 +39,8 @@ class EdgeBrushTool : Tool
 	private TileEdgeData@ precision_edge;
 	private TileEdge precision_edge_index;
 	private float precision_edge_px, precision_edge_py;
+	
+	private EdgeBrushToolbar toolbar;
 	
 	// //////////////////////////////////////////////////////////
 	// Settings
@@ -77,7 +81,7 @@ class EdgeBrushTool : Tool
 	{
 		build_sprite(msg, 'icon_edge_brush');
 		
-		//toolbar.build_sprites(msg);
+		toolbar.build_sprites(msg);
 	}
 	
 	void create(ToolGroup@ group) override
@@ -103,7 +107,7 @@ class EdgeBrushTool : Tool
 		}
 	}
 	
-	void update_mode(const EdgeBrushMode new_mode)
+	void update_mode(const EdgeBrushMode new_mode, const bool notify=true)
 	{
 		if(mode == new_mode)
 			return;
@@ -121,7 +125,12 @@ class EdgeBrushTool : Tool
 				break;
 		}
 		
-		script.info_overlay.show(mouse, mode_name + ' Mode', 0.5);
+		toolbar.update_mode();
+		
+		if(notify)
+		{
+			script.info_overlay.show(mouse, mode_name + ' Mode', 0.5);
+		}
 	}
 	
 	void cycle_mode(const int direction=1)
@@ -131,21 +140,106 @@ class EdgeBrushTool : Tool
 		));
 	}
 	
+	void update_edge_mask(uint8 edge_mask)
+	{
+		if(this.edge_mask == edge_mask)
+			return;
+		
+		this.edge_mask = edge_mask;
+		toolbar.update_edge_mask();
+		clear_tile_cache();
+	}
+	
+	void update_edge_mask(const TileEdge edge, const bool on)
+	{
+		uint8 edge_mask = this.edge_mask & ~(1 << edge);
+		edge_mask |= on ? (1 << edge) : 0;
+		update_edge_mask(edge_mask);
+	}
+	
 	void update_brush_radius(const float new_radius, const float overlay_time=0.1)
 	{
 		brush_radius = max(5.0, new_radius);
+		
+		toolbar.update_brush_radius();
 		
 		if(overlay_time > 0)
 		{
 			if(state == EdgeBrushState::DragRadius)
 			{
-				script.info_overlay.show(drag_radius_x, drag_radius_y, int(brush_radius) + '', overlay_time);
+				script.info_overlay.show(drag_radius_x, drag_radius_y, round(brush_radius) + '', overlay_time);
 			}
 			else
 			{
-				script.info_overlay.show(mouse, int(brush_radius) + '', overlay_time);
+				script.info_overlay.show(mouse, round(brush_radius) + '', overlay_time);
 			}
 		}
+	}
+	
+	void update_inside_tile_only(const bool on)
+	{
+		precision_inside_tile_only = on;
+		clear_tile_cache();
+	}
+	
+	void do_update_collision(bool on)
+	{
+		if(on == update_collision)
+			return;
+		
+		update_collision = on;
+		toolbar.update_collision();
+	}
+	
+	void do_update_priority(bool on)
+	{
+		if(on == update_priority)
+			return;
+		
+		update_priority = on;
+		toolbar.update_priority();
+	}
+	
+	void update_edge_facing(const EdgeFacing new_facing, const bool notify=true)
+	{
+		if(edge_facing == new_facing)
+			return;
+		
+		edge_facing = new_facing;
+		
+		string facing_name;
+		switch(edge_facing)
+		{
+			case EdgeFacing::Both: facing_name = 'Both'; break;
+			case EdgeFacing::Internal: facing_name = 'Internal'; break;
+			default:
+				edge_facing = External;
+				facing_name = 'External';
+				break;
+		}
+		
+		toolbar.update_mode();
+		
+		if(notify)
+		{
+			script.info_overlay.show(mouse, 'Edge Facing: ' + facing_name, 0.5);
+		}
+	}
+	
+	void update_internal_sprites(const bool on)
+	{
+		check_internal_sprites = on;
+		clear_tile_cache();
+	}
+	
+	void update_update_neighbour(const bool on)
+	{
+		precision_update_neighbour = on;
+	}
+	
+	void update_render_mode(const EdgeBrushRenderMode render_mode)
+	{
+		this.render_mode = render_mode;
 	}
 	
 	private void clear_tile_cache()
@@ -204,7 +298,7 @@ class EdgeBrushTool : Tool
 	{
 		script.editor.hide_panels_gui(true);
 		
-		//toolbar.show(script, this);
+		toolbar.show(script, this);
 	}
 	
 	protected void on_deselect_impl()
@@ -215,7 +309,7 @@ class EdgeBrushTool : Tool
 		draw_list_index = 0;
 		@precision_edge = null;
 		clear_tile_cache();
-		//toolbar.hide();
+		toolbar.hide();
 	}
 	
 	protected void step_impl() override
@@ -233,14 +327,6 @@ class EdgeBrushTool : Tool
 		
 		draw_list_index = 0;
 		@precision_edge = null;
-		
-		// TODO: Remove Temp
-		if(script.editor.key_check_pressed_vk(VK::N))
-			update_collision = !update_collision;
-		if(script.editor.key_check_pressed_vk(VK::M))
-			update_priority = !update_priority;
-		if(script.editor.key_check_pressed_vk(VK::N) || script.editor.key_check_pressed_vk(VK::M))
-			puts(update_collision, update_priority);
 		
 		switch(state)
 		{
@@ -378,17 +464,37 @@ class EdgeBrushTool : Tool
 		{
 			update_layer(layer + mouse.scroll);
 		}
-		
 		// Cycle mode
 		if(mouse.middle_press)
 		{
 			cycle_mode();
 		}
 		
+		check_edge_mask_keys();
+		
 		switch(mode)
 		{
 			case Brush: brush_state_idle(); break;
 			case Precision: precision_state_idle(); break;
+		}
+	}
+	
+	private void check_edge_mask_keys()
+	{
+		uint8 edge_mask = this.edge_mask;
+		
+		if(script.editor.key_check_pressed_vk(VK::Up))
+			edge_mask ^= TopBit;
+		if(script.editor.key_check_pressed_vk(VK::Down))
+			edge_mask ^= BottomBit;
+		if(script.editor.key_check_pressed_vk(VK::Left))
+			edge_mask ^= LeftBit;
+		if(script.editor.key_check_pressed_vk(VK::Right))
+			edge_mask ^= RightBit;
+		
+		if(edge_mask != this.edge_mask)
+		{
+			update_edge_mask(edge_mask);
 		}
 	}
 	

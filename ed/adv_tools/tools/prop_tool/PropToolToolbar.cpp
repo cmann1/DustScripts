@@ -6,9 +6,9 @@
 #include '../../../../lib/ui3/layouts/GridLayout.cpp';
 #include 'PropExportType.cpp';
 
-const string EMBED_spr_origin_centre			= PROP_TOOL_SPRITES_BASE + 'origin_centre.png';
-const string EMBED_spr_origin_top				= PROP_TOOL_SPRITES_BASE + 'origin_top.png';
-const string EMBED_spr_origin_top_left			= PROP_TOOL_SPRITES_BASE + 'origin_top_left.png';
+const string EMBED_spr_origin_centre				= PROP_TOOL_SPRITES_BASE + 'origin_centre.png';
+const string EMBED_spr_origin_top					= PROP_TOOL_SPRITES_BASE + 'origin_top.png';
+const string EMBED_spr_origin_top_left				= PROP_TOOL_SPRITES_BASE + 'origin_top_left.png';
 const string EMBED_spr_prop_tool_align_centre		= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_centre.png';
 const string EMBED_spr_prop_tool_align_left			= PROP_TOOL_SPRITES_BASE + 'prop_tool_align_left.png';
 const string EMBED_spr_prop_tool_custom_anchor_lock	= PROP_TOOL_SPRITES_BASE + 'prop_tool_custom_anchor_lock.png';
@@ -109,7 +109,7 @@ class PropToolToolbar
 		// Pick through tiles button
 		
 		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_tiles_blocking', Settings::IconSize, Settings::IconSize);
-		script.init_secondary_toolbar_button(button);
+		script.init_icon(button);
 		button.name = 'pick_through_tiles';
 		button.selectable = true;
 		button.selected = tool.pick_through_tiles;
@@ -119,7 +119,7 @@ class PropToolToolbar
 		// Custom grid button
 		
 		@button = @custom_grid_button = toolbar.add_button(SPRITE_SET, 'prop_tool_custom_grid', Settings::IconSize, Settings::IconSize);
-		script.init_secondary_toolbar_button(button);
+		script.init_icon(button);
 		button.name = 'custom_grid';
 		@button.tooltip = @custom_grid_tooltip = PopupOptions(ui, '');
 		button.mouse_click.on(button_click);
@@ -149,7 +149,7 @@ class PropToolToolbar
 		@origin_button.tooltip = PopupOptions(ui, '');
 		origin_button.mouse_click.on(button_click);
 		origin_button.open.on(EventCallback(on_origin_select_open));
-		script.init_secondary_toolbar_button(origin_button);
+		script.init_icon(origin_button);
 		toolbar.add(origin_button);
 		update_origin_tooltip();
 		
@@ -173,14 +173,14 @@ class PropToolToolbar
 		button.selected = tool.custom_anchor_lock;
 		@button.tooltip = PopupOptions(ui, 'Lock custom anchor');
 		button.mouse_click.on(button_click);
-		script.init_secondary_toolbar_button(button);
+		script.init_icon(button);
 		
 		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_custom_anchor_snap', Settings::IconSize, Settings::IconSize);
 		button.name = 'custom_anchor_snap';
 		@button.tooltip = PopupOptions(ui, 'Snap anchor');
 		button.mouse_click.on(button_click);
 		@custom_anchor_snap_button = button;
-		script.init_secondary_toolbar_button(button);
+		script.init_icon(button);
 		
 		// Correct
 		
@@ -188,7 +188,7 @@ class PropToolToolbar
 		correct_button.name = 'correct';
 		@correct_button.tooltip = PopupOptions(ui, 'Correct values');
 		correct_button.mouse_click.on(button_click);
-		script.init_secondary_toolbar_button(correct_button);
+		script.init_icon(correct_button);
 		
 		// Align button
 		
@@ -196,7 +196,7 @@ class PropToolToolbar
 		align_button.name = 'align';
 		@align_button.tooltip = PopupOptions(ui, 'Align');
 		align_button.mouse_click.on(button_click);
-		script.init_secondary_toolbar_button(align_button);
+		script.init_icon(align_button);
 		
 		Container@ align_buttons = create_align_buttons();
 		
@@ -213,7 +213,7 @@ class PropToolToolbar
 		distribute_button.name = 'distribute';
 		@distribute_button.tooltip = PopupOptions(ui, 'Distribute');
 		distribute_button.mouse_click.on(button_click);
-		script.init_secondary_toolbar_button(distribute_button);
+		script.init_icon(distribute_button);
 		
 		Container@ distribute_buttons = create_distribute_buttons();
 		
@@ -234,7 +234,7 @@ class PropToolToolbar
 		button.selected = tool.show_selection;
 		@button.tooltip = PopupOptions(ui, 'Always show selection');
 		button.mouse_click.on(button_click);
-		script.init_secondary_toolbar_button(button);
+		script.init_icon(button);
 		
 		// Info button
 		
@@ -244,14 +244,14 @@ class PropToolToolbar
 		button.selected = tool.show_info;
 		@button.tooltip = PopupOptions(ui, 'Show prop info');
 		button.mouse_click.on(button_click);
-		script.init_secondary_toolbar_button(button);
+		script.init_icon(button);
 		
 		// Export button
 		
 		@export_button = PopupButton(ui, SPRITE_SET, 'prop_tool_export', Settings::IconSize, Settings::IconSize);
 		@export_button.tooltip = PopupOptions(ui, 'Export');
 		toolbar.add(export_button);
-		script.init_secondary_toolbar_button(export_button);
+		script.init_icon(export_button);
 		
 		Container@ export_contents = Container(ui);
 		

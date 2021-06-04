@@ -648,13 +648,26 @@ class AdvToolScript
 		num_tool_group_popups += open ? 1 : -1;
 	}
 	
-	void init_secondary_toolbar_button(Button@ button)
+	void init_icon(Image@ img)
 	{
-		if(@button.icon == null)
+		if(@img == null)
 			return;
 		
-		button.icon.colour = config.UIIconColour;
-		icon_images.insertLast(button.icon);
+		img.colour = config.UIIconColour;
+		icon_images.insertLast(img);
+	}
+	
+	void init_icon(Button@ button)
+	{
+		init_icon(button.icon);
+	}
+	
+	void init_icon(MultiButton@ mbutton)
+	{
+		for(uint i = 0, count = mbutton.num_items; i < count; i++)
+		{
+			init_icon(mbutton.get_image(i));
+		}
 	}
 	
 	void world_to_hud(const float x, const float y, float &out hud_x, float &out hud_y, const bool ui_coords=true)
