@@ -35,6 +35,8 @@ class MultiButton : SingleContainer
 	
 	string element_type { get const override { return MultiButton::TYPE_NAME; } }
 	
+	uint num_items { get const { return item_names.length; } }
+	
 	Image@ add(const string name, Image@ image, int index=-1)
 	{
 		if(@image == null || item_names.find(name) != -1)
@@ -107,6 +109,14 @@ class MultiButton : SingleContainer
 		
 		tooltips[index] = tooltip;
 		update_tooltip();
+	}
+	
+	Image@ get_image(const int index)
+	{
+		if(index < 0 || index >= int(images.length))
+			return null;
+		
+		return images[index];
 	}
 	
 	int selected_index
