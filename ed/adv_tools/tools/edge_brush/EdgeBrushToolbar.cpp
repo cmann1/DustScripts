@@ -48,7 +48,6 @@ class EdgeBrushToolbar
 	
 	void build_sprites(message@ msg)
 	{
-		puts(EMBED_spr_edgebrush_mode_brush);
 		build_sprite(msg, 'edgebrush_mode_brush');
 		build_sprite(msg, 'edgebrush_mode_precision');
 		build_sprite(msg, 'edgebrush_edge_mask_off');
