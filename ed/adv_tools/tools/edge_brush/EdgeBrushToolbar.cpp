@@ -218,7 +218,7 @@ class EdgeBrushToolbar
 		
 		// Inside only
 		//{
-			@inside_only_btn = toolbar.add_button(SPRITE_SET, 'edgebrush_inside_tile');
+			@inside_only_btn = toolbar.create_button(SPRITE_SET, 'edgebrush_inside_tile');
 			inside_only_btn.selectable = true;
 			inside_only_btn.name = 'inside_tile';
 			@inside_only_btn.tooltip = PopupOptions(ui, 'Inside tiles only');
@@ -237,7 +237,7 @@ class EdgeBrushToolbar
 		
 		// Collision button
 		//{
-			@collision_btn = toolbar.add_button(SPRITE_SET, 'edgebrush_update_collision');
+			@collision_btn = toolbar.create_button(SPRITE_SET, 'edgebrush_update_collision');
 			collision_btn.selectable = true;
 			collision_btn.name = 'collision';
 			@collision_btn.tooltip = PopupOptions(ui, 'Collision');
@@ -248,7 +248,7 @@ class EdgeBrushToolbar
 		
 		// Priority button
 		//{
-			@priority_btn = toolbar.add_button(SPRITE_SET, 'edgebrush_update_priority');
+			@priority_btn = toolbar.create_button(SPRITE_SET, 'edgebrush_update_priority');
 			priority_btn.selectable = true;
 			priority_btn.name = 'priority';
 			@priority_btn.tooltip = PopupOptions(ui, 'Priority');
@@ -285,7 +285,7 @@ class EdgeBrushToolbar
 		
 		// Update neighbours
 		//{
-			@update_neightbour_btn = toolbar.add_button(SPRITE_SET, 'edgebrush_update_neighbour');
+			@update_neightbour_btn = toolbar.create_button(SPRITE_SET, 'edgebrush_update_neighbour');
 			update_neightbour_btn.selectable = true;
 			update_neightbour_btn.name = 'update_neighbour';
 			@update_neightbour_btn.tooltip = PopupOptions(ui, 'Update neighbours');
@@ -294,7 +294,7 @@ class EdgeBrushToolbar
 			script.init_icon(update_neightbour_btn);
 		//}
 		
-		toolbar.add_divider();
+		toolbar.create_divider();
 		
 		// Render mode button
 		//{

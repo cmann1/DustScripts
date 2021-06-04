@@ -108,7 +108,7 @@ class PropToolToolbar
 		
 		// Pick through tiles button
 		
-		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_tiles_blocking', Settings::IconSize, Settings::IconSize);
+		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_tiles_blocking', Settings::IconSize, Settings::IconSize);
 		script.init_icon(button);
 		button.name = 'pick_through_tiles';
 		button.selectable = true;
@@ -118,7 +118,7 @@ class PropToolToolbar
 		
 		// Custom grid button
 		
-		@button = @custom_grid_button = toolbar.add_button(SPRITE_SET, 'prop_tool_custom_grid', Settings::IconSize, Settings::IconSize);
+		@button = @custom_grid_button = toolbar.create_button(SPRITE_SET, 'prop_tool_custom_grid', Settings::IconSize, Settings::IconSize);
 		script.init_icon(button);
 		button.name = 'custom_grid';
 		@button.tooltip = @custom_grid_tooltip = PopupOptions(ui, '');
@@ -167,7 +167,7 @@ class PropToolToolbar
 		
 		// Custom anchor lock button and snap
 		
-		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_custom_anchor_lock', Settings::IconSize, Settings::IconSize);
+		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_custom_anchor_lock', Settings::IconSize, Settings::IconSize);
 		button.name = 'custom_anchor_lock';
 		button.selectable = true;
 		button.selected = tool.custom_anchor_lock;
@@ -175,7 +175,7 @@ class PropToolToolbar
 		button.mouse_click.on(button_click);
 		script.init_icon(button);
 		
-		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_custom_anchor_snap', Settings::IconSize, Settings::IconSize);
+		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_custom_anchor_snap', Settings::IconSize, Settings::IconSize);
 		button.name = 'custom_anchor_snap';
 		@button.tooltip = PopupOptions(ui, 'Snap anchor');
 		button.mouse_click.on(button_click);
@@ -184,7 +184,7 @@ class PropToolToolbar
 		
 		// Correct
 		
-		@correct_button = toolbar.add_button(SPRITE_SET, 'prop_tool_correct', Settings::IconSize, Settings::IconSize);
+		@correct_button = toolbar.create_button(SPRITE_SET, 'prop_tool_correct', Settings::IconSize, Settings::IconSize);
 		correct_button.name = 'correct';
 		@correct_button.tooltip = PopupOptions(ui, 'Correct values');
 		correct_button.mouse_click.on(button_click);
@@ -192,7 +192,7 @@ class PropToolToolbar
 		
 		// Align button
 		
-		@align_button = toolbar.add_button(SPRITE_SET, 'prop_tool_align_left', Settings::IconSize, Settings::IconSize);
+		@align_button = toolbar.create_button(SPRITE_SET, 'prop_tool_align_left', Settings::IconSize, Settings::IconSize);
 		align_button.name = 'align';
 		@align_button.tooltip = PopupOptions(ui, 'Align');
 		align_button.mouse_click.on(button_click);
@@ -209,7 +209,7 @@ class PropToolToolbar
 		
 		// Distribute button
 		
-		@distribute_button = toolbar.add_button(SPRITE_SET, 'prop_tool_dist_left', Settings::IconSize, Settings::IconSize);
+		@distribute_button = toolbar.create_button(SPRITE_SET, 'prop_tool_dist_left', Settings::IconSize, Settings::IconSize);
 		distribute_button.name = 'distribute';
 		@distribute_button.tooltip = PopupOptions(ui, 'Distribute');
 		distribute_button.mouse_click.on(button_click);
@@ -226,9 +226,9 @@ class PropToolToolbar
 		
 		// Selection button
 		
-		toolbar.add_divider();
+		toolbar.create_divider();
 		
-		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_show_selection', Settings::IconSize, Settings::IconSize);
+		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_show_selection', Settings::IconSize, Settings::IconSize);
 		button.name = 'show_selection';
 		button.selectable = true;
 		button.selected = tool.show_selection;
@@ -238,7 +238,7 @@ class PropToolToolbar
 		
 		// Info button
 		
-		@button = toolbar.add_button(SPRITE_SET, 'prop_tool_show_info', Settings::IconSize, Settings::IconSize);
+		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_show_info', Settings::IconSize, Settings::IconSize);
 		button.name = 'show_info';
 		button.selectable = true;
 		button.selected = tool.show_info;
