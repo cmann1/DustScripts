@@ -15,10 +15,8 @@ class Image : Graphic
 	
 	protected sprites@ sprite;
 	
-	/**
-	 * @brief Normally the sprite's width, height, and offset will be calcualted automatically, but for embedded/script sprites (and possibly some other ones too)
-	 * these do not seem to be accurate
-	 */
+	/// @brief Normally the sprite's width, height, and offset will be calcualted automatically, but for embedded/script
+	/// sprites (and possibly some other ones too) these do not seem to be accurate
 	Image(UI@ ui, const string _sprite_set, const string _sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
 		super(ui);

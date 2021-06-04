@@ -1301,7 +1301,10 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 					@ctx = @new_ctx;
 				//}
 				
-				Element@ parent = element.parent;
+				// Get this element's parent, but use the parent context root instead of Element::parent.
+				// Do this because non-Container elements can return custom "children" by overriding
+				// _queue_children_for_layout in which case child.parent won't be set
+				Element@ parent = @ctx.parent != null ? ctx.parent.root : null;
 				
 				if(element.validate_layout)
 				{
