@@ -93,7 +93,7 @@ class Toolbar : MoveableDialog, IOrientationParent
 		return button;
 	}
 	
-	Button@ add_button(Element@ content)
+	Button@ create_button(Element@ content)
 	{
 		Button@ button = Button(ui, content);
 		@button.group = button_group;
@@ -102,7 +102,7 @@ class Toolbar : MoveableDialog, IOrientationParent
 		return button;
 	}
 	
-	Button@ add_button(const string text)
+	Button@ create_button(const string text)
 	{
 		Button@ button = Button(ui, text);
 		@button.group = button_group;
@@ -111,7 +111,7 @@ class Toolbar : MoveableDialog, IOrientationParent
 		return button;
 	}
 	
-	Button@ add_button(const string sprite_set, const string sprite_name,
+	Button@ create_button(const string sprite_set, const string sprite_name,
 		const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
 	{
 		Button@ button = Button(ui, sprite_set, sprite_name, width, height, offset_x, offset_y);
@@ -121,7 +121,7 @@ class Toolbar : MoveableDialog, IOrientationParent
 		return button;
 	}
 	
-	Divider@ add_divider()
+	Divider@ create_divider()
 	{
 		Divider@ divider = Divider(ui, this);
 		add_child(divider);
