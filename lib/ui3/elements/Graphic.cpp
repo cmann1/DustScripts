@@ -224,7 +224,6 @@ abstract class Graphic : Element
 			case ImageSize::Fit:
 				draw_scale_x = gr_width > 0  ? (width  / gr_width) : 0;
 				draw_scale_y = gr_height > 0 ? (height / gr_height) : 0;
-				ui.debug.print(_id + ' ' + width +'/'+ gr_width + ' - ' + height+'/'+ gr_height+' = '+draw_scale_x+','+draw_scale_y, 0xffffffff, _id+'aafs', 1);
 				break;
 			case ImageSize::FitInside:
 			case ImageSize::ConstrainInside:

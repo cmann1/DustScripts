@@ -15,7 +15,8 @@ abstract class Element
 	UI@ ui;
 	Container@ parent;
 	
-	/// Changing this MIGHT cause problems, especially if it conflicts with another element. Rather use name if you need to identify an element.
+	/// Changing this MIGHT cause problems, especially if it conflicts with another element.
+	/// Rather use name if you need to identify an element.
 	string _id;
 	/// A way to identify this element, e.g. during even callbacks - can be anything.
 	string name = '';
