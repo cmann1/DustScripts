@@ -3,7 +3,9 @@
 #include 'common.cpp';
 #include 'get_tile_edge_points.cpp';
 
-bool closest_point_on_tile(float x, float y, int tile_x, int tile_y, int type, tileinfo@ tile, float &out out_x, float &out out_y, float &out normal_x, float &out normal_y)
+bool closest_point_on_tile(
+	float x, float y, int tile_x, int tile_y, int type, tileinfo@ tile,
+	float &out out_x, float &out out_y, float &out normal_x, float &out normal_y)
 {
 	const float tx = tile_x * TILE2PIXEL;
 	const float ty = tile_y * TILE2PIXEL;

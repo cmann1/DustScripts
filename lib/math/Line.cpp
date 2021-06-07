@@ -58,7 +58,7 @@ class Line
 		return true;
 	}
 	
-	bool intersection_rays(const Line &in other, float &out x, float &out y, float & out t)
+	bool intersection_rays(const Line &in other, float &out x, float &out y, float &out t)
 	{
 		const float dx = x2 - x1;
 		const float dy = y2 - y1;
