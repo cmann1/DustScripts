@@ -2,7 +2,7 @@
 #include 'TileShape.cpp';
 #include 'TileEdge.cpp';
 
-bool point_in_tile(float x, float y, int tile_ix, int tile_iy, int type, float &out normal_x, float &out normal_y, int layer=19)
+bool point_in_tile(float x, float y, int tile_ix, int tile_iy, int type, float &out normal_x, float &out normal_y)
 {
 	const float tile_x = (x - float(tile_ix * TILE2PIXEL)) * PIXEL2TILE;
 	const float tile_y = (y - float(tile_iy * TILE2PIXEL)) * PIXEL2TILE;
