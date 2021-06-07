@@ -18,7 +18,7 @@ class DistanceConstraint : Constraint
 		this.rest_length = rest_length < 0 ? distance(p1.x, p1.y, p2.x, p2.y) : rest_length;
 	}
 	
-	void resolve() override
+	void resolve(const float time_scale, const int iteration) override
 	{
 		float dx = particle2.x - particle1.x;
 		float dy = particle2.y - particle1.y;

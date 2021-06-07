@@ -14,7 +14,7 @@ class PositionConstraint : Constraint
 		this.y = y;
 	}
 	
-	void resolve() override
+	void resolve(const float time_scale, const int iteration) override
 	{
 		particle.x = x;
 		particle.y = y;

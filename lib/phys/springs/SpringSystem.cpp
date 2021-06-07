@@ -6,6 +6,7 @@
 #include 'constraints/PositionConstraint.cpp';
 #include 'constraints/DistanceConstraint.cpp';
 #include 'constraints/AngularConstraint.cpp';
+#include 'constraints/TileConstraint.cpp';
 
 /// Basically the system used for the santa hat plugin, put together really quickly with code copied
 /// from various sources on the internet.
@@ -27,10 +28,21 @@ class SpringSystem
 	
 	private float _drag;
 	private float delta_prev = DT;
+	Debug@ debug;
 	
 	SpringSystem(const float drag=0.99)
 	{
 		set_drag(drag);
+	}
+	
+	void clear()
+	{
+		forces.resize(0);
+		force_count = 0;
+		particles.resize(0);
+		particle_count = 0;
+		constraints.resize(0);
+		constraint_count = 0;
 	}
 	
 	void set_drag(const float drag)
@@ -96,6 +108,14 @@ class SpringSystem
 		return constraint;
 	}
 	
+	TileConstraint@ add_constraint(TileConstraint@ constraint)
+	{
+		constraints.insertLast(constraint);
+		constraint_count++;
+		
+		return constraint;
+	}
+	
 	void remove_particle(Particle@ particle)
 	{
 		const int index = particles.findByRef(particle);
@@ -130,8 +150,10 @@ class SpringSystem
 			if(particle.is_static)
 				continue;
 			
-			particle.force_x = gravity.x;
-			particle.force_y = gravity.y;
+			particle.force_x = particle.impulse_x + gravity.x;
+			particle.force_y = particle.impulse_y + gravity.y;
+			particle.impulse_x = 0;
+			particle.impulse_y = 0;
 			
 			for(int j = 0; j < force_count; j++)
 			{
@@ -152,20 +174,20 @@ class SpringSystem
 		{
 			for(int j = 0; j < constraint_count; j++)
 			{
-				constraints[j].resolve();
+				constraints[j].resolve(time_scale, i);
 			}
 		}
 		
 		delta_prev = delta;
 	}
 	
-	void resolve_constraints(const int constraint_iterations=4)
+	void resolve_constraints(const int constraint_iterations=4, const float time_scale=1)
 	{
 		for(int i = 0; i < constraint_iterations; i++)
 		{
 			for(int j = 0; j < constraint_count; j++)
 			{
-				constraints[j].resolve();
+				constraints[j].resolve(time_scale, j);
 			}
 		}
 	}
@@ -183,14 +205,14 @@ class SpringSystem
 	
 	void debug_draw(scene@ g, const float origin_x=0, const float origin_y=0)
 	{
-		for(int i = 0; i < particle_count; i++)
-		{
-			particles[i].debug_draw(g, origin_x, origin_y);
-		}
-		
 		for(int i = 0; i < constraint_count; i++)
 		{
 			constraints[i].debug_draw(g, origin_x, origin_y);
+		}
+		
+		for(int i = 0; i < particle_count; i++)
+		{
+			particles[i].debug_draw(g, origin_x, origin_y);
 		}
 	}
 	

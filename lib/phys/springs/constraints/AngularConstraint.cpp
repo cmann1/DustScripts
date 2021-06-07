@@ -31,7 +31,7 @@ class AngularConstraint : Constraint
 		this.max = (max > min ? max : min);
 	}
 	
-	void resolve() override
+	void resolve(const float time_scale, const int iteration) override
 	{
 		float dx = particle2.x - particle1.x;
 		float dy = particle2.y - particle1.y;

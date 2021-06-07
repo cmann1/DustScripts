@@ -1,7 +1,7 @@
 abstract class Constraint
 {
 	
-	void resolve()
+	void resolve(const float time_scale, const int iteration)
 	{
 		
 	}
