@@ -254,14 +254,14 @@ bool line_line_intersection(
 	float cx, float cy, float dx, float dy,
 	float &out x, float &out y, float & out t)
 {
-	float s1x = bx - ax;
-	float s1y = by - ay;
-	float s2x = dx - cx;
-	float s2y = dy - cy;
+	const float s1x = bx - ax;
+	const float s1y = by - ay;
+	const float s2x = dx - cx;
+	const float s2y = dy - cy;
+	const float det = (-s2x * s1y + s1x * s2y);
 	
-	float det = (-s2x * s1y + s1x * s2y);
-	
-	if(det < EPSILON && det > -EPSILON)
+	// Not sure why but could get a divide by zero error her without the equality check
+	if(det < EPSILON && det > -EPSILON || det == 0)
 	{
 		x = 0;
 		y = 0;
@@ -278,7 +278,7 @@ bool line_line_intersection(
 		return false;
 	}
 	
-	float s = (-s1y * (ax - cx) + s1x * (ay - cy)) / det;
+	const float s = (-s1y * (ax - cx) + s1x * (ay - cy)) / det;
 	
 	if(s < 0 || s > 1)
 	{
@@ -289,6 +289,35 @@ bool line_line_intersection(
 	
 	x = ax + s1x * t;
 	y = ay + s1y * t;
+	return true;
+}
+
+bool ray_ray_intersection(
+	const float ax1, const float ay1, const float ax2, const float ay2,
+	const float bx1, const float by1, const float bx2, const float by2,
+	float &out x, float &out y, float &out t)
+{
+	const float dx = ax2 - ax1;
+	const float dy = ay2 - ay1;
+	const float bdx = bx2 - bx1;
+	const float bdy = by2 - by1;
+	
+	float det = (-bdx * dy + dx * bdy);
+	
+	if(det < EPSILON && det > -EPSILON)
+	{
+		x = 0;
+		y = 0;
+		t = 0;
+		return false;
+	}
+	
+	t = (bdx * (ay1 - by1) - bdy * (ax1 - bx1)) / det;
+
+	float s = (-dy * (ax1 - bx1) + dx * (ay1 - by1)) / det;
+	
+	x = ax1 + dx * t;
+	y = ay1 + dy * t;
 	return true;
 }
 
