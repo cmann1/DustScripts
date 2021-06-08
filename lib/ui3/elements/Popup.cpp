@@ -128,7 +128,7 @@ class Popup : SingleContainer, IStepHandler
 			active = !_force_hide && (
 				@_target == null || @_target == @ui.mouse_over_element ||
 				(@_target == @ui._active_mouse_element && _target.check_mouse()) ||
-				pressed || hovered || waiting_for_mouse || _options.force_open ||
+				pressed || hovered || waiting_for_mouse || _options.force_open || _options.locked ||
 				_options.trigger_when_hovered && _target.hovered ||
 				_options.keep_open_while_pressed && _target.pressed
 			);
@@ -183,6 +183,7 @@ class Popup : SingleContainer, IStepHandler
 		{
 			// Hide if the mouse is pressed and is not inside this popup, ont of its children, or its target
 			if(
+				!_options.locked &&
 				(ui.mouse.primary_press || _options.any_mouse_down_button && (ui.mouse.left_press || ui.mouse.middle_press || ui.mouse.right_press)) &&
 				!check_mouse() && (@_target == null || !_target.check_mouse()) &&
 				(@ui.mouse_over_element == null || !contains(ui.mouse_over_element))
