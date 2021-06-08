@@ -107,7 +107,7 @@ class PropToolToolbar
 		EventCallback@ button_click = EventCallback(on_toolbar_button_click);
 		
 		// Pick through tiles button
-		
+		//{
 		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_tiles_blocking', Settings::IconSize, Settings::IconSize);
 		script.init_icon(button);
 		button.name = 'pick_through_tiles';
@@ -115,9 +115,10 @@ class PropToolToolbar
 		button.selected = tool.pick_through_tiles;
 		@button.tooltip = PopupOptions(ui, 'Ignore Tiles');
 		button.mouse_click.on(button_click);
+		//}
 		
 		// Custom grid button
-		
+		//{
 		@button = @custom_grid_button = toolbar.create_button(SPRITE_SET, 'prop_tool_custom_grid', Settings::IconSize, Settings::IconSize);
 		script.init_icon(button);
 		button.name = 'custom_grid';
@@ -137,9 +138,10 @@ class PropToolToolbar
 		custom_grid_popup.blur_inset = 0;
 		custom_grid_popup.show.on(EventCallback(on_custom_grid_slider_popup_show));
 		custom_grid_popup.hide.on(EventCallback(on_custom_grid_slider_popup_hide));
+		//}
 		
 		// Orgin button
-		
+		//{
 		float icon_rotation;
 		@origin_img = Image(ui, '', '', Settings::IconSize, Settings::IconSize);
 		update_origin_icon();
@@ -164,9 +166,10 @@ class PropToolToolbar
 				string::nice(PropToolSettings::Origins[i]), Settings::IconSize, Settings::IconSize);
 			item.icon.rotation = rotation;
 		}
+		//}
 		
 		// Custom anchor lock button and snap
-		
+		//{
 		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_custom_anchor_lock', Settings::IconSize, Settings::IconSize);
 		button.name = 'custom_anchor_lock';
 		button.selectable = true;
@@ -181,17 +184,19 @@ class PropToolToolbar
 		button.mouse_click.on(button_click);
 		@custom_anchor_snap_button = button;
 		script.init_icon(button);
+		//}
 		
 		// Correct
-		
+		//{
 		@correct_button = toolbar.create_button(SPRITE_SET, 'prop_tool_correct', Settings::IconSize, Settings::IconSize);
 		correct_button.name = 'correct';
 		@correct_button.tooltip = PopupOptions(ui, 'Correct values');
 		correct_button.mouse_click.on(button_click);
 		script.init_icon(correct_button);
+		//}
 		
 		// Align button
-		
+		//{
 		@align_button = toolbar.create_button(SPRITE_SET, 'prop_tool_align_left', Settings::IconSize, Settings::IconSize);
 		align_button.name = 'align';
 		@align_button.tooltip = PopupOptions(ui, 'Align');
@@ -206,9 +211,10 @@ class PropToolToolbar
 		align_popup.spacing = style.spacing;
 		align_popup.show.on(EventCallback(on_align_popup_show));
 		align_popup.hide.on(EventCallback(on_align_popup_hide));
+		//}
 		
 		// Distribute button
-		
+		//{
 		@distribute_button = toolbar.create_button(SPRITE_SET, 'prop_tool_dist_left', Settings::IconSize, Settings::IconSize);
 		distribute_button.name = 'distribute';
 		@distribute_button.tooltip = PopupOptions(ui, 'Distribute');
@@ -223,9 +229,10 @@ class PropToolToolbar
 		distribute_popup.spacing = style.spacing;
 		distribute_popup.show.on(EventCallback(on_distribute_popup_show));
 		distribute_popup.hide.on(EventCallback(on_distribute_popup_hide));
+		//}
 		
 		// Selection button
-		
+		//{
 		toolbar.create_divider();
 		
 		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_show_selection', Settings::IconSize, Settings::IconSize);
@@ -235,9 +242,10 @@ class PropToolToolbar
 		@button.tooltip = PopupOptions(ui, 'Always show selection');
 		button.mouse_click.on(button_click);
 		script.init_icon(button);
+		//}
 		
 		// Info button
-		
+		//{
 		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_show_info', Settings::IconSize, Settings::IconSize);
 		button.name = 'show_info';
 		button.selectable = true;
@@ -245,9 +253,10 @@ class PropToolToolbar
 		@button.tooltip = PopupOptions(ui, 'Show prop info');
 		button.mouse_click.on(button_click);
 		script.init_icon(button);
+		//}
 		
 		// Export button
-		
+		//{
 		@export_button = PopupButton(ui, SPRITE_SET, 'prop_tool_export', Settings::IconSize, Settings::IconSize);
 		@export_button.tooltip = PopupOptions(ui, 'Export');
 		toolbar.add(export_button);
@@ -274,9 +283,10 @@ class PropToolToolbar
 		export_contents.fit_to_contents(true);
 		@export_button.popup.content_element = export_contents;
 		export_button.popup.padding = style.spacing;
+		//}
 		
 		// Info popup
-		
+		//{
 		@info_label = Label(ui, '', true, font::SANS_BOLD, 20);
 		info_label.scale_x = 0.75;
 		info_label.scale_y = 0.75;
@@ -284,6 +294,7 @@ class PropToolToolbar
 		@info_popup = PopupOptions(ui, info_label, false, PopupPosition::BelowLeft, PopupTriggerType::Manual, PopupHideType::Manual);
 		info_popup.spacing = 0;
 		info_popup.background_colour = multiply_alpha(style.normal_bg_clr, 0.5);
+		//}
 		
 		ui.add_child(toolbar);
 		script.window_manager.register_element(toolbar);
