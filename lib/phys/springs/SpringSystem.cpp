@@ -146,6 +146,9 @@ class SpringSystem
 		for(int i = 0; i < particle_count; i++)
 		{
 			Particle@ particle = particles[i];
+			particle.has_contact = false;
+			particle.contact_vx = 0;
+			particle.contact_vy = 0;
 			
 			if(particle.is_static)
 				continue;

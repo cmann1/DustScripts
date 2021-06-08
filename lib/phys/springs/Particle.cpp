@@ -12,6 +12,16 @@ class Particle
 	/// Can be used by certain constraints
 	float radius;
 	
+	/// Is this particle "colliding" with something?
+	/// Can be set by constraints
+	bool has_contact;
+	/// The particle speed at contact
+	float contact_vx;
+	float contact_vy;
+	/// The contact normal
+	float contact_nx;
+	float contact_ny;
+	
 	float x, y;
 	float prev_x, prev_y;
 	float force_x, force_y;
@@ -30,6 +40,22 @@ class Particle
 		prev_y = this.y;
 		this.x = x;
 		this.y = y;
+	}
+	
+	void set_contact(const float nx, const float ny)
+	{
+		const float dx = x - prev_x;
+		const float dy = y - prev_y;
+		
+		if(!has_contact || dx * dx + dy * dy > contact_vx * contact_vx + contact_vy * contact_vy)
+		{
+			contact_vx = dx;
+			contact_vy = dy;
+			contact_nx = nx;
+			contact_ny = ny;
+		}
+		
+		has_contact = true;
 	}
 	
 	void reset(const float x, const float y)
