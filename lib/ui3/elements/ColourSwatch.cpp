@@ -5,6 +5,7 @@ namespace ColourSwatch { const string TYPE_NAME = 'ColourSwatch'; }
 class ColourSwatch : BasicColourSwatch
 {
 	
+	Event activate;
 	Event change;
 	
 	protected uint _colour = 0xffaa4444;
@@ -82,6 +83,8 @@ class ColourSwatch : BasicColourSwatch
 		ui.show_colour_picker(_colour,
 			on_colour_picker_change_delegate, on_colour_picker_change_delegate,
 			_show_alpha);
+		
+		ui._dispatch_event(@activate, EventType::OPEN, this);
 	}
 	
 	/// Hide the colour picker popup
@@ -97,6 +100,7 @@ class ColourSwatch : BasicColourSwatch
 		
 		selected = false;
 		ui._dispatch_event(@change, accept ? EventType::ACCEPT : EventType::CANCEL, this);
+		ui._dispatch_event(@activate, EventType::CLOSE, this);
 	}
 	
 	/// Is the colour picker popup currently open
