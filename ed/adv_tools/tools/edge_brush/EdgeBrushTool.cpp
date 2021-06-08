@@ -434,11 +434,12 @@ class EdgeBrushTool : Tool
 			: (priority_on ? Settings::EdgeVisibleColour : Settings::EdgeOffColour)) | 0xff000000;
 		
 		const float line_width = Settings::EdgeMarkerLineWidth / script.zoom;
-		const float radius = Settings::EdgeMarkerRadius / script.zoom;
 		
 		draw_line(script.g, 22, 21,
 			mouse.x, mouse.y, px, py,
 			line_width, Settings::EdgeArrowMarkerColour);
+		
+		const float radius = min(Settings::EdgeMarkerRadius / script.zoom, 24.0);
 		
 		const float mx = (ex1 + ex2) * 0.5;
 		const float my = (ey1 + ey2) * 0.5;
@@ -450,7 +451,8 @@ class EdgeBrushTool : Tool
 		draw_line(script.g, 22, 21,
 			mx - dy * radius, my + dx * radius,
 			mx + dy * radius, my - dx * radius,
-			line_width * 2, clr);
+			min(line_width * 2, 8.0),
+			clr);
 	}
 	
 	// //////////////////////////////////////////////////////////
