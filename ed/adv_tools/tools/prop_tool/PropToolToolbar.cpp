@@ -1,3 +1,4 @@
+#include '../../../../lib/ui3/elements/ColourSwatch.cpp';
 #include '../../../../lib/ui3/elements/extra/PopupButton.cpp';
 #include '../../../../lib/ui3/elements/extra/SelectButton.cpp';
 #include '../../../../lib/ui3/elements/Select.cpp';
@@ -55,6 +56,9 @@ class PropToolToolbar
 	
 	private PopupButton@ export_button;
 	private Select@ export_type_select;
+	private ColourSwatch@ export_colour_swatch;
+	private NumberSlider@ export_layer_slider;
+	private NumberSlider@ export_sublayer_slider;
 	
 	void build_sprites(message@ msg)
 	{
@@ -264,6 +268,7 @@ class PropToolToolbar
 		
 		Container@ export_contents = Container(ui);
 		
+		// Export type
 		@export_type_select = Select(ui);
 		export_type_select.add_value('0', 'SpriteBatch');
 		export_type_select.add_value('1', 'SpriteGroup');
@@ -272,6 +277,7 @@ class PropToolToolbar
 		export_type_select.change.on(EventCallback(on_export_type_change));
 		export_contents.add_child(export_type_select);
 		
+		// Export button
 		@button = Button(ui, 'Export');
 		button.name = 'export';
 		button.fit_to_contents();
@@ -279,6 +285,17 @@ class PropToolToolbar
 		button.y = export_type_select.y + export_type_select.height + style.spacing;
 		button.mouse_click.on(button_click);
 		export_contents.add_child(button);
+		
+		// Export colour swatch
+		@export_colour_swatch = ColourSwatch(ui);
+		export_colour_swatch.x = export_type_select.x;
+		export_colour_swatch.y = button.y;
+		export_colour_swatch.width  = button.height;
+		export_colour_swatch.height = button.height;
+		export_colour_swatch.colour = 0xffffffff;
+		@export_colour_swatch.tooltip = PopupOptions(ui, 'Colour');
+		export_colour_swatch.activate.on(EventCallback(on_export_colour_activate));
+		export_contents.add_child(export_colour_swatch);
 		
 		export_contents.fit_to_contents(true);
 		@export_button.popup.content_element = export_contents;
@@ -528,7 +545,8 @@ class PropToolToolbar
 		}
 		else if(name == 'export')
 		{
-			tool.export_selected_props(PropExportType(tool.export_type));
+			puts(hex(export_colour_swatch.colour));
+			tool.export_selected_props(export_colour_swatch.colour);
 			export_button.close();
 		}
 	}
@@ -618,6 +636,11 @@ class PropToolToolbar
 	private void on_export_type_change(EventInfo@ event)
 	{
 		tool.export_type = PropExportType(export_type_select.selected_index);
+	}
+	
+	private void on_export_colour_activate(EventInfo@ event)
+	{
+		export_button.popup.locked = event.type == EventType::OPEN;
 	}
 	
 }

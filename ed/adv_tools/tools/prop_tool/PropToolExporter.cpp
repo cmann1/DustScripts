@@ -35,13 +35,16 @@ namespace PropToolExporter
 		puts('========================================================================');
 	}
 	
-	void sprite_group(array<PropData@>@ data, const int num_props, const float origin_x, const float origin_y)
+	void sprite_group(
+		array<PropData@>@ data, const int num_props, const float origin_x, const float origin_y,
+		const uint colour)
 	{
 		string sprite_set_name = '';
 		string layer_sub_layer = '';
 		string align_offset_rotation_scale = '';
 		string colour_frame_palette = '';
 		sprites@ spr = create_sprites();
+		const string colour_string = '0x' + string::lowercase(hex(colour));
 		
 		for(int i = 0; i < num_props; i++)
 		{
@@ -68,7 +71,7 @@ namespace PropToolExporter
 			sprite_set_name += "'" + sprite_set + "','" + sprite_name + "',";
 			layer_sub_layer += p.layer() + ',' + p.sub_layer() + ',';
 			align_offset_rotation_scale += align_x + ',' + align_y + ',' + off_x + ',' + off_y + ',' + rot + ',' + scale_x + ',' + scale_y + ',';
-			colour_frame_palette += 0 + ',' + p.palette() + ',' + '0xFFFFFFFF' + ',';
+			colour_frame_palette += 0 + ',' + p.palette() + ',' + colour_string + ',';
 		}
 		
 		puts('========================================================================');

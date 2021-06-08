@@ -1948,7 +1948,7 @@ class PropTool : Tool
 		return has_custom_anchor;
 	}
 	
-	void export_selected_props(const PropExportType type)	
+	void export_selected_props(const uint colour)	
 	{
 		if(selected_props_count == 0)
 			return;
@@ -1956,13 +1956,16 @@ class PropTool : Tool
 		const float origin_x = has_custom_anchor ? custom_anchor_x : selection_x;
 		const float origin_y = has_custom_anchor ? custom_anchor_y : selection_y;
 		
-		switch(type)
+		switch(export_type)
 		{
 			case PropExportType::SpriteBatch:
-				PropToolExporter::sprite_batch(@selected_props, selected_props_count, origin_x, origin_y);
+				PropToolExporter::sprite_batch(
+					@selected_props, selected_props_count, origin_x, origin_y);
 				break;
 			case PropExportType::SpriteGroup:
-				PropToolExporter::sprite_group(@selected_props, selected_props_count, origin_x, origin_y);
+				PropToolExporter::sprite_group(
+					@selected_props, selected_props_count, origin_x, origin_y,
+					colour);
 				break;
 		}
 	}
