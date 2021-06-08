@@ -1948,7 +1948,9 @@ class PropTool : Tool
 		return has_custom_anchor;
 	}
 	
-	void export_selected_props(const uint colour)	
+	void export_selected_props(
+		const int layer, const int sub_layer, const bool override_layer, const bool override_sub_layer,
+		const uint colour)	
 	{
 		if(selected_props_count == 0)
 			return;
@@ -1960,11 +1962,13 @@ class PropTool : Tool
 		{
 			case PropExportType::SpriteBatch:
 				PropToolExporter::sprite_batch(
-					@selected_props, selected_props_count, origin_x, origin_y);
+					@selected_props, selected_props_count, origin_x, origin_y,
+					layer, sub_layer, override_layer, override_sub_layer);
 				break;
 			case PropExportType::SpriteGroup:
 				PropToolExporter::sprite_group(
 					@selected_props, selected_props_count, origin_x, origin_y,
+					layer, sub_layer, override_layer, override_sub_layer,
 					colour);
 				break;
 		}

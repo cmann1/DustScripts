@@ -1,3 +1,4 @@
+#include '../../../../lib/ui3/elements/Checkbox.cpp';
 #include '../../../../lib/ui3/elements/ColourSwatch.cpp';
 #include '../../../../lib/ui3/elements/extra/PopupButton.cpp';
 #include '../../../../lib/ui3/elements/extra/SelectButton.cpp';
@@ -57,6 +58,8 @@ class PropToolToolbar
 	private PopupButton@ export_button;
 	private Select@ export_type_select;
 	private ColourSwatch@ export_colour_swatch;
+	private Checkbox@ export_override_layer_checkbox;
+	private Checkbox@ export_override_sublayer_checkbox;
 	private NumberSlider@ export_layer_slider;
 	private NumberSlider@ export_sublayer_slider;
 	
@@ -277,12 +280,44 @@ class PropToolToolbar
 		export_type_select.change.on(EventCallback(on_export_type_change));
 		export_contents.add_child(export_type_select);
 		
+		// Export layer
+		@export_override_layer_checkbox = Checkbox(ui);
+		@export_layer_slider = NumberSlider(ui, 0, -20, 20, 1);
+		export_layer_slider.x = export_type_select.x;
+		export_layer_slider.y = export_type_select.y + export_type_select.height + style.spacing;
+		export_layer_slider.width = export_type_select.width - export_override_layer_checkbox.width - style.spacing;
+		@export_layer_slider.tooltip = PopupOptions(ui, 'Layer');
+		export_contents.add_child(export_layer_slider);
+		
+		// Export override layer
+		export_override_layer_checkbox.height = export_layer_slider.height;
+		export_override_layer_checkbox.x = export_layer_slider.x + export_layer_slider.width + style.spacing;
+		export_override_layer_checkbox.y = export_layer_slider.y;
+		@export_override_layer_checkbox.tooltip = PopupOptions(ui, 'Override/Add layer');
+		export_contents.add_child(export_override_layer_checkbox);
+		
+		// Export sublayer
+		@export_override_sublayer_checkbox = Checkbox(ui);
+		@export_sublayer_slider = NumberSlider(ui, 0, -24, 24, 1);
+		export_sublayer_slider.x = export_layer_slider.x;
+		export_sublayer_slider.y = export_layer_slider.y + export_layer_slider.height + style.spacing;
+		export_sublayer_slider.width = export_layer_slider.width;
+		@export_sublayer_slider.tooltip = PopupOptions(ui, 'Sublayer');
+		export_contents.add_child(export_sublayer_slider);
+		
+		// Export override sublayer
+		export_override_sublayer_checkbox.x = export_override_layer_checkbox.x;
+		export_override_sublayer_checkbox.y = export_sublayer_slider.y;
+		export_override_sublayer_checkbox.height = export_sublayer_slider.height;
+		@export_override_sublayer_checkbox.tooltip = PopupOptions(ui, 'Override/Add sublayer');
+		export_contents.add_child(export_override_sublayer_checkbox);
+		
 		// Export button
 		@button = Button(ui, 'Export');
 		button.name = 'export';
 		button.fit_to_contents();
 		button.x = export_type_select.x + export_type_select.width - button.width;
-		button.y = export_type_select.y + export_type_select.height + style.spacing;
+		button.y = export_sublayer_slider.y + export_sublayer_slider.height + style.spacing;
 		button.mouse_click.on(button_click);
 		export_contents.add_child(button);
 		
@@ -545,8 +580,12 @@ class PropToolToolbar
 		}
 		else if(name == 'export')
 		{
-			puts(hex(export_colour_swatch.colour));
-			tool.export_selected_props(export_colour_swatch.colour);
+			tool.export_selected_props(
+				int(export_layer_slider.value),
+				int(export_sublayer_slider.value),
+				export_override_layer_checkbox.checked,
+				export_override_sublayer_checkbox.checked,
+				export_colour_swatch.colour);
 			export_button.close();
 		}
 	}

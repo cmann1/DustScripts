@@ -1,7 +1,9 @@
 namespace PropToolExporter
 {
 	
-	void sprite_batch(array<PropData@>@ data, const int num_props, const float origin_x, const float origin_y)
+	void sprite_batch(
+		array<PropData@>@ data, const int num_props, const float origin_x, const float origin_y,
+		const int layer, const int sub_layer, const bool override_layer, const bool override_sub_layer)
 	{
 		string sprite_set_name = '';
 		string layer_sub_layer = '';
@@ -16,8 +18,11 @@ namespace PropToolExporter
 			string sprite_set, sprite_name;
 			sprite_from_prop(p, sprite_set, sprite_name);
 			
+			const int p_layer = clamp(override_layer ? layer : p.layer() + layer, 0, 20);
+			const int p_sub_layer = clamp(override_sub_layer ? sub_layer : p.sub_layer() + sub_layer, 0, 24);
+			
 			sprite_set_name += "'" + sprite_set + "','" + sprite_name + "',";
-			layer_sub_layer += p.layer() + ',' + p.sub_layer() + ',';
+			layer_sub_layer += p_layer + ',' + p_sub_layer + ',';
 			x_y += (p.x() - origin_x) + ',' + (p.y() - origin_y) + ',';
 			scale += p.scale_x() + ',' + p.scale_y() + ',';
 			rotation += p.rotation() + ',';
@@ -37,6 +42,7 @@ namespace PropToolExporter
 	
 	void sprite_group(
 		array<PropData@>@ data, const int num_props, const float origin_x, const float origin_y,
+		const int layer, const int sub_layer, const bool override_layer, const bool override_sub_layer,
 		const uint colour)
 	{
 		string sprite_set_name = '';
@@ -68,8 +74,11 @@ namespace PropToolExporter
 			float off_x = p.x() - origin_x + ox;
 			float off_y = p.y() - origin_y + oy;
 			
+			const int p_layer = clamp(override_layer ? layer : p.layer() + layer, 0, 20);
+			const int p_sub_layer = clamp(override_sub_layer ? sub_layer : p.sub_layer() + sub_layer, 0, 24);
+			
 			sprite_set_name += "'" + sprite_set + "','" + sprite_name + "',";
-			layer_sub_layer += p.layer() + ',' + p.sub_layer() + ',';
+			layer_sub_layer += p_layer + ',' + p_sub_layer + ',';
 			align_offset_rotation_scale += align_x + ',' + align_y + ',' + off_x + ',' + off_y + ',' + rot + ',' + scale_x + ',' + scale_y + ',';
 			colour_frame_palette += 0 + ',' + p.palette() + ',' + colour_string + ',';
 		}
