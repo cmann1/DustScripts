@@ -1627,7 +1627,7 @@ class PropTool : Tool
 			
 			float normal_x, normal_y;
 			
-			if(point_in_tile(mx, my, tx, ty, tile.type(), normal_x, normal_y, layer))
+			if(point_in_tile(mx, my, tx, ty, tile.type(), normal_x, normal_y))
 				return true;
 		}
 		
