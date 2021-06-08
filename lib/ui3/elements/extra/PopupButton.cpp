@@ -91,7 +91,7 @@ class PopupButton : Button, IStepHandler
 	
 	bool ui_step()
 	{
-		if(ui._has_editor && editor_api::consume_gvb_press(ui._editor, GVB::Escape))
+		if(ui._has_editor && (@popup == null || !popup.locked) && editor_api::consume_gvb_press(ui._editor, GVB::Escape))
 		{
 			close();
 			return false;

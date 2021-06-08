@@ -508,13 +508,16 @@ class ColourPicker : LockedContainer, IStepHandler
 	
 	bool ui_step()
 	{
-		if(ui._editor.key_check_pressed_gvb(GVB::Escape) && @ui.focused_element == null && !contains(ui.focused_element))
+		if(ui._has_editor && @ui.focused_element == null && !contains(ui.focused_element))
 		{
-			ui._dispatch_event(@accept, EventType::CANCEL, this);
-		}
-		else if(ui._editor.key_check_pressed_gvb(GVB::Return) && @ui.focused_element == null && !contains(ui.focused_element))
-		{
-			ui._dispatch_event(@accept, EventType::ACCEPT, this);
+			if(editor_api::consume_gvb_press(ui._editor, GVB::Escape))
+			{
+				ui._dispatch_event(@accept, EventType::CANCEL, this);
+			}
+			else if(editor_api::consume_gvb_press(ui._editor, GVB::Return))
+			{
+				ui._dispatch_event(@accept, EventType::ACCEPT, this);
+			}
 		}
 		
 		return _accept_on_keybaord;
