@@ -21,18 +21,22 @@ float clamp01(float value)
 			: value;
 }
 
-float clamp(float value, float min, float max)
+float clamp(const float value, const float min, const float max)
 {
-	if(value < min) value = min;
-	if(value > max) value = max;
+	if(value <= min)
+		return min;
+	if(value >= max)
+		return max;
 	
 	return value;
 }
 
-int clamp(int value, int min, int max)
+int clamp(const int value, const int min, const int max)
 {
-	if(value < min) value = min;
-	if(value > max) value = max;
+	if(value <= min)
+		return min;
+	if(value >= max)
+		return max;
 	
 	return value;
 }
