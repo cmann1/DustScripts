@@ -13,7 +13,7 @@ class TileConstraint : Constraint
 	float friction;
 	float radius;
 	
-	bool collision;
+	tileinfo@ collision_tile;
 	float collision_vx;
 	float collision_vy;
 	float collision_nx;
@@ -32,7 +32,7 @@ class TileConstraint : Constraint
 	{
 		if(iteration == 0)
 		{
-			collision = false;
+			@collision_tile = null;
 			collision_vx = 0;
 			collision_vy = 0;
 		}
@@ -54,7 +54,7 @@ class TileConstraint : Constraint
 				return;
 		}
 		
-		bool hit = false;
+		tileinfo@ closest_tile = null;
 		float closest_dist_sqr = 9999999.0;
 		bool closest_inside = false;
 		float closest_x;
@@ -99,29 +99,30 @@ class TileConstraint : Constraint
 						continue;
 				}
 				
+				@closest_tile = tile;
 				closest_x = hit_x;
 				closest_y = hit_y;
 				closest_nx = normal_x;
 				closest_ny = normal_y;
 				closest_dist_sqr = dist_sqr;
 				closest_inside = inside;
-				hit = true;
 			}
 		}
 		
-		if(hit)
+		if(@closest_tile != null)
 		{
-			collision = true;
 			float dx = particle.x - particle.prev_x;
 			float dy = particle.y - particle.prev_y;
 			
-			if(!collision || dx * dx + dy * dy > collision_vx * collision_vx + collision_vy * collision_vy)
+			if(@collision_tile == null || dx * dx + dy * dy > collision_vx * collision_vx + collision_vy * collision_vy)
 			{
 				collision_vx = dx;
 				collision_vy = dy;
 				collision_nx = closest_nx;
 				collision_ny = closest_ny;
 			}
+			
+			@collision_tile = closest_tile;
 			
 			if(radius > 0)
 			{
