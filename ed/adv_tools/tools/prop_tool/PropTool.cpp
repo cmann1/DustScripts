@@ -463,7 +463,7 @@ class PropTool : Tool
 		
 		// Set or clear custom anchor position, or set custom anchor layer
 		
-		if(script.mouse_in_scene && script.shift && !script.ctrl && mouse.scroll != 0 && has_custom_anchor)
+		if(script.mouse_in_scene && script.shift && !script.ctrl && !script.alt && mouse.scroll != 0 && has_custom_anchor)
 		{
 			adjust_custom_anchor_layer(mouse.scroll);
 			show_custom_anchor_info();
@@ -701,7 +701,9 @@ class PropTool : Tool
 		else if(@prop_data != null)
 		{
 			selection_bounding_box.layer = selection_layer;
-			script.show_layer_sublayer_overlay(@selection_bounding_box, prop_data.prop.layer(), prop_data.prop.sub_layer());
+			script.show_layer_sublayer_overlay(
+				@selection_bounding_box,
+				prop_data.prop.layer(), prop_data.prop.sub_layer());
 		}
 		
 		if(@hovered_prop != null)
