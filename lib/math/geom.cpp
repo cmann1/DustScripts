@@ -132,7 +132,8 @@ float distance_to_polygon_sqr(const float x, const float y, const array<float>@ 
 	return min_distance;
 }
 
-void closest_point_to_rect(
+/// Returns the side: 0/1/2/3 = L/R/T/B
+int closest_point_to_rect(
 	const float x, const float y, const float x1, const float y1, const float x2, const float y2,
 	float &out out_x, float &out out_y)
 {
@@ -141,6 +142,7 @@ void closest_point_to_rect(
 	Line side(x1,  y1, x2, y1);
 	side.closest_point(x, y, out_x, out_y);
 	float dist = length_sqr(x - out_x, y - out_y);
+	int point_side = 2;
 	
 	// Right
 	
@@ -157,6 +159,7 @@ void closest_point_to_rect(
 		dist = new_dist;
 		out_x = new_x;
 		out_y = new_y;
+		point_side = 1;
 	}
 	
 	// Bottom
@@ -173,6 +176,7 @@ void closest_point_to_rect(
 		dist = new_dist;
 		out_x = new_x;
 		out_y = new_y;
+		point_side = 3;
 	}
 	
 	// Left
@@ -189,7 +193,10 @@ void closest_point_to_rect(
 		dist = new_dist;
 		out_x = new_x;
 		out_y = new_y;
+		point_side = 0;
 	}
+	
+	return point_side;
 }
 
 bool point_in_triangle(
