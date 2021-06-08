@@ -80,6 +80,7 @@ class PropTool : Tool
 	private float custom_anchor_offset_x, custom_anchor_offset_y;
 	
 	private PropToolToolbar toolbar;
+	private int selected_props_info = -1;
 	
 	// Settings
 	
@@ -188,22 +189,32 @@ class PropTool : Tool
 			highlighted_props[i].step();
 		}
 		
-		if(@hovered_prop != null)
+		if(@hovered_prop != null && show_info)
 		{
 			if(@hovered_prop != @previous_hovered_prop)
 			{
 				toolbar.show_prop_info(hovered_prop);
 				@previous_hovered_prop = hovered_prop;
 			}
+			
+			selected_props_info = -1;
 		}
-		else if(selected_props_count > 0)
+		else if(selected_props_count > 0 && show_info)
 		{
-			toolbar.show_custom_info(selected_props_count + ' prop' + (selected_props_count != 1 ? 's' : '') + ' selected');
+			// Only update once when count changes otherwise this popup
+			// will always be on top of other popups
+			if(selected_props_info != selected_props_count)
+			{
+				toolbar.show_custom_info(
+					selected_props_count + ' prop' + (selected_props_count != 1 ? 's' : '') + ' selected');
+				selected_props_info = selected_props_count;
+			}
 		}
 		else
 		{
 			toolbar.hide_info_popup();
 			@previous_hovered_prop = null;
+			selected_props_info = -1;
 		}
 		
 		performing_action = state != Idle && state != Selecting;
