@@ -404,7 +404,7 @@ class Debug
 	DebugLine@ line(
 		uint layer, uint sub_layer,
 		float x1, float y1, float x2, float y2,
-		float thickness=2, uint colour=0xFFFFFFFF, bool world=true, int frames=1)
+		float thickness=2, uint colour=0xFFFFFFFF, bool world=true, int frames=0)
 	{
 		DebugLine@ line = line_pool.get();
 		line.set(layer, sub_layer, x1, y1, x2, y2, thickness, colour, world, frames);
@@ -415,7 +415,7 @@ class Debug
 	DebugRect@ rect(
 		uint layer, uint sub_layer,
 		float x1, float y1, float x2, float y2,
-		float rotation=0, float thickness=-1, uint colour=0xFFFFFFFF, bool world=true, int frames=1)
+		float rotation=0, float thickness=-1, uint colour=0xFFFFFFFF, bool world=true, int frames=0)
 	{
 		DebugRect@ rect = rect_pool.get();
 		rect.set(layer, sub_layer, x1, y1, x2, y2, rotation, thickness, colour, world, frames);
@@ -427,7 +427,7 @@ class Debug
 		string text, float x, float y, float scale=1, float rotation=0,
 		string font_name=font::PROXIMANOVA_REG, uint size=36, int align_x=-1, int align_y=1,
 		uint colour=0xFFFFFFFF, uint shadow_colour=0xaa000000, float width=2, bool outline=false,
-		bool world=true, int frames=1)
+		bool world=true, int frames=0)
 	{
 		DebugText@ text_item = text_pool.get();
 		text_item.set(layer, sub_layer,
@@ -443,7 +443,7 @@ class Debug
 	DebugDot@ dot(
 		uint layer, uint sub_layer,
 		float x, float y,
-		float size=1, uint colour=0xffffffff, float rotation=0, bool world=true, int frames=1)
+		float size=1, uint colour=0xffffffff, float rotation=0, bool world=true, int frames=0)
 	{
 		DebugDot@ dot = dot_pool.get();
 		dot.set(layer, sub_layer, x, y, size, colour, rotation, world, frames);
