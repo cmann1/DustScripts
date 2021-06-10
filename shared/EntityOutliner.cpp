@@ -1,5 +1,4 @@
 #include 'entity_outliner/EntityOutliner.cpp';
-#include 'entity_outliner/Triggers.cpp';
 
 class script : callback_base
 {

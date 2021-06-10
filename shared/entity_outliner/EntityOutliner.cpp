@@ -4,6 +4,7 @@
 #include '../../lib/math/math.cpp';
 
 #include 'EntityOutlinerSettings.cpp';
+#include 'Triggers.cpp';
 
 class EntityOutliner : callback_base
 {
