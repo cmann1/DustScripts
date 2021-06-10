@@ -11,7 +11,6 @@ class TileConstraint : Constraint
 	ITileProvider@ tile_provider;
 	Particle@ particle;
 	float friction;
-	float radius;
 	
 	private raycast@ ray;
 	private Line line;
@@ -29,7 +28,7 @@ class TileConstraint : Constraint
 		int ty = floor_int(particle.y / 48);
 		TileData@ tile;
 		
-		if(radius <= 0)
+		if(particle.radius <= 0)
 		{
 			@tile = tile_provider.get_tile(tx, ty);
 			
@@ -50,10 +49,10 @@ class TileConstraint : Constraint
 		float closest_nx;
 		float closest_ny;
 		
-		const int tx1 = int(floor((particle.x - 48 - radius) / 48));
-		const int ty1 = int(floor((particle.y - 48 - radius) / 48));
-		const int tx2 = int(floor((particle.x + 48 + radius) / 48));
-		const int ty2 = int(floor((particle.y + 48 + radius) / 48));
+		const int tx1 = int(floor((particle.x - 48 - particle.radius) / 48));
+		const int ty1 = int(floor((particle.y - 48 - particle.radius) / 48));
+		const int tx2 = int(floor((particle.x + 48 + particle.radius) / 48));
+		const int ty2 = int(floor((particle.y + 48 + particle.radius) / 48));
 		
 		for(tx = tx1; tx <= tx2; tx++)
 		{
@@ -78,11 +77,11 @@ class TileConstraint : Constraint
 				if(dist_sqr >= closest_dist_sqr)
 					continue;
 				
-				if(radius > 0)
+				if(particle.radius > 0)
 				{
 					float _;
 					inside = point_in_tile(particle.x, particle.y, tx, ty, tile.type, _, _);
-					if(!inside && dist_sqr > radius * radius)
+					if(!inside && dist_sqr > particle.radius * particle.radius)
 						continue;
 				}
 				
@@ -100,13 +99,13 @@ class TileConstraint : Constraint
 		{
 			particle.set_contact(closest_nx, closest_ny);
 			
-			if(radius > 0)
+			if(particle.radius > 0)
 			{
 				const float dx = closest_inside ? particle.x - closest_x : closest_x - particle.x;
 				const float dy = closest_inside ? particle.y - closest_y : closest_y - particle.y;
 				const float l = sqrt(dx * dx + dy * dy);
-				particle.x = closest_x - dx / l * radius;
-				particle.y = closest_y - dy / l * radius;
+				particle.x = closest_x - dx / l * particle.radius;
+				particle.y = closest_y - dy / l * particle.radius;
 			}
 			else
 			{
