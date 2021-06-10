@@ -99,18 +99,6 @@ class TileConstraint : Constraint
 		if(@closest_tile != null)
 		{
 			particle.set_contact(closest_nx, closest_ny);
-			//float dx = particle.x - particle.prev_x;
-			//float dy = particle.y - particle.prev_y;
-			//
-			//if(!particle.has_contact || dx * dx + dy * dy > particle.contact_vx * particle.contact_vx + particle.contact_vy * particle.contact_vy)
-			//{
-			//	particle.contact_vx = dx;
-			//	particle.contact_vy = dy;
-			//	particle.contact_nx = closest_nx;
-			//	particle.contact_ny = closest_ny;
-			//}
-			//
-			//particle.has_contact = true;
 			
 			if(radius > 0)
 			{
