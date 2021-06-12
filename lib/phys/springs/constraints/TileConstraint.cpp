@@ -104,8 +104,11 @@ class TileConstraint : Constraint
 				const float dx = closest_inside ? particle.x - closest_x : closest_x - particle.x;
 				const float dy = closest_inside ? particle.y - closest_y : closest_y - particle.y;
 				const float l = sqrt(dx * dx + dy * dy);
-				particle.x = closest_x - dx / l * particle.radius;
-				particle.y = closest_y - dy / l * particle.radius;
+				if(l != 0)
+				{
+					particle.x = closest_x - dx / l * particle.radius;
+					particle.y = closest_y - dy / l * particle.radius;
+				}
 			}
 			else
 			{
