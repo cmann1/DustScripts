@@ -11,6 +11,7 @@ class Particle
 	float impulse_x, impulse_y;
 	/// Can be used by certain constraints
 	float radius;
+	float air_friction = 0;
 	
 	/// Is this particle "colliding" with something?
 	/// Can be set by constraints

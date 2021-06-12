@@ -165,10 +165,12 @@ class SpringSystem
 				particle.force_y += force.y;
 			}
 			
+			const float x_ratio = _drag * (1 / (1 + (time_scale * DT * particle.air_friction))) * (delta / delta_prev);
+			
 			// Verlet
 			particle.set_position(
-				particle.x + (particle.x - particle.prev_x) * _drag * (delta / delta_prev) + particle.force_x * delta * delta,
-				particle.y + (particle.y - particle.prev_y) * _drag * (delta / delta_prev) + particle.force_y * delta * delta
+				particle.x + (particle.x - particle.prev_x) * x_ratio + particle.force_x * delta * delta,
+				particle.y + (particle.y - particle.prev_y) * x_ratio + particle.force_y * delta * delta
 			);
 		}
 		
