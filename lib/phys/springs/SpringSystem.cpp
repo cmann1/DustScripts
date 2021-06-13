@@ -151,7 +151,11 @@ class SpringSystem
 			particle.contact_vy = 0;
 			
 			if(particle.is_static)
+			{
+				particle.prev_x = particle.x;
+				particle.prev_y = particle.y;
 				continue;
+			}
 			
 			particle.force_x = particle.impulse_x + gravity.x;
 			particle.force_y = particle.impulse_y + gravity.y;
