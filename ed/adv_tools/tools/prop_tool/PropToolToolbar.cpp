@@ -474,6 +474,7 @@ class PropToolToolbar
 		string text =
 			// Group and name
 			string::nice(PROP_GROUP_NAMES[p.prop_group()]) + '::' + prop_index.name + '\n' +
+			'[' + p.prop_set() + '.' + p.prop_group() + '.' + p.prop_index() + ']\n' +
 			// Layer
 			p.layer() + '.' + p.sub_layer();
 		
