@@ -189,11 +189,11 @@ class PropTool : Tool
 			highlighted_props[i].step();
 		}
 		
-		if(@hovered_prop != null && show_info)
+		if((@hovered_prop != null || selected_props_count == 1) && show_info)
 		{
 			if(@hovered_prop != @previous_hovered_prop)
 			{
-				toolbar.show_prop_info(hovered_prop);
+				toolbar.show_prop_info(@hovered_prop != null ? hovered_prop : selected_props[0]);
 				@previous_hovered_prop = hovered_prop;
 			}
 			
