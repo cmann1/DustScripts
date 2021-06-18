@@ -209,6 +209,8 @@ class PropTool : Tool
 					selected_props_count + ' prop' + (selected_props_count != 1 ? 's' : '') + ' selected');
 				selected_props_info = selected_props_count;
 			}
+			
+			@previous_hovered_prop = null;
 		}
 		else
 		{
