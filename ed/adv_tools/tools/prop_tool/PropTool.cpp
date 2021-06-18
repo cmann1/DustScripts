@@ -157,6 +157,9 @@ class PropTool : Tool
 		temporary_selection = false;
 		clear_highlighted_props();
 		
+		@previous_hovered_prop = null;
+		selected_props_info = -1;
+		
 		toolbar.hide();
 	}
 	
