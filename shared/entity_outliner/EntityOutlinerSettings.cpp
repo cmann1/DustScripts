@@ -44,8 +44,8 @@ class EntityOutlinerSettings
 		const float t = 1 - this.t / transition;
 		
 		enabled = lerp_bool(from.enabled, target.enabled, t);
-		colour1 = lerp_colour(from.colour1, target.colour1, t);
-		colour2 = lerp_colour(from.colour2, target.colour2, t);
+		colour1 = colour::lerp(from.colour1, target.colour1, t);
+		colour2 = colour::lerp(from.colour2, target.colour2, t);
 		draw_double = lerp_bool(from.draw_double, target.draw_double, t);
 		outline_player = lerp_bool(from.outline_player, target.outline_player, t);
 		outline_prisms = lerp_bool(from.outline_prisms, target.outline_prisms, t);

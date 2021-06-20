@@ -14,6 +14,25 @@ namespace colour
 		return ((clr >> 24) & 0xff) / 255.0;
 	}
 	
+	uint lerp(const uint start, const uint end, const float t)
+	{
+		const float sa = (start >> 24) & 0xff;
+		const float sr = (start >> 16) & 0xff;
+		const float sg = (start >>  8) & 0xff;
+		const float sb = (start      ) & 0xff;
+
+		const float ea = (end >> 24) & 0xff;
+		const float er = (end >> 16) & 0xff;
+		const float eg = (end >>  8) & 0xff;
+		const float eb = (end      ) & 0xff;
+
+		return
+			(uint(sa + (ea - sa) * t) << 24) |
+			(uint(sr + (er - sr) * t) << 16) |
+			(uint(sg + (eg - sg) * t) << 8) |
+			 uint(sb + (eb - sb) * t);
+	}
+	
 }
 
 // See https://gist.github.com/mjackson/5311256 for functions if needed
@@ -279,23 +298,4 @@ uint unique_colour(const string id, const uint alpha=0xff)
 		map(sin(hash) * 0.5 + 0.5, 0, 1, 0.8, 0.9),
 		map(sin(hash) * 0.5 + 0.5, 0, 1, 0.65, 0.75)
 		) | (alpha << 24);
-}
-
-uint lerp_colour(const uint start, const uint end, const float t)
-{
-	const float sa = (start >> 24) & 0xff;
-	const float sr = (start >> 16) & 0xff;
-	const float sg = (start >>  8) & 0xff;
-	const float sb = (start      ) & 0xff;
-
-	const float ea = (end >> 24) & 0xff;
-	const float er = (end >> 16) & 0xff;
-	const float eg = (end >>  8) & 0xff;
-	const float eb = (end      ) & 0xff;
-
-	return
-		(uint(sa + (ea - sa) * t) << 24) |
-		(uint(sr + (er - sr) * t) << 16) |
-		(uint(sg + (eg - sg) * t) << 8) |
-		 uint(sb + (eb - sb) * t);
 }
