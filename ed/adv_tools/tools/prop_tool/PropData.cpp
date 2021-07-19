@@ -119,7 +119,7 @@ class PropData : SelectableData
 		angle = prop.rotation() * DEG2RAD * sign(prop_scale_x) * sign(prop_scale_y);
 		layer_scale = prop.layer() <= 5 ? script.g.layer_scale(prop.layer()) : 1.0;
 		backdrop_scale = prop.layer() <= 5 ? 2.0 : 1.0;
-		draw_scale = get_layer_scale(script.g, prop.layer(), 22);
+		draw_scale = script.g.layer_scale(prop.layer()) / script.g.layer_scale(22);
 		
 		const float cos_angle = cos(angle);
 		const float sin_angle = sin(angle);
