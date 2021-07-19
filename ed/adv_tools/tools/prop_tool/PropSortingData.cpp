@@ -4,6 +4,7 @@ class PropSortingData
 	prop@ prop;
 	int is_inside;
 	int scene_index;
+	int layer_position;
 	bool selected;
 	const array<array<float>>@ outline;
 	
@@ -19,8 +20,8 @@ class PropSortingData
 		
 		// Compare layers
 		
-		if(prop.layer() != other.prop.layer())
-			return prop.layer() - other.prop.layer();
+		if(layer_position != other.layer_position)
+			return layer_position - other.layer_position;
 		
 		if(prop.sub_layer() != other.prop.sub_layer())
 			return prop.sub_layer() - other.prop.sub_layer();
