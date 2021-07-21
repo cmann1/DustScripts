@@ -21,7 +21,8 @@ class PropData : SelectableData
 	
 	private sprites@ spr;
 	
-	private string sprite_name;
+	string sprite_set;
+	string sprite_name;
 	float x, y;
 	private float angle;
 	private float layer_scale;
@@ -46,7 +47,6 @@ class PropData : SelectableData
 		@this.tool = tool;
 		@this.prop = prop;
 		@this.outline = outline;
-		string sprite_set;
 		sprite_from_prop(@prop, sprite_set, sprite_name);
 		
 		if(@spr == null)
