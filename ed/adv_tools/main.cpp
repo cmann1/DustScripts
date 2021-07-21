@@ -124,6 +124,12 @@ class AdvToolScript
 	float view_w, view_h;
 	float screen_w, screen_h;
 	
+	array<float> layer_scales(23);
+	/// Maps a layer index to it's order
+	array<int> layer_positions(23);
+	/// Maps an order to a layer index
+	array<int> layer_indices(23);
+	
 	// //////////////////////////////////////////////////////////
 	// Init
 	// //////////////////////////////////////////////////////////
@@ -158,6 +164,9 @@ class AdvToolScript
 		editor.hide_gui(hide_gui);
 		editor.hide_panels_gui(hide_panels_gui);
 		editor.hide_layers_gui(hide_layers_gui);
+		
+		store_layer_values();
+		puts('X');
 	}
 
 	void editor_unloaded()
@@ -683,28 +692,48 @@ class AdvToolScript
 		}
 	}
 	
+	int layer_position(const int layer_index)
+	{
+		return layer_positions[layer_index];
+	}
+	
+	int layer_index(const int layer_position)
+	{
+		return layer_indices[layer_position];
+	}
+	
+	float layer_scale(const int layer_index)
+	{
+		return layer_scales[layer_index];
+	}
+	
+	float layer_scale(const int from_layer, const int to_layer)
+	{
+		return layer_scales[from_layer] / layer_scales[to_layer];
+	}
+	
 	void transform(const float x, const float y, const int from_layer, const int to_layer,
 		float &out out_x, float &out out_y)
 	{
-		transform_layer_position(g, view_x, view_y, x, y, from_layer, to_layer, out_x, out_y);
+		transform_layer_position(x, y, from_layer, to_layer, out_x, out_y);
 	}
 	
 	float transform_size(const float size, const int from_layer, const int to_layer)
 	{
-		return size * get_layer_scale(g, from_layer, to_layer);
+		return size * (layer_scales[from_layer] / layer_scales[to_layer]);
 	}
 	
 	void transform_size(const float x, const float y, const int from_layer, const int to_layer,
 		float &out out_x, float &out out_y)
 	{
-		const float scale = get_layer_scale(g, from_layer, to_layer);
+		const float scale = layer_scales[from_layer] / layer_scales[to_layer];
 		out_x = x * scale;
 		out_y = y * scale;
 	}
 	
 	void mouse_layer(const int to_layer, float &out out_x, float &out out_y)
 	{
-		transform_layer_position(g, view_x, view_y, mouse.x, mouse.y, mouse.layer, to_layer, out_x, out_y);
+		transform_layer_position(mouse.x, mouse.y, mouse.layer, to_layer, out_x, out_y);
 	}
 	
 	entity@ pick_trigger()
@@ -914,6 +943,16 @@ class AdvToolScript
 		rotate(local_x, local_y, -to_rotation * DEG2RAD, local_x, local_y);
 	}
 	
+	void store_layer_values()
+	{
+		for(uint i = 0; i < 23; i++)
+		{
+			layer_positions[i] = g.get_layer_position(i);
+			layer_indices[layer_positions[i]] = i;
+			layer_scales[i] = g.layer_scale(i);
+		}
+	}
+	
 	// //////////////////////////////////////////////////////////
 	// Private Methods
 	// //////////////////////////////////////////////////////////
@@ -1002,6 +1041,8 @@ class AdvToolScript
 			selected_tool.group.on_deselect();
 		}
 		
+		store_layer_values();
+		
 		@selected_tool = tool;
 		selected_tool_name = selected_tool.name;
 		do_update_editor_tab(update_editor_tab);
@@ -1053,6 +1094,20 @@ class AdvToolScript
 		{
 			ui.hide_tooltip(shortcut_keys_enabled_popup);
 		}
+	}
+	
+	private void transform_layer_position(
+		const float x, const float y,
+		const int from_layer, const int to_layer,
+		float &out out_x, float &out out_y)
+	{
+		const float scale = layer_scales[from_layer] / layer_scales[to_layer];
+		
+		const float dx = (x - view_x) * scale;
+		const float dy = (y - view_y) * scale;
+		
+		out_x = view_x + dx;
+		out_y = view_y + dy;
 	}
 	
 	void persist_state()

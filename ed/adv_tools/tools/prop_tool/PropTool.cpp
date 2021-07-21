@@ -28,9 +28,6 @@ class PropTool : Tool
 	private bool mouse_press_moved;
 	private bool mouse_press_modified;
 	
-	private array<uint> layer_positions(23);
-	private array<uint> layer_indices(23);
-	
 	private int prop_data_pool_size = 32;
 	private int prop_data_pool_count;
 	private array<PropData@> prop_data_pool(prop_data_pool_size);
@@ -149,12 +146,6 @@ class PropTool : Tool
 		
 		clear_custom_anchor();
 		drag_rotation_handle = false;
-		
-		for(uint i = 0; i < 23; i++)
-		{
-			layer_positions[i] = script.g.get_layer_position(i);
-			layer_indices[layer_positions[i]] = i;
-		}
 	}
 	
 	protected void on_deselect_impl()
@@ -1618,7 +1609,7 @@ class PropTool : Tool
 				@data.outline = @outline;
 				data.is_inside = is_inside ? 1 : 0;
 				data.selected = @prop_data != null ? prop_data.selected : false;
-				data.layer_position = layer_positions[p.layer()];
+				data.layer_position = script.layer_position(p.layer());
 				data.scene_index = i;
 			}
 		}
@@ -1639,9 +1630,9 @@ class PropTool : Tool
 	
 	private bool hittest_tiles(const int prop_layer, const int prop_sublayer)
 	{
-		for(int i = layer_positions[prop_layer]; i <= 20; i++)
+		for(int i = script.layer_position(prop_layer); i <= 20; i++)
 		{
-			const int layer = layer_indices[i];
+			const int layer = script.layer_index(i);
 			
 			if(layer == prop_layer && prop_sublayer >= 10)
 				continue;

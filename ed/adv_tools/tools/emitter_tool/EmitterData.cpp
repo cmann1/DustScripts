@@ -21,6 +21,7 @@ class EmitterData : SelectableData
 	float x, y;
 	float width, height;
 	float rotation;
+	int layer_position;
 	
 	private float world_size_x, world_size_y;
 	private float rect_x1, rect_y1;
@@ -49,6 +50,7 @@ class EmitterData : SelectableData
 		width = width_var.get_int32();
 		height = height_var.get_int32();
 		rotation = rotation_var.get_int32();
+		layer_position = tool.script.layer_position(layer);
 		
 		modified = false;
 		mouse_over_handle = false;
@@ -209,8 +211,8 @@ class EmitterData : SelectableData
 		
 		// Compare layers
 		
-		if(layer != other.layer)
-			return layer - other.layer;
+		if(layer_position != other.layer_position)
+			return layer_position - other.layer_position;
 		
 		if(sublayer != other.sublayer)
 			return sublayer - other.sublayer;
