@@ -1,4 +1,5 @@
 #include '../../misc/SelectableData.cpp';
+#include '../../misc/LineData.cpp';
 
 class PropData : SelectableData
 {
@@ -36,7 +37,7 @@ class PropData : SelectableData
 	
 	private int lines_size = 32;
 	private int lines_count;
-	private array<float> lines(lines_size);
+	private array<LineData> lines(lines_size);
 	
 	void init(AdvToolScript@ script, PropTool@ tool, prop@ prop, const array<array<float>>@ outline)
 	{
@@ -84,12 +85,13 @@ class PropData : SelectableData
 		// Stop drawing outlines after some amount to prevent a black screen
 		if(rendered_lines_count < 16000 || primary_selected || hovered)
 		{
-			for(int i = lines_count - 4; i >= 0; i -= 4)
+			for(int i = lines_count - 1; i >= 0; i--)
 			{
+				LineData@ line = @lines[i];
 				script.g.draw_rectangle_world(22, 22,
-					aabb_x + lines[i] - line_width, aabb_y + lines[i + 1] - lines[i + 2] * 0.5,
-					aabb_x + lines[i] + line_width, aabb_y + lines[i + 1] + lines[i + 2] * 0.5,
-					lines[i + 3],
+					aabb_x + line.mx - line_width, aabb_y + line.my - line.length * 0.5,
+					aabb_x + line.mx + line_width, aabb_y + line.my + line.length * 0.5,
+					line.angle,
 					line_colour);
 			}
 			
@@ -137,9 +139,9 @@ class PropData : SelectableData
 			const array<float>@ path = @outline[i];
 			const int count = int(path.length());
 			
-			if(lines_count + count * 2 >= lines_size)
+			if(lines_count + count >= lines_size)
 			{
-				lines.resize(lines_size = lines_count + count * 2 + 32);
+				lines.resize(lines_size = lines_count + count + 32);
 			}
 			
 			float p_x = path[count - 2];
@@ -174,10 +176,17 @@ class PropData : SelectableData
 				const float dx = x - prev_x;
 				const float dy = y - prev_y;
 				
-				lines[lines_count++] = (prev_x + x) * 0.5; // mx
-				lines[lines_count++] = (prev_y + y) * 0.5; // my
-				lines[lines_count++] = sqrt(dx * dx + dy * dy); // length
-				lines[lines_count++] = atan2(-dx, dy) * RAD2DEG; // angle
+				LineData@ line = @lines[lines_count++];
+				line.x1 = prev_x;
+				line.y1 = prev_y;
+				line.x2 = x;
+				line.y2 = y;
+				line.mx = (prev_x + x) * 0.5;
+				line.my = (prev_y + y) * 0.5;
+				line.length = sqrt(dx * dx + dy * dy);
+				line.angle = atan2(-dx, dy) * RAD2DEG;
+				line.inv_delta_x = dx != 0 ? 1 / dx : 0;
+				line.inv_delta_y = dy != 0 ? 1 / dy : 0;
 				
 				prev_x = x;
 				prev_y = y;
@@ -239,6 +248,60 @@ class PropData : SelectableData
 		}
 		
 		update();
+	}
+	
+	bool intersects_aabb(float x1, float y1, float x2, float y2)
+	{
+		x1 -= aabb_x;
+		y1 -= aabb_y;
+		x2 -= aabb_x;
+		y2 -= aabb_y;
+		
+		for(int i = lines_count - 1; i >= 0; i--)
+		{
+			float t_min, t_max;
+			if(lines[i].aabb_intersection(x1, y1, x2, y2, t_min, t_max))
+				return true;
+		}
+		
+		if(intersects(x1 + aabb_x, y1 + aabb_y))
+			return true;
+		if(intersects(x2 + aabb_x, y2 + aabb_y))
+			return true;
+		if(intersects(x2 + aabb_x, y1 + aabb_y))
+			return true;
+		if(intersects(x1 + aabb_x, y2 + aabb_y))
+			return true;
+		
+		return false;
+	}
+	
+	bool intersects(float px, float py)
+	{
+		if(
+			px < aabb_x + aabb_x1 || px > aabb_x + aabb_x2 ||
+			py < aabb_y + aabb_y1 || py > aabb_y + aabb_y2)
+			return false;
+		
+		const float scale_x = prop_scale_x / layer_scale * backdrop_scale;
+		const float scale_y = prop_scale_y / layer_scale * backdrop_scale;
+		
+		// Calculate mouse "local" position relative to prop rotation and scale
+		
+		tool.script.transform(px, py, 22, prop.layer(), px, py);
+		
+		rotate(
+			(px - x) / scale_x,
+			(py - y) / scale_y,
+			-angle, px, py);
+		
+		for(uint i = 0; i < outline.length(); i++)
+		{
+			if(point_in_polygon(px, py, @outline[i]))
+				return true;
+		}
+		
+		return false;
 	}
 	
 	private void init_prop()

@@ -933,6 +933,9 @@ class PropTool : Tool
 			const array<array<float>>@ outline = @PROP_OUTLINES[p.prop_set() - 1][p.prop_group()][p.prop_index() - 1];
 			PropData@ prop_data = highlight_prop(p, outline);
 			
+			if(!prop_data.intersects_aabb(x1, y1, x2, y2))
+				continue;
+			
 			if(select_rect_pending == 0)
 			{
 				if(mouse.left_down)
