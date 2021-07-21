@@ -4,6 +4,7 @@
 #include 'EmitterToolWindow.cpp';
 #include '../../../../lib/emitters/names.cpp';
 #include '../../../../lib/emitters/common.cpp';
+#include '../../misc/LineData.cpp';
 
 class EmitterTool : Tool
 {
@@ -45,12 +46,15 @@ class EmitterTool : Tool
 	private DragHandleType dragged_handle = DragHandleType::None;
 	
 	private WorldBoundingBox selection_bounding_box;
+	private int min_layer;
 	
 	private EmitterToolWindow properties_window;
 	int emitter_id = EmitterId::DustGround;
 	int layer = 19;
 	int sublayer = 12;
 	float rotation = 0;
+	
+	LineData _line;
 	
 	EmitterTool(AdvToolScript@ script)
 	{
@@ -93,6 +97,18 @@ class EmitterTool : Tool
 		properties_window.show(script, this);
 		
 		script.editor.hide_panels_gui(true);
+		
+		float min_layer_scale = 99999999.0;
+		for(uint i = 0; i < 21; i++)
+		{
+			const float layer_scale = script.g.layer_scale(i);
+			
+			if(layer_scale < min_layer_scale)
+			{
+				min_layer = i;
+				min_layer_scale = layer_scale;
+			}
+		}
 	}
 	
 	protected void on_deselect_impl()
@@ -754,13 +770,27 @@ class EmitterTool : Tool
 		float y2 = max(drag_start_y, mouse.y);
 		float x1 = min(drag_start_x, mouse.x);
 		float x2 = max(drag_start_x, mouse.x);
+		// Expand rect so it finds it will also find emitters on layers with scale < 1
+		float ex1, ey1, ex2, ey2;
+		script.transform(x1, y1, 22, min_layer, ex1, ey1);
+		script.transform(x2, y2, 22, min_layer, ex2, ey2);
+		// get_entity_collision ignores emitter rotation, so long thin emitters rotated at 90deg
+		// might get skipped. Expand the bounding box to help with this somewhat
+		const float expand = 1000;
+		ex1 = min(x1 - expand, ex1);
+		ey1 = min(y1 - expand, ey1);
+		ex2 = max(x2 + expand, ex2);
+		ey2 = max(y2 + expand, ey2);
 		
-		int i = script.g.get_entity_collision(y1, y2, x1, x2, ColType::Emitter);
+		int i = script.g.get_entity_collision(ey1, ey2, ex1, ex2, ColType::Emitter);
 		
 		while(i-- > 0)
 		{
 			entity@ e = script.g.get_entity_collision_index(i);
 			EmitterData@ data = highlight(e, i);
+			
+			if(!data.intersects_aabb(x1, y1, x2, y2))
+				continue;
 			
 			if(select_rect_pending == 0)
 			{

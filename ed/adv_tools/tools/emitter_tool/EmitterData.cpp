@@ -266,6 +266,46 @@ class EmitterData : SelectableData
 		y += this.y;
 	}
 	
+	bool intersects_aabb(float x1, float y1, float x2, float y2)
+	{
+		float rx, ry;
+		
+		// The aabb is contained within the emitter
+		rotate(x1 - aabb_x, y1 - aabb_y, -rotation * DEG2RAD, rx, ry);
+		if(rx <= world_size_x && rx >= -world_size_x && ry <= world_size_y && ry >= -world_size_y)
+			return true;
+		rotate(x2 - aabb_x, y1 - aabb_y, -rotation * DEG2RAD, rx, ry);
+		if(rx <= world_size_x && rx >= -world_size_x && ry <= world_size_y && ry >= -world_size_y)
+			return true;
+		rotate(x2 - aabb_x, y2 - aabb_y, -rotation * DEG2RAD, rx, ry);
+		if(rx <= world_size_x && rx >= -world_size_x && ry <= world_size_y && ry >= -world_size_y)
+			return true;
+		rotate(x1 - aabb_x, y2 - aabb_y, -rotation * DEG2RAD, rx, ry);
+		if(rx <= world_size_x && rx >= -world_size_x && ry <= world_size_y && ry >= -world_size_y)
+			return true;
+		
+		// One of the emitter "edges" intersect the aabb
+		float wx1, wy1, wx2, wy2, wx3, wy3, wx4, wy4;
+		calculate_rotated_rectangle(
+			aabb_x, aabb_y, world_size_x, world_size_y, rotation,
+			wx1, wy1, wx2, wy2, wx3, wy3, wx4, wy4);
+		
+		tool._line.set(wx1, wy1, wx2, wy2);
+		if(tool._line.aabb_intersection(x1, y1, x2, y2, rx, ry))
+			return true;
+		tool._line.set(wx2, wy2, wx3, wy3);
+		if(tool._line.aabb_intersection(x1, y1, x2, y2, rx, ry))
+			return true;
+		tool._line.set(wx3, wy3, wx4, wy4);
+		if(tool._line.aabb_intersection(x1, y1, x2, y2, rx, ry))
+			return true;
+		tool._line.set(wx4, wy4, wx1, wy1);
+		if(tool._line.aabb_intersection(x1, y1, x2, y2, rx, ry))
+			return true;
+		
+		return false;
+	}
+	
 	// Moving
 	
 	void start_drag()

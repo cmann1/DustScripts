@@ -185,8 +185,8 @@ class PropData : SelectableData
 				line.my = (prev_y + y) * 0.5;
 				line.length = sqrt(dx * dx + dy * dy);
 				line.angle = atan2(-dx, dy) * RAD2DEG;
-				line.inv_delta_x = dx != 0 ? 1 / dx : 0;
-				line.inv_delta_y = dy != 0 ? 1 / dy : 0;
+				line.inv_delta_x = dx != 0 ? 1 / dx : 1;
+				line.inv_delta_y = dy != 0 ? 1 / dy : 1;
 				
 				prev_x = x;
 				prev_y = y;

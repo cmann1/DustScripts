@@ -8,6 +8,18 @@ class LineData
 	float angle;
 	float inv_delta_x, inv_delta_y;
 	
+	void set(const float x1, const float y1, const float x2, const float y2)
+	{
+		this.x1 = x1;
+		this.y1 = y1;
+		this.x2 = x2;
+		this.y2 = y2;
+		const float dx = x2 - x1;
+		const float dy = y2 - y1;
+		inv_delta_x = dx != 0 ? 1 / dx : 1;
+		inv_delta_y = dy != 0 ? 1 / dy : 1;
+	}
+	
 	bool aabb_intersection(
 		const float x1, const float y1, const float x2, const float y2,
 		float &out t_min, float &out t_max)
