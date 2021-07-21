@@ -166,7 +166,6 @@ class AdvToolScript
 		editor.hide_layers_gui(hide_layers_gui);
 		
 		store_layer_values();
-		puts('X');
 	}
 
 	void editor_unloaded()

@@ -74,6 +74,9 @@ class PropTool : Tool
 	
 	float origin_align_x, origin_align_y;
 	
+	dictionary locked_props;
+	int num_locked_props;
+	
 	private bool has_custom_anchor;
 	private int custom_anchor_layer = 19;
 	private float custom_anchor_x, custom_anchor_y;
@@ -413,6 +416,14 @@ class PropTool : Tool
 		
 		if(script.scene_focus)
 		{
+			if(script.editor.key_check_pressed_vk(VK::L))
+			{
+				if(script.alt)
+					unlock_all();
+				else
+					lock_selected();
+			}
+			
 			if(script.key_repeat_gvb(GVB::LeftArrow))
 			{
 				shift_props(script.ctrl ? -20 : script.shift ? -10 : -1, 0);
@@ -919,6 +930,9 @@ class PropTool : Tool
 			prop@ p = script.g.get_prop_collision_index(i);
 			
 			if(!script.editor.check_layer_filter(p.layer()))
+				continue;
+			
+			if(locked_props.exists(p.id() + ''))
 				continue;
 			
 			const array<array<float>>@ outline = @PROP_OUTLINES[p.prop_set() - 1][p.prop_group()][p.prop_index() - 1];
@@ -1463,7 +1477,44 @@ class PropTool : Tool
 		update_alignments_from_origin();
 	}
 	
-	// Highligts
+	private void lock_selected()
+	{
+		if(selected_props_count == 0)
+			return;
+		
+		for(int i = selected_props_count - 1; i >= 0; i--)
+		{
+			const string key = selected_props[i].prop.id() + '';
+			
+			if(locked_props.exists(key))
+				continue;
+			
+			locked_props[key] = true;
+			num_locked_props++;
+		}
+		
+		script.info_overlay.show(
+			selection_x + selection_x1, selection_y + selection_y1,
+			selection_x + selection_x2, selection_y + selection_y2,
+			selected_props_count + ' props locked.', 0.75);
+		
+		select_none();
+	}
+	
+	private void unlock_all()
+	{
+		if(num_locked_props == 0)
+			return;
+		
+		script.info_overlay.show(
+			script.mouse,
+			num_locked_props + ' props unlocked.', 0.75);
+		
+		locked_props.deleteAll();
+		num_locked_props = 0;
+	}
+	
+	// Highlights
 	
 	private PropData@ is_prop_highlighted(prop@ prop)
 	{
@@ -1561,6 +1612,9 @@ class PropTool : Tool
 			prop@ p = script.g.get_prop_collision_index(i);
 			
 			if(!script.editor.check_layer_filter(p.layer()))
+				continue;
+			
+			if(locked_props.exists(p.id() + ''))
 				continue;
 			
 			const float prop_x = p.x();
