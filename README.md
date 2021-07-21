@@ -29,7 +29,7 @@ Once added to a map and compiled, left click the script name to save it as a pre
 ### AdvTools
 Combines and improves some of the old editor scripts using the new editor api.   
 Must be compiled as an editor plugin to work correctly.   
-A compiled version can be found [here](https://github.com/cmann1/DustScripts/releases/tag/advtools-v1.2).  
+A compiled version can be found [here](https://github.com/cmann1/DustScripts/releases/latest).  
 The release also contain the `AdvTools.map` map file for an overview of everything it the plugin can do,
 and `advtools.ini` for a list of possible config values and how to change them.
 
