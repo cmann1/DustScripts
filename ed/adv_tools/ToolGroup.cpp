@@ -259,6 +259,19 @@ class ToolGroup
 		}
 		
 		button.tooltip.spacing = script.ui.style.tooltip_default_spacing + y;
+		y = 0;
+		
+		for(int i = int(tools.length()) - 1; i >= 0; i--)
+		{
+			Button@ button = tools[i].toolbar_button;
+			
+			if(@button == null || !button.visible)
+				continue;
+			
+			button.tooltip.spacing = script.ui.style.tooltip_default_spacing + y;
+			y += button.height + script.ui.style.spacing;
+		}
+		
 		popup_content.fit_to_contents(true);
 	}
 	
