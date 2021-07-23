@@ -341,13 +341,29 @@ class EmitterTool : Tool
 	
 	private void state_idle()
 	{
-		// Start Creating
+		// Queue creating - wait until mouse is moved
 		
 		if(mouse.left_press)
 		{
 			force_create = script.mouse_in_scene && script.editor.key_check_vk(VK::A);
 			queued_create = true;
 		}
+		
+		// Select emitter on click
+		
+		if(!force_create && script.mouse_in_scene && mouse.left_press && @hovered_emitter != null)
+		{
+			const SelectAction action = script.shift || (hovered_emitter.selected && !script.ctrl)
+				? SelectAction::Add
+				: script.ctrl ? SelectAction::Remove : SelectAction::Set;
+			
+			pressed_action = hovered_emitter.selected && action != SelectAction::Remove ? SelectAction::None : action;
+			
+			select_emitter(hovered_emitter, action);
+			@pressed_emitter = @hovered_emitter;
+		}
+		
+		// Start creating
 		
 		if(
 			script.mouse_in_scene && script.pressed_in_scene &&
@@ -457,20 +473,6 @@ class EmitterTool : Tool
 				idle_start_rotating();
 				return;
 			}
-		}
-		
-		// Select emitter on click
-		
-		if(!force_create && script.mouse_in_scene && mouse.left_press && @hovered_emitter != null)
-		{
-			const SelectAction action = script.shift || (hovered_emitter.selected && !script.ctrl)
-				? SelectAction::Add
-				: script.ctrl ? SelectAction::Remove : SelectAction::Set;
-			
-			pressed_action = hovered_emitter.selected && action != SelectAction::Remove ? SelectAction::None : action;
-			
-			select_emitter(hovered_emitter, action);
-			@pressed_emitter = @hovered_emitter;
 		}
 		
 		// Selection rect
