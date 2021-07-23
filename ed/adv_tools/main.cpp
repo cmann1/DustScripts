@@ -444,6 +444,12 @@ class AdvToolScript
 		handles.step();
 		mouse.step(space || !mouse_in_scene);
 		
+		const string new_selected_tab = editor.editor_tab();
+		if(new_selected_tab == '' || new_selected_tab == 'Help')
+		{
+			select_tool(null);
+		}
+		
 		if(mouse.left_press)
 		{
 			space_on_press = space;
@@ -1008,9 +1014,6 @@ class AdvToolScript
 	/// Select the specified tool and call the relevant callbacks. Cannot be null.
 	private void select_tool(Tool@ tool, const bool update_editor_tab=true)
 	{
-		if(@tool == null)
-			return;
-		
 		if(@tool == @selected_tool)
 		{
 			if(@selected_tool != null)
@@ -1022,7 +1025,7 @@ class AdvToolScript
 			return;
 		}
 		
-		if(!tool.on_before_select())
+		if(@tool != null && !tool.on_before_select())
 		{
 			if(@selected_tool != null)
 			{
@@ -1034,6 +1037,9 @@ class AdvToolScript
 		
 		ignore_toolbar_select_event = true;
 		
+		// Don't allow the user to deselect, but allow select_tool(null) to deselect tool buttons
+		button_group.allow_deselect = true;
+		
 		if(@selected_tool != null)
 		{
 			selected_tool.on_deselect();
@@ -1043,15 +1049,20 @@ class AdvToolScript
 		store_layer_values();
 		
 		@selected_tool = tool;
-		selected_tool_name = selected_tool.name;
+		selected_tool_name = @selected_tool != null ? selected_tool.name : '';
 		do_update_editor_tab(update_editor_tab);
 		
-		selected_tool.on_select();
-		selected_tool.group.on_select();
-		ignore_toolbar_select_event = false;
+		if(@selected_tool != null)
+		{
+			selected_tool.on_select();
+			selected_tool.group.on_select();
+		}
 		
-		selected_tab = editor.editor_tab() != selected_tool.name
-			? 'Scripts' : selected_tool.name;
+		ignore_toolbar_select_event = false;
+		button_group.allow_deselect = false;
+		
+		selected_tab = editor.editor_tab() != selected_tool_name
+			? 'Scripts' : selected_tool_name;
 		ui.mouse_enabled = true;
 	}
 	
