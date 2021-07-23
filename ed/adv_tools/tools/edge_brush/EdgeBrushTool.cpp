@@ -73,8 +73,8 @@ class EdgeBrushTool : Tool
 	{
 		super(script, 'Tiles', 'Edge Brush');
 		
-		// Set priority = -1 so W selects the tile tool first
-		init_shortcut_key(VK::W, -1);
+		// Set priority = -1 so the tile tool shortcut takes priority
+		init_shortcut_key(VK::B, -1);
 	}
 	
 	void build_sprites(message@ msg) override
@@ -288,11 +288,6 @@ class EdgeBrushTool : Tool
 	// //////////////////////////////////////////////////////////
 	// Callbacks
 	// //////////////////////////////////////////////////////////
-	
-	Tool@ on_shortcut_key() override
-	{
-		return selected ? script.get_tool('Tiles') : @this;
-	}
 	
 	protected void on_select_impl()
 	{

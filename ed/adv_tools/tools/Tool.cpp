@@ -69,7 +69,9 @@ class Tool
 		
 	}
 	
-	Tool@ set_icon(const string sprite_set, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
+	Tool@ set_icon(
+		const string sprite_set, const string sprite_name, const float width=-1, const float height=-1,
+		const float offset_x=0, const float offset_y=0)
 	{
 		this.icon_sprite_set = sprite_set;
 		this.icon_sprite_name = sprite_name;
@@ -85,7 +87,15 @@ class Tool
 		const string &in config_name, const int shortcut_key,
 		const int priority=0, bool register_shortcut_key=true)
 	{
-		this.shortcut_key = script.config.get_vk('Key' + config_name, shortcut_key);
+		// First check this tool's name (with spaces stripped) for a key config
+		this.shortcut_key = script.config.get_vk('Key' + string::replace(name, ' ', ''), shortcut_key);
+		
+		// If there isn't one, and no default is provided, check the parent tool config
+		if(this.shortcut_key == -1)
+		{
+			this.shortcut_key = script.config.get_vk('Key' + config_name, shortcut_key);
+		}
+		
 		this.shortcut_key_priority = priority;
 		this.register_shortcut_key = register_shortcut_key;
 		
