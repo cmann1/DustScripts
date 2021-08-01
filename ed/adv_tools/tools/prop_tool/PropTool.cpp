@@ -1493,9 +1493,13 @@ class PropTool : Tool
 			num_locked_props++;
 		}
 		
+		float sx, sy, sx1, sy1, sx2, sy2;
+		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
+		script.transform_size(min(selection_x1, selection_x2), min(selection_y1, selection_y2), selection_layer, 22, sx1, sy1);
+		script.transform_size(max(selection_x1, selection_x2), max(selection_y1, selection_y2), selection_layer, 22, sx2, sy2);
 		script.info_overlay.show(
-			selection_x + selection_x1, selection_y + selection_y1,
-			selection_x + selection_x2, selection_y + selection_y2,
+			sx + sx1, sy + sy1,
+			sx + sx2, sy + sy2,
 			selected_props_count + ' props locked.', 0.75);
 		
 		select_none();
