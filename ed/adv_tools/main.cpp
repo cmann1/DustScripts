@@ -445,7 +445,9 @@ class AdvToolScript
 		mouse.step(space || !mouse_in_scene);
 		
 		const string new_selected_tab = editor.editor_tab();
-		if(new_selected_tab == '' || new_selected_tab == 'Help')
+		if(
+			new_selected_tab == '' || new_selected_tab == 'Help' ||
+			new_selected_tab == 'Particle' || new_selected_tab == 'Wind')
 		{
 			select_tool(null);
 		}
