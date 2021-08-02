@@ -63,6 +63,24 @@ class Sprite
 			scale_x, scale_y, colour);
 	}
 	
+	void draw(
+		canvas@ c,
+		uint32 frame, uint32 palette,
+		float x, float y, float rotation=0,
+		float scale_x=1, float scale_y=1, uint32 colour=0xFFFFFFFF)
+	{
+		float dx = (sprite_offset_x - sprite_width * origin_x) * scale_x;
+		float dy = (sprite_offset_y - sprite_height * origin_y) * scale_y;
+		
+		rotate(dx, dy, rotation * DEG2RAD, dx, dy);
+		
+		c.draw_sprite(
+			sprite, sprite_name,
+			frame, palette,
+			x + dx, y + dy, rotation,
+			scale_x, scale_y, colour);
+	}
+	
 	void draw_hud(int layer, int sub_layer,
 		uint32 frame, uint32 palette, float x, float y, float rotation=0,
 		float scale_x=1, float scale_y=1, uint32 colour=0xFFFFFFFF)
