@@ -346,6 +346,31 @@ bool line_rectangle_intersection(
 	return false;
 }
 
+/// A faster? line rectangle intersection that also returns both min and max intersection points
+bool line_aabb_intersection(
+	const float lx1, const float ly1, const float lx2, const float ly2,
+	const float ax1, const float ay1, const float ax2, const float ay2,
+	float &out t_min, float &out t_max)
+{
+	const float dx = lx2 - lx1;
+	const float dy = ly2 - ly1;
+	const float inv_delta_x = dx != 0 ? 1 / dx : 1;
+	const float inv_delta_y = dy != 0 ? 1 / dy : 1;
+	float t1 = (ax1 - lx1) * inv_delta_x;
+	float t2 = (ax2 - lx1) * inv_delta_x;
+
+	const float tt_min = min(t1, t2);
+	const float tt_max = max(t1, t2);
+
+	t1 = (ay1 - ly1) * inv_delta_y;
+	t2 = (ay2 - ly1) * inv_delta_y;
+
+	t_min = max(tt_min, min(min(t1, t2), tt_max));
+	t_max = min(tt_max, max(max(t1, t2), tt_min));
+	
+	return t_min <= 1 && t_max >= 0 && t_max > t_min;
+}
+
 /// -1 = Left side
 ///  0 = The point is on the line
 ///  1 = Right side
