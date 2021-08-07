@@ -415,9 +415,19 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 	
 	string clipboard
 	{
-		get const { return _clipboard; }
+		get const
+		{
+			return has_input
+				? input.clipboard
+				: _clipboard;
+		}
 		set
 		{
+			if(has_input)
+			{
+				input.clipboard = value;
+			}
+			
 			_clipboard = value;
 			_dispatch_event(@clipboard_change, EventType::CHANGE, this, _clipboard);
 		}

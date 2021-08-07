@@ -1116,7 +1116,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 	/// Pastes from the clipboard into the current selection
 	void paste(const int scroll_to_caret=-1)
 	{
-		const string text = ui.clipboard;
+		const string text = string::normalise_eol(ui.clipboard);
 		
 		if(text == '')
 			return;
