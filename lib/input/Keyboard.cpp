@@ -1,6 +1,6 @@
 #include '../enums/GVB.cpp';
 #include '../enums/VK.cpp';
-#include '../editor/common.cpp';
+#include '../input/common.cpp';
 #include '../string.cpp';
 #include 'navigation/navigation.cpp';
 #include 'navigation/INavigable.cpp';
@@ -33,7 +33,7 @@ class Keyboard
 	IKeyboardFocus@ _focus;
 	INavigable@ _navigable;
 	
-	private editor_api@ editor;
+	private input_api@ input;
 	
 	private array<int> gvb;
 	private array<int> gvb_modifiers;
@@ -50,9 +50,9 @@ class Keyboard
 	private int pressed_modifiers;
 	private bool pressed_only_modifier;
 	
-	Keyboard(IKeyboardFocusListener@ focus_listener=null)
+	Keyboard(input_api@ input, IKeyboardFocusListener@ focus_listener=null)
 	{
-		@editor = get_editor_api();
+		@this.input = input;
 		
 		@this.focus_listener = focus_listener;
 		
@@ -70,9 +70,9 @@ class Keyboard
 		if(@focus == null)
 			return;
 		
-		ctrl  = editor.key_check_gvb(GVB::Control);
-		shift = editor.key_check_gvb(GVB::Shift);
-		alt   = editor.key_check_gvb(GVB::Alt);
+		ctrl  = input.key_check_gvb(GVB::Control);
+		shift = input.key_check_gvb(GVB::Shift);
+		alt   = input.key_check_gvb(GVB::Alt);
 		modifiers = (ctrl ? int(ModifierKey::Ctrl) : 0) | (shift ? int(ModifierKey::Shift) : 0) | (alt ? int(ModifierKey::Alt) : 0);
 		
 		bool key_consumed = false;
@@ -81,22 +81,22 @@ class Keyboard
 		{
 			const NavigateOn navigate_on = _navigable.navigate_on;
 			
-			if(navigation::consume(editor, navigate_on, Tab, GVB::Tab, consume_gvb))
+			if(navigation::consume(input, navigate_on, Tab, GVB::Tab, consume_gvb))
 			{
 				navigate();
 				key_consumed = true;
 			}
-			else if(ctrl && navigation::consume(editor, navigate_on, CtrlReturn, GVB::Return, consume_gvb))
+			else if(ctrl && navigation::consume(input, navigate_on, CtrlReturn, GVB::Return, consume_gvb))
 			{
 				navigate(Accepted);
 				key_consumed = true;
 			}
-			else if(!ctrl && navigation::consume(editor, navigate_on, Return, GVB::Return, consume_gvb))
+			else if(!ctrl && navigation::consume(input, navigate_on, Return, GVB::Return, consume_gvb))
 			{
 				navigate(Accepted);
 				key_consumed = true;
 			}
-			else if(navigation::consume(editor, navigate_on, Escape, GVB::Escape, consume_gvb))
+			else if(navigation::consume(input, navigate_on, Escape, GVB::Escape, consume_gvb))
 			{
 				set_focus(null, Cancelled);
 				key_consumed = true;
@@ -121,7 +121,7 @@ class Keyboard
 				)
 					continue;
 				
-				if(!editor.key_check_pressed_vk(key) || !pressed_gvb && pressed_key == key)
+				if(!input.key_check_pressed_vk(key) || !pressed_gvb && pressed_key == key)
 					continue;
 				
 				vk[i] = vk[num_vk - 1];
@@ -163,7 +163,7 @@ class Keyboard
 				)
 					continue;
 				
-				if(!editor.key_check_pressed_gvb(key) || pressed_gvb && pressed_key == key)
+				if(!input.key_check_pressed_gvb(key) || pressed_gvb && pressed_key == key)
 					continue;
 				
 				gvb[i] = gvb[num_gvb - 1];
@@ -191,7 +191,7 @@ class Keyboard
 				
 				if(consume_gvb)
 				{
-					editor.key_clear_gvb(key);
+					input.key_clear_gvb(key);
 				}
 				
 				if(pressed_only_modifier
@@ -206,7 +206,7 @@ class Keyboard
 		
 		if(pressed_key != -1)
 		{
-			if(pressed_timer == press_delay || pressed_gvb && editor.key_check_gvb(pressed_key) || !pressed_gvb && editor.key_check_vk(pressed_key))
+			if(pressed_timer == press_delay || pressed_gvb && input.key_check_gvb(pressed_key) || !pressed_gvb && input.key_check_vk(pressed_key))
 			{
 				if(pressed_timer-- == 0)
 				{

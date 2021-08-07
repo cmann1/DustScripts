@@ -33,6 +33,7 @@ class Mouse
 	int state;
 	
 	private scene@ g;
+	private input_api@ input;
 	private float scale = 1;
 	
 	private float prev_x;
@@ -55,18 +56,33 @@ class Mouse
 		@g = get_scene();
 	}
 	
+	/// Use the input api for mouse access. Will get a new instance, or
+	/// use @input if given
+	void use_input(input_api@ input=null)
+	{
+		@this.input = @input != null ? input : input_api;
+	}
+	
 	/// @param block_mouse Button presses and mouse scroll won't register
 	void step(bool block_mouse=false)
 	{
 		if(hud)
 		{
-			x = g.mouse_x_hud(player, scale_hud);
-			y = g.mouse_y_hud(player, scale_hud);
+			x = @input != null
+				? input.mouse_x_hud(scale_hud)
+				: g.mouse_x_hud(player, scale_hud);
+			y = @input != null
+				? input.mouse_y_hud(scale_hud)
+				: g.mouse_y_hud(player, scale_hud);
 		}
 		else
 		{
-			x = g.mouse_x_world(player, layer);
-			y = g.mouse_y_world(player, layer);
+			x = @input != null
+				? input.mouse_x_world(layer)
+				: g.mouse_x_world(player, layer);
+			y = @input != null
+				? input.mouse_y_world(layer)
+				: g.mouse_y_world(player, layer);
 		}
 		
 		delta_x = x - prev_x;
@@ -80,25 +96,45 @@ class Mouse
 			middle_double_click_timer = double_click_period + 1;
 		}
 		
-		state = g.mouse_state(0);
+		state = @input != null
+			? input.mouse_state()
+			: g.mouse_state(0);
 		scroll = !block_mouse
 			? (state & 1 != 0) ? -1 : ((state & 2 != 0) ? 1 : 0)
 			: 0;
 		
-		left_down = (state & 4) != 0;
-		right_down = (state & 8) != 0;
-		middle_down = (state & 16) != 0;
+		left_down = (state & 0x4) != 0;
+		right_down = (state & 0x8) != 0;
+		middle_down = (state & 0x10) != 0;
 		
 		if(!block_mouse)
 		{
-			left_press = left_down && !prev_left_down;
-			right_press = right_down && !prev_right_down;
-			middle_press = middle_down && !prev_middle_down;
+			if(@input != null)
+			{
+				left_press = (state & 0x20) != 0;
+				right_press = (state & 0x40) != 0;
+				middle_press = (state & 0x80) != 0;
+			}
+			else
+			{
+				left_press = left_down && !prev_left_down;
+				right_press = right_down && !prev_right_down;
+				middle_press = middle_down && !prev_middle_down;
+			}
 		}
 		
-		left_release = !left_down && prev_left_down;
-		right_release = !right_down && prev_right_down;
-		middle_release = !middle_down && prev_middle_down;
+		if(@input != null)
+		{
+			left_release = (state & 0x100) != 0;
+			right_release = (state & 0x200) != 0;
+			middle_release = (state & 0x400) != 0;
+		}
+		else
+		{
+			left_release = !left_down && prev_left_down;
+			right_release = !right_down && prev_right_down;
+			middle_release = !middle_down && prev_middle_down;
+		}
 		
 		left_double_click = left_press && left_double_click_timer <= double_click_period;
 		right_double_click = right_press && right_double_click_timer <= double_click_period;

@@ -1,7 +1,7 @@
 #include '../std.cpp';
 #include '../string.cpp';
 #include '../fonts.cpp';
-#include '../editor/common.cpp';
+#include '../input/common.cpp';
 #include '../enums/GVB.cpp';
 #include '../input/Keyboard.cpp';
 #include '../input/IKeyboardFocusListener.cpp';
@@ -194,9 +194,11 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 	private ITextEditable@ text_editable;
 	private bool text_editable_accept_on_blur;
 	
-	camera@ _camera;
-	editor_api@ _editor;
-	bool _has_editor;
+	camera@ camera;
+	editor_api@ editor;
+	input_api@ input;
+	bool has_editor;
+	bool has_input;
 	
 	UI(bool hud=true, int layer=14, int sub_layer=15, int player=0)
 	{
@@ -232,15 +234,18 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		
 		@_toolbar_flow_layout = FlowLayout(this, FlowDirection::Row, FlowAlign::Start, FlowAlign::Centre, FlowWrap::Wrap);
 		
-		@_editor = get_editor_api();
-		_has_editor = @_editor != null;
+		@editor = editor_api;
+		has_editor = @editor != null;
+		@input = input_api;
+		has_input = @input != null;
 		
-		if(_has_editor)
+		if(has_input)
 		{
-			@keyboard = Keyboard(this);
+			mouse.use_input();
+			@keyboard = Keyboard(input, this);
 		}
 		
-		@_camera = get_active_camera();
+		@camera = get_active_camera();
 		
 		this.hud = hud;
 		this.layer = layer;
@@ -514,7 +519,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		 * Update mouse and keyboard
 		 */
 		
-		const bool block_mouse = _has_editor && (!_hud && _editor.mouse_in_gui() || _editor.key_check_gvb(GVB::Space));
+		const bool block_mouse = has_editor && (!_hud && editor.mouse_in_gui() || input.key_check_gvb(GVB::Space));
 		mouse.step(block_mouse);
 		
 		switch(primary_button)
@@ -632,20 +637,20 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			mouse_down_inside_ui = true;
 		}
 		
-		if(mouse_down_inside_ui && _hud && _has_editor && @_mouse_over_element != null)
+		if(mouse_down_inside_ui && _hud && has_editor && @_mouse_over_element != null)
 		{
-			_editor.force_mouse_in_gui();
+			editor.force_mouse_in_gui();
 			
 			if(block_editor_input)
 			{
-				editor_api::block_all_mouse(_editor);
+				input_api::block_all_mouse(input);
 			}
 		}
 		
-		if(@_active_mouse_element != null && _has_editor && block_editor_input)
+		if(@_active_mouse_element != null && has_editor && block_editor_input)
 		{
-			_editor.force_mouse_in_gui();
-			editor_api::block_all_mouse(_editor);
+			editor.force_mouse_in_gui();
+			input_api::block_all_mouse(input);
 		}
 		
 		_event_info.reset(EventType::AFTER_LAYOUT);
@@ -1942,7 +1947,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		debug_text_field.align_vertical(-1);
 		uint clr;
 		
-		const float zoom = _hud ? 1.0 : 1.0 / _camera.editor_zoom();
+		const float zoom = _hud ? 1.0 : 1.0 / camera.editor_zoom();
 		
 		bool mouse_over_clipped = false;
 		float mouse_over_clipping_x1;

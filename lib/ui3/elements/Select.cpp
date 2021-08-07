@@ -135,7 +135,7 @@ class Select : SelectBase, IStepHandler
 	
 	bool ui_step()
 	{
-		if(ui._has_editor && editor_api::consume_gvb_press(ui._editor, GVB::Escape))
+		if(ui.has_input && input_api::consume_gvb_press(ui.input, GVB::Escape))
 		{
 			ui.hide_tooltip(popup);
 			open = false;

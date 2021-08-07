@@ -274,16 +274,16 @@ class RotationWheel : Image, IStepHandler
 	
 	protected float snap(const float angle)
 	{
-		if(!ui._has_editor)
+		if(!ui.has_input)
 			return angle;
 		
-		if(ui._editor.key_check_vk(VK::Shift))
+		if(ui.input.key_check_vk(VK::Shift))
 			return round(angle / snap_big) * snap_big;
 			
-		if(ui._editor.key_check_vk(VK::Control))
+		if(ui.input.key_check_vk(VK::Control))
 			return round(angle / snap_small) * snap_small;
 			
-		if(ui._editor.key_check_vk(VK::Menu))
+		if(ui.input.key_check_vk(VK::Menu))
 			return round(angle / snap_tiny) * snap_tiny;
 		
 		return angle;

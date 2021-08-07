@@ -247,7 +247,7 @@ class ColourPicker : LockedContainer, IStepHandler
 			
 			_accept_on_keybaord = value;
 			
-			if(ui._has_editor && _accept_on_keybaord)
+			if(ui.has_editor && _accept_on_keybaord)
 			{
 				ui._step_subscribe(this);
 			}
@@ -508,13 +508,13 @@ class ColourPicker : LockedContainer, IStepHandler
 	
 	bool ui_step()
 	{
-		if(ui._has_editor && @ui.focused_element == null && !contains(ui.focused_element))
+		if(ui.has_input && @ui.focused_element == null && !contains(ui.focused_element))
 		{
-			if(editor_api::consume_gvb_press(ui._editor, GVB::Escape))
+			if(input_api::consume_gvb_press(ui.input, GVB::Escape))
 			{
 				ui._dispatch_event(@accept, EventType::CANCEL, this);
 			}
-			else if(editor_api::consume_gvb_press(ui._editor, GVB::Return))
+			else if(input_api::consume_gvb_press(ui.input, GVB::Return))
 			{
 				ui._dispatch_event(@accept, EventType::ACCEPT, this);
 			}

@@ -1059,14 +1059,14 @@ class LayerSelectorSet : Container
 			ui._dispatch_event(@select_event, select_event_type, layer_selector);
 		}
 		else if(!busy_drag_select && multi_select && select_range_modifier >= 0 &&
-			previous_select_index >= 0 && ui._editor.key_check_gvb(select_range_modifier))
+			previous_select_index >= 0 && ui.input.key_check_gvb(select_range_modifier))
 		{
 			select_from_previous(checkbox);
 			update_previous_select_index(checkbox);
 		}
 		else if(
 			select_layer_group_modifier >= 0 && multi_select && (uint(count_selected()) >= min_select || checkbox.checked) &&
-			ui._has_editor && ui._editor.key_check_gvb(select_layer_group_modifier))
+			ui.has_input && ui.input.key_check_gvb(select_layer_group_modifier))
 		{
 			const int group = groups[checkboxes.findByRef(@checkbox)];
 			

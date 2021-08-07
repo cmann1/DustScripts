@@ -355,9 +355,9 @@ class ListView : ScrollView
 
 		if(item.selected)
 		{
-			if(multi_select_key == 0 || !ui._has_editor)
+			if(multi_select_key == 0 || !ui.has_input)
 				return;
-			if(ui._editor.key_check_vk(multi_select_key))
+			if(ui.input.key_check_vk(multi_select_key))
 				return;
 		}
 
@@ -540,7 +540,7 @@ class ListView : ScrollView
 			return _allow_multiple_selection;
 
 		return
-			!ui._has_editor || ui._editor.key_check_vk(multi_select_key);
+			!ui.has_input || ui.input.key_check_vk(multi_select_key);
 	}
 
 	// Events
@@ -557,8 +557,8 @@ class ListView : ScrollView
 		ListViewItem@ item = cast<ListViewItem@>(event.src);
 		
 		if(
-			item._selected && _allow_multiple_selection && ui._has_editor &&
-			(multi_select_key != 0 || !ui._editor.key_check_vk(multi_select_key)))
+			item._selected && _allow_multiple_selection && ui.has_input &&
+			(multi_select_key != 0 || !ui.input.key_check_vk(multi_select_key)))
 		{
 			select_item(item);
 			drag_select_select = true;
@@ -587,7 +587,7 @@ class ListView : ScrollView
 		if(@item != null && @item._list_view == @this)
 		{
 			busy_drag_select = true;
-			if(multi_select_key == 0 || !ui._has_editor || ui._editor.key_check_vk(multi_select_key))
+			if(multi_select_key == 0 || !ui.has_input || ui.input.key_check_vk(multi_select_key))
 			{
 				drag_select_select = allow_deselect && (_num_selected_items > min_select)
 					? !item.selected : true;

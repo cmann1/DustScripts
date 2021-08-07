@@ -1,4 +1,4 @@
-#include '../../editor/common.cpp';
+#include '../../input/common.cpp';
 #include '../events/Event.cpp';
 #include '../popups/PopupPosition.cpp';
 #include '../utils/Orientation.cpp';
@@ -160,7 +160,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 	
 	bool ui_step() override
 	{
-		if(_open && ui._has_editor && editor_api::consume_gvb_press(ui._editor, GVB::Escape))
+		if(_open && ui.has_input && input_api::consume_gvb_press(ui.input, GVB::Escape))
 		{
 			canceled = true;
 			hide();

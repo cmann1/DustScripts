@@ -1,6 +1,6 @@
 #include '../../enums/VK.cpp';
 #include '../../enums/GVB.cpp';
-#include '../../editor/common.cpp';
+#include '../../input/common.cpp';
 #include '../../input/Keyboard.cpp';
 #include '../../string.cpp';
 #include '../utils/CharacterValidation.cpp';
@@ -1590,9 +1590,9 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 			persist_caret_time--;
 		}
 		
-		if(ui._has_editor)
+		if(ui.has_input)
 		{
-			ui._editor.poll_keyboard();
+			ui.input.poll_keyboard();
 		}
 		
 		return focused;
@@ -2547,7 +2547,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 			}
 			else
 			{
-				do_drag_selection(ui._has_editor && ui._editor.key_check_gvb(GVB::Shift));
+				do_drag_selection(ui.has_input && ui.input.key_check_gvb(GVB::Shift));
 				drag_selection = true;
 			}
 		}
@@ -2578,7 +2578,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 	
 	void _mouse_scroll(EventInfo@ event)
 	{
-		if(ui._has_editor && ui._editor.key_check_gvb(GVB::Shift))
+		if(ui.has_input && ui.input.key_check_gvb(GVB::Shift))
 		{
 			scroll_x -= event.mouse.scroll * (font_metrics[0] * 7);
 		}
