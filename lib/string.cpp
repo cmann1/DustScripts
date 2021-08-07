@@ -333,6 +333,11 @@ namespace string
 		return s;
 	}
 	
+	int ord(const string &in s)
+	{
+		return s[0];
+	}
+	
 	string trim(const string str)
 	{
 		const int first = str.findFirstNotOf('\n\r \t');
@@ -345,6 +350,36 @@ namespace string
 		return last != -1
 			? str.substr(first, last - first)
 			: str.substr(first);
+	}
+	
+	string normalise_eol(const string &in text)
+	{
+		const int size = text.length;
+		
+		string buffer = '';
+		buffer.resize(size);
+		int buffer_size = size;
+		int j = 0;
+		int prev_chr = -1;
+		
+		for(int i = 0; i < size; i++)
+		{
+			const int chr = text[i];
+			
+			if(chr == 13)
+			{
+				buffer[j++] = 10;
+			}
+			else if(chr != 10 || chr == 10 && prev_chr != 13)
+			{
+				buffer[j++] = chr;
+			}
+			
+			prev_chr = chr;
+		}
+		
+		buffer.resize(j);
+		return buffer;
 	}
 	
 	// Parsing
