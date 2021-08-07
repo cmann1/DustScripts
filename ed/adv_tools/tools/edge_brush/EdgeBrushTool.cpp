@@ -480,13 +480,13 @@ class EdgeBrushTool : Tool
 	{
 		uint8 edge_mask = this.edge_mask;
 		
-		if(script.editor.key_check_pressed_vk(VK::Up))
+		if(script.input.key_check_pressed_vk(VK::Up))
 			edge_mask ^= TopBit;
-		if(script.editor.key_check_pressed_vk(VK::Down))
+		if(script.input.key_check_pressed_vk(VK::Down))
 			edge_mask ^= BottomBit;
-		if(script.editor.key_check_pressed_vk(VK::Left))
+		if(script.input.key_check_pressed_vk(VK::Left))
 			edge_mask ^= LeftBit;
-		if(script.editor.key_check_pressed_vk(VK::Right))
+		if(script.input.key_check_pressed_vk(VK::Right))
 			edge_mask ^= RightBit;
 		
 		if(edge_mask != this.edge_mask)

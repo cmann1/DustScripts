@@ -33,7 +33,7 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 		
 		if(!script.ui.is_mouse_active && @script.ui.focus == null)
 		{
-			if(script.ctrl && script.editor.key_check_pressed_vk(VK::C))
+			if(script.ctrl && script.input.key_check_pressed_vk(VK::C))
 			{
 				entity@ trigger = script.editor.get_selected_trigger();
 				if(@trigger != null)
@@ -41,11 +41,11 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 					@clipboard = trigger;
 				}
 			}
-			if(script.ctrl && script.editor.key_check_pressed_vk(VK::V))
+			if(script.ctrl && script.input.key_check_pressed_vk(VK::V))
 			{
 				paste_trigger(script.mouse.x, script.mouse.y);
 			}
-			if(script.ctrl && script.editor.key_check_pressed_vk(VK::H))
+			if(script.ctrl && script.input.key_check_pressed_vk(VK::H))
 			{
 				entity@ trigger = script.editor.get_selected_trigger();
 				if(@trigger != null && trigger.type_name() == 'text_trigger')

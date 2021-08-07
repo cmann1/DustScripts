@@ -9,8 +9,8 @@
 #include '../../lib/drawing/common.cpp';
 #include '../../lib/drawing/circle.cpp';
 #include '../../lib/debug/Debug.cpp';
-#include '../../lib/editor/common.cpp';
 #include '../../lib/enums/ColType.cpp';
+#include '../../lib/input/common.cpp';
 #include '../../lib/input/Mouse.cpp';
 #include '../../lib/math/Line.cpp';
 #include '../../lib/utils/colour.cpp';
@@ -53,9 +53,10 @@ class AdvToolScript
 	
 	scene@ g;
 	editor_api@ editor;
+	input_api@ input;
 	camera@ cam;
-	UI@ ui = UI(true);
-	Mouse mouse(false, 22);
+	UI@ ui;
+	Mouse@ mouse;
 	Handles handles;
 	Debug debug();
 	Line line;
@@ -94,7 +95,7 @@ class AdvToolScript
 	private int num_tools_shortcut;
 	private dictionary tool_groups_map;
 	private dictionary tools_map;
-	private ButtonGroup@ button_group = ButtonGroup(ui, false);
+	private ButtonGroup@ button_group;
 	
 	private PopupOptions@ shortcut_keys_enabled_popup;
 	
@@ -139,7 +140,14 @@ class AdvToolScript
 		puts('>> Initialising AdvTools');
 		@g = get_scene();
 		@editor = get_editor_api();
+		@input = get_input_api();
 		@cam = get_active_camera();
+		
+		@ui = UI(true);
+		@mouse = Mouse(false, 22);
+		mouse.use_input(input);
+		
+		@button_group = ButtonGroup(ui, false);
 		
 		if(@editor == null)
 		{
@@ -431,10 +439,10 @@ class AdvToolScript
 		
 		zoom = cam.editor_zoom();
 		
-		ctrl	= editor.key_check_gvb(GVB::Control);
-		shift	= editor.key_check_gvb(GVB::Shift);
-		alt		= editor.key_check_gvb(GVB::Alt);
-		space	= editor.key_check_gvb(GVB::Space);
+		ctrl	= input.key_check_gvb(GVB::Control);
+		shift	= input.key_check_gvb(GVB::Shift);
+		alt		= input.key_check_gvb(GVB::Alt);
+		space	= input.key_check_gvb(GVB::Space);
 		
 		mouse_in_gui = editor.mouse_in_gui();
 		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui && !ui.is_mouse_active && !space;
@@ -463,10 +471,10 @@ class AdvToolScript
 			pressed_in_scene = false;
 		}
 		
-		return_press = editor.key_check_pressed_gvb(GVB::Return);
-		escape_press = editor.key_check_pressed_gvb(GVB::Escape);
+		return_press = input.key_check_pressed_gvb(GVB::Return);
+		escape_press = input.key_check_pressed_gvb(GVB::Escape);
 		
-		if(config.EnableShortcuts && @ui.focus == null && shortcut_keys_enabled && !editor.is_polling_keyboard())
+		if(config.EnableShortcuts && @ui.focus == null && shortcut_keys_enabled && !input.is_polling_keyboard())
 		{
 			if(config.KeyPrevTool.check())
 			{
@@ -482,7 +490,7 @@ class AdvToolScript
 				{
 					Tool@ tool = @tools_shortcut[i];
 					
-					if(editor.key_check_pressed_vk(tool.shortcut_key))
+					if(input.key_check_pressed_vk(tool.shortcut_key))
 					{
 						select_tool(tool.on_shortcut_key());
 						persist_state();
@@ -531,7 +539,7 @@ class AdvToolScript
 	
 	private void handle_keyboard()
 	{
-		if(editor.key_check_pressed_vk(VK::Pause))
+		if(input.key_check_pressed_vk(VK::Pause))
 		{
 			shortcut_keys_enabled = !shortcut_keys_enabled;
 			update_shortcut_keys_enabled_popup();
@@ -544,7 +552,7 @@ class AdvToolScript
 		{
 			pressed_key_active = false;
 			
-			if(editor.is_polling_keyboard() || !editor.key_check_gvb(pressed_key))
+			if(input.is_polling_keyboard() || !input.key_check_gvb(pressed_key))
 			{
 				pressed_key = -1;
 			}
@@ -560,13 +568,13 @@ class AdvToolScript
 			}
 		}
 		
-		if(!editor.is_polling_keyboard())
+		if(!input.is_polling_keyboard())
 		{
 		  for(int i = int(Settings::RepeatKeys.length()) - 1; i >= 0; i--)
 		  {
 			const int key = Settings::RepeatKeys[i];
 			
-			if(!editor.key_check_pressed_gvb(key))
+			if(!input.key_check_pressed_gvb(key))
 			  continue;
 			
 			pressed_key = key;

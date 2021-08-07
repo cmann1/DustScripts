@@ -345,7 +345,7 @@ class EmitterTool : Tool
 		
 		if(mouse.left_press)
 		{
-			force_create = script.mouse_in_scene && script.editor.key_check_vk(VK::A);
+			force_create = script.mouse_in_scene && script.input.key_check_vk(VK::A);
 			queued_create = true;
 		}
 		
@@ -430,7 +430,7 @@ class EmitterTool : Tool
 		
 		// Delete
 		
-		if(@script.ui.focus == null && script.editor.key_check_gvb(GVB::Delete))
+		if(@script.ui.focus == null && script.input.key_check_gvb(GVB::Delete))
 		{
 			for(int i = 0; i < selected_emitters_count; i++)
 			{

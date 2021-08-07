@@ -416,7 +416,7 @@ class PropTool : Tool
 		
 		if(script.scene_focus)
 		{
-			if(script.editor.key_check_pressed_vk(VK::L))
+			if(script.input.key_check_pressed_vk(VK::L))
 			{
 				if(script.alt)
 					unlock_all();
@@ -440,14 +440,14 @@ class PropTool : Tool
 			{
 				shift_props(0, script.ctrl ? 20 : script.shift ? 10 : 1);
 			}
-			else if(script.editor.key_check_pressed_gvb(GVB::BracketOpen))
+			else if(script.input.key_check_pressed_gvb(GVB::BracketOpen))
 			{
 				if(script.shift)
 					mirror_selected(true);
 				else
 					flip_props(true, false);
 			}
-			else if(script.editor.key_check_pressed_gvb(GVB::BracketClose))
+			else if(script.input.key_check_pressed_gvb(GVB::BracketClose))
 			{
 				if(script.shift)
 					mirror_selected(false);
@@ -537,7 +537,7 @@ class PropTool : Tool
 		
 		// Delete
 		
-		if(script.scene_focus && script.editor.key_check_gvb(GVB::Delete))
+		if(script.scene_focus && script.input.key_check_gvb(GVB::Delete))
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
@@ -561,12 +561,12 @@ class PropTool : Tool
 		
 		// Copy/Paste
 		
-		if(script.scene_focus && selected_props_count > 0 && script.ctrl && script.editor.key_check_pressed_vk(VK::C))
+		if(script.scene_focus && selected_props_count > 0 && script.ctrl && script.input.key_check_pressed_vk(VK::C))
 		{
 			copy_selected_props();
 		}
 		
-		if(script.scene_focus && script.ctrl && script.editor.key_check_pressed_vk(VK::V))
+		if(script.scene_focus && script.ctrl && script.input.key_check_pressed_vk(VK::V))
 		{
 			paste(script.shift, script.alt);
 		}
@@ -1158,9 +1158,9 @@ class PropTool : Tool
 			}
 			
 			// Make sure the angle is in the range -180 < 0 < 180
-			const float rotation_normalised = shortest_angle_degress(p.rotation(), 0);
+			const float rotation_normalised = shortest_angle_degrees(p.rotation(), 0);
 			// Angle relative to up - up=0, left/right=90, down=180
-			const float y_axis_angle = abs(shortest_angle_degress(rotation_normalised, -90));
+			const float y_axis_angle = abs(shortest_angle_degrees(rotation_normalised, -90));
 			// How much to adjust the rotation by to account for the flipped scale.
 			const float angle_flip =
 				// up=+180, left/right=no rotation, down=-180

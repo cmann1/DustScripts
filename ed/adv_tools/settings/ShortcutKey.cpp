@@ -75,7 +75,7 @@ class ShortcutKey
 		if(script.ctrl != ctrl || script.shift != shift || script.alt != alt)
 			return false;
 		
-		return script.editor.key_check_pressed_vk(key);
+		return script.input.key_check_pressed_vk(key);
 	}
 	
 }
