@@ -382,6 +382,28 @@ namespace string
 		return buffer;
 	}
 	
+	string filter_input(string text)
+	{
+		const int size = text.length;
+		int j = 0;
+		
+		for(int i = 0; i < size; i++)
+		{
+			const int chr = text[i];
+			if(chr == 13)
+			{
+				text[j++] = 10;
+			}
+			else if(chr >= 32 && chr <= 126)
+			{
+				text[j++] = chr;
+			}
+		}
+		
+		text.resize(j);
+		return text;
+	}
+	
 	// Parsing
 	
 	int try_parse_int(string text, const bool force_hex=false)

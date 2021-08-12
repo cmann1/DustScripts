@@ -1562,6 +1562,12 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 	
 	bool ui_step() override
 	{
+		const string input_text = string::filter_input(ui.input.text);
+		if(input_text != '')
+		{
+			do_input(input_text);
+		}
+		
 		if(disabled)
 		{
 			@ui.focus = null;
@@ -2487,6 +2493,19 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 		persist_caret();
 	}
 	
+	protected void do_input(const string &in text)
+	{
+		if(text == '')
+			return;
+		
+		const string replacement_text = text == '\n'
+			? text + get_line_indentation(get_line_at_index(_selection_start))
+			: text;
+		
+		replace(replacement_text, true, 8);
+		persist_caret();
+	}
+	
 	/// Returns the selection end line index
 	protected int update_relative_line_index()
 	{
@@ -2623,7 +2642,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 		keyboard.register_gvb(GVB::Back, ModifierKey::Ctrl);
 		keyboard.register_range_vk(VK::End, VK::Home, ModifierKey::Ctrl | ModifierKey::Shift);
 		keyboard.register_vk(VK::A, ModifierKey::Ctrl | ModifierKey::Only);
-		keyboard.register_inputs();
+		keyboard.register_vk(VK::Return, ModifierKey::Shift);
 		
 		if(_remove_lines_shortcut)
 		{
@@ -2748,12 +2767,7 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 		
 		if(text != '')
 		{
-			const string replacement_text = text == '\n'
-				? text + get_line_indentation(get_line_at_index(_selection_start))
-				: text;
-			
-			replace(replacement_text, true, 8);
-			persist_caret();
+			do_input(text);
 			return;
 		}
 		
