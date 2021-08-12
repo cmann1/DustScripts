@@ -1472,6 +1472,11 @@ class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyb
 			{
 				right = mid - 1;
 			}
+			else
+			{
+				left++;
+				break;
+			}
 		}
 		
 		if(closest_boundary && line_length > 0 && left < line_length && x >= ((left == 0 ? 0 : character_widths[left - 1]) + character_widths[left]) * 0.5)
