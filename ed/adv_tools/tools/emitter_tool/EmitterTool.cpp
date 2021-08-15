@@ -159,6 +159,9 @@ class EmitterTool : Tool
 		{
 			entity@ emitter = script.g.get_entity_collision_index(i);
 			
+			if(!script.editor.check_layer_filter(emitter.layer()))
+				continue;
+			
 			EmitterData@ data = highlight(emitter, i);
 			data.update();
 			data.visible = true;
@@ -796,6 +799,9 @@ class EmitterTool : Tool
 			
 			if(select_rect_pending == 0)
 			{
+				if(!script.editor.check_layer_filter(e.layer()))
+					continue;
+				
 				if(mouse.left_down)
 				{
 					data.pending_selection = 1;
@@ -807,6 +813,9 @@ class EmitterTool : Tool
 			}
 			else if(select_rect_pending == 1)
 			{
+				if(!script.editor.check_layer_filter(e.layer()))
+					continue;
+				
 				if(!data.selected)
 				{
 					if(mouse.left_down)
