@@ -18,6 +18,7 @@ class EmitterToolWindow
 	private LayerButton@ layer_button;
 	private RotationWheel@ rotation_wheel;
 	private Label@ id_label;
+	private Label@ emitter_id_label;
 	
 	private SelectButton@ other_ids_button;
 	private ListView@ other_ids_list_view;
@@ -122,21 +123,36 @@ class EmitterToolWindow
 		
 		layer_button.height = rotation_wheel.height;
 		
-		// Id Label
+		// Particle Id Label
 		
 		@id_label = Label(ui, '999', true, font::ENVY_BOLD, 20);
 		id_label.colour = multiply_alpha(ui.style.text_clr, 0.5);
 		id_label.fit_to_contents();
 		id_label.x = other_ids_button.x - style.spacing - id_label.width;
 		id_label.y = rotation_wheel.y;
+		id_label.text_align_h = TextAlign::Right;
+		id_label.align_h = TextAlign::Right;
+		id_label.auto_size = false;
 		window.add_child(id_label);
 		
 		Label@ id_lbl = Label(ui, 'Id:', true, font::ENVY_BOLD, 20);
 		id_lbl.colour = id_label.colour;
-		id_lbl.x = id_label.x - id_label.width - style.spacing;
+		id_lbl.fit_to_contents();
+		id_lbl.x = id_label.x - id_lbl.width - style.spacing;
 		id_lbl.y = id_label.y;
 		window.add_child(id_lbl);
 		
+		// Emitter Id Label
+		
+		@emitter_id_label = Label(ui, '[99999]', true, font::ENVY_BOLD, 20);
+		emitter_id_label.colour = id_label.colour;
+		emitter_id_label.fit_to_contents();
+		emitter_id_label.x = other_ids_button.x - style.spacing - emitter_id_label.width;
+		emitter_id_label.y = id_label.y + id_label.height + style.spacing;
+		emitter_id_label.text_align_h = TextAlign::Right;
+		emitter_id_label.align_h = TextAlign::Right;
+		emitter_id_label.auto_size = false;
+		window.add_child(emitter_id_label);
 		
 		// Finish
 		
@@ -184,6 +200,7 @@ class EmitterToolWindow
 			layer_button.layer_select.set_selected_sub_layer(tool.sublayer);
 			rotation_wheel.degrees = tool.rotation;
 			id_label.text = tool.emitter_id < 0 ? '-' : tool.emitter_id + '';
+			emitter_id_label.text = '-';
 		}
 		else if(selected_emitters_count == 1)
 		{
@@ -201,6 +218,7 @@ class EmitterToolWindow
 			layer_button.layer_select.set_selected_sub_layer(tool.sublayer);
 			rotation_wheel.degrees = tool.rotation;
 			id_label.text = tool.emitter_id < 0 ? '-' : tool.emitter_id + '';
+			emitter_id_label.text = '[' + selected_emitters[0].emitter.id() + ']';
 			
 			selected_layer = data.layer;
 			script.editor.selected_layer = selected_layer;
@@ -252,6 +270,8 @@ class EmitterToolWindow
 				emitter_id_select.selected_index = -1;
 				id_label.text = '-';
 			}
+			
+			emitter_id_label.text = '-';
 			
 			if(layer != -1)
 				layer_button.layer_select.set_selected_layer(layer);
