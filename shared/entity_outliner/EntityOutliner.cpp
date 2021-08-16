@@ -2,6 +2,7 @@
 #include '../../lib/enums/EntityState.cpp';
 #include '../../lib/enums/AttackType.cpp';
 #include '../../lib/math/math.cpp';
+#include '../../lib/utils/colour.cpp';
 
 #include 'EntityOutlinerSettings.cpp';
 #include 'Triggers.cpp';
@@ -26,7 +27,7 @@ class EntityOutliner : callback_base
 	private bool initialised;
 	
 	private int entity_list_size = 32;
-	private array<controllable@> entity_list(entity_list_size);
+	private array<ControllableOutlineData> entity_list(entity_list_size);
 	private int num_entities;
 	private int num_players;
 	private float scale = 1;
@@ -53,7 +54,7 @@ class EntityOutliner : callback_base
 			settings[i] = defaults;
 		}
 		
-		add_broadcast_receiver('EntityOutliner', this, 'on_message');
+		add_broadcast_receiver('', this, 'on_message');
 		add_broadcast_receiver('EntityOutliner.editor', this, 'on_editor_message');
 	}
 	
@@ -154,7 +155,8 @@ class EntityOutliner : callback_base
 		
 		for(int i = 0; i < num_entities; i++)
 		{
-			controllable@ c = entity_list[i];
+			ControllableOutlineData@ data = @entity_list[i];
+			controllable@ c = data.c;
 			sprites@ spr = c.get_sprites();
 			
 			string sprite_name;
@@ -224,11 +226,37 @@ class EntityOutliner : callback_base
 				sublayer2 = settings.enemy_sublayer2;
 			}
 			
+			float offset1_x = settings.offset1_x;
+			float offset1_y = settings.offset1_y;
+			float scale1 = settings.scale1;
+			uint colour1 = settings.colour1;
+			
+			if(data.t > 0)
+			{
+				if(sublayer1 != data.sub_layer)
+				{
+					spr.draw_world(
+						layer1, data.sub_layer,
+						sprite_name, frame, 0,
+						x + data.offset_x * scale, y + data.offset_y * scale,
+						rotation, c.scale() * data.scale * face, c.scale() * data.scale,
+						multiply_alpha(data.colour, data.t));
+					colour1 = multiply_alpha(colour1, 1 - data.t);
+				}
+				else
+				{
+					offset1_x = lerp(offset1_x, data.offset_x, data.t);
+					offset1_y = lerp(offset1_y, data.offset_y, data.t);
+					scale1 = lerp(scale1, data.scale, data.t);
+					colour1 = colour::lerp(colour1, data.colour, data.t);
+				}
+			}
+			
 			spr.draw_world(
 				layer1, sublayer1,
 				sprite_name, frame, 0,
-				x + settings.offset1_x * scale, y + settings.offset1_y * scale,
-				rotation, c.scale() * settings.scale1 * face, c.scale() * settings.scale1, settings.colour1);
+				x + offset1_x * scale, y + offset1_y * scale,
+				rotation, c.scale() * scale1 * face, c.scale() * scale1, colour1);
 			
 			if(settings.draw_double)
 			{
@@ -292,12 +320,34 @@ class EntityOutliner : callback_base
 				continue;
 			if(!settings.outline_prisms && c.type_name().substr(0, 14) == 'enemy_tutorial')
 				continue;
-			@entity_list[num_entities++] = c;
+			
+			entity_list[num_entities++].reset(c);
 		}
 	}
 	
 	void on_message(string id, message@ msg)
 	{
+		if(id == 'EntityOutlinerSource')
+		{
+			const int c_id = msg.get_int('id');
+			
+			for(int i = 0; i < num_entities; i++)
+			{
+				ControllableOutlineData@ data = @entity_list[i];
+				if(data.id != c_id)
+					continue;
+				
+				data.sub_layer = msg.get_int('sub_layer');
+				data.colour = uint(msg.get_int('colour'));
+				data.offset_x = msg.get_float('offset_x');
+				data.offset_y = msg.get_float('offset_y');
+				data.scale = msg.get_float('scale');
+				data.t = msg.get_float('t');
+				break;
+			}
+			return;
+		}
+		
 		if(id != 'EntityOutliner')
 			return;
 		
@@ -363,6 +413,26 @@ class EntityOutliner : callback_base
 				settings[0] = selected_trigger.outliner;
 			}
 		}
+	}
+	
+}
+
+class ControllableOutlineData
+{
+	
+	controllable@ c;
+	int id;
+	int sub_layer;
+	float offset_x, offset_y;
+	float scale;
+	uint colour;
+	float t;
+	
+	void reset(controllable@ c)
+	{
+		@this.c = c;
+		id = c.id();
+		t = 0;
 	}
 	
 }
