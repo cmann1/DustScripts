@@ -11,7 +11,7 @@
 
 namespace TextBox { const string TYPE_NAME = 'TextBox'; }
 
-class TextBox : LockedContainer, IKeyboardFocus, INavigable, IStepHandler, IKeyboardFocus, INavigable
+class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 {
 	
 	// ///////////////////////////////////////////////////////////////////
