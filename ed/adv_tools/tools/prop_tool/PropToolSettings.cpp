@@ -42,3 +42,13 @@ namespace PropToolSettings
 //	const uint BoundingBoxColour		= 0x55ffffff;
 	
 }
+
+enum PropToolHighlight
+{
+	
+	None = 0,
+	Outline = 0x1,
+	Highlight = 0x2,
+	Both = Outline | Highlight,
+	
+}

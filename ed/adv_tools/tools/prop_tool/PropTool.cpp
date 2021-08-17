@@ -91,6 +91,7 @@ class PropTool : Tool
 	float custom_grid = 5;
 	string default_origin = 'centre';
 	bool custom_anchor_lock = false;
+	PropToolHighlight highlight_selection = Both;
 	bool show_selection = true;
 	bool show_info = true;
 	PropExportType export_type = PropExportType::SpriteBatch;
@@ -241,7 +242,7 @@ class PropTool : Tool
 			for(int i = 0; i < highlighted_props_count; i++)
 			{
 				PropData@ data = @highlighted_props[i];
-				rendered_lines_count += data.draw(rendered_lines_count);
+				rendered_lines_count += data.draw(rendered_lines_count, highlight_selection);
 			}
 			
 			// Bounding box
@@ -2077,6 +2078,11 @@ class PropTool : Tool
 		
 		selection_angle = 0;
 		update_selection_bounds();
+	}
+	
+	void cycle_highlight_selection()
+	{
+		highlight_selection = PropToolHighlight((highlight_selection - 1) % (PropToolHighlight::Both + 1));
 	}
 	
 }

@@ -23,6 +23,8 @@ const string EMBED_spr_prop_tool_show_selection		= PROP_TOOL_SPRITES_BASE + 'pro
 const string EMBED_spr_prop_tool_tiles_blocking		= PROP_TOOL_SPRITES_BASE + 'prop_tool_tiles_blocking.png';
 const string EMBED_spr_prop_tool_export				= PROP_TOOL_SPRITES_BASE + 'prop_tool_export.png';
 const string EMBED_spr_prop_tool_correct			= PROP_TOOL_SPRITES_BASE + 'prop_tool_correct.png';
+const string EMBED_spr_prop_tool_highlight			= PROP_TOOL_SPRITES_BASE + 'prop_tool_highlight.png';
+const string EMBED_spr_prop_tool_outline			= PROP_TOOL_SPRITES_BASE + 'prop_tool_outline.png';
 
 class PropToolToolbar
 {
@@ -55,6 +57,9 @@ class PropToolToolbar
 	private PopupOptions@ distribute_tooltip;
 	private PopupOptions@ distribute_popup;
 	
+	private Image@ highlight_img;
+	private Image@ outline_img;
+	
 	private PopupButton@ export_button;
 	private Select@ export_type_select;
 	private ColourSwatch@ export_colour_swatch;
@@ -80,6 +85,8 @@ class PropToolToolbar
 		build_sprite(msg, 'prop_tool_tiles_blocking');
 		build_sprite(msg, 'prop_tool_export');
 		build_sprite(msg, 'prop_tool_correct');
+		build_sprite(msg, 'prop_tool_highlight');
+		build_sprite(msg, 'prop_tool_outline');
 	}
 	
 	void show(AdvToolScript@ script, PropTool@ tool)
@@ -238,15 +245,35 @@ class PropToolToolbar
 		distribute_popup.hide.on(EventCallback(on_distribute_popup_hide));
 		//}
 		
-		// Selection button
-		//{
 		toolbar.create_divider();
 		
+		// Highlight button
+		//{
+		@highlight_img = Image(ui, SPRITE_SET, 'prop_tool_highlight');
+		@outline_img = Image(ui, SPRITE_SET, 'prop_tool_outline');
+		script.init_icon(highlight_img);
+		script.init_icon(outline_img);
+		highlight_img.x = 6;
+		highlight_img.y = 4;
+		Container@ highlight_container = Container(ui);
+		highlight_container.add_child(highlight_img);
+		highlight_container.add_child(outline_img);
+		highlight_container.fit_to_contents(true);
+		@button = Button(ui, highlight_container);
+		button.name = 'highlight';
+		@button.tooltip = PopupOptions(ui, 'Highlight/Outline selected props');
+		button.mouse_click.on(button_click);
+		toolbar.add(button);
+		update_highlight_button();
+		//}
+		
+		// Selection button
+		//{
 		@button = toolbar.create_button(SPRITE_SET, 'prop_tool_show_selection', Settings::IconSize, Settings::IconSize);
 		button.name = 'show_selection';
 		button.selectable = true;
 		button.selected = tool.show_selection;
-		@button.tooltip = PopupOptions(ui, 'Always show selection');
+		@button.tooltip = PopupOptions(ui, 'Highlight selection while dragging');
 		button.mouse_click.on(button_click);
 		script.init_icon(button);
 		//}
@@ -449,6 +476,12 @@ class PropToolToolbar
 		origin_img.rotation = rotation;
 	}
 	
+	private void update_highlight_button()
+	{
+		highlight_img.alpha = (tool.highlight_selection & Highlight != 0) ? 1.0 : 0.5;
+		outline_img.alpha = (tool.highlight_selection & Outline != 0) ? 1.0 : 0.5;
+	}
+	
 	// //////////////////////////////////////////////////////////
 	// Methods
 	// //////////////////////////////////////////////////////////
@@ -555,6 +588,11 @@ class PropToolToolbar
 		else if(name == 'custom_anchor_snap')
 		{
 			tool.snap_custom_anchor();
+		}
+		else if(name == 'highlight')
+		{
+			tool.cycle_highlight_selection();
+			update_highlight_button();
 		}
 		else if(name == 'show_selection')
 		{

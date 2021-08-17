@@ -68,7 +68,7 @@ class PropData : SelectableData
 		script.transform(x, y, prop.layer(), 22, aabb_x, aabb_y);
 	}
 	
-	int draw(const int rendered_lines_count)
+	int draw(const int rendered_lines_count, const PropToolHighlight highlight)
 	{
 		if(pending_selection == -2)
 			return 0;
@@ -77,13 +77,18 @@ class PropData : SelectableData
 		uint line_colour, fill_colour;
 		get_colours(line_width, line_colour, fill_colour);
 		
-		spr.draw_world(22, 22, sprite_name, 0, prop.palette(),
-			aabb_x, aabb_y, prop.rotation(),
-			draw_scale_x, draw_scale_y,
-			fill_colour);
+		if(
+			primary_selected || hovered || (highlight & Highlight) != 0 ||
+			(highlight & Outline) != 0 && rendered_lines_count >= 16000)
+		{
+			spr.draw_world(22, 22, sprite_name, 0, prop.palette(),
+				aabb_x, aabb_y, prop.rotation(),
+				draw_scale_x, draw_scale_y,
+				fill_colour);
+		}
 		
 		// Stop drawing outlines after some amount to prevent a black screen
-		if(rendered_lines_count < 16000 || primary_selected || hovered)
+		if(primary_selected || hovered || (highlight & Outline) != 0 && rendered_lines_count < 16000)
 		{
 			for(int i = lines_count - 1; i >= 0; i--)
 			{
