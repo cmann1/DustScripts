@@ -19,10 +19,10 @@ class PropData : SelectableData
 	float local_x1, local_y1;
 	float local_x2, local_y2;
 	
-	private sprites@ spr;
-	
+	sprites@ spr;
 	string sprite_set;
 	string sprite_name;
+	
 	float x, y;
 	private float angle;
 	private float layer_scale;

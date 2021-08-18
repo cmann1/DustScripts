@@ -455,6 +455,12 @@ class PropTool : Tool
 				else
 					flip_props(false, true);
 			}
+			else if(
+				script.input.key_check_pressed_vk(VK::PageUp) ||
+				script.input.key_check_pressed_vk(VK::PageDown))
+			{
+				cycle_selected_palettes(script.input.key_check_pressed_vk(VK::PageUp) ? -1 : 1);
+			}
 		}
 		
 		// Pick props
@@ -1177,6 +1183,19 @@ class PropTool : Tool
 		
 		selection_angle = 0;
 		update_selection_bounds();
+	}
+	
+	private void cycle_selected_palettes(int dir=1)
+	{
+		dir = dir < 1 ? -1 : 1;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			PropData@ data = @selected_props[i];
+			prop@ p = data.prop;
+			const int count = data.spr.get_palette_count(data.sprite_name);
+			p.palette(mod(p.palette() + dir, count));
+		}
 	}
 	
 	// //////////////////////////////////////////////////////////
