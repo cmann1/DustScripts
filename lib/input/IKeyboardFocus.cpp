@@ -3,6 +3,8 @@
 interface IKeyboardFocus
 {
 	
+	bool has_focus { get const; }
+	
 	void on_focus(Keyboard@ keyboard);
 	
 	void on_blur(Keyboard@ keyboard, const BlurAction type);
