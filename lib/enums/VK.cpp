@@ -67,6 +67,10 @@ namespace VK
 	const int Prior = 0x21;
 	/// PAGE DOWN key
 	const int Next = 0x22;
+	/// PAGE UP key
+	const int PageUp = Prior;
+	/// PAGE DOWN key
+	const int PageDown = Next;
 	/// END key
 	const int End = 0x23;
 	/// HOME key
