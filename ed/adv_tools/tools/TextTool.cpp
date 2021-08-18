@@ -273,6 +273,10 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 					}
 				}
 			}
+			else if(text_box.has_focus)
+			{
+				script.input.key_clear_gvb(GVB::Return);
+			}
 			
 			if(@selected_trigger != null && @entity_by_id(selected_trigger.id()) == null)
 			{
