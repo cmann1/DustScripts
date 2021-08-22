@@ -31,7 +31,7 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 			duplicate_trigger();
 		}
 		
-		if(!script.ui.is_mouse_active && @script.ui.focus == null)
+		if(!script.ui.is_mouse_active && @script.ui.focus == null && !script.input.is_polling_keyboard())
 		{
 			if(script.ctrl && script.input.key_check_pressed_vk(VK::C))
 			{
