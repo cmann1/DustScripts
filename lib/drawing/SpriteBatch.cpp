@@ -1,4 +1,5 @@
 #include '../props/common.cpp';
+#include 'SpriteGroup.cpp';
 
 /*
  * Simpler than SpriteGroup
@@ -87,6 +88,44 @@ class SpriteBatch
 			SpriteBatchSprite@ s = sprite_list[i];
 			s.spr.draw_world(s.layer, s.sub_layer, s.sprite_name, 0, s.palette, x + s.x, y + s.y, s.rotation, s.scale_x, s.scale_y, colour);
 		}
+	}
+	
+	SpriteRectangle get_rectangle(const float x, const float y)
+	{
+		if(num_sprites == 0)
+		{
+			return SpriteRectangle(x, y, x, y);
+		}
+		
+		float left = 0, right = 0, top = 0, bottom = 0;
+
+		for(int i = 0; i < num_sprites; i++)
+		{
+			SpriteBatchSprite@ spr = @sprite_list[i];
+
+			rectangle@ src = spr.spr.get_sprite_rect(spr.sprite_name, 0);
+
+			float scs = cos(spr.rotation * DEG2RAD);
+			float ssn = sin(spr.rotation * DEG2RAD);
+			
+			const array<float> xs = {src.left(), src.right()};
+			const array<float> ys = {src.top(), src.bottom()};
+			for(int j = 0; j < 2; j++)
+			{
+				for(int k = 0; k < 2; k++)
+				{
+					float cx = (spr.x + (xs[j] * scs - ys[k] * ssn) * spr.scale_x);
+					float cy = (spr.y + (ys[k] * scs + xs[j] * ssn) * spr.scale_y);
+
+					left = min(left, cx);
+					right = max(right, cx);
+					top = min(top, cy);
+					bottom = max(bottom, cy);
+				}
+			}
+		}
+		
+		return SpriteRectangle(y + top, y + bottom, x + left, x + right);
 	}
 	
 }
