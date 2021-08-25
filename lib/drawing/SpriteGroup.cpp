@@ -313,4 +313,20 @@ class SpriteRectangle
 		this.right = right;
 	}
 	
+	void union_with(SpriteRectangle@ r)
+	{
+		left = min(r.left, left);
+		top = min(r.top, top);
+		right = max(r.right, right);
+		bottom = max(r.bottom, bottom);
+	}
+	
+	void shift(const float dx, const float dy)
+	{
+		left += dx;
+		top += dy;
+		right += dx;
+		bottom += dy;
+	}
+	
 }
