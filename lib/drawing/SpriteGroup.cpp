@@ -321,6 +321,14 @@ class SpriteRectangle
 		bottom = max(r.bottom, bottom);
 	}
 	
+	void union_with(rectangle@ r)
+	{
+		left = min(r.left(), left);
+		top = min(r.top(), top);
+		right = max(r.right(), right);
+		bottom = max(r.bottom(), bottom);
+	}
+	
 	void shift(const float dx, const float dy)
 	{
 		left += dx;
