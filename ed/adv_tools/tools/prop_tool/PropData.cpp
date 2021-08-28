@@ -40,6 +40,8 @@ class PropData : SelectableData
 	private int lines_count;
 	private array<LineData> lines(lines_size);
 	
+	private bool requires_update = false;
+	
 	void init(AdvToolScript@ script, PropTool@ tool, prop@ prop, const array<array<float>>@ outline)
 	{
 		SelectableData::init(script, prop.id() + '', scene_index);
@@ -59,6 +61,7 @@ class PropData : SelectableData
 		align_x = tool.origin_align_x;
 		align_y = tool.origin_align_y;
 		
+		requires_update = true;
 		update();
 		init_prop();
 	}
@@ -116,6 +119,9 @@ class PropData : SelectableData
 	
 	void update()
 	{
+		if(!requires_update)
+			return;
+		
 		prop_scale_x = prop.scale_x();
 		prop_scale_y = prop.scale_y();
 		x = prop.x();
@@ -203,10 +209,15 @@ class PropData : SelectableData
 		
 		draw_scale_x *= draw_scale;
 		draw_scale_y *= draw_scale;
+		requires_update = false;
 	}
 	
-	void set_prop_rotation(const float rotation)
+	void set_prop_rotation(float rotation)
 	{
+		rotation = rotation % 360;
+		if(prop.rotation() == rotation)
+			return;
+		
 		float ox, oy;
 		rotate(prop_offset_x, prop_offset_y, rotation * DEG2RAD, ox, oy);
 		
@@ -216,6 +227,7 @@ class PropData : SelectableData
 		prop.rotation(rotation % 360);
 		prop.x(x);
 		prop.y(y);
+		requires_update = true;
 	}
 	
 	void anchor_world(float world_x, float world_y)
@@ -422,6 +434,9 @@ class PropData : SelectableData
 		if(prop_scale_y == 0)
 			prop_scale_y = 0.001;
 		
+		if(prop.scale_x() == prop_scale_x && prop.scale_y() == prop_scale_y)
+			return;
+		
 		prop.scale_x(prop_scale_x);
 		prop.scale_y(prop_scale_y);
 		
@@ -433,6 +448,7 @@ class PropData : SelectableData
 		
 		prop.x(x);
 		prop.y(y);
+		requires_update = true;
 	}
 	
 	void stop_scale(const bool cancel)
