@@ -242,6 +242,8 @@ class PropTool : Tool
 			for(int i = 0; i < highlighted_props_count; i++)
 			{
 				PropData@ data = @highlighted_props[i];
+				if(data.pending_selection == -2)
+					continue;
 				rendered_lines_count += data.draw(rendered_lines_count, highlight_selection);
 			}
 			
@@ -414,6 +416,7 @@ class PropTool : Tool
 		
 		// Move with arrow keys
 		// Flip/Mirror
+		// Cycle palette
 		
 		if(script.scene_focus)
 		{
@@ -913,7 +916,7 @@ class PropTool : Tool
 	
 	private void state_selecting()
 	{
-		clear_pending_highlighted_props();
+		clear_pending_highlighted_props(false);
 		
 		if(script.escape_press)
 		{
@@ -944,6 +947,11 @@ class PropTool : Tool
 			
 			const array<array<float>>@ outline = @PROP_OUTLINES[p.prop_set() - 1][p.prop_group()][p.prop_index() - 1];
 			PropData@ prop_data = highlight_prop(p, outline);
+			
+			if(!prop_data.selected)
+			{
+				prop_data.pending_selection = -2;
+			}
 			
 			if(!prop_data.intersects_aabb(x1, y1, x2, y2))
 				continue;
@@ -995,9 +1003,8 @@ class PropTool : Tool
 		{
 			state = Idle;
 			script.ui.mouse_enabled = true;
+			clear_highlighted_props(true);
 		}
-		
-		clear_highlighted_props();
 	}
 	
 	//
@@ -1574,11 +1581,13 @@ class PropTool : Tool
 		return prop_data;
 	}
 	
-	private void clear_pending_highlighted_props()
+	private void clear_pending_highlighted_props(const bool visible=true)
 	{
+		const int pending = visible ? 0 : -2;
 		for(int i = highlighted_props_count - 1; i >= 0; i--)
 		{
-			highlighted_props[i].pending_selection = 0;
+			PropData@ d = @highlighted_props[i];
+			d.pending_selection = d.selected ? 0 : pending;
 		}
 	}
 	

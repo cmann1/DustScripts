@@ -73,9 +73,6 @@ class PropData : SelectableData
 	
 	int draw(const int rendered_lines_count, const PropToolHighlight highlight)
 	{
-		if(pending_selection == -2)
-			return 0;
-		
 		float line_width;
 		uint line_colour, fill_colour;
 		get_colours(line_width, line_colour, fill_colour);
@@ -106,13 +103,13 @@ class PropData : SelectableData
 			return lines_count;
 		}
 		
-//		if(selected)
-//		{
-//			outline_rect(script.g,22,22,
-//				aabb_x + aabb_x1, aabb_y + aabb_y1,
-//				aabb_x + aabb_x2, aabb_y + aabb_y2,
-//				1 / script.zoom, 0xaaff0000);
-//		}
+		//if(selected)
+		//{
+		//	outline_rect(script.g,22,22,
+		//		aabb_x + aabb_x1, aabb_y + aabb_y1,
+		//		aabb_x + aabb_x2, aabb_y + aabb_y2,
+		//		1 / script.zoom, 0xaaff0000);
+		//}
 		
 		return 0;
 	}
