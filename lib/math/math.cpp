@@ -368,7 +368,7 @@ bool line_aabb_intersection(
 	t_min = max(tt_min, min(min(t1, t2), tt_max));
 	t_max = min(tt_max, max(max(t1, t2), tt_min));
 	
-	return t_min <= 1 && t_max >= 0 && t_max > t_min;
+	return t_min <= 1 && t_max >= 0 && t_max >= t_min;
 }
 
 /// -1 = Left side
