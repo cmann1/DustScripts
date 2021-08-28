@@ -19,7 +19,6 @@ class Tool
 	array<Tool@>@ shortcut_key_group;
 	int shortcut_key_priority = 0;
 	int shortcut_key = -1;
-	bool register_shortcut_key = true;
 	
 	protected array<IToolEditorLoadListener@> editor_load_listeners;
 	protected array<IToolSelectListener@> select_listeners;
@@ -85,7 +84,7 @@ class Tool
 	
 	Tool@ init_shortcut_key(
 		const string &in config_name, const int shortcut_key,
-		const int priority=0, bool register_shortcut_key=true)
+		const int priority=0)
 	{
 		// First check this tool's name (with spaces stripped) for a key config
 		this.shortcut_key = script.config.get_vk('Key' + string::replace(name, ' ', ''), shortcut_key);
@@ -97,14 +96,13 @@ class Tool
 		}
 		
 		this.shortcut_key_priority = priority;
-		this.register_shortcut_key = register_shortcut_key;
 		
 		return @this;
 	}
 	
-	Tool@ init_shortcut_key(const int shortcut_key, const int priority=0, bool register_shortcut_key=true)
+	Tool@ init_shortcut_key(const int shortcut_key, const int priority=0)
 	{
-		return init_shortcut_key(base_tool_name, shortcut_key, priority, register_shortcut_key);
+		return init_shortcut_key(base_tool_name, shortcut_key, priority);
 	}
 	
 	// //////////////////////////////////////////////////////////

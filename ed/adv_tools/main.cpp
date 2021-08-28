@@ -1014,7 +1014,7 @@ class AdvToolScript
 		@tools_map[tool.name] = tool;
 		tools.insertLast(tool);
 		
-		if(tool.shortcut_key > 0 && tool.register_shortcut_key)
+		if(tool.shortcut_key > 0)
 		{
 			tools_shortcut.insertLast(@tool);
 			num_tools_shortcut++;
