@@ -101,7 +101,9 @@ class AdvToolScript
 	
 	private array<Image@> icon_images;
 	
-	private string selected_tab;
+	/// '_' = Tool has not been initialised yet
+	private string selected_tab = '_';
+	private string previous_selected_tab = '_';
 	private Tool@ selected_tool;
 	private int num_tool_group_popups;
 	
@@ -317,8 +319,6 @@ class AdvToolScript
 		// ui.style.secondary_bg_clr                = 0x667f7daf;
 		// ui.style.scrollbar_light_bg_clr          = 0xd9111111;
 		
-		selected_tab = editor.editor_tab();
-		
 		window_manager.initialise(ui);
 		
 		@toolbar = Toolbar(ui, false, true);
@@ -383,6 +383,10 @@ class AdvToolScript
 		add_tool(Tool(this, 'Level Settings')	.set_icon('editor',  'settingsicon'));
 		add_tool(Tool(this, 'Scripts')			.set_icon('dustmod', 'scripticon').init_shortcut_key(VK::S));
 		add_tool(HelpTool(this, 'Help')			.set_icon('editor',  'helpicon'));
+		
+		@tools_map[''] = null;
+		@tools_map['Wind'] = null;
+		@tools_map['Particle'] = null;
 		
 		// Custom
 		
@@ -466,8 +470,8 @@ class AdvToolScript
 			new_selected_tab == '' || new_selected_tab == 'Help' ||
 			new_selected_tab == 'Particle' || new_selected_tab == 'Wind'))
 		{
-			select_tool(null);
 			selected_tab = new_selected_tab;
+			select_tool(null, true, false);
 		}
 		
 		if(mouse.left_press)
@@ -627,13 +631,12 @@ class AdvToolScript
 		return cast<Tool@>(tools_map[name]);
 	}
 	
-	bool select_tool(const string name, const bool update_editor_tab=true)
+	bool select_tool(const string &in name)
 	{
 		if(!tools_map.exists(name))
 			return false;
 		
-		select_tool(cast<Tool@>(tools_map[name]), update_editor_tab);
-		
+		select_tool(cast<Tool@>(tools_map[name]));
 		return true;
 	}
 	
@@ -1032,9 +1035,10 @@ class AdvToolScript
 	}
 	
 	/// Select the specified tool and call the relevant callbacks.
-	private void select_tool(Tool@ tool, const bool update_editor_tab=true)
+	private void select_tool(Tool@ tool, const bool update_editor_tab=true, const bool allow_reselected=true)
 	{
-		if(@tool == @selected_tool)
+		// Don't trigger a reselect if this is the firs t tool to be selected ('_')
+		if(@tool == @selected_tool && selected_tab != '_')
 		{
 			if(@selected_tool != null)
 			{
@@ -1042,6 +1046,7 @@ class AdvToolScript
 			}
 			
 			do_update_editor_tab(update_editor_tab);
+			on_tool_changed(allow_reselected);
 			return;
 		}
 		
@@ -1084,6 +1089,7 @@ class AdvToolScript
 		selected_tab = selected_tool_name == ''
 			? editor.editor_tab() : selected_tool_name;
 		ui.mouse_enabled = true;
+		on_tool_changed(false);
 	}
 	
 	private void do_update_editor_tab(const bool do_update)
@@ -1160,6 +1166,11 @@ class AdvToolScript
 	// ///////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////
+	
+	private void on_tool_changed(const bool reselected)
+	{
+		previous_selected_tab = selected_tab;
+	}
 	
 	private void on_clipboard_change(EventInfo@ event)
 	{
