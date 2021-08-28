@@ -208,7 +208,7 @@ class Tool
 		num_draw_listeners++;
 	}
 	
-	void deregistedrawep_listener(IToolDrawListener@ listener)
+	void deregister_draw_listener(IToolDrawListener@ listener)
 	{
 		const int index = draw_listeners.findByRef(listener);
 		
