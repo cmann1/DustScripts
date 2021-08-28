@@ -462,10 +462,12 @@ class AdvToolScript
 		
 		const string new_selected_tab = editor.editor_tab();
 		if(
+			new_selected_tab != selected_tab && (
 			new_selected_tab == '' || new_selected_tab == 'Help' ||
-			new_selected_tab == 'Particle' || new_selected_tab == 'Wind')
+			new_selected_tab == 'Particle' || new_selected_tab == 'Wind'))
 		{
 			select_tool(null);
+			selected_tab = new_selected_tab;
 		}
 		
 		if(mouse.left_press)
@@ -1029,7 +1031,7 @@ class AdvToolScript
 		}
 	}
 	
-	/// Select the specified tool and call the relevant callbacks. Cannot be null.
+	/// Select the specified tool and call the relevant callbacks.
 	private void select_tool(Tool@ tool, const bool update_editor_tab=true)
 	{
 		if(@tool == @selected_tool)
@@ -1079,8 +1081,8 @@ class AdvToolScript
 		ignore_toolbar_select_event = false;
 		button_group.allow_deselect = false;
 		
-		selected_tab = editor.editor_tab() != selected_tool_name
-			? 'Scripts' : selected_tool_name;
+		selected_tab = selected_tool_name == ''
+			? editor.editor_tab() : selected_tool_name;
 		ui.mouse_enabled = true;
 	}
 	
