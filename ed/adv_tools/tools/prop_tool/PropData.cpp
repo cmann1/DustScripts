@@ -149,8 +149,8 @@ class PropData : SelectableData
 				lines.resize(lines_size = lines_count + count + 32);
 			}
 			
-			float p_x = path[count - 2];
-			float p_y = path[count - 1];
+			float p_x = path[0];
+			float p_y = path[1];
 			float prev_x = (cos_angle * p_x - sin_angle * p_y) * draw_scale_x;
 			float prev_y = (sin_angle * p_x + cos_angle * p_y) * draw_scale_y;
 			
@@ -163,7 +163,7 @@ class PropData : SelectableData
 			prev_x *= draw_scale;
 			prev_y *= draw_scale;
 			
-			for(int j = 0, k = count - 2; j < count; k = j, j += 2)
+			for(int j = 2; j < count; j += 2)
 			{
 				p_x = path[j];
 				p_y = path[j + 1];
