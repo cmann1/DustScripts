@@ -74,7 +74,7 @@ class EdgeBrushTool : Tool
 		super(script, 'Tiles', 'Edge Brush');
 		
 		// Set priority = -1 so the tile tool shortcut takes priority
-		init_shortcut_key(VK::B, -1);
+		init_shortcut_key(VK::B, ModifierKey::None, -1);
 	}
 	
 	void build_sprites(message@ msg) override

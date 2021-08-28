@@ -1,4 +1,5 @@
 #include '../../../lib/enums/VK.cpp';
+#include '../../../lib/input/ModifierKey.cpp';
 #include '../../../lib/utils/vk_from_name.cpp';
 
 class ShortcutKey
@@ -6,47 +7,52 @@ class ShortcutKey
 	
 	AdvToolScript@ script;
 	
-	bool ctrl;
-	bool shift;
-	bool alt;
-	int key = -1;
+	int modifiers = ModifierKey::None;
+	int vk = -1;
+	int priority = 0;
 	
-	void set(AdvToolScript@ script, const int key, const bool ctrl=false, bool shift=false, const bool alt=false)
+	ShortcutKey@ init(AdvToolScript@ script)
 	{
 		@this.script = script;
-		
-		this.key = key;
-		this.ctrl = ctrl;
-		this.shift = shift;
-		this.alt = alt;
+		return this;
 	}
 	
-	void set(AdvToolScript@ script, const string &in str)
+	private void _set(const int vk, const int modifiers, const int priority)
+	{
+		this.vk = vk;
+		this.modifiers = modifiers;
+		this.priority = priority;
+	}
+	
+	ShortcutKey@ set(const int vk, const int modifiers=ModifierKey::None, const int priority=0)
 	{
 		@this.script = script;
 		
-		key = -1;
-		ctrl = false;
-		shift = false;
-		alt = false;
+		_set(vk, modifiers, priority);
+		return this;
+	}
+	
+	ShortcutKey@ from_string(const string &in str, const int priority=0)
+	{
+		_set(-1, ModifierKey::None, priority);
 		
 		// Parse key string in the format MODIFIER+KEY
 		array<string> parts = str.split('+');
 		
 		string key_str = string::trim(parts[int(parts.length) - 1]);
 		if(key_str == '')
-			return;
+			return this;
 		
-		key = VK::from_name(key_str);
+		vk = VK::from_name(key_str);
 		
 		// The key itself must not be a modifier
 		if(
-			key == -1 ||
-			(key >= VK::Shift && key <= VK::Alt) ||
-			(key >= VK::LeftShift && key <= VK::RightMenu))
+			vk <= 0 ||
+			(vk >= VK::Shift && vk <= VK::Alt) ||
+			(vk >= VK::LeftShift && vk <= VK::RightMenu))
 		{
-			key = -1;
-			return;
+			vk = -1;
+			return this;
 		}
 		
 		// Parse modifier keys
@@ -56,26 +62,59 @@ class ShortcutKey
 			if(key_str == '')
 				continue;
 			
-			const int vk = VK::from_name(key_str);
+			const int mod_vk = VK::from_name(key_str);
 			
-			switch(vk)
+			switch(mod_vk)
 			{
-				case VK::Control: ctrl = true; break;
-				case VK::Shift: shift = true; break;
-				case VK::Alt: alt = true; break;
+				case VK::Control: modifiers |= ModifierKey::Ctrl; break;
+				case VK::Shift: modifiers |= ModifierKey::Shift; break;
+				case VK::Alt: modifiers |= ModifierKey::Alt; break;
 			}
 		}
+		
+		return this;
+	}
+	
+	ShortcutKey@ from_config(const string &in name, const string &in default_str='', const int priority=0)
+	{
+		return from_string(script.config.get_string(name, default_str), priority);
+	}
+	
+	string to_string()
+	{
+		string str = VK::to_name(vk);
+		
+		if(str == '')
+			return str;
+		
+		if((modifiers & ModifierKey::Alt) != 0)
+			str = VK::to_name(VK::Alt) + '+' + str;
+		if((modifiers & ModifierKey::Shift) != 0)
+			str = VK::to_name(VK::Shift) + '+' + str;
+		if((modifiers & ModifierKey::Ctrl) != 0)
+			str = VK::to_name(VK::Control) + '+' + str;
+		
+		return str;
+	}
+	
+	bool is_set() const
+	{
+		return vk > 0;
 	}
 	
 	bool check()
 	{
-		if(key == -1 || @script == null)
+		if(vk <= 0 || @script == null)
 			return false;
 		
-		if(script.ctrl != ctrl || script.shift != shift || script.alt != alt)
+		if(
+			script.ctrl != ((modifiers & ModifierKey::Ctrl) != 0) ||
+			script.shift != ((modifiers & ModifierKey::Shift) != 0) ||
+			script.alt != ((modifiers & ModifierKey::Alt) != 0)
+		)
 			return false;
 		
-		return script.input.key_check_pressed_vk(key);
+		return script.input.key_check_pressed_vk(vk);
 	}
 	
 }

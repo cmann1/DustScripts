@@ -232,13 +232,21 @@ class AdvToolScript
 			}
 		}
 		
+		for(uint i = 0; i < tools.length(); i++)
+		{
+			// Just easier to reload everything if a shortcut changes
+			if(tools[i].reload_shortcut_key())
+			{
+				return true;
+			}
+		}
+		
 		if(trigger_load && !requires_reload)
 		{
 			for(uint i = 0; i < tools.length(); i++)
 			{
 				tools[i].on_settings_loaded();
 			}
-			
 			for(uint i = 0; i < tool_groups.length(); i++)
 			{
 				tool_groups[i].on_settings_loaded();
@@ -400,7 +408,7 @@ class AdvToolScript
 		for(uint i = 0; i < sort_list.length; i++)
 		{
 			Tool@ tool = sort_list[i].tool;
-			const string map_key = tool.shortcut_key + '';
+			const string map_key = tool.key.to_string();
 			
 			@tool.shortcut_key_group = shortcut_map.exists(map_key)
 				? cast<Tool@>(shortcut_map[map_key]).shortcut_key_group
@@ -484,13 +492,13 @@ class AdvToolScript
 			{
 				select_next_tool(1);
 			}
-			else if(!shift && !ctrl && !alt)
+			else
 			{
 				for(int i = num_tools_shortcut - 1; i >= 0; i--)
 				{
 					Tool@ tool = @tools_shortcut[i];
 					
-					if(input.key_check_pressed_vk(tool.shortcut_key))
+					if(tool.key.check())
 					{
 						select_tool(tool.on_shortcut_key());
 						persist_state();
@@ -1014,7 +1022,7 @@ class AdvToolScript
 		@tools_map[tool.name] = tool;
 		tools.insertLast(tool);
 		
-		if(tool.shortcut_key > 0)
+		if(tool.key.is_set())
 		{
 			tools_shortcut.insertLast(@tool);
 			num_tools_shortcut++;

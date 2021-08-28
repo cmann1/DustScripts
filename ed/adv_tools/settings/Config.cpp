@@ -126,8 +126,8 @@ class Config
 		EnableShortcuts = get_bool('EnableShortcuts', true);
 		ToolbarIconSize = round(get_float('ToolbarIconSize', 30));
 		UIIconColour = get_colour('UIIconColour', 0xffffffff);
-		KeyPrevTool.set(script, get_string('KeyPrevTool', 'Shift+W'));
-		KeyNextTool.set(script, get_string('KeyNextTool', 'Shift+E'));
+		KeyPrevTool.init(script).from_config('KeyPrevTool', 'Shift+W');
+		KeyNextTool.init(script).from_config('KeyNextTool', 'Shift+E');
 	}
 	
 	private void add(string &in key, const string &in value)

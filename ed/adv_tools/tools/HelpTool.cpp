@@ -16,6 +16,7 @@ class HelpTool : Tool
 	{
 		if(script.shift)
 		{
+			puts('> Reloading AdvTools config');
 			script.reload_config();
 			return false;
 		}

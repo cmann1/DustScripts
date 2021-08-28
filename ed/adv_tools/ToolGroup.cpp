@@ -31,7 +31,7 @@ class ToolGroup
 		this.name = name;
 		@this.button_group = button_group;
 		
-		@button = create_button(name, -1, '', '');
+		@button = create_button(name, null, '', '');
 		button.mouse_enter.on(EventCallback(on_button_enter));
 		
 		@icon = cast<Image@>(button.content);
@@ -66,7 +66,7 @@ class ToolGroup
 		}
 	}
 	
-	Button@ create_button(const string name, const int shortcut_key,
+	Button@ create_button(const string name, ShortcutKey@ shortcut_key,
 		const string sprite_set, const string sprite_name,
 		const float width=-1, const float height=-1,
 		const float offset_x=0, const float offset_y=0)
@@ -201,7 +201,7 @@ class ToolGroup
 	
 	private void update_tooltip()
 	{
-		button.tooltip.content_string = get_tooltip(current_tool.name, current_tool.shortcut_key);
+		button.tooltip.content_string = get_tooltip(current_tool.name, current_tool.key);
 	}
 	
 	private void create_popup()
@@ -231,7 +231,7 @@ class ToolGroup
 		if(!tool.selectable)
 			return;
 		
-		@tool.toolbar_button = create_button(tool.name, tool.shortcut_key,
+		@tool.toolbar_button = create_button(tool.name, tool.key,
 			tool.icon_sprite_set, tool.icon_sprite_name, tool.icon_width, tool.icon_height,
 			tool.icon_offset_x, tool.icon_offset_y);
 		popup_content.add_child(tool.toolbar_button);
@@ -275,15 +275,12 @@ class ToolGroup
 		popup_content.fit_to_contents(true);
 	}
 	
-	private string get_tooltip(const string name, const int shortcut_key)
+	private string get_tooltip(const string name, ShortcutKey@ key)
 	{
-		if(shortcut_key == -1 || !script.config.EnableShortcuts)
+		if(@key == null || !key.is_set() || !script.config.EnableShortcuts)
 			return name;
 		
-		string s = ' ';
-		s[0] = shortcut_key;
-		
-		return name + ' [' + s + ']';
+		return name + ' [' + key.to_string() + ']';
 	}
 	
 	// //////////////////////////////////////////////////////////

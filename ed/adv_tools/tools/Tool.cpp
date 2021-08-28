@@ -17,8 +17,7 @@ class Tool
 	Button@ toolbar_button;
 	
 	array<Tool@>@ shortcut_key_group;
-	int shortcut_key_priority = 0;
-	int shortcut_key = -1;
+	ShortcutKey key;
 	
 	protected array<IToolEditorLoadListener@> editor_load_listeners;
 	protected array<IToolSelectListener@> select_listeners;
@@ -31,11 +30,17 @@ class Tool
 	
 	protected bool selected = false;
 	
+	private string default_key_config = '';
+	private int default_key=-1;
+	private int default_key_modifiers=ModifierKey::None;
+	
 	protected void construct(AdvToolScript@ script, const string & in base_tool_name, const string &in name)
 	{
 		@this.script = script;
 		this.base_tool_name = base_tool_name;
 		this.name = name;
+		
+		key.init(script);
 	}
 	
 	Tool(AdvToolScript@ script)
@@ -48,7 +53,7 @@ class Tool
 		construct(script, name, name);
 	}
 	
-	Tool(AdvToolScript@ script, const string & in base_tool_name, const string &in name)
+	Tool(AdvToolScript@ script, const string &in base_tool_name, const string &in name)
 	{
 		construct(script, base_tool_name, name);
 	}
@@ -83,26 +88,43 @@ class Tool
 	}
 	
 	Tool@ init_shortcut_key(
-		const string &in config_name, const int shortcut_key,
-		const int priority=0)
+		const string &in config_name, const int default_key=-1,
+		const int default_modifiers=ModifierKey::None, const int priority=0)
 	{
-		// First check this tool's name (with spaces stripped) for a key config
-		this.shortcut_key = script.config.get_vk('Key' + string::replace(name, ' ', ''), shortcut_key);
+		this.default_key_config = config_name;
+		this.default_key = default_key;
+		this.default_key_modifiers = default_modifiers;
 		
-		// If there isn't one, and no default is provided, check the parent tool config
-		if(this.shortcut_key == -1)
+		// First check this tool's name (with spaces stripped) for a key config
+		key.from_config('Key' + string::replace(name, ' ', ''), '', priority);
+		
+		// Use the provided default
+		if(key.vk <= 0)
 		{
-			this.shortcut_key = script.config.get_vk('Key' + config_name, shortcut_key);
+			key.set(default_key, default_modifiers);
 		}
 		
-		this.shortcut_key_priority = priority;
+		// If there isn't a config or default, check the parent tool config
+		if(key.vk <= 0)
+		{
+			key.from_config('Key' + config_name);
+		}
 		
 		return @this;
 	}
 	
-	Tool@ init_shortcut_key(const int shortcut_key, const int priority=0)
+	Tool@ init_shortcut_key(const int shortcut_key, const int modifiers=ModifierKey::None, const int priority=0)
 	{
-		return init_shortcut_key(base_tool_name, shortcut_key, priority);
+		return init_shortcut_key(base_tool_name, shortcut_key, modifiers, priority);
+	}
+	
+	bool reload_shortcut_key()
+	{
+		const int prev_vk = key.vk;
+		const int prev_mod = key.modifiers;
+		init_shortcut_key(default_key_config, default_key, default_key_modifiers, key.priority);
+		
+		return prev_vk != key.vk || prev_mod != key.modifiers;
 	}
 	
 	// //////////////////////////////////////////////////////////

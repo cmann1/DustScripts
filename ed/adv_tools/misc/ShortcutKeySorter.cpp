@@ -12,8 +12,8 @@ class ShortcutKeySorter
 	/// Sort by priority then index
 	int opCmp(const ShortcutKeySorter &in other)
 	{
-		if(tool.shortcut_key_priority != other.tool.shortcut_key_priority)
-			return tool.shortcut_key_priority - other.tool.shortcut_key_priority;
+		if(tool.key.priority != other.tool.key.priority)
+			return tool.key.priority - other.tool.key.priority;
 		
 		return index - other.index;
 	}
