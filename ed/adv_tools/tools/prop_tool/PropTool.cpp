@@ -414,12 +414,10 @@ class PropTool : Tool
 			return;
 		}
 		
-		// Move with arrow keys
-		// Flip/Mirror
-		// Cycle palette
-		
+		// Keyboard shortcuts
 		if(script.scene_focus)
 		{
+			// Lock
 			if(script.input.key_check_pressed_vk(VK::L))
 			{
 				if(script.alt)
@@ -428,46 +426,72 @@ class PropTool : Tool
 					lock_selected();
 			}
 			
+			// Delete
+			if(script.input.key_check_gvb(GVB::Delete))
+			{
+				delete_selected();
+			}
+			
+			// Move
 			if(script.key_repeat_gvb(GVB::LeftArrow))
 			{
 				shift_props(script.ctrl ? -20 : script.shift ? -10 : -1, 0);
 			}
-			else if(script.key_repeat_gvb(GVB::RightArrow))
+			if(script.key_repeat_gvb(GVB::RightArrow))
 			{
 				shift_props(script.ctrl ? 20 : script.shift ? 10 : 1, 0);
 			}
-			else if(script.key_repeat_gvb(GVB::UpArrow))
+			if(script.key_repeat_gvb(GVB::UpArrow))
 			{
 				shift_props(0, script.ctrl ? -20 : script.shift ? -10 : -1);
 			}
-			else if(script.key_repeat_gvb(GVB::DownArrow))
+			if(script.key_repeat_gvb(GVB::DownArrow))
 			{
 				shift_props(0, script.ctrl ? 20 : script.shift ? 10 : 1);
 			}
-			else if(script.input.key_check_pressed_gvb(GVB::BracketOpen))
+			
+			// Flip/mirror
+			if(script.input.key_check_pressed_gvb(GVB::BracketOpen))
 			{
 				if(script.shift)
 					mirror_selected(true);
 				else
 					flip_props(true, false);
 			}
-			else if(script.input.key_check_pressed_gvb(GVB::BracketClose))
+			if(script.input.key_check_pressed_gvb(GVB::BracketClose))
 			{
 				if(script.shift)
 					mirror_selected(false);
 				else
 					flip_props(false, true);
 			}
-			else if(
+			
+			// Cycle palette
+			if(
 				script.input.key_check_pressed_vk(VK::PageUp) ||
 				script.input.key_check_pressed_vk(VK::PageDown))
 			{
 				cycle_selected_palettes(script.input.key_check_pressed_vk(VK::PageUp) ? -1 : 1);
 			}
+			
+			// Copy/Cut/Paste
+			if(
+				selected_props_count > 0 && script.ctrl &&
+				(script.input.key_check_pressed_vk(VK::C) || script.input.key_check_pressed_vk(VK::X)))
+			{
+				copy_selected_props();
+				if(script.input.key_check_pressed_vk(VK::X))
+				{
+					delete_selected();
+				}
+			}
+			if(script.ctrl && script.input.key_check_pressed_vk(VK::V))
+			{
+				paste(script.shift, script.alt);
+			}
 		}
 		
 		// Pick props
-		
 		if(script.mouse_in_scene && !script.space && !script.handles.mouse_over)
 		{
 			pick_props();
@@ -479,7 +503,6 @@ class PropTool : Tool
 		}
 		
 		// Start rotating from hovered prop
-		
 		if(script.mouse_in_scene && @hovered_prop != null && !script.shift && !script.alt && mouse.middle_press)
 		{
 			drag_rotation_handle = false;
@@ -488,13 +511,11 @@ class PropTool : Tool
 		}
 		
 		// Set or clear custom anchor position, or set custom anchor layer
-		
 		if(script.mouse_in_scene && script.shift && !script.ctrl && !script.alt && mouse.scroll != 0 && has_custom_anchor)
 		{
 			adjust_custom_anchor_layer(mouse.scroll);
 			show_custom_anchor_info();
 		}
-		
 		if(script.mouse_in_scene && mouse.middle_press)
 		{
 			if(script.shift || script.ctrl)
@@ -532,31 +553,18 @@ class PropTool : Tool
 		}
 		
 		// Scroll hover index offset
-		
 		if(mouse.scroll != 0 && !script.space && !script.ctrl && !script.alt && !script.shift)
 		{
 			hover_index_offset -= mouse.scroll;
 		}
 		
 		// Adjust layer/sublayer
-		
 		if(mouse.scroll != 0 && (script.ctrl || script.alt))
 		{
 			idle_adjust_layer();
 		}
 		
 		// Delete
-		
-		if(script.scene_focus && script.input.key_check_gvb(GVB::Delete))
-		{
-			for(int i = 0; i < selected_props_count; i++)
-			{
-				script.g.remove_prop(selected_props[i].prop);
-			}
-			
-			select_none();
-		}
-		
 		if(script.mouse_in_scene && @hovered_prop != null && (mouse.right_press || script.shift && mouse.right_down))
 		{
 			if(hovered_prop.selected)
@@ -567,18 +575,6 @@ class PropTool : Tool
 			script.g.remove_prop(hovered_prop.prop);
 			hovered_prop.hovered = false;
 			@hovered_prop = null;
-		}
-		
-		// Copy/Paste
-		
-		if(script.scene_focus && selected_props_count > 0 && script.ctrl && script.input.key_check_pressed_vk(VK::C))
-		{
-			copy_selected_props();
-		}
-		
-		if(script.scene_focus && script.ctrl && script.input.key_check_pressed_vk(VK::V))
-		{
-			paste(script.shift, script.alt);
 		}
 		
 		clear_highlighted_props();
@@ -1502,6 +1498,16 @@ class PropTool : Tool
 		selection_y2 -= dy;
 		
 		update_alignments_from_origin();
+	}
+	
+	private void delete_selected()
+	{
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			script.g.remove_prop(selected_props[i].prop);
+		}
+		
+		select_none();
 	}
 	
 	private void lock_selected()
