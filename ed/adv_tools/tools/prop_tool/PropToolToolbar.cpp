@@ -303,8 +303,7 @@ class PropToolToolbar
 		export_type_select.add_value('0', 'SpriteBatch');
 		export_type_select.add_value('1', 'SpriteGroup');
 		export_type_select.width = 160;
-		export_type_select.selected_index = tool.export_type == PropExportType::SpriteBatch ? 0 : 1;
-		export_type_select.change.on(EventCallback(on_export_type_change));
+		export_type_select.selected_index = PropExportType::SpriteBatch;
 		export_contents.add_child(export_type_select);
 		
 		// Export layer
@@ -621,6 +620,7 @@ class PropToolToolbar
 		else if(name == 'export')
 		{
 			tool.export_selected_props(
+				PropExportType(export_type_select.selected_index),
 				int(export_layer_slider.value),
 				int(export_sublayer_slider.value),
 				export_override_layer_checkbox.checked,
@@ -711,11 +711,6 @@ class PropToolToolbar
 	}
 	
 	// Export
-	
-	private void on_export_type_change(EventInfo@ event)
-	{
-		tool.export_type = PropExportType(export_type_select.selected_index);
-	}
 	
 	private void on_export_colour_activate(EventInfo@ event)
 	{

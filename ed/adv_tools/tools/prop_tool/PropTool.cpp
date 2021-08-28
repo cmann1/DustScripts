@@ -94,7 +94,7 @@ class PropTool : Tool
 	PropToolHighlight highlight_selection = Both;
 	bool show_selection = true;
 	bool show_info = true;
-	PropExportType export_type = PropExportType::SpriteBatch;
+	PropToolExporter exporter;
 	
 	bool pick_ignore_holes = true;
 	float pick_radius = 2;
@@ -104,6 +104,8 @@ class PropTool : Tool
 		super(script, 'Props', 'Prop Tool');
 		
 		init_shortcut_key(VK::Q);
+		
+		exporter.init(script);
 	}
 	
 	void build_sprites(message@ msg) override
@@ -2053,6 +2055,7 @@ class PropTool : Tool
 	}
 	
 	void export_selected_props(
+		const PropExportType type,
 		const int layer, const int sub_layer, const bool override_layer, const bool override_sub_layer,
 		const uint colour)	
 	{
@@ -2062,15 +2065,15 @@ class PropTool : Tool
 		const float origin_x = has_custom_anchor ? custom_anchor_x : selection_x;
 		const float origin_y = has_custom_anchor ? custom_anchor_y : selection_y;
 		
-		switch(export_type)
+		switch(type)
 		{
 			case PropExportType::SpriteBatch:
-				PropToolExporter::sprite_batch(
+				exporter.sprite_batch(
 					@selected_props, selected_props_count, origin_x, origin_y,
 					layer, sub_layer, override_layer, override_sub_layer);
 				break;
 			case PropExportType::SpriteGroup:
-				PropToolExporter::sprite_group(
+				exporter.sprite_group(
 					@selected_props, selected_props_count, origin_x, origin_y,
 					layer, sub_layer, override_layer, override_sub_layer,
 					colour);

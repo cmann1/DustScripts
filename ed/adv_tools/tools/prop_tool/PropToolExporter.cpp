@@ -1,5 +1,20 @@
-namespace PropToolExporter
+class PropToolExporter
 {
+	
+	AdvToolScript@ script;
+	
+	void init(AdvToolScript@ script)
+	{
+		@this.script = script;
+	}
+	
+	void output(const string &in results)
+	{
+		script.input.clipboard = results;
+		puts('========================================================================');
+		puts(results);
+		puts('========================================================================');
+	}
 	
 	void sprite_batch(
 		array<PropData@>@ data, const int num_props, const float origin_x, const float origin_y,
@@ -29,15 +44,14 @@ namespace PropToolExporter
 			palette += p.palette() + ',';
 		}
 		
-		puts('========================================================================');
-		puts('SpriteBatch spr(\n' +
+		output(
+			'SpriteBatch spr(\n' +
 			'\tarray<string>={' + sprite_set_name + '},\n'
 			'\tarray<int>={' + layer_sub_layer + '},\n'
 			'\tarray<float>={' + x_y + '},\n'
 			'\tarray<float>={' + scale + '},\n'
 			'\tarray<float>={' + rotation + '},\n'
 			'\tarray<uint>={' + palette + '});');
-		puts('========================================================================');
 	}
 	
 	void sprite_group(
@@ -83,13 +97,12 @@ namespace PropToolExporter
 			colour_frame_palette += 0 + ',' + p.palette() + ',' + colour_string + ',';
 		}
 		
-		puts('========================================================================');
-		puts('SpriteGroup spr(\n' +
+		output(
+			'SpriteGroup spr(\n'
 			'\tarray<string>={' + sprite_set_name + '},\n'
 			'\tarray<int>={' + layer_sub_layer + '},\n'
 			'\tarray<float>={' + align_offset_rotation_scale + '},\n'
 			'\tarray<uint>={' + colour_frame_palette + '});');
-		puts('========================================================================');
 	}
 	
 }
