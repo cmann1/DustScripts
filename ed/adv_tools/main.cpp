@@ -290,7 +290,7 @@ class AdvToolScript
 		initialise_ui();
 		initialise_tools();
 		
-		select_tool(selected_tool_name != '' ? selected_tool_name : editor.editor_tab());
+		select_tool(selected_tool_name != '' ? selected_tool_name : editor.editor_tab(), false);
 		
 		info_overlay.init(this);
 		handles.init(this);
@@ -470,8 +470,7 @@ class AdvToolScript
 			new_selected_tab == '' || new_selected_tab == 'Help' ||
 			new_selected_tab == 'Particle' || new_selected_tab == 'Wind'))
 		{
-			selected_tab = new_selected_tab;
-			select_tool(null, true, false);
+			select_tool(new_selected_tab, false);
 		}
 		
 		if(mouse.left_press)
@@ -631,12 +630,12 @@ class AdvToolScript
 		return cast<Tool@>(tools_map[name]);
 	}
 	
-	bool select_tool(const string &in name)
+	bool select_tool(const string &in name, const bool update_editor_tab=true)
 	{
 		if(!tools_map.exists(name))
 			return false;
 		
-		select_tool(cast<Tool@>(tools_map[name]));
+		select_tool(cast<Tool@>(tools_map[name]), update_editor_tab);
 		return true;
 	}
 	
@@ -1101,7 +1100,7 @@ class AdvToolScript
 		
 		if(editor.editor_tab() != selected_tool.name)
 		{
-			editor.editor_tab(selected_tab = 'Scripts');
+			editor.editor_tab('Scripts');
 		}
 	}
 	

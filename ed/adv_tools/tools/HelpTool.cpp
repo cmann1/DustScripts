@@ -4,7 +4,6 @@ class HelpTool : Tool
 	HelpTool(AdvToolScript@ script, const string name)
 	{
 		super(script, name);
-		
 		selectable = false;
 	}
 	
