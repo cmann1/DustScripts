@@ -359,14 +359,14 @@ bool line_aabb_intersection(
 	float t1 = (ax1 - lx1) * inv_delta_x;
 	float t2 = (ax2 - lx1) * inv_delta_x;
 
-	const float tt_min = min(t1, t2);
-	const float tt_max = max(t1, t2);
+	t_min = min(t1, t2);
+	t_max = max(t1, t2);
 
 	t1 = (ay1 - ly1) * inv_delta_y;
 	t2 = (ay2 - ly1) * inv_delta_y;
 
-	t_min = max(tt_min, min(min(t1, t2), tt_max));
-	t_max = min(tt_max, max(max(t1, t2), tt_min));
+	t_min = max(t_min, min(t1, t2));
+	t_max = min(t_max, max(t1, t2));
 	
 	return t_min <= 1 && t_max >= 0 && t_max >= t_min;
 }
