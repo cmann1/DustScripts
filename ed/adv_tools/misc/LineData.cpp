@@ -27,14 +27,14 @@ class LineData
 		float t1 = (x1 - this.x1) * inv_delta_x;
 		float t2 = (x2 - this.x1) * inv_delta_x;
 
-		const float tt_min = min(t1, t2);
-		const float tt_max = max(t1, t2);
+		t_min = min(t1, t2);
+		t_max = max(t1, t2);
 
 		t1 = (y1 - this.y1) * inv_delta_y;
 		t2 = (y2 - this.y1) * inv_delta_y;
 
-		t_min = max(tt_min, min(min(t1, t2), tt_max));
-		t_max = min(tt_max, max(max(t1, t2), tt_min));
+		t_min = max(t_min, min(t1, t2));
+		t_max = min(t_max, max(t1, t2));
 		
 		return t_min <= 1 && t_max >= 0 && t_max >= t_min;
 	}
