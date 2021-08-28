@@ -37,6 +37,7 @@
 #include 'tools/TextTool.cpp';
 #include 'tools/ExtendedTriggerTool.cpp';
 #include 'tools/HelpTool.cpp';
+#include 'tools/ParticleEditorTool.cpp';
 #include 'ToolGroup.cpp';
 
 const string SCRIPT_BASE			= 'ed/adv_tools/';
@@ -72,6 +73,9 @@ class AdvToolScript
 	bool space_on_press;
 	bool pressed_in_scene;
 	bool shortcut_keys_enabled = true;
+	/// Kind of a hack, but can be set to "consume" a single shortcut key.
+	/// Any tool shortcuts matching this will not be able to trigger
+	ShortcutKey blocked_key;
 	
 	InfoOverlay info_overlay;
 	
@@ -148,6 +152,8 @@ class AdvToolScript
 		@ui = UI(true);
 		@mouse = Mouse(false, 22);
 		mouse.use_input(input);
+		
+		blocked_key.init(this);
 		
 		@button_group = ButtonGroup(ui, false);
 		
@@ -386,7 +392,7 @@ class AdvToolScript
 		
 		@tools_map[''] = null;
 		@tools_map['Wind'] = null;
-		@tools_map['Particle'] = null;
+		@tools_map['Particle'] = ParticleEditorTool(this);
 		
 		// Custom
 		
@@ -499,11 +505,12 @@ class AdvToolScript
 			}
 			else
 			{
+				//if(selected_tab == 'Particle')
 				for(int i = num_tools_shortcut - 1; i >= 0; i--)
 				{
 					Tool@ tool = @tools_shortcut[i];
 					
-					if(tool.key.check())
+					if(!tool.key.matches(blocked_key) && tool.key.check())
 					{
 						select_tool(tool.on_shortcut_key());
 						persist_state();
@@ -1013,7 +1020,7 @@ class AdvToolScript
 	/// Add a tool to an existing tool group
 	private void add_tool(ToolGroup@ group, Tool@ tool)
 	{
-		if(@group == null || @tool == null)
+		if(@tool == null)
 			return;
 		
 		if(tools_map.exists(tool.name))
@@ -1022,9 +1029,13 @@ class AdvToolScript
 			return;
 		}
 		
-		group.add_tool(tool);
 		@tools_map[tool.name] = tool;
 		tools.insertLast(tool);
+		
+		if(@group != null)
+		{
+			group.add_tool(tool);
+		}
 		
 		if(tool.key.is_set())
 		{
@@ -1051,7 +1062,7 @@ class AdvToolScript
 		
 		if(@tool != null && !tool.on_before_select())
 		{
-			if(@selected_tool != null)
+			if(@selected_tool.group != null)
 			{
 				selected_tool.group.on_select();
 			}
@@ -1067,7 +1078,11 @@ class AdvToolScript
 		if(@selected_tool != null)
 		{
 			selected_tool.on_deselect();
-			selected_tool.group.on_deselect();
+			
+			if(@selected_tool.group != null)
+			{
+				selected_tool.group.on_deselect();
+			}
 		}
 		
 		store_layer_values();
@@ -1079,7 +1094,11 @@ class AdvToolScript
 		if(@selected_tool != null)
 		{
 			selected_tool.on_select();
-			selected_tool.group.on_select();
+			
+			if(@selected_tool.group != null)
+			{
+				selected_tool.group.on_select();
+			}
 		}
 		
 		ignore_toolbar_select_event = false;

@@ -80,6 +80,13 @@ class ShortcutKey
 		return from_string(script.config.get_string(name, default_str), priority);
 	}
 	
+	void clear()
+	{
+		vk = 0;
+		modifiers = ModifierKey::None;
+		priority = 0;
+	}
+	
 	string to_string()
 	{
 		string str = VK::to_name(vk);
@@ -115,6 +122,14 @@ class ShortcutKey
 			return false;
 		
 		return script.input.key_check_pressed_vk(vk);
+	}
+	
+	bool matches(ShortcutKey@ other)
+	{
+		if(@other == null || other.vk <= 0 || vk <= 0)
+			return false;
+		
+		return other.vk == vk && other.modifiers == modifiers;
 	}
 	
 }

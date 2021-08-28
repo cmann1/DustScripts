@@ -274,7 +274,11 @@ class Tool
 	void on_select() final
 	{
 		selected = true;
-		group.set_tool(this);
+		
+		if(@group != null)
+		{
+			group.set_tool(this);
+		}
 		
 		if(@toolbar_button != null)
 		{
