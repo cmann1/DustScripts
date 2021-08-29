@@ -92,7 +92,7 @@ class ScrollView : LockedContainer
 		
 		float height = scroll_max_y - scroll_min_y + layout_padding_top + layout_padding_bottom + layout_border_size * 2;
 		
-		if(@scrollbar_horizontal != null && scrollbar_horizontal.visible)
+		if(@scrollbar_horizontal != null && scrollbar_horizontal._visible)
 		{
 			height += scrollbar_horizontal._height + ui.style.spacing;
 		}
@@ -126,8 +126,8 @@ class ScrollView : LockedContainer
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		const bool prev_scroll_vertical = @scrollbar_vertical != null && scrollbar_vertical.visible;
-		const bool prev_scroll_horizontal = @scrollbar_horizontal != null && scrollbar_horizontal.visible;
+		const bool prev_scroll_vertical = @scrollbar_vertical != null && scrollbar_vertical._visible;
+		const bool prev_scroll_horizontal = @scrollbar_horizontal != null && scrollbar_horizontal._visible;
 		
 		const float padding_left	= is_nan(this.content_padding_left)		? ui.style.spacing : this.content_padding_left;
 		const float padding_right	= is_nan(this.content_padding_right)	? ui.style.spacing : this.content_padding_right;
@@ -208,7 +208,7 @@ class ScrollView : LockedContainer
 				@scrollbar_vertical.container = content;
 				Container::add_child(scrollbar_vertical);
 			}
-			else if(!scrollbar_vertical.visible)
+			else if(!scrollbar_vertical._visible)
 			{
 				scrollbar_vertical.visible = true;
 			}
@@ -237,7 +237,7 @@ class ScrollView : LockedContainer
 				@scrollbar_horizontal.container = content;
 				Container::add_child(scrollbar_horizontal);
 			}
-			else if(!scrollbar_horizontal.visible)
+			else if(!scrollbar_horizontal._visible)
 			{
 				scrollbar_horizontal.visible = true;
 			}
@@ -287,12 +287,12 @@ class ScrollView : LockedContainer
 	
 	protected void do_fit_contents(const bool fit_min) override
 	{
-		if(@scrollbar_vertical != null && scrollbar_vertical.visible)
+		if(@scrollbar_vertical != null && scrollbar_vertical._visible)
 		{
 			scrollbar_vertical.visible = false;
 		}
 		
-		if(@scrollbar_horizontal != null && scrollbar_horizontal.visible)
+		if(@scrollbar_horizontal != null && scrollbar_horizontal._visible)
 		{
 			scrollbar_horizontal.visible = false;
 		}
@@ -318,7 +318,7 @@ class ScrollView : LockedContainer
 		if(@scrollbar_vertical == null)
 			return;
 		
-		if(scroll && scrollbar_vertical.visible)
+		if(scroll && scrollbar_vertical._visible)
 		{
 			scrollbar_vertical.x = _content._x + _content._width;
 			scrollbar_vertical.y = ui.style.spacing;
@@ -338,7 +338,7 @@ class ScrollView : LockedContainer
 		if(@scrollbar_horizontal == null)
 			return;
 		
-		if(scroll && scrollbar_horizontal.visible)
+		if(scroll && scrollbar_horizontal._visible)
 		{
 			scrollbar_horizontal.x = ui.style.spacing;
 			scrollbar_horizontal.y = _content._y + _content._height;

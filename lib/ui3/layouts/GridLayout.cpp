@@ -63,7 +63,7 @@ class GridLayout : Layout
 		
 		for(int i = 0; i < num_children; i++)
 		{
-			if(elements[i].visible)
+			if(elements[i]._visible)
 				num_visible_children++;
 		}
 		
@@ -169,7 +169,7 @@ class GridLayout : Layout
 				? elements[column_start_index + num_columns - column_index - 1]
 				: elements[i];
 			
-			if(!element.visible)
+			if(!element._visible)
 				continue;
 			
 			if(column_start_index == -1)
@@ -283,7 +283,7 @@ class GridLayout : Layout
 				? elements[column_start_index + num_columns - column_index - 1]
 				: elements[i];
 			
-			if(!element.visible)
+			if(!element._visible)
 				continue;
 			
 			if(column_start_index == -1)

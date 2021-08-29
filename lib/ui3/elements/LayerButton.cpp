@@ -250,12 +250,12 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 	
 	protected void update_labels()
 	{
-		if(@layer_label != null && layer_label.visible)
+		if(@layer_label != null && layer_label._visible)
 		{
 			update_label(@layer_label, @selected_layers);
 		}
 		
-		if(@sub_layer_label != null && sub_layer_label.visible)
+		if(@sub_layer_label != null && sub_layer_label._visible)
 		{
 			update_label(@sub_layer_label, @selected_sub_layers);
 		}

@@ -533,8 +533,8 @@ class Window : MoveableDialog
 		
 		const float spacing = ui.style.spacing;
 		const float title_height = _title_bar_height <= 0 ? ui.style.titlebar_height : _title_bar_height;
-		const bool has_buttons_left = @_buttons_left != null && _buttons_left.visible;
-		const bool has_buttons_right = @_buttons_right != null && _buttons_right.visible;
+		const bool has_buttons_left = @_buttons_left != null && _buttons_left._visible;
+		const bool has_buttons_right = @_buttons_right != null && _buttons_right._visible;
 		
 		_width = _set_width = _contents._width + spacing * 2;
 		_height = _contents._height + spacing * 2;
@@ -761,13 +761,13 @@ class Window : MoveableDialog
 		const float title_width = _width - spacing * 2;
 		const float title_height = _title_bar_height <= 0 ? ui.style.titlebar_height : _title_bar_height;
 		const float title_item_height = title_height - spacing * 2;
-		const bool has_icon = _show_title_bar && @_title_icon != null && _title_icon.visible;
-		const bool has_label = _show_title_bar && @_title_label != null && _title_label.visible;
-		const bool has_close_button = _show_title_bar && @_close_button != null && _close_button.visible;
-		const bool has_title_before = _show_title_bar && @_title_before != null && _title_before.visible;
-		const bool has_title_after = _show_title_bar && @_title_after != null && _title_after.visible;
-		const bool has_buttons_left = @_buttons_left != null && _buttons_left.visible;
-		const bool has_buttons_right = @_buttons_right != null && _buttons_right.visible;
+		const bool has_icon = _show_title_bar && @_title_icon != null && _title_icon._visible;
+		const bool has_label = _show_title_bar && @_title_label != null && _title_label._visible;
+		const bool has_close_button = _show_title_bar && @_close_button != null && _close_button._visible;
+		const bool has_title_before = _show_title_bar && @_title_before != null && _title_before._visible;
+		const bool has_title_after = _show_title_bar && @_title_after != null && _title_after._visible;
+		const bool has_buttons_left = @_buttons_left != null && _buttons_left._visible;
+		const bool has_buttons_right = @_buttons_right != null && _buttons_right._visible;
 		
 		if(has_icon)
 		{
@@ -875,7 +875,7 @@ class Window : MoveableDialog
 		_contents.width = title_width;
 		_contents.height = content_height;
 		
-		if(@_buttons_divider != null && _buttons_divider.visible)
+		if(@_buttons_divider != null && _buttons_divider._visible)
 		{
 			_buttons_divider.x = spacing;
 			_buttons_divider.y = _contents._y + _contents._height + spacing;

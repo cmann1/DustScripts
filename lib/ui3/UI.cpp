@@ -578,7 +578,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			if(@_focused_element != null)
 			{
 				if(
-					!_focused_element.visible ||
+					!_focused_element._visible ||
 					((mouse.left_press || mouse.middle_press || mouse.right_press) && !_focused_element.check_mouse()) ||
 					(!contents.contains(@_focused_element) && !overlays.contains(@_focused_element))
 				)
@@ -832,7 +832,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		
 		do
 		{
-			if(!element.visible)
+			if(!element._visible)
 				return false;
 			
 			if(@element == @contents || @element == @overlays)
@@ -1289,7 +1289,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			stack_size--;
 			element_index++;
 			
-			if(element.visible)
+			if(element._visible)
 			{
 				element._queue_children_for_layout(@element_stack);
 				int num_children = element_stack.size - stack_size;
@@ -1888,7 +1888,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			stack_size--;
 			
 			if(
-				element.visible && (
+				element._visible && (
 					ctx.clipping_mode == ClippingMode::None ||
 					(
 						ctx.clipping_mode == ClippingMode::Outside &&
@@ -1972,7 +1972,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			Element@ element = element_stack.pop();
 			stack_size--;
 			
-			if(element.visible)
+			if(element._visible)
 			{
 				const bool not_clipped = ctx.clipping_mode == ClippingMode::None ||
 					(

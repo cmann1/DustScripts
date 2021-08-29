@@ -202,7 +202,7 @@ abstract class MoveableDialog : Container, IStepHandler
 			{
 				Element@ sibling = @siblings[i];
 				
-				if(!sibling.visible || @sibling == @this)
+				if(!sibling._visible || @sibling == @this)
 					continue;
 				
 				if(

@@ -23,7 +23,6 @@ abstract class Element
 	
 	PopupOptions@ tooltip = null;
 	
-	bool visible = true;
 	/// Can this element and all descendants interact with the mouse
 	bool mouse_enabled = true;
 	/// Prevents this element from recieving/capturing mouse events, but stills allows descendants
@@ -61,6 +60,8 @@ abstract class Element
 	float _scroll_x;
 	float _scroll_y;
 	bool _scroll_children = true;
+	
+	bool _visible = true;
 	
 	/// After do_layout, these will be the element's position in world/ui space
 	float x1, y1;
@@ -263,6 +264,21 @@ abstract class Element
 		{
 			if(_scroll_y == value) return;
 			_scroll_y = value;
+		}
+	}
+	
+	bool visible
+	{
+		get const { return _visible; }
+		set
+		{
+			if(_visible == value)
+				return;
+			
+			_visible = value;
+			
+			if(@parent != null)
+				parent.validate_layout = true;
 		}
 	}
 	

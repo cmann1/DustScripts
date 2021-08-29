@@ -411,7 +411,7 @@ class Container : Element
 			{
 				@element = children[i];
 				
-				if(!element.visible)
+				if(!element._visible)
 					continue;
 				
 				const float width  = fit_min ? element._set_width  : element._width;

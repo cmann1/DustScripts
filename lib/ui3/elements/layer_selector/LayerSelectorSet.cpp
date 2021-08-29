@@ -107,7 +107,7 @@ class LayerSelectorSet : Container
 			}
 		}
 		
-		if(result > 0 && trigger_event && visible)
+		if(result > 0 && trigger_event && _visible)
 		{
 			ui._dispatch_event(@select_event, select_event_type, layer_selector);
 		}
@@ -166,7 +166,7 @@ class LayerSelectorSet : Container
 			checkbox.fit(0);
 			label.fit_to_contents();
 			
-			if(label.visible)
+			if(label._visible)
 			{
 				active_width = max(active_width, checkbox._width + label._width - label.real_padding_left - label.real_padding_right + label_spacing);
 			}
@@ -198,7 +198,7 @@ class LayerSelectorSet : Container
 			label.height = layer_height;
 			checkbox.height = layer_height;
 			
-			if(label.visible)
+			if(label._visible)
 			{
 				active_height += max(checkbox._height, label._height);
 			}
@@ -244,7 +244,7 @@ class LayerSelectorSet : Container
 			{
 				Checkbox@ checkbox = checkboxes[i];
 				
-				if(@checkbox == null || !checkbox.visible || @checkbox == @all_checkbox || (group != -1 && groups[i] != group))
+				if(@checkbox == null || !checkbox._visible || @checkbox == @all_checkbox || (group != -1 && groups[i] != group))
 					continue;
 				
 				if(checkbox.checked != checked)
@@ -266,7 +266,7 @@ class LayerSelectorSet : Container
 			update_toggle_all_checkbox();
 			update_control_selection();
 			
-			if(trigger_event && visible)
+			if(trigger_event && _visible)
 			{
 				ui._dispatch_event(@select_event, select_event_type, layer_selector);
 			}
@@ -320,7 +320,7 @@ class LayerSelectorSet : Container
 			update_toggle_all_checkbox();
 			update_control_selection();
 			
-			if(trigger_event && visible)
+			if(trigger_event && _visible)
 			{
 				ui._dispatch_event(@select_event, select_event_type, layer_selector);
 			}
@@ -388,7 +388,7 @@ class LayerSelectorSet : Container
 		{
 			Checkbox@ checkbox = checkboxes[i];
 			
-			if(@checkbox == @all_checkbox || !checkbox.visible)
+			if(@checkbox == @all_checkbox || !checkbox._visible)
 				continue;
 			
 			if(checkbox.checked)
@@ -461,7 +461,7 @@ class LayerSelectorSet : Container
 			update_toggle_all_checkbox();
 			update_control_selection();
 			
-			if(trigger_event && visible)
+			if(trigger_event && _visible)
 			{
 				ui._dispatch_event(@select_event, select_event_type, layer_selector);
 			}
@@ -481,7 +481,7 @@ class LayerSelectorSet : Container
 		{
 			Checkbox@ checkbox = checkboxes[i];
 			
-			if(!checkbox.visible || @checkbox == @all_checkbox)
+			if(!checkbox._visible || @checkbox == @all_checkbox)
 				continue;
 			
 			if(checkbox.checked)
@@ -750,7 +750,7 @@ class LayerSelectorSet : Container
 					add_child(checkbox);
 					add_child(label);
 				}
-				else if(!checkbox.visible)
+				else if(!checkbox._visible)
 				{
 					checkbox.initialise_state(false);
 					checkbox.visible = true;
@@ -794,7 +794,7 @@ class LayerSelectorSet : Container
 		int start_index = 0;
 		int end_index = active_count;
 		
-		if(toggle_all_top && @all_checkbox != null && all_checkbox.visible)
+		if(toggle_all_top && @all_checkbox != null && all_checkbox._visible)
 		{
 			start_index= -1;
 			end_index--;

@@ -155,7 +155,7 @@ class Select : SelectBase, IStepHandler
 		_label._height = _height - border_size * 2;
 		_label.validate_layout = true;
 		
-		if(_show_icons && _icon.visible)
+		if(_show_icons && _icon._visible)
 		{
 			_icon._x = border_size;
 			_icon._y = border_size;

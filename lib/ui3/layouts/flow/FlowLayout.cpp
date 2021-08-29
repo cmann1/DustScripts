@@ -98,7 +98,7 @@ class FlowLayout : Layout
 		{
 			Element@ element = elements[i];
 			
-			if(!element.visible)
+			if(!element._visible)
 				continue;
 			
 			num_visible_elements++;
@@ -228,7 +228,7 @@ class FlowLayout : Layout
 		{
 			Element@ element = elements[i];
 			
-			while(!element.visible && i < num_children)
+			while(!element._visible && i < num_children)
 			{
 				@element = elements[++i];
 			}

@@ -286,7 +286,7 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 		const float height = is_horizontal ? _height : _width;
 		const float button_spacing = 2;
 		
-		if(_show_buttons && _left_button.visible)
+		if(_show_buttons && _left_button._visible)
 		{
 			if(is_horizontal)
 			{
@@ -320,11 +320,11 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 			}
 		}
 		
-		if(_show_text && _label.visible)
+		if(_show_text && _label._visible)
 		{
 			if(is_horizontal)
 			{
-				if(_show_buttons && _left_button.visible)
+				if(_show_buttons && _left_button._visible)
 				{
 					_label.x = border_size + button_size * _left_arrow.alpha;
 					_label.width = _width - button_size * 2 * _left_arrow.alpha - border_size * 2;
@@ -340,7 +340,7 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 			}
 			else
 			{
-				if(_show_buttons && _left_button.visible)
+				if(_show_buttons && _left_button._visible)
 				{
 					_label.y = border_size + button_size * _left_arrow.alpha;
 					_label.height = _height - button_size * 2 * _left_arrow.alpha - border_size * 2;
@@ -534,7 +534,7 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 		if(event.button != ui.primary_button)
 			return;
 		
-		if(_show_buttons && _left_button.visible && (_left_button.check_mouse() || _right_button.check_mouse()))
+		if(_show_buttons && _left_button._visible && (_left_button.check_mouse() || _right_button.check_mouse()))
 		{
 			button_timer = button_pause;
 			button_hold_direction = _left_button.check_mouse() ? -1 : 1;
