@@ -55,30 +55,11 @@ class AnchorLayout : Layout
 				if(element.anchor_left.type != None)
 				{
 					float nx;
-					if(!element.anchor_left.calculate(element, c_x1, c_w, j == 0, nx))
+					if(!element.anchor_left.calculate(element, c_x1, c_w, is_pass1, nx))
 					{
 						@pass2[num_pass2++] = element;
 						continue;
 					}
-					
-					//Element@ sibling =
-					//	@element.anchor_left.element != null && @element.anchor_left.element.parent == @element.parent &&
-					//	element.anchor_left.element._visible
-					//		? element.anchor_left.element : null;
-					//
-					//if(@sibling != null && j == 0)
-					//{
-					//	@pass2[num_pass2++] = element;
-					//	continue;
-					//}
-					//
-					//const float anchor = @sibling != null
-					//	? sibling._x + sibling._width : c_x1;
-					//const float anchor_size = @sibling != null
-					//	? -sibling._width : c_w;
-					//const float nx = anchor + (element.anchor_left.type == Percent
-					//	? anchor_size * element.anchor_left.position + element.anchor_left._padding
-					//	: element.anchor_left.position + element.anchor_left._padding);
 					
 					if(element.anchor_right.type == None)
 					{
@@ -91,29 +72,11 @@ class AnchorLayout : Layout
 				if(element.anchor_right.type != None)
 				{
 					float nx;
-					if(!element.anchor_right.calculate(element, c_x2, c_w, j == 0, nx))
+					if(!element.anchor_right.calculate(element, c_x2, c_w, is_pass1, nx))
 					{
 						@pass2[num_pass2++] = element;
 						continue;
 					}
-					//Element@ sibling =
-					//	@element.anchor_right.element != null && @element.anchor_right.element.parent == @element.parent &&
-					//	element.anchor_right.element._visible
-					//		? element.anchor_right.element : null;
-					//
-					//if(@sibling != null && j == 0)
-					//{
-					//	@pass2[num_pass2++] = element;
-					//	continue;
-					//}
-					//
-					//const float anchor = @sibling != null
-					//	? sibling._x : c_x2;
-					//const float anchor_size = @sibling != null
-					//	? -sibling._width : c_w;
-					//const float nx = anchor - (element.anchor_right.type == Percent
-					//	? anchor_size * element.anchor_right.position + element.anchor_right._padding
-					//	: element.anchor_right.position + element.anchor_right._padding);
 					
 					if(element.anchor_left.type == None)
 					{
@@ -126,14 +89,11 @@ class AnchorLayout : Layout
 				if(element.anchor_top.type != None)
 				{
 					float ny;
-					if(!element.anchor_top.calculate(element, c_y1, c_h, j == 0, ny))
+					if(!element.anchor_top.calculate(element, c_y1, c_h, is_pass1, ny))
 					{
 						@pass2[num_pass2++] = element;
 						continue;
 					}
-					//const float ny = c_y1 + (element.anchor_top.type == Percent
-					//	? element.anchor_top.position * c_h + element.anchor_top._padding
-					//	: min(element.anchor_top.position + element.anchor_top._padding, c_h));
 					
 					if(element.anchor_bottom.type == None)
 					{
@@ -146,14 +106,11 @@ class AnchorLayout : Layout
 				if(element.anchor_bottom.type != None)
 				{
 					float ny;
-					if(!element.anchor_bottom.calculate(element, c_y2, c_h, j == 0, ny))
+					if(!element.anchor_bottom.calculate(element, c_y2, c_h, is_pass1, ny))
 					{
 						@pass2[num_pass2++] = element;
 						continue;
 					}
-					//const float ny = c_y2 - (element.anchor_bottom.type == Percent
-					//	? c_h * element.anchor_bottom.position + element.anchor_bottom._padding
-					//	: element.anchor_bottom.position + element.anchor_bottom._padding);
 					
 					if(element.anchor_top.type == None)
 					{

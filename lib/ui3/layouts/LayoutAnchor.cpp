@@ -103,9 +103,12 @@ class LayoutAnchor
 			}
 		}
 		
+		// Ignore the padding if anchored to a sibling that isn't visible
+		const float padding = @this.element != null && @sibling == null
+			? 0 : _padding;
 		x = anchor_p + (type == Percent
-			? anchor_size * position + _padding
-			: position + _padding) * (side == Position::Left || side == Position::Top ? 1 : -1);
+			? anchor_size * position + padding
+			: position + padding) * (side == Position::Left || side == Position::Top ? 1 : -1);
 		return true;
 	}
 	
