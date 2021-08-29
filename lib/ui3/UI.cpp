@@ -2399,7 +2399,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 	{
 		@_focused_element = @keyboard._focus != null ? cast<Element@>(@focus) : null;
 		
-		if(@_focused_element != null && @_focused_element.parent != null)
+		if(@_focused_element != null && @_focused_element.parent != null && _focused_element.parent.autoscroll_on_focus)
 		{
 			@_focused_element.parent.scroll_into_view = @_focused_element;
 		}

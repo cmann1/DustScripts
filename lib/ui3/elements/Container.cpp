@@ -16,6 +16,8 @@ class Container : Element
 	float scroll_min_y;
 	float scroll_max_x;
 	float scroll_max_y;
+	/// If true, when a child element is focus it will be scrolled into v iew
+	bool autoscroll_on_focus = true;
 	
 	Event scroll_change;
 	
