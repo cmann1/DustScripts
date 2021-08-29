@@ -8,6 +8,7 @@
 #include '../../../lib/ui3/elements/Select.cpp';
 #include '../../../lib/ui3/elements/TextBox.cpp';
 #include '../../../lib/ui3/elements/Window.cpp';
+#include '../../../lib/ui3/layouts/AnchorLayout.cpp';
 
 const string EMBED_spr_icon_text	= SPRITES_BASE + 'icon_text.png';
 
@@ -78,6 +79,9 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		Style@ style = ui.style;
 		
 		@window = Window(ui, 'Edit Text');
+		window.resizable = true;
+		window.min_width = 450;
+		window.min_height = 350;
 		window.name = 'TextToolTextProperties1';
 		window.set_icon(SPRITE_SET, 'icon_text', 24, 24);
 		ui.add_child(window);
@@ -85,6 +89,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		window.y = 20;
 		window.width  = 200;
 		window.height = 200;
+		window.contents.autoscroll_on_focus = false;
 		window.close.on(EventCallback(on_cancel_click));
 		
 		@text_box = TextBox(ui);
@@ -92,6 +97,10 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		text_box.accept_on_blur = false;
 		text_box.width  = 500;
 		text_box.height = 300;
+		text_box.anchor_left.pixel(0);
+		text_box.anchor_right.pixel(0);
+		text_box.anchor_top.pixel(0);
+		text_box.anchor_bottom.pixel(0);
 		text_box.change.on(EventCallback(on_text_change));
 		text_box.accept.on(EventCallback(on_text_accept));
 		window.add_child(text_box);
@@ -111,6 +120,11 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		return true;
 	}
 	
+	void init_content_layout()
+	{
+		@window.layout = AnchorLayout(script.ui).set_padding(0);
+	}
+	
 	void create_properties_container()
 	{
 		if(@properties_container != null)
@@ -122,6 +136,11 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		@properties_container = Container(ui);
 		properties_container.y = text_box.y + text_box.height + ui.style.spacing;
 		properties_container.width = text_box.width;
+		properties_container.anchor_left.pixel(0);
+		properties_container.anchor_right.pixel(0);
+		properties_container.anchor_bottom.pixel(0);
+		
+		text_box.anchor_bottom.sibling(properties_container).padding(style.spacing);
 		
 		@rotation_wheel = RotationWheel(ui);
 		properties_container.add_child(rotation_wheel);
@@ -174,6 +193,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		// Font select
 		
 		@font_select = Select(ui);
+		font_select.anchor_right.pixel(0);
 		properties_container.add_child(font_select);
 		
 		font_select.add_value(font::ENVY_BOLD, 'Envy Bold');
@@ -188,13 +208,14 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		font_select.change.on(EventCallback(on_font_change));
 		
 		Label@ font_label = create_label('Font');
-		font_label.x = font_select.x - font_label.width - style.spacing;
+		font_label.anchor_right.sibling(font_select).padding(style.spacing);
 		font_label.y = font_select.y;
 		font_label.height = font_select.height;
 		
 		// Font size select
 		
 		@font_size_select = Select(ui);
+		font_size_select.anchor_right.pixel(0);
 		properties_container.add_child(font_size_select);
 		
 		font_size_select.width = 85;
@@ -203,11 +224,13 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		font_size_select.change.on(EventCallback(on_font_size_change));
 		
 		Label@ font_size_label = create_label('Size');
+		font_size_label.anchor_right.sibling(font_size_select).padding(style.spacing);
 		font_size_label.x = font_size_select.x - font_size_label.width - style.spacing;
 		font_size_label.y = font_size_select.y;
 		font_size_label.height = font_size_select.height;
 		
 		properties_container.fit_to_contents(true);
+		@properties_container.layout = AnchorLayout(script.ui).set_padding(0);
 		
 		window.add_child(properties_container);
 	}
@@ -426,7 +449,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 			return;
 		
 		@dummy_overlay = Container(script.ui);
-//		dummy_overlay.background_colour = 0x55ff0000;
+		//dummy_overlay.background_colour = 0x55ff0000;
 		dummy_overlay.mouse_self = false;
 		script.ui.add_child(dummy_overlay);
 		
@@ -499,11 +522,12 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		}
 		
 		window.title = is_z_trigger ? 'Edit Z Text Prop' : 'Edit Text Trigger';
-		window.fit_to_contents(true);
 		
 		if(is_window_created)
 		{
+			window.fit_to_contents(true);
 			window.centre();
+			init_content_layout();
 			script.window_manager.force_immediate_reposition(window);
 		}
 		
