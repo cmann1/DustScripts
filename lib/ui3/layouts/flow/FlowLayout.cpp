@@ -146,7 +146,6 @@ class FlowLayout : Layout
 			num_axis_elements++;
 		}
 		
-		
 		if(num_visible_elements == 0)
 		{
 			out_x1 = x1;

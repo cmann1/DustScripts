@@ -28,25 +28,28 @@ abstract class Layout
 		
 	}
 	
-	void set_padding(const float padding)
+	Layout@ set_padding(const float padding)
 	{
 		padding_left = padding_right = padding_top = padding_bottom = padding;
+		return this;
 	}
 	
-	void set_padding(const float padding_left_right, const float padding_top_bottom)
+	Layout@ set_padding(const float padding_left_right, const float padding_top_bottom)
 	{
 		padding_left	= padding_left_right;
 		padding_right	= padding_left_right;
 		padding_top		= padding_top_bottom;
 		padding_bottom	= padding_top_bottom;
+		return this;
 	}
 	
-	void set_padding(const float padding_left, const float padding_right, const float padding_top, const float padding_bottom)
+	Layout@ set_padding(const float padding_left, const float padding_right, const float padding_top, const float padding_bottom)
 	{
 		this.padding_left	= padding_left;
 		this.padding_right	= padding_right;
 		this.padding_top	= padding_top;
 		this.padding_bottom	= padding_bottom;
+		return this;
 	}
 	
 }
