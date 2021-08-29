@@ -8,8 +8,6 @@
 class GridLayout : Layout
 {
 
-	UI@ ui;
-	
 	/// How many columns. 0 means fit as many columns as possible - column_width must also be set in that case.
 	int columns;
 	/// If non-zero columns will all be this size. Otherwise each column will shrink/expand to fit the widest element
@@ -34,7 +32,7 @@ class GridLayout : Layout
 		const FlowDirection direction=FlowDirection::Row, FlowAlign justify=FlowAlign::Start, FlowAlign align=FlowAlign::Start,
 		FlowFit expand=FlowFit::None)
 	{
-		@this.ui		= ui;
+		super(ui);
 		
 		this.columns		= columns;
 		this.column_width	= column_width;
@@ -52,10 +50,10 @@ class GridLayout : Layout
 		const bool is_horizontal	= this.is_horizontal;
 		const int num_children = elements.size();
 		
-		const float padding_left	= is_nan(this.padding_left)		? ui.style.spacing : this.padding_left;
-		const float padding_right	= is_nan(this.padding_right)	? ui.style.spacing : this.padding_right;
-		const float padding_top		= is_nan(this.padding_top)		? ui.style.spacing : this.padding_top;
-		const float padding_bottom	= is_nan(this.padding_bottom)	? ui.style.spacing : this.padding_bottom;
+		const float padding_left	= is_nan(this.padding_left)		? style.spacing : this.padding_left;
+		const float padding_right	= is_nan(this.padding_right)	? style.spacing : this.padding_right;
+		const float padding_top		= is_nan(this.padding_top)		? style.spacing : this.padding_top;
+		const float padding_bottom	= is_nan(this.padding_bottom)	? style.spacing : this.padding_bottom;
 		const float padding_h		= padding_left + padding_right;
 		const float padding_v		= padding_top + padding_bottom;
 		
@@ -102,8 +100,8 @@ class GridLayout : Layout
 		const bool expand_columns = expand == FlowFit::MainAxis || expand == FlowFit::Both;
 		const bool expand_rows = expand == FlowFit::CrossAxis || expand == FlowFit::Both;
 		
-		const float column_spacing	= max(0.0, is_nan(this.column_spacing) ? ui.style.spacing : this.column_spacing);
-		const float row_spacing		= max(0.0, is_nan(this.row_spacing) ? ui.style.spacing : this.row_spacing);
+		const float column_spacing	= max(0.0, is_nan(this.column_spacing) ? style.spacing : this.column_spacing);
+		const float row_spacing		= max(0.0, is_nan(this.row_spacing) ? style.spacing : this.row_spacing);
 		
 		int num_columns = columns <= 0
 			? floor_int(main_axis_size / column_width)

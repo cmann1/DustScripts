@@ -8,8 +8,6 @@
 class FlowLayout : Layout
 {
 	
-	UI@ ui;
-	
 	FlowDirection direction;
 	FlowAlign justify;
 	FlowAlign align;
@@ -22,7 +20,7 @@ class FlowLayout : Layout
 		const FlowDirection direction, FlowAlign justify=FlowAlign::Start, FlowAlign align=FlowAlign::Start,
 		FlowWrap wrap=FlowWrap::Wrap, FlowFit fit=FlowFit::None, bool expand_cross_axis=true)
 	{
-		@this.ui				= ui;
+		super(ui);
 		
 		this.direction			= direction;
 		this.justify			= justify;
@@ -38,10 +36,10 @@ class FlowLayout : Layout
 		float &out out_x1, float &out out_y1, float &out out_x2, float &out out_y2) override
 	{
 		const int num_children = elements.size();
-		const float padding_left	= is_nan(this.padding_left)		? ui.style.spacing : this.padding_left;
-		const float padding_right	= is_nan(this.padding_right)	? ui.style.spacing : this.padding_right;
-		const float padding_top		= is_nan(this.padding_top)		? ui.style.spacing : this.padding_top;
-		const float padding_bottom	= is_nan(this.padding_bottom)	? ui.style.spacing : this.padding_bottom;
+		const float padding_left	= is_nan(this.padding_left)		? style.spacing : this.padding_left;
+		const float padding_right	= is_nan(this.padding_right)	? style.spacing : this.padding_right;
+		const float padding_top		= is_nan(this.padding_top)		? style.spacing : this.padding_top;
+		const float padding_bottom	= is_nan(this.padding_bottom)	? style.spacing : this.padding_bottom;
 		const float padding_h		= padding_left + padding_right;
 		const float padding_v		= padding_top + padding_bottom;
 		
@@ -54,7 +52,7 @@ class FlowLayout : Layout
 			return;
 		}
 		
-		const float spacing = max(0.0, is_nan(this.spacing) ? ui.style.spacing : this.spacing);
+		const float spacing = max(0.0, is_nan(this.spacing) ? style.spacing : this.spacing);
 		
 		const bool is_horizontal	= this.is_horizontal;
 		const bool is_reversed		= direction == FlowDirection::RowReverse || direction == FlowDirection::ColumnReverse;

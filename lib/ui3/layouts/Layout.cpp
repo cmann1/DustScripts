@@ -3,6 +3,9 @@
 abstract class Layout
 {
 	
+	UI@ ui;
+	Style@ style;
+	
 	/// The amount of space around the outside. Leave as NAN to use the default style spacing.
 	float padding_left = NAN;
 	/// Same as padding_left.
@@ -11,6 +14,12 @@ abstract class Layout
 	float padding_top = NAN;
 	/// Same as padding_left.
 	float padding_bottom = NAN;
+	
+	Layout(UI@ ui)
+	{
+		@this.ui = ui;
+		@this.style = ui.style;
+	}
 	
 	void do_layout(const array<Element@>@ elements,
 		const float x1, const float y1, const float x2, const float y2,
