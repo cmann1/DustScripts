@@ -8,6 +8,8 @@ abstract class MoveableDialog : Container, IStepHandler
 	bool drag_anywhere;
 	bool snap_to_screen = true;
 	bool snap_to_siblings = true;
+	float min_width;
+	float min_height;
 	
 	Event move;
 	Event move_complete;
@@ -82,19 +84,39 @@ abstract class MoveableDialog : Container, IStepHandler
 				if((resize_mode & DragMode::Left) != 0)
 				{
 					x1 = ui._pixel_round(ui.mouse.x - drag_offset_x);
+					
+					if((x2 - x1) < max(0.0, min_width))
+					{
+						x1 = ui._pixel_round(x2 - min_width);
+					}
 				}
 				else if((resize_mode & DragMode::Right) != 0)
 				{
 					x2 = ui._pixel_round(ui.mouse.x - drag_offset_x);
+					
+					if((x2 - x1) < max(0.0, min_width))
+					{
+						x2 = ui._pixel_round(x1 + min_width);
+					}
 				}
 				
 				if((resize_mode & DragMode::Top) != 0)
 				{
 					y1 = ui._pixel_round(ui.mouse.y - drag_offset_y);
+					
+					if((y2 - y1) < max(0.0, min_height))
+					{
+						y1 = ui._pixel_round(y2 - min_height);
+					}
 				}
 				else if((resize_mode & DragMode::Bottom) != 0)
 				{
 					y2 = ui._pixel_round(ui.mouse.y - drag_offset_y);
+					
+					if((y2 - y1) < max(0.0, min_height))
+					{
+						y2 = ui._pixel_round(y1 + min_height);
+					}
 				}
 				
 				if(prev_x1 != x1 || prev_y1 != y1 || prev_x2 != x2 || prev_y2 != y2)
