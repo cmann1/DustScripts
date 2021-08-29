@@ -42,6 +42,7 @@ class Window : MoveableDialog
 	
 	protected EventCallback@ ui_mouse_press_delegate;
 	
+	Container@ contents { get { return @_contents; } }
 	float content_width { get const { return _contents._width; } }
 	float content_height { get const { return _contents._height; } }
 	
