@@ -1,0 +1,13 @@
+enum DragMode
+{
+	
+	Idle = 0x0,
+	Dragging = 0x1,
+	Resizing = 0x2,
+	
+	Top = 0x4,
+	Bottom = 0x8,
+	Left = 0x10,
+	Right = 0x20,
+	
+}

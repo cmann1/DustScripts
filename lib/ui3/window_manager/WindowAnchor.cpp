@@ -31,6 +31,7 @@ class WindowAnchor
 		{
 			@on_moved_delegate = EventCallback(on_moved);
 			moveable.move_complete.on(on_moved_delegate);
+			moveable.resize_complete.on(on_moved_delegate);
 		}
 	}
 	

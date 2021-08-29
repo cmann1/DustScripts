@@ -109,7 +109,7 @@ class Window : MoveableDialog
 		
 		open = false;
 		mouse_enabled = false;
-		busy_dragging = false;
+		drag_mode = Idle;
 		
 		if(_close_on_click_outside)
 		{
@@ -711,7 +711,7 @@ class Window : MoveableDialog
 	{
 		MoveableDialog::ui_step();
 		
-		if(!fading && !busy_dragging)
+		if(!fading && drag_mode == Idle)
 		{
 			step_subscribed = false;
 			return step_subscribed;

@@ -21,6 +21,8 @@ namespace EventType
 	
 	const string MOVE				= 'move';
 	const string MOVE_COMPLETED		= 'move_completed';
+	const string RESIZE				= 'resize';
+	const string RESIZE_COMPLETED	= 'resize_completed';
 	
 	const string AFTER_LAYOUT		= 'after_layout';
 	const string SCREEN_RESIZE		= 'screen_resize';
