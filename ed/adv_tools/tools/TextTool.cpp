@@ -490,12 +490,11 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 			}
 			
 			window.add_title_before(hidden_checkbox);
+			hidden_checkbox.checked = !vars.get_var('hide').get_bool();
 			
 			if(@properties_container != null)
 			{
 				properties_container.visible = false;
-				
-				hidden_checkbox.checked = !vars.get_var('hide').get_bool();
 			}
 		}
 		
