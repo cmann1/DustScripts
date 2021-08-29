@@ -129,7 +129,7 @@ abstract class MoveableDialog : Container, IStepHandler
 					snap();
 					
 					ui._event_info.reset(EventType::RESIZE, this);
-					move.dispatch(ui._event_info);
+					resize.dispatch(ui._event_info);
 					has_resized = true;
 				}
 			}
