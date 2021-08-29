@@ -1,5 +1,6 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
+#include '../layouts/LayoutAnchor.cpp';
 #include '../utils/ClippingMode.cpp';
 #include '../utils/DrawingContext.cpp';
 #include '../utils/LayoutContext.cpp';
@@ -69,6 +70,11 @@ abstract class Element
 	/// This element bounds including children
 	float subtree_x1, subtree_y1;
 	float subtree_x2, subtree_y2;
+	
+	LayoutAnchor anchor_left(Left);
+	LayoutAnchor anchor_right(Right);
+	LayoutAnchor anchor_top(Top);
+	LayoutAnchor anchor_bottom(Bottom);
 	
 	Event mouse_enter;
 	Event mouse_exit;
