@@ -42,6 +42,9 @@ class Window : MoveableDialog
 	
 	protected EventCallback@ ui_mouse_press_delegate;
 	
+	float content_width { get const { return _contents._width; } }
+	float content_height { get const { return _contents._height; } }
+	
 	Window(UI@ ui, const string title, bool show_close_button=true, bool draggable=true)
 	{
 		super(ui);
