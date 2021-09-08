@@ -157,6 +157,9 @@ class EntityOutliner : callback_base
 		{
 			ControllableOutlineData@ data = @entity_list[i];
 			controllable@ c = data.c;
+			if(c.destroyed())
+				continue;
+			
 			sprites@ spr = c.get_sprites();
 			
 			string sprite_name;
