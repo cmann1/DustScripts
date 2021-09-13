@@ -34,7 +34,7 @@ class Prop
 		init_anchors(g);
 	}
 	
-	private void init_anchors(scene@ g=null)
+	void init_anchors(scene@ g=null)
 	{
 		const float layer_scale = @g != null && p.layer() <= 5 ? g.layer_scale(p.layer()) : 1.0;
 		const float backdrop_scale = p.layer() <= 5 ? 2.0 : 1.0;
