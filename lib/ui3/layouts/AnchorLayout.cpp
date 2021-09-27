@@ -40,7 +40,8 @@ class AnchorLayout : Layout
 		
 		for(int j = 0; j < 2; j++)
 		{
-			int i = j == 0 ? elements.length : num_pass2;
+			const bool is_pass1 = j == 0;
+			int i = is_pass1 ? elements.length : num_pass2;
 			while(--i >= 0)
 			{
 				Element@ element = elements[i];
