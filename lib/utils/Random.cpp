@@ -8,7 +8,7 @@ class Random
 	protected uint _seed = 0;
 	protected uint _current_seed = 0;
 
-	Rnd(uint seed=1)
+	Random(uint seed=1)
 	{
 		_seed = _current_seed = seed;
 	}
@@ -40,13 +40,13 @@ class Random
 	}
 	
 	// float(20, 50); // returns a number between 20-50 exclusive
-	float float(float min, float max)
+	float flt(float min, float max)
 	{
 		return random() * (max - min) + min;
 	}
 	
 	// float(50); // returns a number between 0-50 exclusive
-	float float(float max)
+	float flt(float max)
 	{
 		return random() * max;
 	}
