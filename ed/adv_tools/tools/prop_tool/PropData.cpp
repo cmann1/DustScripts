@@ -71,7 +71,7 @@ class PropData : SelectableData
 		script.transform(x, y, prop.layer(), 22, aabb_x, aabb_y);
 	}
 	
-	int draw(const int rendered_lines_count, const PropToolHighlight highlight)
+	void draw( const PropToolHighlight highlight)
 	{
 		float line_width;
 		uint line_colour, fill_colour;
@@ -79,7 +79,7 @@ class PropData : SelectableData
 		
 		if(
 			primary_selected || hovered || (highlight & Highlight) != 0 ||
-			(highlight & Outline) != 0 && rendered_lines_count >= 16000)
+			(highlight & Outline) != 0)
 		{
 			spr.draw_world(22, 22, sprite_name, 0, prop.palette(),
 				aabb_x, aabb_y, prop.rotation(),
@@ -87,20 +87,18 @@ class PropData : SelectableData
 				fill_colour);
 		}
 		
-		// Stop drawing outlines after some amount to prevent a black screen
-		if(primary_selected || hovered || (highlight & Outline) != 0 && rendered_lines_count < 16000)
+		if(primary_selected || hovered || (highlight & Outline) != 0)
 		{
 			for(int i = lines_count - 1; i >= 0; i--)
 			{
 				LineData@ line = @lines[i];
-				script.g.draw_rectangle_world(22, 22,
+				// Draw outlines on separate sublayer to sprite so that they can be batched,
+				script.g.draw_rectangle_world(22, 23,
 					aabb_x + line.mx - line_width, aabb_y + line.my - line.length * 0.5,
 					aabb_x + line.mx + line_width, aabb_y + line.my + line.length * 0.5,
 					line.angle,
 					line_colour);
 			}
-			
-			return lines_count;
 		}
 		
 		//if(selected)
@@ -110,8 +108,6 @@ class PropData : SelectableData
 		//		aabb_x + aabb_x2, aabb_y + aabb_y2,
 		//		1 / script.zoom, 0xaaff0000);
 		//}
-		
-		return 0;
 	}
 	
 	void update()

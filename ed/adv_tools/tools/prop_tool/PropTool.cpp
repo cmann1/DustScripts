@@ -238,15 +238,13 @@ class PropTool : Tool
 		if(highlight)
 		{
 			// Highlights
-			
-			int rendered_lines_count = 0;
-			
 			for(int i = 0; i < highlighted_props_count; i++)
 			{
 				PropData@ data = @highlighted_props[i];
 				if(data.pending_selection == -2)
 					continue;
-				rendered_lines_count += data.draw(rendered_lines_count, highlight_selection);
+				
+				data.draw(highlight_selection);
 			}
 			
 			// Bounding box
