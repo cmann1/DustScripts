@@ -22,7 +22,7 @@ class EditorHandle
 		}
 		else
 		{
-			fill_circle(script.g, 22, 22, x, y, size, 16, colour, colour);
+			drawing::fill_circle(script.g, 22, 22, x, y, size, 16, colour, colour);
 		}
 	}
 	

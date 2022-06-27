@@ -1,13 +1,13 @@
 class Bezier
 {
 	
-	[position,mode:world,layer:19,y:y1] 
+	[position,mode:world,layer:19,y:y1]
 	float x1; [hidden] float y1;
-	[position,mode:world,layer:19,y:y2] 
+	[position,mode:world,layer:19,y:y2]
 	float x2; [hidden] float y2;
-	[position,mode:world,layer:19,y:y3] 
+	[position,mode:world,layer:19,y:y3]
 	float x3; [hidden] float y3;
-	[position,mode:world,layer:19,y:y4] 
+	[position,mode:world,layer:19,y:y4]
 	float x4; [hidden] float y4;
 	
 	int num_arcs = 10;
