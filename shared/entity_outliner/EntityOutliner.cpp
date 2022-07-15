@@ -189,7 +189,11 @@ class EntityOutliner : callback_base
 				face = c.face();
 			}
 			
-			frame = frame % spr.get_animation_length(sprite_name);
+			const int length = spr.get_animation_length(sprite_name);
+			if(length > 0)
+			{
+				frame = frame % length;
+			}
 			
 			const float x = lerp(c.prev_x(), c.x(), sub_frame) + draw_offset_x;
 			const float y = lerp(c.prev_y(), c.y(), sub_frame) + draw_offset_y;
