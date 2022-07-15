@@ -30,7 +30,9 @@ class EntityOutliner : callback_base
 	private array<ControllableOutlineData> entity_list(entity_list_size);
 	private int num_entities;
 	private int num_players;
-	private float scale = 1;
+	private float _cam_scale = 1;
+	
+	float cam_scale { get const { return _cam_scale; } }
 	
 	EntityOutliner()
 	{
@@ -137,13 +139,13 @@ class EntityOutliner : callback_base
 		
 		@this.cam = cam;
 		get_entities_on_screen(cam);
-		scale = active_settings.scale_with_camera ? cam.screen_height() / 1080 : 1;
+		_cam_scale = active_settings.scale_with_camera ? cam.screen_height() / 1080 : 1;
 	}
 	
 	void editor_step(camera@ cam)
 	{
 		step(cam);
-		scale = active_settings.scale_with_camera ? 1 / cam.editor_zoom() : 1;
+		_cam_scale = active_settings.scale_with_camera ? 1 / cam.editor_zoom() : 1;
 	}
 	
 	void draw(float sub_frame)
@@ -245,7 +247,7 @@ class EntityOutliner : callback_base
 					spr.draw_world(
 						layer1, data.sub_layer,
 						sprite_name, frame, 0,
-						x + data.offset_x * scale, y + data.offset_y * scale,
+						x + data.offset_x * _cam_scale, y + data.offset_y * _cam_scale,
 						rotation, c.scale() * data.scale * face, c.scale() * data.scale,
 						multiply_alpha(data.colour, data.t));
 					colour1 = multiply_alpha(colour1, 1 - data.t);
@@ -262,7 +264,7 @@ class EntityOutliner : callback_base
 			spr.draw_world(
 				layer1, sublayer1,
 				sprite_name, frame, 0,
-				x + offset1_x * scale, y + offset1_y * scale,
+				x + offset1_x * _cam_scale, y + offset1_y * _cam_scale,
 				rotation, c.scale() * scale1 * face, c.scale() * scale1, colour1);
 			
 			if(settings.draw_double)
@@ -277,7 +279,7 @@ class EntityOutliner : callback_base
 				spr.draw_world(
 					layer2, sublayer2,
 					sprite_name, frame, 0,
-					x + offset_x * scale, y + offset_y * scale,
+					x + offset_x * _cam_scale, y + offset_y * _cam_scale,
 					rotation, c.scale() * settings.scale2 * face, c.scale() * settings.scale2, settings.colour2);
 			}
 		}
