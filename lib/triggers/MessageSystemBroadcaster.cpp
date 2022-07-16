@@ -1,8 +1,11 @@
 #include 'MessageBroadcasterBase.cpp';
 #include 'EnterExitTrigger.cpp';
+#include 'MessageSystem.cpp';
 
 /// Provides some options for broadcasting messages when the trigger is activated.
-class MessageBroadcaster : trigger_base, callback_base, MessageBroadcasterBase, EnterExitTrigger
+/// But using the custom `MessageSystem` to avoid using the buggy built in message mechanisms.
+/// See `MessageSystem` for details.
+class MessageBroadcaster : trigger_base, MessageBroadcasterBase, EnterExitTrigger
 {
 	
 	/// Can players trigger this.
@@ -26,7 +29,9 @@ class MessageBroadcaster : trigger_base, callback_base, MessageBroadcasterBase, 
 	/// If not empty, the trigger will remove itself when it receives this event.
 	[text] string remove_event;
 	
-	void init(script@ s, scripttrigger@ self)
+	MessageHandler@ remove_callback;
+	
+	void init(script@ script, scripttrigger@ self)
 	{
 		@this.script = script;
 		@this.self = self;
@@ -34,23 +39,31 @@ class MessageBroadcaster : trigger_base, callback_base, MessageBroadcasterBase, 
 	
 	void add_remove_event()
 	{
-		add_broadcast_receiver(remove_event, this, 'on_remove_event');
+		if(@remove_callback == null)
+		{
+			@remove_callback = MessageHandler(on_remove_event);
+		}
+		
+		script.messages.add_listener(remove_event, remove_callback);
 	}
 	
 	void remove_remove_event()
 	{
-		// No way to remove built in broadcast receivers.
+		if(@remove_callback != null)
+		{
+			script.messages.remove_listener(remove_event, remove_callback);
+			@remove_callback = null;
+		}
 	}
 	
 	void broadcast(const string &in id, message@ msg)
 	{
-		broadcast_message(id, msg);
+		script.messages.broadcast(id, msg);
 	}
 	
-	void on_remove_event(string id, message@ msg)
+	void on_remove_event(const string &in id, message@ msg)
 	{
 		do_remove(id, msg);
 	}
 	
 }
-
