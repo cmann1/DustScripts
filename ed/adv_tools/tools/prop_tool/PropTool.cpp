@@ -76,6 +76,7 @@ class PropTool : Tool
 	
 	dictionary locked_props;
 	int num_locked_props;
+	array<bool> locked_sublayers(23 * 25);
 	
 	private bool has_custom_anchor;
 	private int custom_anchor_layer = 19;
@@ -296,9 +297,7 @@ class PropTool : Tool
 	{
 		float sx, sy, sx1, sy1, sx2, sy2;
 		float x1, y1, x2, y2, x3, y3, x4, y4;
-		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
-		script.transform_size(min(selection_x1, selection_x2), min(selection_y1, selection_y2), selection_layer, 22, sx1, sy1);
-		script.transform_size(max(selection_x1, selection_x2), max(selection_y1, selection_y2), selection_layer, 22, sx2, sy2);
+		get_selection_rect(sx, sy, sx1, sy1, sx2, sy2);
 		
 		rotate(sx1, sy1, selection_angle, x1, y1);
 		rotate(sx2, sy1, selection_angle, x2, y2);
@@ -420,10 +419,20 @@ class PropTool : Tool
 			// Lock
 			if(script.input.key_check_pressed_vk(VK::L))
 			{
-				if(script.alt)
-					unlock_all();
+				if(script.ctrl)
+				{
+					if(script.alt)
+						unlock_all_sublayers();
+					else
+						lock_selected_sublayers(script.shift);
+				}
 				else
-					lock_selected();
+				{
+					if(script.alt)
+						unlock_all();
+					else
+						lock_selected();
+				}
 			}
 			
 			// Delete
@@ -934,8 +943,13 @@ class PropTool : Tool
 		while(i-- > 0)
 		{
 			prop@ p = script.g.get_prop_collision_index(i);
+			const uint layer = p.layer();
+			const uint sub_layer = p.sub_layer();
 			
-			if(!script.editor.check_layer_filter(p.layer()))
+			if(!script.editor.check_layer_filter(layer))
+				continue;
+			
+			if(locked_sublayers[layer * 25 + sub_layer])
 				continue;
 			
 			if(locked_props.exists(p.id() + ''))
@@ -1009,18 +1023,7 @@ class PropTool : Tool
 	{
 		float sx, sy, sx1, sy1, sx2, sy2;
 		float x1, y1, x2, y2, x3, y3, x4, y4;
-		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
-		
-		if(!allow_flipped)
-		{
-			script.transform_size(min(selection_x1, selection_x2), min(selection_y1, selection_y2), selection_layer, 22, sx1, sy1);
-			script.transform_size(max(selection_x1, selection_x2), max(selection_y1, selection_y2), selection_layer, 22, sx2, sy2);
-		}
-		else
-		{
-			script.transform_size(selection_x1, selection_y1, selection_layer, 22, sx1, sy1);
-			script.transform_size(selection_x2, selection_y2, selection_layer, 22, sx2, sy2);
-		}
+		get_selection_rect(sx, sy, sx1, sy1, sx2, sy2, allow_flipped);
 		
 		rotate(sx1, sy1, selection_angle, x1, y1);
 		rotate(sx2, sy1, selection_angle, x2, y2);
@@ -1526,15 +1529,7 @@ class PropTool : Tool
 			num_locked_props++;
 		}
 		
-		float sx, sy, sx1, sy1, sx2, sy2;
-		script.transform(selection_x, selection_y, selection_layer, 22, sx, sy);
-		script.transform_size(min(selection_x1, selection_x2), min(selection_y1, selection_y2), selection_layer, 22, sx1, sy1);
-		script.transform_size(max(selection_x1, selection_x2), max(selection_y1, selection_y2), selection_layer, 22, sx2, sy2);
-		script.info_overlay.show(
-			sx + sx1, sy + sy1,
-			sx + sx2, sy + sy2,
-			selected_props_count + ' props locked.', 0.75);
-		
+		show_prop_message(selected_props_count + ' props locked.');
 		select_none();
 	}
 	
@@ -1543,12 +1538,54 @@ class PropTool : Tool
 		if(num_locked_props == 0)
 			return;
 		
-		script.info_overlay.show(
-			script.mouse,
-			num_locked_props + ' props unlocked.', 0.75);
+		show_prop_message(num_locked_props + ' props unlocked.', true);
 		
 		locked_props.deleteAll();
 		num_locked_props = 0;
+	}
+	
+	private void lock_selected_sublayers(const bool all_layers)
+	{
+		if(selected_props_count == 0)
+			return;
+		
+		int num_sub_layer = 0;
+		
+		for(int i = selected_props_count - 1; i >= 0; i--)
+		{
+			const uint layer_from = all_layers ? 0 : selected_props[i].prop.layer();
+			const uint layer_to = all_layers ? 22 : layer_from;
+			const uint sub_layer = selected_props[i].prop.sub_layer();
+			for(uint layer = all_layers ? 0 : layer_from; layer <= layer_to; layer++)
+			{
+				const uint layer_index = layer * 25 + sub_layer;
+				
+				if(!locked_sublayers[layer_index])
+				{
+					locked_sublayers[layer_index] = true;
+					num_sub_layer++;
+				}
+			}
+		}
+		
+		show_prop_message(num_sub_layer + ' sub layers locked.');
+		select_none();
+	}
+	
+	private void unlock_all_sublayers()
+	{
+		int num_locked_sub_layers = 0;
+		
+		for(uint i = 0; i < locked_sublayers.length; i++)
+		{
+			if(!locked_sublayers[i])
+				continue;
+			
+			locked_sublayers[i] = false;
+			num_locked_sub_layers++;
+		}
+		
+		show_prop_message(num_locked_sub_layers + ' sub layers unlocked.', true);
 	}
 	
 	// Highlights
@@ -1649,8 +1686,13 @@ class PropTool : Tool
 		while(i-- > 0)
 		{
 			prop@ p = script.g.get_prop_collision_index(i);
+			const uint layer = p.layer();
+			const uint sub_layer = p.sub_layer();
 			
-			if(!script.editor.check_layer_filter(p.layer()))
+			if(!script.editor.check_layer_filter(layer))
+				continue;
+			
+			if(locked_sublayers[layer * 25 + sub_layer])
 				continue;
 			
 			if(locked_props.exists(p.id() + ''))
@@ -1659,16 +1701,16 @@ class PropTool : Tool
 			const float prop_x = p.x();
 			const float prop_y = p.y();
 			const float rotation = p.rotation() * DEG2RAD * (p.scale_x() >= 0 ? 1.0 : -1.0) * (p.scale_y() >= 0 ? 1.0 : -1.0);
-			const float layer_scale = p.layer() <= 5 ? script.g.layer_scale(p.layer()) : 1.0;
-			const float backdrop_scale = p.layer() <= 5 ? 2.0 : 1.0;
+			const float layer_scale = layer <= 5 ? script.g.layer_scale(layer) : 1.0;
+			const float backdrop_scale = layer <= 5 ? 2.0 : 1.0;
 			const float scale_x = p.scale_x() / layer_scale * backdrop_scale;
 			const float scale_y = p.scale_y() / layer_scale * backdrop_scale;
 			
 			// Calculate mouse "local" position relative to prop rotation and scale
 			
 			float local_x, local_y;
-			const float layer_mx = script.g.mouse_x_world(0, p.layer());
-			const float layer_my = script.g.mouse_y_world(0, p.layer());
+			const float layer_mx = script.g.mouse_x_world(0, layer);
+			const float layer_my = script.g.mouse_y_world(0, layer);
 			
 			rotate(
 				(layer_mx - prop_x) / scale_x,
@@ -1679,7 +1721,7 @@ class PropTool : Tool
 			
 			PropData@ prop_data = is_prop_highlighted(p);
 			
-			if((@prop_data == null || !prop_data.selected) && !pick_through_tiles && hittest_tiles(p.layer(), p.sub_layer()))
+			if((@prop_data == null || !prop_data.selected) && !pick_through_tiles && hittest_tiles(p.layer(), sub_layer))
 				continue;
 			
 			// Check if the mouse is inside to the prop
@@ -2095,10 +2137,10 @@ class PropTool : Tool
 			data.init_anchors();
 			
 			data.start_scale(anchor_x, anchor_y);
-//			puts(
-//				p.scale_y(),
-//				get_valid_prop_scale(abs(p.scale_y())),
-//				get_valid_prop_scale(abs(p.scale_y())) / abs(p.scale_y()) );
+			//puts(
+			//	p.scale_y(),
+			//	get_valid_prop_scale(abs(p.scale_y())),
+			//	get_valid_prop_scale(abs(p.scale_y())) / abs(p.scale_y()) );
 			data.do_scale(
 				get_valid_prop_scale(abs(p.scale_x())) / abs(p.scale_x()),
 				get_valid_prop_scale(abs(p.scale_y())) / abs(p.scale_y())
@@ -2118,6 +2160,37 @@ class PropTool : Tool
 	void cycle_highlight_selection()
 	{
 		highlight_selection = PropToolHighlight((highlight_selection - 1) % (PropToolHighlight::Both + 1));
+	}
+	
+	void get_selection_rect(
+		float &out x, float &out y, float &out x1, float &out y1, float &out x2, float &out y2,
+		const bool allow_flipped=false)
+	{
+		script.transform(selection_x, selection_y, selection_layer, 22, x, y);
+		script.transform_size(
+			allow_flipped ? selection_x1 : min(selection_x1, selection_x2),
+			allow_flipped ? selection_y1 : min(selection_y1, selection_y2),
+			selection_layer, 22, x1, y1);
+		script.transform_size(
+			allow_flipped ? selection_x2 : max(selection_x1, selection_x2),
+			allow_flipped ? selection_y2 : max(selection_y1, selection_y2),
+			selection_layer, 22, x2, y2);
+	}
+	
+	void show_prop_message(const string &in msg, const bool mouse = false, const float display_time=0.75)
+	{
+		if(mouse)
+		{
+			script.info_overlay.show(script.mouse, msg, display_time);
+			return;
+		}
+		
+		float sx, sy, sx1, sy1, sx2, sy2;
+		get_selection_rect(sx, sy, sx1, sy1, sx2, sy2);
+		script.info_overlay.show(
+			sx + sx1, sy + sy1,
+			sx + sx2, sy + sy2,
+			msg, display_time);
 	}
 	
 }
