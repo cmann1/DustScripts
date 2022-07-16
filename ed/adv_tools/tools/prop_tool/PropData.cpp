@@ -110,9 +110,9 @@ class PropData : SelectableData
 		//}
 	}
 	
-	void update()
+	void update(const bool force_update = false)
 	{
-		if(!requires_update)
+		if(!requires_update && !force_update)
 			return;
 		
 		prop_scale_x = prop.scale_x();

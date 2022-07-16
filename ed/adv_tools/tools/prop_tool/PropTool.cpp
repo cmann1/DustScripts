@@ -1181,7 +1181,7 @@ class PropTool : Tool
 			
 			p.rotation(p.rotation() + angle_flip);
 			
-			data.update();
+			data.update(true);
 		}
 		
 		selection_angle = 0;
