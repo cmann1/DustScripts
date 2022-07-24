@@ -275,3 +275,77 @@ bool line_circle_intersect(
 
 	return h2 <= radius * radius;
 }
+
+/// Returns -1 if no intersection is found, otherwise the position on the segment (as a number between 0 and 1).
+/// https://stackoverflow.com/a/1084899/153844
+float line_circle_intersection(
+	const float cx, const float cy, const float radius,
+	const float x1, const float y1, const float x2, const float y2)
+{
+	const float dx = x2 - x1;
+	const float dy = y2 - y1;
+	const float fx = x1 - cx;
+	const float fy = y1 - cy;
+	
+	const float a = dx * dx + dy * dy; // dot(d, d);
+	const float b = (fx * dx + fy * dy) * 2; // dot(f, d);
+	const float c = (fx * fx + fy * fy) - radius * radius; // dot(f, f)
+	
+	const float discriminant = b * b - 4 * a * c;
+	if(discriminant < 0)
+		return -1.0;
+	
+	// Either solution may be on or off the ray so need to test both
+	// t1 is always the smaller value, because BOTH discriminant and
+	// a are nonnegative.
+	const float t1 = (-b - discriminant) / (a * 2);
+	
+	if(t1 >= 0 and t1 <= 1)
+		// t1 is the intersection, and it's closer than t2 (since t1 uses -b - discriminant)
+		return t1;
+	
+	const float t2 = (-b + discriminant) / (a * 2);
+	// Here t1 didn't intersect so we are either started inside the sphere or completely past it
+	if(t2 >= 0 and t2 <= 1)
+		return t2;
+	
+	return -1.0;
+}
+
+/// Returns the point on the ellipse centred at (0, 0) closest to (px, py)
+/// https://stackoverflow.com/a/46007540
+void closest_point_ellipse(
+	const float size_x, const float size_y, const float px, const float py,
+	float &out ox, float &out oy)
+{
+	const float ppx = abs(px);
+	const float ppy = abs(py);
+	float tx = 0.70710678118;
+	float ty = 0.70710678118;
+
+	for(int i = 0; i < 3; i++)
+	{
+		const float p0x = size_x * tx;
+		const float p0y = size_y * ty;
+		
+		const float ex = (size_x * size_x - size_y * size_y) * (tx * tx * tx) / size_x;
+		const float ey = (size_y * size_y - size_x * size_x) * (ty * ty * ty) / size_y;
+		
+		const float rrx = p0x - ex;
+		const float rry = p0y - ey;
+		const float qqx = ppx - ex;
+		const float qqy = ppy - ey;
+		
+		const float r = sqrt(rrx * rrx + rry * rry);
+		const float q = sqrt(qqx * qqx + qqy * qqy);
+		
+		tx = min(max((qqx * r / q + ex) / size_x, 0.0), 1.0);
+		ty = min(max((qqy * r / q + ey) / size_y, 0.0), 1.0);
+		const float tt = sqrt(tx * tx + ty * ty);
+		tx /= tt;
+		ty /= tt;
+	}
+	
+	ox = abs(tx * size_x) * sign(px);
+	oy = abs(ty * size_y) * sign(py);
+}
