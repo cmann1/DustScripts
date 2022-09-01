@@ -215,7 +215,7 @@ class PropTool : Tool
 			// will always be on top of other popups
 			if(selected_props_info != selected_props_count)
 			{
-				toolbar.show_custom_info(
+				toolbar.show_info(
 					selected_props_count + ' prop' + (selected_props_count != 1 ? 's' : '') + ' selected');
 				selected_props_info = selected_props_count;
 			}
@@ -224,7 +224,7 @@ class PropTool : Tool
 		}
 		else
 		{
-			toolbar.hide_info_popup();
+			script.hide_info_popup();
 			@previous_hovered_prop = null;
 			selected_props_info = -1;
 		}

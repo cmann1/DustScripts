@@ -149,6 +149,23 @@ class EdgeBrushToolbar
 		render_mode_btn.selected_index = tool.render_mode;
 	}
 	
+	void show_edge_info(TileEdgeData@ data)
+	{
+		string edge_name = '';
+		switch(data.selected_edge)
+		{
+			case TileEdge::Top: edge_name = 'Top'; break;
+			case TileEdge::Bottom: edge_name = 'Bottom'; break;
+			case TileEdge::Left: edge_name = 'Left'; break;
+			case TileEdge::Right: edge_name = 'Right'; break;
+		}
+		
+		string text =
+			edge_name + '\n' +
+			string::reversed(bin(data.edge, 4));
+		script.show_info_popup(text, toolbar);
+	}
+	
 	private void create_ui()
 	{
 		UI@ ui = script.ui;

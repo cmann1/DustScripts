@@ -18,6 +18,7 @@ class TileEdgeData
 	
 	bool has_reset;
 	
+	int selected_edge;
 	/// The currently selected edge points
 	float ex1, ey1, ex2, ey2;
 	/// The currently selected edge bits
@@ -74,6 +75,8 @@ class TileEdgeData
 	
 	void select_edge(const int edge)
 	{
+		selected_edge = edge;
+		
 		switch(edge)
 		{
 			case TileEdge::Top:

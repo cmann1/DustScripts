@@ -282,6 +282,19 @@ namespace string
 		return output;
 	}
 	
+	string reversed(string str)
+	{
+		const int count = int(str.length()) - 1;
+		for(int i = count; i >= 0; i--)
+		{
+			const uint chr = str[i];
+			str[i] = str[count - i];
+			str[count - i] = chr;
+		}
+		
+		return str;
+	}
+	
 	bool is_whitespace(const int chr)
 	{
 		return chr >= 9 && chr <= 13 || chr == 32;

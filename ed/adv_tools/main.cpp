@@ -105,6 +105,9 @@ class AdvToolScript
 	
 	private array<Image@> icon_images;
 	
+	private PopupOptions@ info_popup;
+	private Label@ info_label;
+	
 	/// '_' = Tool has not been initialised yet
 	private string selected_tab = '_';
 	private string previous_selected_tab = '_';
@@ -344,6 +347,17 @@ class AdvToolScript
 		
 		ui.add_child(toolbar);
 		position_toolbar();
+		
+		// Info popup
+		//{
+		@info_label = Label(ui, '', true, font::SANS_BOLD, 20);
+		info_label.scale_x = 0.75;
+		info_label.scale_y = 0.75;
+		
+		@info_popup = PopupOptions(ui, info_label, false, PopupPosition::BelowLeft, PopupTriggerType::Manual, PopupHideType::Manual);
+		info_popup.spacing = 0;
+		info_popup.background_colour = multiply_alpha(ui.style.normal_bg_clr, 0.5);
+		//}
 		
 		@on_after_layout_delegate = EventCallback(on_after_layout);
 		ui.after_layout.on(on_after_layout_delegate);
@@ -958,6 +972,17 @@ class AdvToolScript
 	void show_layer_sublayer_overlay(IWorldBoundingBox@ target, const int layer, const int sublayer)
 	{
 		info_overlay.show(target, layer + '.' + sublayer, 0.75);
+	}
+	
+	void show_info_popup(const string &in info, Toolbar@ toolbar = null)
+	{
+		info_label.text = info;
+		ui.show_tooltip(info_popup, @toolbar != null ? toolbar : this.toolbar);
+	}
+	
+	void hide_info_popup()
+	{
+		ui.hide_tooltip(info_popup);
 	}
 	
 	bool key_repeat_gvb(const int gvb)

@@ -363,17 +363,6 @@ class PropToolToolbar
 		export_button.popup.padding = style.spacing;
 		//}
 		
-		// Info popup
-		//{
-		@info_label = Label(ui, '', true, font::SANS_BOLD, 20);
-		info_label.scale_x = 0.75;
-		info_label.scale_y = 0.75;
-		
-		@info_popup = PopupOptions(ui, info_label, false, PopupPosition::BelowLeft, PopupTriggerType::Manual, PopupHideType::Manual);
-		info_popup.spacing = 0;
-		info_popup.background_colour = multiply_alpha(style.normal_bg_clr, 0.5);
-		//}
-		
 		ui.add_child(toolbar);
 		script.window_manager.register_element(toolbar);
 		
@@ -485,13 +474,12 @@ class PropToolToolbar
 	// Methods
 	// //////////////////////////////////////////////////////////
 	
-	void show_custom_info(const string &in info)
+	void show_info(const string &in text)
 	{
 		if(!tool.show_info)
 			return;
 		
-		info_label.text = info;
-		script.ui.show_tooltip(info_popup, toolbar);
+		script.show_info_popup(text, toolbar);
 	}
 	
 	void show_prop_info(PropData@ prop_data)
@@ -517,12 +505,7 @@ class PropToolToolbar
 			text += '\nScale: ' + string::nice_float(p.scale_x(), 4);
 		}
 		
-		show_custom_info(text);
-	}
-	
-	void hide_info_popup()
-	{
-		script.ui.hide_tooltip(info_popup);
+		script.show_info_popup(text, toolbar);
 	}
 	
 	void update_buttons(const int selected_props_count)

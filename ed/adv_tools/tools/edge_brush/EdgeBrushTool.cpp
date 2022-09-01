@@ -330,6 +330,15 @@ class EdgeBrushTool : Tool
 			case EdgeBrushState::Draw: state_draw(); break;
 			case EdgeBrushState::DragRadius: state_drag_radius(); break;
 		}
+		
+		if(mode == Precision && @precision_edge != null)
+		{
+			toolbar.show_edge_info(precision_edge);
+		}
+		else
+		{
+			script.hide_info_popup();
+		}
 	}
 	
 	protected void draw_impl(const float sub_frame) override
