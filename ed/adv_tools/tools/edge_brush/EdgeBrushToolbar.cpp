@@ -15,6 +15,7 @@ const string EMBED_spr_edgebrush_edge_corner			= EDGE_BRUSH_SPRITES_BASE + 'edge
 const string EMBED_spr_edgebrush_inside_tile			= EDGE_BRUSH_SPRITES_BASE + 'edgebrush_inside_tile.png';
 const string EMBED_spr_edgebrush_update_collision		= EDGE_BRUSH_SPRITES_BASE + 'edgebrush_update_collision.png';
 const string EMBED_spr_edgebrush_update_priority		= EDGE_BRUSH_SPRITES_BASE + 'edgebrush_update_priority.png';
+const string EMBED_spr_edgebrush_update_custom			= EDGE_BRUSH_SPRITES_BASE + 'edgebrush_update_custom.png';
 const string EMBED_spr_edgebrush_edge_facing_external	= EDGE_BRUSH_SPRITES_BASE + 'edgebrush_edge_facing_external.png';
 const string EMBED_spr_edgebrush_edge_facing_internal	= EDGE_BRUSH_SPRITES_BASE + 'edgebrush_edge_facing_internal.png';
 const string EMBED_spr_edgebrush_edge_facing_both		= EDGE_BRUSH_SPRITES_BASE + 'edgebrush_edge_facing_both.png';
@@ -37,6 +38,7 @@ class EdgeBrushToolbar
 	private NumberSlider@ radius_slider;
 	private Button@ collision_btn;
 	private Button@ priority_btn;
+	private PopupButton@ custom_bits_btn;
 	private MultiButton@ facing_btn;
 	private Checkbox@ internal_sprites_checkbox;
 	private Button@ update_neightbour_btn;
@@ -45,6 +47,7 @@ class EdgeBrushToolbar
 	
 	private EventCallback@ on_edge_mask_change_delegate = EventCallback(this.on_edge_mask_change);
 	private EventCallback@ on_edge_mask_click_delegate = EventCallback(this.on_edge_mask_click);
+	private EventCallback@ on_custom_bit_change_delegate = EventCallback(this.on_custom_bit_change);
 	
 	void build_sprites(message@ msg)
 	{
@@ -56,6 +59,7 @@ class EdgeBrushToolbar
 		build_sprite(msg, 'edgebrush_inside_tile');
 		build_sprite(msg, 'edgebrush_update_collision');
 		build_sprite(msg, 'edgebrush_update_priority');
+		build_sprite(msg, 'edgebrush_update_custom');
 		build_sprite(msg, 'edgebrush_edge_facing_external');
 		build_sprite(msg, 'edgebrush_edge_facing_internal');
 		build_sprite(msg, 'edgebrush_edge_facing_both');
@@ -256,6 +260,35 @@ class EdgeBrushToolbar
 			script.init_icon(priority_btn);
 		//}
 		
+		// Custom button
+		//{
+			@custom_bits_btn = PopupButton(ui, SPRITE_SET, 'edgebrush_update_custom');
+			custom_bits_btn.name = 'custom_bits';
+			@custom_bits_btn.tooltip = PopupOptions(ui, 'Custom Bits');
+			toolbar.add(custom_bits_btn);
+			script.init_icon(custom_bits_btn);
+			
+			Container@ custom_bits_contents = Container(ui);
+			FlowLayout@ layout = FlowLayout(ui, FlowDirection::Row, FlowAlign::Start, FlowAlign::Start, FlowWrap::NoWrap, FlowFit::None);
+			@custom_bits_contents.layout = layout;
+			
+			Divider@ divider = Divider(ui);
+			
+			make_bit_checkbox(custom_bits_contents, '1');
+			make_bit_checkbox(custom_bits_contents, '2');
+			//custom_bits_contents.add_child(divider);
+			//make_bit_checkbox(custom_bits_contents, '4');
+			//make_bit_checkbox(custom_bits_contents, '5');
+			//make_bit_checkbox(custom_bits_contents, '6');
+			//make_bit_checkbox(custom_bits_contents, '7');
+			
+			divider.height = custom_bits_contents.children[0].height;
+			
+			custom_bits_contents.fit_to_contents(true);
+			@custom_bits_btn.popup.content_element = custom_bits_contents;
+			custom_bits_btn.popup.padding = style.spacing;
+		//}
+		
 		// Facing button
 		//{
 			@facing_btn = MultiButton(ui);
@@ -335,7 +368,7 @@ class EdgeBrushToolbar
 		@edge_checkboxes[edge] = cbx;
 	}
 	
-	private void make_edge_corner(Container@ container , const int rotation)
+	private void make_edge_corner(Container@ container, const int rotation)
 	{
 		Image@ img = Image(script.ui, SPRITE_SET, 'edgebrush_edge_corner');
 		img.rotation = rotation;
@@ -364,6 +397,15 @@ class EdgeBrushToolbar
 		container.add_child(img);
 		
 		script.init_icon(img);
+	}
+	
+	private void make_bit_checkbox(Container@ container, const string &in name)
+	{
+		Checkbox@ cbx = Checkbox(script.ui);
+		cbx.name = name;
+		cbx.fit(0);
+		cbx.change.on(on_custom_bit_change_delegate);
+		container.add_child(cbx);
 	}
 	
 	private TileEdge get_edge(const string & in name)
@@ -445,6 +487,16 @@ class EdgeBrushToolbar
 		const bool turn_on = (edge_mask & (1 << edge) == 0) || ((edge_mask & ~(1 << edge)) != 0);
 		edge_mask = 1 << edge;
 		tool.update_edge_mask(turn_on ? edge_mask : ~edge_mask);
+	}
+	
+	private void on_custom_bit_change(EventInfo@ event)
+	{
+		Checkbox@ cbx = cast<Checkbox@>(event.target);
+		const uint bit_index = parseInt(cbx.name);
+		uint8 mask = tool.update_custom;
+		mask &= ~(1 << bit_index);
+		mask |= uint(cbx.checked ? 1 : 0) << bit_index;
+		tool.update_custom = mask;
 	}
 	
 	private void on_radius_slider_change(EventInfo@ event)

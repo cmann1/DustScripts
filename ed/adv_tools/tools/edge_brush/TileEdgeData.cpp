@@ -45,7 +45,7 @@ class TileEdgeData
 		edge_bottom = tile.edge_bottom();
 		edge_left = tile.edge_left();
 		edge_right = tile.edge_right();
-
+		
 		valid_edges = edge_mask & (
 			(is_valid_edge(type, TileEdge::Top) ? 0x1 : 0) |
 			(is_valid_edge(type, TileEdge::Bottom) ? 0x2 : 0) |
@@ -99,7 +99,7 @@ class TileEdgeData
 		}
 	}
 	
-	bool update_edge(const int edge, const int update_edges, const bool update_collision, const bool update_priority)
+	bool update_edge(const int edge, const int update_edges, const bool update_collision, const bool update_priority, const uint8 update_custom)
 	{
 		updated_edges |= (1 << edge);
 		
@@ -126,6 +126,18 @@ class TileEdgeData
 			else if(update_edges == 1)
 			{
 				this.edge |= EdgeFlags::Priority;
+			}
+		}
+		
+		if(update_custom != 0)
+		{
+			if(update_edges == -1)
+			{
+				this.edge &= ~update_custom;
+			}
+			else if(update_edges == 1)
+			{
+				this.edge |= update_custom;
 			}
 		}
 		

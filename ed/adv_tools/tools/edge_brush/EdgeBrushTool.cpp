@@ -56,6 +56,7 @@ class EdgeBrushTool : Tool
 	/// If the collision and priorty bit are both off no edge is rendered.
 	bool update_collision = true;
 	bool update_priority = true;
+	uint8 update_custom = 0;
 	/// Must internal edges (edges shared by two tiles) by updated
 	EdgeFacing edge_facing = External;
 	/// If true, edges shared by tiles with different sprites will be considered "external"
@@ -661,7 +662,7 @@ class EdgeBrushTool : Tool
 							
 							if(
 								update_edges != 0 && (data.updated_edges & (1 << edge)) == 0 &&
-								data.update_edge(edge, update_edges, update_collision, update_priority))
+								data.update_edge(edge, update_edges, update_collision, update_priority, update_custom))
 							{
 								tile_requires_update = true;
 							}
@@ -825,7 +826,7 @@ class EdgeBrushTool : Tool
 		
 		if(
 			update_edges != 0 &&
-			closest_data.update_edge(closest_edge, update_edges, update_collision, update_priority))
+			closest_data.update_edge(closest_edge, update_edges, update_collision, update_priority, update_custom))
 		{
 			script.g.set_tile(closest_tx, closest_ty, layer, closest_data.tile, false);
 			
