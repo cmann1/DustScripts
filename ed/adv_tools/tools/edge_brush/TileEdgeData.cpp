@@ -153,4 +153,17 @@ class TileEdgeData
 		return false;
 	}
 	
+	uint get_colour()
+	{
+		const bool collision_on = edge & Collision != 0;
+		const bool priority_on = edge & Priority != 0;
+		
+		if(collision_on && priority_on)
+			return Settings::EdgeOnColour;
+		if(collision_on && !priority_on)
+			return Settings::EdgeInvisibleColour;
+		
+		return priority_on ? Settings::EdgeVisibleColour : Settings::EdgeOffColour;
+	}
+	
 }

@@ -357,10 +357,7 @@ class EdgeBrushTool : Tool
 				script.transform(data.ex1, data.ey1, layer, 22, x1, y1);
 				script.transform(data.ex2, data.ey2, layer, 22, x2, y2);
 				
-				const bool collision_on = data.edge & Collision != 0;
-				const bool priority_on = data.edge & Priority != 0;
-				const uint clr = collision_on ? Settings::EdgeOnColour
-					: (priority_on ? Settings::EdgeVisibleColour : Settings::EdgeOffColour);
+				const uint clr = data.get_colour();
 				
 				draw_line(script.g, 22, 22, x1, y1, x2, y2, line_width, clr, true);
 				
@@ -423,10 +420,7 @@ class EdgeBrushTool : Tool
 		script.transform(precision_edge.ex2, precision_edge.ey2, layer, 22, ex2, ey2);
 		script.transform(precision_edge_px, precision_edge_py, layer, 22, px, py);
 		
-		const bool collision_on = precision_edge.edge & Collision != 0;
-		const bool priority_on = precision_edge.edge & Priority != 0;
-		const uint clr = (collision_on ? Settings::EdgeOnColour
-			: (priority_on ? Settings::EdgeVisibleColour : Settings::EdgeOffColour)) | 0xff000000;
+		const uint clr = precision_edge.get_colour() | 0xff000000;
 		
 		const float line_width = Settings::EdgeMarkerLineWidth / script.zoom;
 		

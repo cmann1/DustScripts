@@ -100,6 +100,8 @@ namespace Settings
 	const uint EdgeOffColour   = 0x88ff00ff;
 	/// Priority on, collision off
 	const uint EdgeVisibleColour = 0xffffff00;
+	/// Priority off, collision on - In game has same effect as both on
+	const uint EdgeInvisibleColour = 0xff55ff22;
 	
 	const float EdgeMarkerLineWidth = 1.5;
 	const float EdgeMarkerRadius = 7;
