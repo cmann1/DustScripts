@@ -51,7 +51,7 @@ class MessageSystem
 		}
 	}
 	
-	void broadcast(const string &in id, message@ msg)
+	void broadcast(const string &in id, message@ msg = null)
 	{
 		if(!message_handlers.exists(id))
 			return;
