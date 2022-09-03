@@ -2150,7 +2150,8 @@ class PropTool : Tool
 			p.x(round(p.x()));
 			p.y(round(p.y()));
 			
-			data.update();
+			data.update(true);
+			data.init_anchors();
 		}
 		
 		selection_angle = 0;

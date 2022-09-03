@@ -243,9 +243,10 @@ class PropData : SelectableData
 		}
 		else
 		{
-			const int new_layer = clamp(prop.layer() + dir, 0, 20);
+			const uint layer = prop.layer();
+			const uint new_layer = clamp(layer + dir, 0, 20);
 			
-			if(new_layer <= 5 && prop.layer() > 5 || new_layer > 5 && prop.layer() <= 5)
+			if(new_layer <= 5 && layer > 5 || new_layer > 5 && layer <= 5)
 			{
 				script.g.remove_prop(prop);
 				prop.layer(new_layer);
@@ -254,6 +255,11 @@ class PropData : SelectableData
 			else
 			{
 				prop.layer(new_layer);
+			}
+			
+			if(new_layer != layer)
+			{
+				requires_update = true;
 			}
 		}
 		
