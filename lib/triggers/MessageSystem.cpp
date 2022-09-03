@@ -3,9 +3,9 @@ funcdef void MessageHandler(const string &in, message@);
 /// Custom global message system. Needed because the built in messaging system
 /// doesn't clear broadcast receivers when loading checkpoints.
 /// This means that adding listeners e.g. in trigger `init` will cause a memory leak
-/// and script trigger that are no longer in the scene will continue to recieve signals.
+/// and script triggers that are no longer in the scene will continue to recieve signals.
 /// 
-/// To use add a field field to your script: `MessageSystem mesages`
+/// To use add a field to your script: `MessageSystem mesages`
 /// and call `clear()` in `checkpoint_load`
 class MessageSystem
 {

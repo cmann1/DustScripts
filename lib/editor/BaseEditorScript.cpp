@@ -716,12 +716,12 @@ class BaseEditorScript
 	
 	//
 	
-	void ed_link_position(scripttrigger@ trigger, const float x, const float y, const float thickness=1, const int layer=19, const uint colour=0xffffffff)
+	void ed_link_position(scripttrigger@ trigger, const float x, const float y, const float thickness=1, const int layer=19, const uint colour=0x66ffffff)
 	{
 		ed_line(trigger.x(), trigger.y(), x, y, thickness, layer, colour);
 	}
 	
-	void ed_link_position(scriptenemy@ enemy, const float x, const float y, const float thickness=1, const int layer=19, const uint colour=0xffffffff)
+	void ed_link_position(scriptenemy@ enemy, const float x, const float y, const float thickness=1, const int layer=19, const uint colour=0x66ffffff)
 	{
 		ed_line(enemy.x(), enemy.y(), x, y, thickness, layer, colour);
 	}
