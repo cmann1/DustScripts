@@ -167,6 +167,11 @@ int sign(int x)
 	return x < 0 ? -1 : (x > 0 ? 1 : 0);
 }
 
+int sign_to(float from, float to)
+{
+	return from <= to ? 1 : -1;
+}
+
 int mod(const int x, const int m)
 {
 	return (x % m + m) % m;

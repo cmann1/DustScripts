@@ -110,6 +110,24 @@ float rand_range(float min, float max)
 	return min + (max - min) * frand();
 }
 
+float rand_range(float range)
+{
+	return (frand() * 2.0 - 1.0) * range;
+}
+
+float prng(const float seed)
+{
+	return fraction(abs(sin(seed * 12.9898) * 43758.5453));
+}
+float prng(const float seed, const float min, const float max)
+{
+	return min + (max - min) * fraction(abs(sin(seed * 12.9898) * 43758.5453));
+}
+float prng(const float seed, const float range)
+{
+	return range * (fraction(abs(sin(seed * 12.9898) * 43758.5453)) * 2.0 - 1.0);
+}
+
 bool is_nan(const float x)
 {
 	return fpToIEEE(x) == 0x7fc00000;
