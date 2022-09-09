@@ -281,7 +281,7 @@ class EdgeBrushToolbar
 		//{
 			@custom_bits_btn = PopupButton(ui, SPRITE_SET, 'edgebrush_update_custom');
 			custom_bits_btn.name = 'custom_bits';
-			@custom_bits_btn.tooltip = PopupOptions(ui, 'Custom Bits');
+			@custom_bits_btn.tooltip = PopupOptions(ui, 'Corner Bits');
 			toolbar.add(custom_bits_btn);
 			script.init_icon(custom_bits_btn);
 			
