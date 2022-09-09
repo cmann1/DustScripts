@@ -5,6 +5,7 @@ class EditorBox
 	float x2, y2;
 	bool draw_snap_tiles;
 	float thickness;
+	float rotation;
 	int layer;
 	uint colour;
 	
@@ -23,7 +24,11 @@ class EditorBox
 			y2 = floor(y2 / 48 + 1) * 48;
 		}
 		
-		outline_rect(script.g, 22, 20, x1, y1, x2, y2, thickness * script.ed_zoom, colour);
+		outline_rotated_rect(
+			script.g, 22, 20,
+			(x1 + x2) * 0.5, (y1 + y2) * 0.5, (x2 - x1) * 0.5, (y2 - y1) * 0.5,
+			rotation,
+			thickness * script.ed_zoom, colour);
 	}
 	
 }

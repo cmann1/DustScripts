@@ -49,6 +49,10 @@ class BaseEditorScript
 	bool ed_press_control;
 	bool ed_press_shift;
 	bool ed_press_alt;
+	bool ed_press;
+	bool ed_left_press;
+	bool ed_right_press;
+	bool ed_middle_press;
 	float ed_float_val;
 	
 	protected int ed_handles_size = 32;
@@ -82,10 +86,6 @@ class BaseEditorScript
 	protected EditorHandle@ ed_last_handle;
 	
 	protected float ed_rel_x, ed_rel_y;
-	protected bool ed_press;
-	protected bool ed_left_press;
-	protected bool ed_right_press;
-	protected bool ed_middle_press;
 	protected int ed_layer;
 	protected IEditable@ ed_drag_handle_ref;
 	protected int ed_drag_handle_index = -1;
@@ -195,6 +195,37 @@ class BaseEditorScript
 		{
 			ed_texts[i].draw(this);
 		}
+	}
+	
+	//
+	
+	bool ed_inside(const float x, const float y, controllable@ e)
+	{
+		return @e != null ? ed_inside(x, y, e.as_entity()) : false;
+	}
+	
+	bool ed_inside(const float x, const float y, scripttrigger@ e)
+	{
+		return @e != null ? ed_inside(x, y, e.as_entity()) : false;
+	}
+	
+	bool ed_inside(const float x, const float y, scriptenemy@ e)
+	{
+		return @e != null ? ed_inside(x, y, e.as_entity()) : false;
+	}
+	
+	bool ed_inside(const float x, const float y, entity@ e)
+	{
+		if(@e == null)
+			return false;
+		
+		rectangle@ r = e.base_rectangle();
+		const float x1 = e.x() + r.left();
+		const float y1 = e.y() + r.top();
+		const float x2 = e.x() + r.right();
+		const float y2 = e.y() + r.bottom();
+		
+		return x >= x1 && x <= x2 && y >= y1 && y <= y2;
 	}
 	
 	//
@@ -359,6 +390,7 @@ class BaseEditorScript
 		box.y1 = y1;
 		box.x2 = x2;
 		box.y2 = y2;
+		box.rotation = 0;
 		box.thickness = thickness;
 		box.layer = layer;
 		box.colour = colour;
@@ -490,7 +522,7 @@ class BaseEditorScript
 		y2 -= ed_rel_y;
 	}
 	
-	void ed_outline(float x1, float y1, float x2, float y2,
+	void ed_outline(float x1, float y1, float x2, float y2, float rotation=0,
 		const bool draw_snap_tiles=false,
 		float thickness=-1, const int layer=19, const uint colour=0xff44aaaa)
 	{
@@ -537,6 +569,7 @@ class BaseEditorScript
 		box.y1 = y1;
 		box.x2 = x2;
 		box.y2 = y2;
+		box.rotation = rotation;
 		box.thickness = thickness;
 		box.layer = layer;
 		box.colour = colour;

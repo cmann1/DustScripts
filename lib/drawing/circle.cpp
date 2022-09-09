@@ -72,7 +72,7 @@ namespace drawing
 	void fill_circle_outside(
 		scene@ g, const uint layer, const uint sub_layer,
 		const float x, const float y, const float radius, const uint segments,
-		const uint inside_colour,const  uint outside_colour, const float outside_size=7000)
+		const uint inside_colour, const uint outside_colour, const float outside_size=7000)
 	{
 		float prev_x = x + radius;
 		float prev_y = y;
