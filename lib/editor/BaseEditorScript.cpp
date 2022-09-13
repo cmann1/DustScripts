@@ -45,6 +45,9 @@ class BaseEditorScript
 	Line ed_line2;
 	
 	bool ed_space;
+	bool ed_ctrl;
+	bool ed_shift;
+	bool ed_alt;
 	bool ed_mouse_in_gui;
 	bool ed_press_control;
 	bool ed_press_shift;
@@ -128,6 +131,9 @@ class BaseEditorScript
 		
 		//const bool can_press = @editor == null || !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space) && editor.editor_tab() == 'Triggers';
 		ed_space = editor.key_check_gvb(GVB::Space);
+		ed_ctrl = editor.key_check_gvb(GVB::Control);
+		ed_shift = editor.key_check_gvb(GVB::Shift);
+		ed_alt = editor.key_check_gvb(GVB::Alt);
 		ed_mouse_in_gui = editor.mouse_in_gui();
 		const bool can_press = !ed_mouse_in_gui && !ed_space && (editor.editor_tab() == 'Triggers' || editor.editor_tab() == 'Scripts');
 		
@@ -250,6 +256,19 @@ class BaseEditorScript
 		ed_drag_handle_index = index;
 	}
 	
+	protected void ed_do_snap(float x, float &out ox)
+	{
+		const float snap = ed_ctrl ? 24 : ed_shift ? 48 : 0;
+		ox = snap != 0 ? round(x / snap) * snap : x;
+	}
+	
+	protected void ed_do_snap(float x, float y, float &out ox, float &out oy)
+	{
+		const float snap = ed_ctrl ? 24 : ed_shift ? 48 : 0;
+		ox = snap != 0 ? round(x / snap) * snap : x;
+		oy = snap != 0 ? round(y / snap) * snap : y;
+	}
+	
 	//
 	
 	EditorMouseResult ed_handle(float x, float y, IEditable@ ref, const int index, const int layer=19,
@@ -336,8 +355,13 @@ class BaseEditorScript
 	{
 		transform_layer_position(g, ed_view_x, ed_view_y, mouse.x, mouse.y, 22, ed_layer, x, y);
 		
-		x -= ed_drag_ox + ed_rel_x;
-		y -= ed_drag_oy + ed_rel_y;
+		x -= ed_drag_ox;
+		y -= ed_drag_oy;
+		
+		ed_do_snap(x, y, x, y);
+		
+		x -= ed_rel_x;
+		y -= ed_rel_y;
 	}
 	
 	//
@@ -491,29 +515,35 @@ class BaseEditorScript
 		if(ed_drag_box_handle_index == 0 || ed_drag_box_handle_index == 6 || ed_drag_box_handle_index == 7)
 		{
 			x1 = mouse_x - ed_drag_ox - ed_handle_size + ed_drag_box_ox;
+			ed_do_snap(x1, x1);
 		}
 		else if(ed_drag_box_handle_index == 2 || ed_drag_box_handle_index == 3 || ed_drag_box_handle_index == 4)
 		{
 			x2 = mouse_x - ed_drag_ox + ed_handle_size + ed_drag_box_ox;
+			ed_do_snap(x2, x2);
 		}
 		else if(ed_drag_box_handle_index == 8)
 		{
 			x1 = mouse_x - ed_drag_ox - abs(ed_drag_box_x2 - ed_drag_box_x1) * 0.5 + ed_drag_box_ox;
 			x2 = mouse_x - ed_drag_ox + abs(ed_drag_box_x2 - ed_drag_box_x1) * 0.5 + ed_drag_box_oy;
+			ed_do_snap(x1, x2, x1, x2);
 		}
 		
 		if(ed_drag_box_handle_index == 0 || ed_drag_box_handle_index == 1 || ed_drag_box_handle_index == 2)
 		{
 			y1 = mouse_y - ed_drag_oy - ed_handle_size + ed_drag_box_oy;
+			ed_do_snap(y1, y1);
 		}
 		else if(ed_drag_box_handle_index == 4 || ed_drag_box_handle_index == 5 || ed_drag_box_handle_index == 6)
 		{
 			y2 = mouse_y - ed_drag_oy + ed_handle_size + ed_drag_box_oy;
+			ed_do_snap(y2, y2);
 		}
 		else if(ed_drag_box_handle_index == 8)
 		{
 			y1 = mouse_y - ed_drag_oy - abs(ed_drag_box_y2 - ed_drag_box_y1) * 0.5 + ed_drag_box_ox;
 			y2 = mouse_y - ed_drag_oy + abs(ed_drag_box_y2 - ed_drag_box_y1) * 0.5 + ed_drag_box_oy;
+			ed_do_snap(y1, y2, y1, y2);
 		}
 		
 		x1 -= ed_rel_x;
