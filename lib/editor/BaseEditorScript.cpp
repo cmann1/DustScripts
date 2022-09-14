@@ -33,6 +33,7 @@ class BaseEditorScript
 	float ed_handle_size;
 	float ed_default_thickness = 1;
 	bool ed_disable_handles;
+	bool ed_disable_snap;
 	int ed_index = 0;
 	int ed_secondary_index = -1;
 	int ed_box_handle_index = -1;
@@ -258,13 +259,13 @@ class BaseEditorScript
 	
 	protected void ed_do_snap(float x, float &out ox)
 	{
-		const float snap = ed_ctrl ? 24 : ed_shift ? 48 : 0;
+		const float snap = ed_disable_snap ? 0 : ed_ctrl ? 24 : ed_shift ? 48 : 0;
 		ox = snap != 0 ? round(x / snap) * snap : x;
 	}
 	
 	protected void ed_do_snap(float x, float y, float &out ox, float &out oy)
 	{
-		const float snap = ed_ctrl ? 24 : ed_shift ? 48 : 0;
+		const float snap = ed_disable_snap ? 0 : ed_ctrl ? 24 : ed_shift ? 48 : 0;
 		ox = snap != 0 ? round(x / snap) * snap : x;
 		oy = snap != 0 ? round(y / snap) * snap : y;
 	}
