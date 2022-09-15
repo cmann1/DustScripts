@@ -127,6 +127,18 @@ float prng(const float seed, const float range)
 {
 	return range * (fraction(abs(sin(seed * 12.9898) * 43758.5453)) * 2.0 - 1.0);
 }
+float prng2(const float x, const float y)
+{
+  return fraction(abs(sin(x * 12.9898 + y * 78.233)) * 43758.5453);
+}
+float prng2(const float x, const float y, const float min, const float max)
+{
+	return min + (max - min) * fraction(abs(sin(x * 12.9898 + y * 78.233)) * 43758.5453);
+}
+float prng2(const float x, const float y, const float range)
+{
+	return range * (fraction(abs(sin(x * 12.9898 + y * 78.233)) * 43758.5453) * 2.0 - 1.0);
+}
 
 bool is_nan(const float x)
 {
