@@ -3,7 +3,7 @@
 #include '../lib/enums/EmitterId.cpp';
 #include '../lib/drawing/common.cpp';
 #include '../lib/emitters/common.cpp';
-#include '../lib/RemoveTimer.cpp';
+#include '../lib/triggers/RemoveTimer.cpp';
 #include '../lib/Fx.cpp';
 
 class script { }
@@ -77,10 +77,10 @@ class BreakableWall : trigger_base
 		}
 	}
 	
-//	void draw(float sub_frame)
-//	{
-//		editor_draw(sub_frame);
-//	}
+	//void draw(float sub_frame)
+	//{
+	//	editor_draw(sub_frame);
+	//}
 	
 	void editor_draw(float sub_frame)
 	{
