@@ -130,11 +130,11 @@ class BaseEditorScript
 		ed_view_x2 = max(view1_x + view1_w, view2_x + view2_w);
 		ed_view_y2 = max(view1_y + view1_h, view2_y + view2_h);
 		
-		//const bool can_press = @editor == null || !editor.mouse_in_gui() && !editor.key_check_gvb(GVB::Space) && editor.editor_tab() == 'Triggers';
-		ed_space = editor.key_check_gvb(GVB::Space);
-		ed_ctrl = editor.key_check_gvb(GVB::Control);
-		ed_shift = editor.key_check_gvb(GVB::Shift);
-		ed_alt = editor.key_check_gvb(GVB::Alt);
+		//const bool can_press = @editor == null || !editor.mouse_in_gui() && !input.key_check_gvb(GVB::Space) && editor.editor_tab() == 'Triggers';
+		ed_space = input.key_check_gvb(GVB::Space);
+		ed_ctrl = input.key_check_gvb(GVB::Control);
+		ed_shift = input.key_check_gvb(GVB::Shift);
+		ed_alt = input.key_check_gvb(GVB::Alt);
 		ed_mouse_in_gui = editor.mouse_in_gui();
 		const bool can_press = !ed_mouse_in_gui && !ed_space && (editor.editor_tab() == 'Triggers' || editor.editor_tab() == 'Scripts');
 		
@@ -315,9 +315,9 @@ class BaseEditorScript
 			const float mouse_x = layer == mouse.layer ? mouse.x : g.mouse_x_world(0, layer);
 			const float mouse_y = layer == mouse.layer ? mouse.y : g.mouse_y_world(0, layer);
 			
-			ed_press_control = editor.key_check_gvb(GVB::Control);
-			ed_press_shift = editor.key_check_gvb(GVB::Shift);
-			ed_press_alt = editor.key_check_gvb(GVB::Alt);
+			ed_press_control = input.key_check_gvb(GVB::Control);
+			ed_press_shift = input.key_check_gvb(GVB::Shift);
+			ed_press_alt = input.key_check_gvb(GVB::Alt);
 			
 			if(dist_sqr(x, y, mouse_x, mouse_y) <= (ed_handle_size * ed_handle_size))
 			{
@@ -332,17 +332,17 @@ class BaseEditorScript
 					
 					ed_secondary_index = -1;
 					
-					editor.key_clear_gvb(GVB::LeftClick);
+					input.key_clear_gvb(GVB::LeftClick);
 					return LeftPress;
 				}
 				else if(ed_right_press)
 				{
-					editor.key_clear_gvb(GVB::RightClick);
+					input.key_clear_gvb(GVB::RightClick);
 					return RightPress;
 				}
 				else if(ed_middle_press)
 				{
-					editor.key_clear_gvb(GVB::MiddleClick);
+					input.key_clear_gvb(GVB::MiddleClick);
 					return MiddlePress;
 				}
 			}
@@ -763,9 +763,9 @@ class BaseEditorScript
 		angle = atan2(y - ed_drag_oy, x - ed_drag_ox) + ed_drag_radius_offset;
 		
 		const float snap =
-			  editor.key_check_gvb(GVB::Alt)   ? PI / 180
-			: editor.key_check_gvb(GVB::Control)  ? PI / 36
-			: editor.key_check_gvb(GVB::Shift)  ? PI / 8 : 0;
+			  input.key_check_gvb(GVB::Alt)   ? PI / 180
+			: input.key_check_gvb(GVB::Control)  ? PI / 36
+			: input.key_check_gvb(GVB::Shift)  ? PI / 8 : 0;
 		
 		if(snap != 0)
 		{
