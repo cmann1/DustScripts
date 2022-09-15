@@ -38,6 +38,10 @@ class BaseEditorScript
 	int ed_secondary_index = -1;
 	int ed_box_handle_index = -1;
 	
+	bool ed_box_custom_centre = false;
+	float ed_box_custom_cx, ed_box_custom_cy;
+	float ed_box_custom_px = 0.5, ed_box_custom_py = 0.5;
+	
 	float ed_view_x;
 	float ed_view_y;
 	float ed_view_x1, ed_view_y1;
@@ -488,7 +492,19 @@ class BaseEditorScript
 			case 5: ox =  0; oy =  1; x = mx; y = y2; break;
 			case 6: ox = -1; oy =  1; x = x1; y = y2; break;
 			case 7: ox = -1; oy =  0; x = x1; y = my; break;
-			case 8: ox =  0; oy =  0; x = mx; y = my; break;
+			case 8:
+				ox =  0; oy =  0;
+				if(ed_box_custom_centre)
+				{
+					x = x1 + (x2 - x1) * ed_box_custom_px + ed_box_custom_cx * ed_zoom;
+					y = y1 + (y2 - y1) * ed_box_custom_py + ed_box_custom_cy * ed_zoom;
+				}
+				else
+				{
+					x = mx;
+					y = my;
+				}
+				break;
 		}
 		
 		ox *= ed_handle_size;
@@ -501,6 +517,15 @@ class BaseEditorScript
 		}
 		
 		return result;
+	}
+	
+	void ed_custom_box_centre_set(const float cx = 0, const float cy = 0, const float px = 0.5, const float py = 0.5)
+	{
+		ed_box_custom_centre = true;
+		ed_box_custom_cx = cx;
+		ed_box_custom_cy = cy;
+		ed_box_custom_px = px;
+		ed_box_custom_py = py;
 	}
 	
 	void ed_update_box(float &out x1, float &out y1, float &out x2, float &out y2, const float rx=0, const float ry=0)
@@ -527,6 +552,13 @@ class BaseEditorScript
 		{
 			x1 = mouse_x - ed_drag_ox - abs(ed_drag_box_x2 - ed_drag_box_x1) * 0.5 + ed_drag_box_ox;
 			x2 = mouse_x - ed_drag_ox + abs(ed_drag_box_x2 - ed_drag_box_x1) * 0.5 + ed_drag_box_oy;
+			if(ed_box_custom_centre)
+			{
+				const float ox = (ed_drag_box_x2 - ed_drag_box_x1) * (-ed_box_custom_px + 0.5) -
+					ed_box_custom_cx * ed_zoom;
+				x1 += ox;
+				x2 += ox;
+			}
 			ed_do_snap(x1, x2, x1, x2);
 		}
 		
@@ -544,6 +576,13 @@ class BaseEditorScript
 		{
 			y1 = mouse_y - ed_drag_oy - abs(ed_drag_box_y2 - ed_drag_box_y1) * 0.5 + ed_drag_box_ox;
 			y2 = mouse_y - ed_drag_oy + abs(ed_drag_box_y2 - ed_drag_box_y1) * 0.5 + ed_drag_box_oy;
+			if(ed_box_custom_centre)
+			{
+				const float oy = (ed_drag_box_y2 - ed_drag_box_y1) * (-ed_box_custom_py + 0.5) -
+					ed_box_custom_cy * ed_zoom;
+				y1 += oy;
+				y2 += oy;
+			}
 			ed_do_snap(y1, y2, y1, y2);
 		}
 		
