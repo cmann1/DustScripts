@@ -965,7 +965,7 @@ class BaseEditorScript
 	}
 	
 	void ed_text(float x, float y, const string text, const float scale=1, const float rotation=0,
-		const int layer=19, const uint colour=0xffffffff)
+		const int layer=19, const uint colour=0xffffffff, const int align_h=0, const int align_v=0)
 	{
 		if(ed_disable_handles)
 			return;
@@ -993,6 +993,8 @@ class BaseEditorScript
 		txt.rotation = rotation;
 		txt.layer = layer;
 		txt.colour = colour;
+		txt.align_h = align_h;
+		txt.align_v = align_v;
 	}
 	
 	//

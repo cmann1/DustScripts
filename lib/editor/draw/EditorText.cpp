@@ -7,6 +7,8 @@ class EditorText
 	float rotation;
 	int layer;
 	uint colour;
+	int align_h;
+	int align_v;
 	
 	void draw(BaseEditorScript@ script)
 	{
@@ -15,6 +17,8 @@ class EditorText
 		
 		script.text_field.text(text);
 		script.text_field.colour(colour);
+		script.text_field.align_horizontal(align_h);
+		script.text_field.align_vertical(align_v);
 		
 		shadowed_text_world(script.text_field, 22, 20,
 			x, y,

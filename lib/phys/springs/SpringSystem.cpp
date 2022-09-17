@@ -50,6 +50,11 @@ class SpringSystem
 		this._drag = drag;
 	}
 	
+	float get_drag()
+	{
+		return this._drag;
+	}
+	
 	Force@ add_force(const float x, const float y)
 	{
 		Force@ f = Force(x, y);
