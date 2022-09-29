@@ -199,7 +199,9 @@ class MakeTilesInvisible: TileBaseTrigger
 	{
 		if(!tile.solid()) return;
 		
-		tile.sprite_tile(0);
+		tile.sprite_set(0);
+		tile.sprite_tile(1);
+		tile.sprite_palette(0);
 		
 		g.set_tile(x, y, layer, tile, false);
 	}
