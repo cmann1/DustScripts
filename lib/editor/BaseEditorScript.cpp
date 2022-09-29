@@ -371,6 +371,18 @@ class BaseEditorScript
 	
 	//
 	
+	EditorMouseResult ed_tile_region(int x1, int y1, int x2, int y2,
+		IEditable@ ref, const int index=0,
+		float thickness=-1, const int layer=19, const uint colour=0xff44aaaa)
+	{
+		if(ed_disable_handles)
+			return None;
+		
+		return ed_box(
+			x1 * 48, y1 * 48, x2 * 48, y2 * 48,
+			ref, index, false, thickness, layer, colour);
+	}
+	
 	EditorMouseResult ed_box(float x1, float y1, float x2, float y2,
 		IEditable@ ref, const int index=0,
 		const bool draw_snap_tiles=false,
@@ -528,7 +540,7 @@ class BaseEditorScript
 		ed_box_custom_py = py;
 	}
 	
-	void ed_update_box(float &out x1, float &out y1, float &out x2, float &out y2, const float rx=0, const float ry=0)
+	void ed_update_box(float &out x1, float &out y1, float &out x2, float &out y2)
 	{
 		float mouse_x = 0, mouse_y = 0;
 		transform_layer_position(g, ed_view_x, ed_view_y, mouse.x, mouse.y, 22, ed_layer, mouse_x, mouse_y);
@@ -590,6 +602,21 @@ class BaseEditorScript
 		y1 -= ed_rel_y;
 		x2 -= ed_rel_x;
 		y2 -= ed_rel_y;
+	}
+	
+	void ed_update_tile_region(int &out x1, int &out y1, int &out x2, int &out y2)
+	{
+		const bool disable_snap = ed_disable_snap;
+		ed_disable_snap = true;
+		float fx1, fy1, fx2, fy2;
+		ed_update_box(fx1, fy1, fx2, fy2);
+		
+		x1 = round_int(fx1 / 48);
+		y1 = round_int(fy1 / 48);
+		x2 = round_int(fx2 / 48);
+		y2 = round_int(fy2 / 48);
+		
+		ed_disable_snap = disable_snap;
 	}
 	
 	void ed_outline(float x1, float y1, float x2, float y2, float rotation=0,

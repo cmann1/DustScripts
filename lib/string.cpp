@@ -295,6 +295,24 @@ namespace string
 		return str;
 	}
 	
+	string pad_left(string str, const uint size, const string chr=' ')
+	{
+		while(str.length < size)
+		{
+			str = chr + str;
+		}
+		return str;
+	}
+	
+	string pad_right(string str, const uint size, const string chr=' ')
+	{
+		while(str.length < size)
+		{
+			str += chr;
+		}
+		return str;
+	}
+	
 	bool is_whitespace(const int chr)
 	{
 		return chr >= 9 && chr <= 13 || chr == 32;

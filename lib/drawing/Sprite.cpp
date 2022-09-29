@@ -14,7 +14,12 @@ class Sprite
 	float origin_x;
 	float origin_y;
 	
-	Sprite(string sprite_set='', string sprite_name='', float origin_x=0.5, float origin_y=0.5)
+	Sprite()
+	{
+		@sprite = create_sprites();
+	}
+	
+	Sprite(string sprite_set, string sprite_name, float origin_x=0.5, float origin_y=0.5)
 	{
 		@sprite = create_sprites();
 		set(sprite_set, sprite_name, origin_x, origin_y);

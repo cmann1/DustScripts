@@ -136,7 +136,7 @@ void reflect(
 	float x, float y, float normal_x, float normal_y,
 	float &out out_x, float &out out_y)
 {
-	float d = dot(x, y, normal_x, normal_y);
+	const float d = dot(x, y, normal_x, normal_y);
 	out_x = x - 2 * normal_x * d;
 	out_y = y - 2 * normal_y * d;
 }

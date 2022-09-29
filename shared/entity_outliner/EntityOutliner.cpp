@@ -97,7 +97,7 @@ class EntityOutliner : callback_base
 		}
 	}
 	
-	void step(camera@ cam)
+	void step(camera@ cam, const bool disable_draw=false)
 	{
 		if(!initialised)
 		{
@@ -115,8 +115,9 @@ class EntityOutliner : callback_base
 		}
 		
 		@active_settings = @this.settings[cam.player()];
+		_cam_scale = active_settings.scale_with_camera ? cam.screen_height() / 1080 : 1;
 		
-		if(!active_settings.enabled)
+		if(disable_draw || !active_settings.enabled)
 			return;
 		
 		// Old way - iterate all entities
@@ -139,7 +140,6 @@ class EntityOutliner : callback_base
 		
 		@this.cam = cam;
 		get_entities_on_screen(cam);
-		_cam_scale = active_settings.scale_with_camera ? cam.screen_height() / 1080 : 1;
 	}
 	
 	void editor_step(camera@ cam)

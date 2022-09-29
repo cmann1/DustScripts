@@ -200,10 +200,10 @@ void int_to_rgba(uint colour, int &out r, int &out g, int &out b, int &out a)
 
 void int_to_rgba(uint colour, float &out r, float &out g, float &out b, float &out a)
 {
-	a = ((colour >> 24) & 0xff) / 255;
-	r = ((colour >> 16) & 0xff) / 255;
-	g = ((colour >> 8) & 0xff) / 255;
-	b = ((colour) & 0xff) / 255;
+	a = ((colour >> 24) & 0xff) / 255.0;
+	r = ((colour >> 16) & 0xff) / 255.0;
+	g = ((colour >> 8) & 0xff) / 255.0;
+	b = ((colour) & 0xff) / 255.0;
 }
 
 uint adjust_lightness(const uint colour, const float &in amount)
