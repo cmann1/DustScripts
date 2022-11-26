@@ -60,7 +60,6 @@ class PropPath : trigger_base
 	scripttrigger @self;
 	
 	[text] bool place = false;
-	[hidden] bool place_prev = false;
 
 	[text] bool relative = true;
 	[text] bool randomise_constantly = false;
@@ -109,6 +108,31 @@ class PropPath : trigger_base
 			previous_curve_values[j++] = curve.y3;
 			previous_curve_values[j++] = curve.y4;
 			previous_curve_values[j++] = curve.y4;
+		}
+		
+		init_prop();
+	}
+	
+	void init_prop()
+	{
+		if(spr.sprite_set == '' || prop_def.sprite_set != spr.sprite_set || prop_def.sprite_name != spr.sprite_set)
+		{
+			sprite_from_prop(
+				prop_def.prop_set, prop_def.prop_group, prop_def.prop_index, prop_def.sprite_set, prop_def.sprite_name);
+			spr.set(prop_def.sprite_set, prop_def.sprite_name, prop_def.origin_x, prop_def.origin_y);
+		}
+	}
+	
+	void editor_var_changed(var_info@ info)
+	{
+		const string base_name = info.get_name(0);
+		if(base_name == 'prop_def')
+		{
+			init_prop();
+		}
+		else if(base_name == 'place')
+		{
+			place_props();
 		}
 	}
 	
@@ -222,15 +246,6 @@ class PropPath : trigger_base
 					previous_curve_values[vi + 7] = curve.y4 = curve.y1;
 				}
 		}
-		
-		if(spr.sprite_set == '' || prop_def.sprite_set != spr.sprite_set || prop_def.sprite_name != spr.sprite_set)
-		{
-			sprite_from_prop(prop_def.prop_set, prop_def.prop_group, prop_def.prop_index, prop_def.sprite_set, prop_def.sprite_name);
-			spr.set(prop_def.sprite_set, prop_def.sprite_name, prop_def.origin_x, prop_def.origin_y);
-		}
-		
-		if(place != place_prev)
-			place_props();
 		
 		float tx = relative ? self.x() : 0;
 		float ty = relative ? self.y() : 0;
@@ -496,6 +511,7 @@ class PropPath : trigger_base
 		
 		t++;
 	}
+	
 	void step()
 	{
 		editor_step();
