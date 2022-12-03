@@ -118,9 +118,14 @@ void normalize(float x, float y, float &out out_x, float &out out_y)
 	out_y = len != 0 ? y / len : 0;
 }
 
-float normalize_angle(float theta)
+float normalize_angle(const float theta)
 {
 	return theta - PI2 * floor((theta + PI) / PI2);
+}
+
+float normalize_degress(const float theta)
+{
+	return theta - 360 * floor((theta + 180) / 360);
 }
 
 void project(
@@ -323,8 +328,6 @@ bool ray_ray_intersection(
 	
 	t = (bdx * (ay1 - by1) - bdy * (ax1 - bx1)) / det;
 
-	float s = (-dy * (ax1 - bx1) + dx * (ay1 - by1)) / det;
-	
 	x = ax1 + dx * t;
 	y = ay1 + dy * t;
 	return true;
