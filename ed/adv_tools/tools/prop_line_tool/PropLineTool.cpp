@@ -48,12 +48,13 @@ class PropLineTool : Tool
 	bool snap_to_grid = false;
 	/** If false, scroll wheel adjusts rotation */
 	bool scroll_spacing = true;
-	
 	PropLineSpacingMode spacing_mode = PropLineSpacingMode::Fixed;
 	PropLineRotationMode rotation_mode = PropLineRotationMode::Auto;
 	float spacing = 50;
+	float spacing_offset;
 	float rotation_offset;
 	bool has_auto_rotation_offset;
+	bool auto_space = true;
 	
 	PropLineTool(AdvToolScript@ script)
 	{
@@ -169,6 +170,8 @@ class PropLineTool : Tool
 			return;
 		
 		script.scroll_layer(true, true, false, LayerInfoDisplay::Compound, null, script.main_toolbar, 0.75);
+		layer = script.layer;
+		sub_layer = script.sub_layer;
 		update_start_point();
 	}
 	
@@ -186,7 +189,13 @@ class PropLineTool : Tool
 		else
 			dir *= 10;
 		
+		const float rotation_prev = rotation;
 		rotation = repeat(rotation - dir, 360);
+		
+		if(rotation != rotation_prev)
+		{
+			recaclulate_props = true;
+		}
 	}
 	
 	private void user_update_scale()
@@ -264,13 +273,28 @@ class PropLineTool : Tool
 			else if(script.alt.down)
 				amount = 1;
 			
-			const float spacing_prev = spacing;
-			spacing = max(spacing - mouse.scroll * amount, 0.0);
-			recaclulate_props = recaclulate_props || spacing != spacing_prev;
+			float spacing_display;
 			
-			script.show_info('Spacing: ' + int(spacing));
+			if(auto_space)
+			{
+				const float spacing_offset_prev = spacing_offset;
+				spacing_offset = spacing_offset - mouse.scroll * amount;
+				recaclulate_props = recaclulate_props || spacing_offset != spacing_offset_prev;
+				
+				spacing_display = spacing_offset;
+			}
+			else
+			{
+				const float spacing_prev = spacing;
+				spacing = max(spacing - mouse.scroll * amount, 0.0);
+				recaclulate_props = recaclulate_props || spacing != spacing_prev;
+				
+				spacing_display = spacing;
+			}
+			
+			script.show_info('Spacing: ' + int(spacing_display));
 		}
-		else
+		else if(rotation_mode == PropLineRotationMode::Auto)
 		{
 			float dir = sign(mouse.scroll);
 			
@@ -282,21 +306,121 @@ class PropLineTool : Tool
 				dir *= 10;
 			
 			const float rotation_offset_prev = rotation_offset;
-			rotation_offset = repeat(rotation_offset - dir, 360);
-			recaclulate_props = recaclulate_props || rotation_offset != rotation_offset_prev;
+			rotation_offset = normalize_degress(rotation_offset - dir);
 			has_auto_rotation_offset = false;
+			
+			if(rotation_offset != rotation_offset_prev)
+			{
+				if(auto_space)
+				{
+					calculate_auto_spacing();
+				}
+				
+				recaclulate_props = true;
+			}
 			
 			script.show_info('Rotation Offset: ' + int(rotation_offset));
 		}
+		else
+		{
+			user_update_rotation();
+		}
 	}
 	
-	// TODO: complete
-	private void user_calculate_spacing()
+	private void calculate_auto_spacing()
 	{
-		//if(!script.alt.double_press)
-		//	return;
+		if(prop_set == -1)
+			return;
 		
+		const float bg_scale = calc_bg_scale(layer);
 		
+		const float length = distance(x1, y1, x2, y2);
+		const float dx = x2 - x1;
+		const float dy = y2 - y1;
+		const float nx = length > 0 ? dx / length : 1.0;
+		const float ny = length > 0 ? dy / length : 0.0;
+		const float angle = atan2(dy, dx);
+		
+		// Caclulate the line in local prop space
+		// --------------------------------------
+		
+		const float prop_angle = rotation_mode == PropLineRotationMode::Auto
+			? rotation_offset * DEG2RAD
+			: rotation * DEG2RAD;
+		
+		const float ray_size = sqrt(
+			spr.sprite_width * spr.sprite_width * 0.25 +
+			spr.sprite_height * spr.sprite_height * 0.25) * 1.5;
+		float lox = 0;
+		float loy = 0;
+		float l1x = -ray_size;
+		float l1y = 0;
+		float l2x = ray_size;
+		float l2y = 0;
+		
+		if(
+			rotation_mode != PropLineRotationMode::Auto &&
+			(state == PropLineToolState::Dragging || state == PropLineToolState::Pending))
+		{
+			rotate(l1x, l1y, angle, l1x, l1y);
+			rotate(l2x, l2y, angle, l2x, l2y);
+		}
+		
+		rotate(l1x, l1y, -prop_angle, l1x, l1y);
+		rotate(l2x, l2y, -prop_angle, l2x, l2y);
+		
+		lox *= scale_x; loy *= scale_y;
+		l1x *= scale_x; l1y *= scale_y;
+		l2x *= scale_x; l2y *= scale_y;
+		
+		float prop_ox = spr.sprite_offset_x - spr.sprite_width * spr.origin_x;
+		float prop_oy = spr.sprite_offset_y - spr.sprite_height * spr.origin_y;
+		
+		lox -= prop_ox; loy -= prop_oy;
+		l1x -= prop_ox; l1y -= prop_oy;
+		l2x -= prop_ox; l2y -= prop_oy;
+		
+		// --------------------------------------
+		
+		float t1_max = -1;
+		float t2_max = -1;
+		
+		const array<array<float>>@ outline = @PROP_OUTLINES[prop_set - 1][prop_group][prop_index - 1];
+		for(int i = 0, path_count = int(outline.length()); i < path_count; i++)
+		{
+			const array<float>@ path = @outline[i];
+			const int count = int(path.length());
+			float p1x = path[count - 2];
+			float p1y = path[count - 1];
+			
+			for(int j = 0; j < count; j += 2)
+			{
+				float p2x = path[j];
+				float p2y = path[j + 1];
+				
+				float ix, iy, t;
+				if(line_line_intersection(lox, loy, l1x, l1y, p1x, p1y, p2x, p2y, ix, iy, t) && t > t1_max)
+				{
+					t1_max = t;
+				}
+				if(line_line_intersection(lox, loy, l2x, l2y, p1x, p1y, p2x, p2y, ix, iy, t) && t > t2_max)
+				{
+					t2_max = t;
+				}
+				
+				p1x = p2x;
+				p1y = p2y;
+			}
+		}
+		
+		if(t1_max == -1 || t2_max == -1)
+			return;
+		
+		const float spacing_prev = spacing;
+		spacing = max(ray_size * t1_max + ray_size * t2_max, 0.0) * scale;
+		recaclulate_props = recaclulate_props || spacing != spacing_prev;
+			
+		//script.show_info('Spacing: ' + int(spacing));
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -330,7 +454,6 @@ class PropLineTool : Tool
 		user_update_rotation();
 		user_update_scale();
 		user_update_mirror();
-		user_calculate_spacing();
 	}
 	
 	private void state_picking()
@@ -381,6 +504,11 @@ class PropLineTool : Tool
 		
 		if(prop_set != -1 && !mouse.right_down)
 		{
+			if(auto_space)
+			{
+				calculate_auto_spacing();
+			}
+			
 			state = PropLineToolState::Idle;
 			script.hide_info_popup();
 		}
@@ -391,7 +519,6 @@ class PropLineTool : Tool
 		user_update_snap();
 		user_update_scroll_mode();
 		user_update_spacing();
-		user_calculate_spacing();
 		user_update_mirror();
 		update_end_point(!mouse.right_down);
 		
@@ -409,6 +536,11 @@ class PropLineTool : Tool
 		
 		if(recaclulate_props)
 		{
+			if(auto_space)
+			{
+				calculate_auto_spacing();
+			}
+			
 			calculate_props();
 		}
 		
@@ -442,7 +574,6 @@ class PropLineTool : Tool
 		user_update_snap();
 		user_update_scroll_mode();
 		user_update_spacing();
-		user_calculate_spacing();
 		user_update_mirror();
 		
 		const bool drag_p1 = script.handles.circle(x1, y1, Settings::RotateHandleSize,
@@ -611,8 +742,10 @@ class PropLineTool : Tool
 			final_rotation = rotation;
 		}
 		
-		float spacing = max(this.spacing, 0.1);
+		float spacing = this.spacing + spacing_offset;
+		spacing = max(layer <= 5 ? spacing * 16 : spacing, 0.1);
 		props_count = ceil_int(max((length + spacing * 0.5) / spacing, 1.0));
+		
 		while(props_count > props_list_size)
 		{
 			props.resize(props_list_size *= 2);
