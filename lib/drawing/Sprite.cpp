@@ -50,14 +50,19 @@ class Sprite
 		}
 	}
 	
+	
+	/**
+	 * @param bg_scale Props in the bg layers (0-5) are rendered at twice the scale.
+	 * For the origin to work correctly in these layers, pass `2.0 / layer_scale(layer)` for layers 0-5.
+	 */
 	void draw(
 		int layer, int sub_layer,
 		uint32 frame, uint32 palette,
 		float x, float y, float rotation=0,
-		float scale_x=1, float scale_y=1, uint32 colour=0xFFFFFFFF)
+		float scale_x=1, float scale_y=1, uint32 colour=0xFFFFFFFF, float bg_scale=1)
 	{
-		float dx = (sprite_offset_x - sprite_width * origin_x) * scale_x;
-		float dy = (sprite_offset_y - sprite_height * origin_y) * scale_y;
+		float dx = (sprite_offset_x - sprite_width * origin_x) * scale_x * bg_scale;
+		float dy = (sprite_offset_y - sprite_height * origin_y) * scale_y * bg_scale;
 		
 		rotate(dx, dy, rotation * DEG2RAD, dx, dy);
 		
@@ -102,12 +107,16 @@ class Sprite
 			scale_x, scale_y, colour);
 	}
 	
+	/**
+	 * @param bg_scale Props in the bg layers (0-5) are rendered at twice the scale.
+	 * For the origin to work correctly in these layers, pass `2.0 / layer_scale(layer)` for layers 0-5.
+	 */
 	void real_position(
 		const float x, const float y, const float rotation, float &out out_x, float &out out_y,
-		const float scale_x=1, const float scale_y=1)
+		const float scale_x=1, const float scale_y=1, float bg_scale=1)
 	{
-		float dx = (sprite_offset_x - sprite_width * origin_x) * scale_x;
-		float dy = (sprite_offset_y - sprite_height * origin_y) * scale_y;
+		float dx = (sprite_offset_x - sprite_width * origin_x) * scale_x * bg_scale;
+		float dy = (sprite_offset_y - sprite_height * origin_y) * scale_y * bg_scale;
 		rotate(dx, dy, rotation * DEG2RAD, dx, dy);
 		out_x = x + dx;
 		out_y = y + dy;
