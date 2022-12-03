@@ -71,10 +71,10 @@ class AdvToolScript
 	bool mouse_in_gui;
 	bool mouse_in_scene;
 	bool scene_focus;
-	EditorKey ctrl(input, GVB::Control);
-	EditorKey shift(input, GVB::Shift);
-	EditorKey alt(input, GVB::Alt);
-	EditorKey space(input, GVB::Space);
+	EditorKey ctrl = EditorKey(input, GVB::Control);
+	EditorKey shift = EditorKey(input, GVB::Shift);
+	EditorKey alt = EditorKey(input, GVB::Alt);
+	EditorKey space = EditorKey(input, GVB::Space);
 	bool return_press, escape_press;
 	bool space_on_press;
 	bool pressed_in_scene;

@@ -56,7 +56,9 @@ class PropLineTool : Tool
 	float spacing_offset;
 	float rotation_offset;
 	bool has_auto_rotation_offset;
-	bool auto_space = true;
+	bool auto_space = false;
+	int repeat_count = 1;
+	float repeat_spacing = 50;
 	
 	PropLineTool(AdvToolScript@ script)
 	{
@@ -329,6 +331,41 @@ class PropLineTool : Tool
 		}
 	}
 	
+	private void user_update_repeat()
+	{
+		const int repeat_count_prev = repeat_count;
+		const float repeat_spacing_prev = repeat_spacing;
+		
+		if(script.key_repeat_gvb(GVB::UpArrow))
+		{
+			repeat_count += script.shift.down ? 10 : script.ctrl.down ? 2 : 1;
+		}
+		else if(script.key_repeat_gvb(GVB::DownArrow))
+		{
+			repeat_count = max(repeat_count - (script.shift.down ? 10 : script.ctrl.down ? 2 : 1), 1);
+		}
+		
+		if(script.key_repeat_gvb(GVB::RightArrow))
+		{
+			repeat_spacing += script.shift.down ? 10.0 : script.ctrl.down ? 2.0 : 1.0;
+		}
+		else if(script.key_repeat_gvb(GVB::LeftArrow))
+		{
+			repeat_spacing = max(repeat_spacing - (script.shift.down ? 10.0 : script.ctrl.down ? 2.0 : 1.0), 0.0);
+		}
+		
+		if(repeat_count != repeat_count_prev)
+		{
+			recaclulate_props = true;
+			script.show_info('Repeat: ' + repeat_count);
+		}
+		if(repeat_spacing_prev != repeat_spacing)
+		{
+			recaclulate_props = true;
+			script.show_info('Repeat spacing: ' + int(repeat_spacing));
+		}
+	}
+	
 	private void calculate_auto_spacing()
 	{
 		if(prop_set == -1)
@@ -526,6 +563,7 @@ class PropLineTool : Tool
 		user_update_scroll_mode();
 		user_update_spacing();
 		user_update_mirror();
+		user_update_repeat();
 		update_end_point(!mouse.right_down);
 		
 		if(mouse.right_press)
@@ -733,9 +771,6 @@ class PropLineTool : Tool
 		const float ny = length > 0 ? dy / length : 0.0;
 		const float angle = atan2(dy, dx);
 		
-		float x = x1;
-		float y = y1;
-		
 		float final_rotation;
 		
 		if(rotation_mode == PropLineRotationMode::Auto)
@@ -748,6 +783,7 @@ class PropLineTool : Tool
 			final_rotation = rotation;
 		}
 		
+		const float repeat_spacing = max(this.repeat_spacing, 0.1);
 		float spacing = this.spacing + spacing_offset;
 		
 		if(auto_space)
@@ -755,8 +791,9 @@ class PropLineTool : Tool
 			spacing += auto_spacing_adjustment;
 		}
 		
-		spacing = max(layer <= 5 ? spacing * 16 : spacing, 0.1);
-		props_count = ceil_int(max((length + spacing * 0.5) / spacing, 1.0));
+		spacing = max(layer <= 5 ? spacing / script.g.layer_scale(layer) * 2 : spacing, 0.1);
+		const int row_count = ceil_int(max((length + spacing * 0.5) / spacing, 1.0));
+		props_count = row_count * repeat_count;
 		
 		while(props_count > props_list_size)
 		{
@@ -765,23 +802,31 @@ class PropLineTool : Tool
 		
 		if(spacing_mode == PropLineSpacingMode::Fill)
 		{
-			if(props_count > 1)
+			if(row_count > 1)
 			{
-				spacing = (length - spacing * 0.5) / (props_count - 1);
+				spacing = (length - spacing * 0.5) / (row_count - 1);
 			}
 		}
 		
-		for(int i = 0; i < props_count; i++)
+		
+		int prop_index = 0;
+		for(int j = 0; j < repeat_count; j++)
 		{
-			PropLineProp@ p = @props[i];
-			p.x = x;
-			p.y = y;
-			p.rotation = final_rotation;
-			p.scale_x = scale_x * scale;
-			p.scale_y = scale_y * scale;
+			float x = x1 - ny * repeat_spacing * j;
+			float y = y1 + nx * repeat_spacing * j;
 			
-			x += nx * spacing;
-			y += ny * spacing;
+			for(int i = 0; i < row_count; i++)
+			{
+				PropLineProp@ p = @props[prop_index++];
+				p.x = x;
+				p.y = y;
+				p.rotation = final_rotation;
+				p.scale_x = scale_x * scale;
+				p.scale_y = scale_y * scale;
+				
+				x += nx * spacing;
+				y += ny * spacing;
+			}
 		}
 		
 		recaclulate_props = false;
@@ -797,6 +842,7 @@ class PropLineTool : Tool
 			spr.real_position(data.x, data.y, data.rotation, px, py, data.scale_x, data.scale_y,
 				calc_bg_scale(layer));
 			prop@ p = create_prop(prop_set, prop_group, prop_index, px, py, layer, sub_layer, data.rotation);
+			p.palette(prop_palette);
 			p.scale_x(data.scale_x);
 			p.scale_y(data.scale_y);
 			script.g.add_prop(p);

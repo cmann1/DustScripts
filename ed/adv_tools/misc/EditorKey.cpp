@@ -12,6 +12,8 @@ class EditorKey
 	private input_api@ input;
 	private float press_time;
 	
+	EditorKey() { }
+	
 	EditorKey(input_api@ input, const int gvb)
 	{
 		@this.input = input;
