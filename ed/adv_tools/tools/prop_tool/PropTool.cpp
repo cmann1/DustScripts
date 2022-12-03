@@ -100,6 +100,9 @@ class PropTool : Tool
 	bool pick_ignore_holes = true;
 	float pick_radius = 2;
 	
+	array<PropData@>@ highlighted_props_list { get { return @highlighted_props; } }
+	int highlighted_props_list_count { get { return highlighted_props_count; } }
+	
 	PropTool(AdvToolScript@ script)
 	{
 		super(script, 'Props', 'Prop Tool');
@@ -151,22 +154,15 @@ class PropTool : Tool
 		
 		toolbar.show(script, this);
 		
-		clear_custom_anchor();
-		drag_rotation_handle = false;
+		reset();
 	}
 	
 	protected void on_deselect_impl()
 	{
 		script.editor.hide_panels_gui(false);
+		script.hide_info_popup();
 		
-		select_none();
-		state = Idle;
-		temporary_selection = false;
-		clear_highlighted_props();
-		
-		@previous_hovered_prop = null;
-		selected_props_info = -1;
-		
+		reset();
 		toolbar.hide();
 	}
 	
@@ -357,17 +353,10 @@ class PropTool : Tool
 	
 	private void state_idle()
 	{
-		// Clear hovered state
-		
-		for(int i = highlighted_props_count - 1; i >= 0; i--)
-		{
-			highlighted_props[i].hovered = false;
-		}
-		
-		@hovered_prop = null;
+		clear_hovered_props();
 		
 		const bool start_rotating = check_rotation_handle();
-		const bool start_scaling   = check_scale_handle();
+		const bool start_scaling  = check_scale_handle();
 		
 		// Start rotating from handle
 		
@@ -388,14 +377,14 @@ class PropTool : Tool
 		
 		// Start dragging selection
 		
-		if(script.mouse_in_scene && script.alt && mouse.left_press)
+		if(script.mouse_in_scene && script.alt.down && mouse.left_press)
 		{
-			if(!script.shift && !script.ctrl)
+			if(!script.shift.down && !script.ctrl.down)
 			{
 				select_none();
 			}
 			
-			select_rect_pending = script.shift ? 1 : script.ctrl ? -1 : 0;
+			select_rect_pending = script.shift.down ? 1 : script.ctrl.down ? -1 : 0;
 			
 			drag_start_x = mouse.x;
 			drag_start_y = mouse.y;
@@ -419,16 +408,16 @@ class PropTool : Tool
 			// Lock
 			if(script.input.key_check_pressed_vk(VK::L))
 			{
-				if(script.ctrl)
+				if(script.ctrl.down)
 				{
-					if(script.alt)
+					if(script.alt.down)
 						unlock_all_sublayers();
 					else
-						lock_selected_sublayers(script.shift);
+						lock_selected_sublayers(script.shift.down);
 				}
 				else
 				{
-					if(script.alt)
+					if(script.alt.down)
 						unlock_all();
 					else
 						lock_selected();
@@ -444,32 +433,32 @@ class PropTool : Tool
 			// Move
 			if(script.key_repeat_gvb(GVB::LeftArrow))
 			{
-				shift_props(script.ctrl ? -20 : script.shift ? -10 : -1, 0);
+				shift_props(script.ctrl.down ? -20 : script.shift.down ? -10 : -1, 0);
 			}
 			if(script.key_repeat_gvb(GVB::RightArrow))
 			{
-				shift_props(script.ctrl ? 20 : script.shift ? 10 : 1, 0);
+				shift_props(script.ctrl.down ? 20 : script.shift.down ? 10 : 1, 0);
 			}
 			if(script.key_repeat_gvb(GVB::UpArrow))
 			{
-				shift_props(0, script.ctrl ? -20 : script.shift ? -10 : -1);
+				shift_props(0, script.ctrl.down ? -20 : script.shift.down ? -10 : -1);
 			}
 			if(script.key_repeat_gvb(GVB::DownArrow))
 			{
-				shift_props(0, script.ctrl ? 20 : script.shift ? 10 : 1);
+				shift_props(0, script.ctrl.down ? 20 : script.shift.down ? 10 : 1);
 			}
 			
 			// Flip/mirror
 			if(script.input.key_check_pressed_gvb(GVB::BracketOpen))
 			{
-				if(script.shift)
+				if(script.shift.down)
 					mirror_selected(true);
 				else
 					flip_props(true, false);
 			}
 			if(script.input.key_check_pressed_gvb(GVB::BracketClose))
 			{
-				if(script.shift)
+				if(script.shift.down)
 					mirror_selected(false);
 				else
 					flip_props(false, true);
@@ -485,7 +474,7 @@ class PropTool : Tool
 			
 			// Copy/Cut/Paste
 			if(
-				selected_props_count > 0 && script.ctrl &&
+				selected_props_count > 0 && script.ctrl.down &&
 				(script.input.key_check_pressed_vk(VK::C) || script.input.key_check_pressed_vk(VK::X)))
 			{
 				copy_selected_props();
@@ -494,14 +483,14 @@ class PropTool : Tool
 					delete_selected();
 				}
 			}
-			if(script.ctrl && script.input.key_check_pressed_vk(VK::V))
+			if(script.ctrl.down && script.input.key_check_pressed_vk(VK::V))
 			{
 				paste(script.shift, script.alt);
 			}
 		}
 		
 		// Pick props
-		if(script.mouse_in_scene && !script.space && !script.handles.mouse_over)
+		if(script.mouse_in_scene && !script.space.down && !script.handles.mouse_over)
 		{
 			pick_props();
 			do_mouse_selection();
@@ -512,7 +501,7 @@ class PropTool : Tool
 		}
 		
 		// Start rotating from hovered prop
-		if(script.mouse_in_scene && @hovered_prop != null && !script.shift && !script.alt && mouse.middle_press)
+		if(script.mouse_in_scene && @hovered_prop != null && !script.shift.down && !script.alt.down && mouse.middle_press)
 		{
 			drag_rotation_handle = false;
 			idle_start_rotating();
@@ -520,16 +509,18 @@ class PropTool : Tool
 		}
 		
 		// Set or clear custom anchor position, or set custom anchor layer
-		if(script.mouse_in_scene && script.shift && !script.ctrl && !script.alt && mouse.scroll != 0 && has_custom_anchor)
+		if(
+			script.mouse_in_scene && script.shift.down && !script.ctrl.down && !script.alt.down &&
+			mouse.scroll != 0 && has_custom_anchor)
 		{
 			adjust_custom_anchor_layer(mouse.scroll);
 			show_custom_anchor_info();
 		}
 		if(script.mouse_in_scene && mouse.middle_press)
 		{
-			if(script.shift || script.ctrl)
+			if(script.shift.down || script.ctrl.down)
 			{
-				if(!has_custom_anchor || script.ctrl)
+				if(!has_custom_anchor || script.ctrl.down)
 				{
 					if(selected_props_count > 0)
 					{
@@ -541,7 +532,7 @@ class PropTool : Tool
 					}
 				}
 				
-				if(!script.ctrl)
+				if(!script.ctrl.down)
 				{
 					script.mouse_layer(custom_anchor_layer, custom_anchor_x, custom_anchor_y);
 				}
@@ -554,7 +545,7 @@ class PropTool : Tool
 				has_custom_anchor = true;
 				toolbar.update_buttons(selected_props_count);
 			}
-			else if(script.alt)
+			else if(script.alt.down)
 			{
 				has_custom_anchor = false;
 				toolbar.update_buttons(selected_props_count);
@@ -562,19 +553,19 @@ class PropTool : Tool
 		}
 		
 		// Scroll hover index offset
-		if(mouse.scroll != 0 && !script.space && !script.ctrl && !script.alt && !script.shift)
+		if(mouse.scroll != 0 && !script.space.down && !script.ctrl.down && !script.alt.down && !script.shift.down)
 		{
 			hover_index_offset -= mouse.scroll;
 		}
 		
 		// Adjust layer/sublayer
-		if(mouse.scroll != 0 && (script.ctrl || script.alt))
+		if(mouse.scroll != 0 && (script.ctrl.down || script.alt.down))
 		{
 			idle_adjust_layer();
 		}
 		
 		// Delete
-		if(script.mouse_in_scene && @hovered_prop != null && (mouse.right_press || script.shift && mouse.right_down))
+		if(script.mouse_in_scene && @hovered_prop != null && (mouse.right_press || script.shift.down && mouse.right_down))
 		{
 			if(hovered_prop.selected)
 			{
@@ -701,12 +692,12 @@ class PropTool : Tool
 		PropData@ prop_data = null;
 		IWorldBoundingBox@ bounding_box = null;
 		
-		if(script.shift)
+		if(script.shift.down)
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
 				@prop_data = @selected_props[i];
-				prop_data.shift_layer(mouse.scroll, script.alt);
+				prop_data.shift_layer(mouse.scroll, script.alt.down);
 			}
 			
 			selection_bounding_box.x1 = selection_x + selection_x1;
@@ -717,7 +708,7 @@ class PropTool : Tool
 		else if(@hovered_prop != null)
 		{
 			@prop_data = hovered_prop;
-			hovered_prop.shift_layer(mouse.scroll, script.alt);
+			hovered_prop.shift_layer(mouse.scroll, script.alt.down);
 			@bounding_box = prop_data;
 		}
 		
@@ -795,7 +786,7 @@ class PropTool : Tool
 	
 	private void state_rotating()
 	{
-		if(script.space || script.escape_press || (drag_rotation_handle ? !mouse.left_down : !mouse.middle_down))
+		if(script.space.down || script.escape_press || (drag_rotation_handle ? !mouse.left_down : !mouse.middle_down))
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
@@ -856,7 +847,7 @@ class PropTool : Tool
 	
 	private void state_scaling()
 	{
-		if(script.space || script.escape_press || !mouse.left_down)
+		if(script.space.down || script.escape_press || !mouse.left_down)
 		{
 			for(int i = 0; i < selected_props_count; i++)
 			{
@@ -1018,6 +1009,18 @@ class PropTool : Tool
 	}
 	
 	//
+	
+	private void reset()
+	{
+		select_none();
+		state = Idle;
+		clear_custom_anchor();
+		temporary_selection = false;
+		clear_highlighted_props();
+		drag_rotation_handle = false;
+		@previous_hovered_prop = null;
+		selected_props_info = -1;
+	}
 	
 	private void get_handle_position(const bool vertical, const float offset, float &out x, float &out y, const bool allow_flipped=true)
 	{
@@ -1213,9 +1216,9 @@ class PropTool : Tool
 		if(mouse.left_press)
 		{
 			// Add or remove from selection on shift/ctrl press
-			if(script.shift || script.ctrl)
+			if(script.shift.down || script.ctrl.down)
 			{
-				select_prop(hovered_prop, script.shift ? SelectAction::Add : SelectAction::Remove);
+				select_prop(hovered_prop, script.shift.down ? SelectAction::Add : SelectAction::Remove);
 				mouse_press_modified = true;
 			}
 			else
@@ -1634,7 +1637,17 @@ class PropTool : Tool
 		}
 	}
 	
-	private void clear_highlighted_props(const bool clear_pending=false)
+	void clear_hovered_props()
+	{
+		for(int i = highlighted_props_count - 1; i >= 0; i--)
+		{
+			highlighted_props[i].hovered = false;
+		}
+		
+		@hovered_prop = null;
+	}
+	
+	void clear_highlighted_props(const bool clear_pending=false)
 	{
 		for(int i = highlighted_props_count - 1; i >= 0; i--)
 		{
@@ -1668,7 +1681,7 @@ class PropTool : Tool
 	// Picking
 	// //////////////////////////////////////////////////////////
 	
-	private void pick_props()
+	void pick_props()
 	{
 		// Find all props under the mouse
 		
@@ -1846,10 +1859,6 @@ class PropTool : Tool
 		toolbar.update_buttons(selected_props_count);
 		has_custom_anchor = false;
 	}
-	
-	// //////////////////////////////////////////////////////////
-	// Other
-	// //////////////////////////////////////////////////////////
 	
 	void update_alignments_from_origin(const bool force_selection_update=false)
 	{

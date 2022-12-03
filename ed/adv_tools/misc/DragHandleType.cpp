@@ -13,6 +13,10 @@ enum DragHandleType
 	Centre,
 	Rotate,
 	
+	Start,
+	End,
+	Segment,
+	
 }
 namespace DragHandle
 {

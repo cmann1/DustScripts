@@ -3,14 +3,21 @@
 class Handle
 {
 	
+	Handles@ handles;
 	HandleShape shape;
 	float x, y;
+	float x2, y2;
 	float size;
 	float rotation;
 	uint colour;
 	uint highlight_colour;
 	
 	bool hit;
+	
+	Handle(Handles@ handles)
+	{
+		@this.handles = handles;
+	}
 	
 	void init(const HandleShape shape, const float x, const float y, const float size, const float rotation, const uint colour, const uint highlight_colour)
 	{
@@ -51,6 +58,16 @@ class Handle
 				hit = (dx * dx + dy * dy) <= (size * size);
 			}
 				break;
+			case HandleShape::Line:
+			{
+				handles._line.x1 = x;
+				handles._line.y1 = y;
+				handles._line.x2 = x2;
+				handles._line.y2 = y2;
+				const float dist = handles._line.distance_squared(px, py);
+				hit = dist <= size * size;
+			}
+				break;
 		}
 		
 		return hit;
@@ -73,6 +90,12 @@ class Handle
 			{
 				drawing::fill_circle(script.g, 22, 22, x, y, size + shadow_outset, 12, 0x44000000, 0x44000000);
 				drawing::fill_circle(script.g, 22, 22, x, y, size, 12, hit ? highlight_colour : colour, hit ? highlight_colour : colour);
+			}
+				break;
+			case HandleShape::Line:
+			{
+				draw_line(script.g, 22, 22, x, y, x2, y2, size * 0.5 + shadow_outset, 0x44000000);
+				draw_line(script.g, 22, 22, x, y, x2, y2, size * 0.5, hit ? highlight_colour : colour);
 			}
 				break;
 		}

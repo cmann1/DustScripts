@@ -51,6 +51,7 @@ class ToolGroup
 			icon.set_sprite(tool.icon_sprite_set,
 				tool.icon_sprite_name, tool.icon_width, tool.icon_height,
 				tool.icon_offset_x, tool.icon_offset_y);
+			icon.rotation = tool.icon_rotation;
 			
 			icon.width = script.config.ToolbarIconSize;
 			icon.height = script.config.ToolbarIconSize;

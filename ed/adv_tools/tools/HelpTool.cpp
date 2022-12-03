@@ -13,14 +13,14 @@ class HelpTool : Tool
 	
 	bool on_before_select() override
 	{
-		if(script.shift)
+		if(script.shift.down)
 		{
 			puts('> Reloading AdvTools config');
 			script.reload_config();
 			return false;
 		}
 		
-		group.script.editor.help_screen_vis(!group.script.editor.help_screen_vis());
+		script.editor.help_screen_vis(!script.editor.help_screen_vis());
 		return false;
 	}
 	

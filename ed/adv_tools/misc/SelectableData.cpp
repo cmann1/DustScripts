@@ -1,7 +1,7 @@
 abstract class SelectableData : IWorldBoundingBox
 {
 	
-	protected AdvToolScript@ script;
+	AdvToolScript@ script;
 	
 	string key;
 	int scene_index;

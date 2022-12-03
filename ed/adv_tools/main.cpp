@@ -24,8 +24,10 @@
 
 #include 'handles/Handles.cpp';
 #include 'misc/DragHandleType.cpp';
+#include 'misc/EditorKey.cpp';
 #include 'misc/InfoOverlay.cpp';
 #include 'misc/IWorldBoundingBox.cpp';
+#include 'misc/LayerInfoDisplay.cpp';
 #include 'misc/ShortcutKeySorter.cpp';
 #include 'misc/ToolListenerInterfaces.cpp';
 #include 'misc/WorldBoundingBox.cpp';
@@ -33,6 +35,7 @@
 #include 'settings/Settings.cpp';
 #include 'tools/edge_brush/EdgeBrushTool.cpp';
 #include 'tools/emitter_tool/EmitterTool.cpp';
+#include 'tools/prop_line_tool/PropLineTool.cpp';
 #include 'tools/prop_tool/PropTool.cpp';
 #include 'tools/TextTool.cpp';
 #include 'tools/ExtendedTriggerTool.cpp';
@@ -52,9 +55,9 @@ class script : AdvToolScript {}
 class AdvToolScript
 {
 	
-	scene@ g;
-	editor_api@ editor;
-	input_api@ input;
+	scene@ g = get_scene();
+	editor_api@ editor =  get_editor_api();
+	input_api@ input = get_input_api();
 	camera@ cam;
 	UI@ ui;
 	Mouse@ mouse;
@@ -68,11 +71,15 @@ class AdvToolScript
 	bool mouse_in_gui;
 	bool mouse_in_scene;
 	bool scene_focus;
-	bool ctrl, shift, alt, space;
+	EditorKey ctrl(input, GVB::Control);
+	EditorKey shift(input, GVB::Shift);
+	EditorKey alt(input, GVB::Alt);
+	EditorKey space(input, GVB::Space);
 	bool return_press, escape_press;
 	bool space_on_press;
 	bool pressed_in_scene;
 	bool shortcut_keys_enabled = true;
+	int layer = 19, sub_layer = 19;
 	/// Kind of a hack, but can be set to "consume" a single shortcut key.
 	/// Any tool shortcuts matching this will not be able to trigger
 	ShortcutKey blocked_key;
@@ -91,6 +98,7 @@ class AdvToolScript
 	private bool state_persisted = true;
 	private bool queue_load_config;
 	private bool queue_load_config_trigger;
+	private float frame;
 	
 	private Toolbar@ toolbar;
 	private array<ToolGroup> tool_groups;
@@ -140,6 +148,8 @@ class AdvToolScript
 	/// Maps an order to a layer index
 	array<int> layer_indices(23);
 	
+	Toolbar@ main_toolbar { get { return @toolbar; } }
+	
 	// //////////////////////////////////////////////////////////
 	// Init
 	// //////////////////////////////////////////////////////////
@@ -147,9 +157,6 @@ class AdvToolScript
 	AdvToolScript()
 	{
 		puts('>> Initialising AdvTools');
-		@g = get_scene();
-		@editor = get_editor_api();
-		@input = get_input_api();
 		@cam = get_active_camera();
 		
 		@ui = UI(true);
@@ -165,6 +172,9 @@ class AdvToolScript
 			initialised = true;
 			return;
 		}
+		
+		layer = editor.selected_layer;
+		sub_layer = editor.selected_sub_layer;
 		
 		editor.hide_gui(false);
 		do_load_config(false);
@@ -412,6 +422,7 @@ class AdvToolScript
 		
 		add_tool('Tiles',		EdgeBrushTool(this));
 		add_tool('Props',		PropTool(this));
+		add_tool('Props',		PropLineTool(this));
 		add_tool('Triggers',	TextTool(this));
 		add_tool('Triggers',	ExtendedTriggerTool(this));
 		
@@ -471,18 +482,23 @@ class AdvToolScript
 		
 		zoom = cam.editor_zoom();
 		
-		ctrl	= input.key_check_gvb(GVB::Control);
-		shift	= input.key_check_gvb(GVB::Shift);
-		alt		= input.key_check_gvb(GVB::Alt);
-		space	= input.key_check_gvb(GVB::Space);
+		ctrl.update(frame);
+		shift.update(frame);
+		alt.update(frame);
+		space.update(frame);
+		return_press = input.key_check_pressed_gvb(GVB::Return);
+		escape_press = input.key_check_pressed_gvb(GVB::Escape);
+		
+		layer = editor.selected_layer;
+		sub_layer = editor.selected_sub_layer;
 		
 		mouse_in_gui = editor.mouse_in_gui();
-		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui && !ui.is_mouse_active && !space;
+		mouse_in_scene = !mouse_in_gui && !ui.is_mouse_over_ui && !ui.is_mouse_active && !space.down;
 		scene_focus = @ui.focus ==  null;
 		
 		handle_keyboard();
 		handles.step();
-		mouse.step(space || !mouse_in_scene);
+		mouse.step(space.down || !mouse_in_scene);
 		
 		const string new_selected_tab = editor.editor_tab();
 		if(
@@ -495,7 +511,7 @@ class AdvToolScript
 		
 		if(mouse.left_press)
 		{
-			space_on_press = space;
+			space_on_press = space.down;
 			pressed_in_scene = mouse_in_scene;
 		}
 		else if(mouse.left_release)
@@ -504,10 +520,9 @@ class AdvToolScript
 			pressed_in_scene = false;
 		}
 		
-		return_press = input.key_check_pressed_gvb(GVB::Return);
-		escape_press = input.key_check_pressed_gvb(GVB::Escape);
-		
-		if(config.EnableShortcuts && @ui.focus == null && shortcut_keys_enabled && !input.is_polling_keyboard())
+		if(
+			config.EnableShortcuts && @ui.focus == null && shortcut_keys_enabled && !input.is_polling_keyboard() &&
+			(@selected_tool == null || !selected_tool.active))
 		{
 			if(config.KeyPrevTool.check())
 			{
@@ -569,6 +584,8 @@ class AdvToolScript
 			
 			queue_load_config = false;
 		}
+		
+		frame++;
 	}
 	
 	private void handle_keyboard()
@@ -604,18 +621,18 @@ class AdvToolScript
 		
 		if(!input.is_polling_keyboard())
 		{
-		  for(int i = int(Settings::RepeatKeys.length()) - 1; i >= 0; i--)
-		  {
-			const int key = Settings::RepeatKeys[i];
-			
-			if(!input.key_check_pressed_gvb(key))
-			  continue;
-			
-			pressed_key = key;
-			pressed_timer = Settings::KeyPressDelay;
-			pressed_key_active = true;
-			break;
-		  }
+			for(int i = int(Settings::RepeatKeys.length()) - 1; i >= 0; i--)
+			{
+				const int key = Settings::RepeatKeys[i];
+
+				if(!input.key_check_pressed_gvb(key))
+					continue;
+
+				pressed_key = key;
+				pressed_timer = Settings::KeyPressDelay;
+				pressed_key_active = true;
+				break;
+			}
 		}
 	}
 	
@@ -760,6 +777,96 @@ class AdvToolScript
 		return layer_scales[from_layer] / layer_scales[to_layer];
 	}
 	
+	void select_layer(const int layer)
+	{
+		if(this.layer == layer)
+			return;
+		
+		this.layer = layer;
+		editor.selected_layer = layer;
+	}
+	
+	void select_sub_layer(const int sub_layer)
+	{
+		if(this.sub_layer == sub_layer)
+			return;
+		
+		this.sub_layer = sub_layer;
+		editor.selected_sub_layer = sub_layer;
+	}
+	
+	/// Change layer/sub layer with mouse wheel.
+	bool scroll_layer(
+		const bool allow_layer_update=true, const bool allow_sub_layer_update=true,
+		const bool tiles_only=false, LayerInfoDisplay show_info=LayerInfoDisplay::Individual,
+		IWorldBoundingBox@ target=null, Element@ target_element=null,
+		const float time=0.5)
+	{
+		if(mouse.scroll == 0)
+			return false;
+		
+		int updated = 0;
+		int updated_layer = 0;
+		
+		if(allow_layer_update && ctrl.down)
+		{
+			const int prev_layer = this.layer;
+			int layer = clamp(prev_layer + mouse.scroll,
+				tiles_only ? 6 : 0, 20);
+			
+			if(tiles_only && layer == 18)
+			{
+				layer += mouse.scroll;
+			}
+			
+			if(layer != prev_layer)
+			{
+				select_layer(layer);
+				updated = 1;
+				updated_layer = layer;
+			}
+		}
+		else if(allow_sub_layer_update && alt.down)
+		{
+			const int prev_sub_layer = this.sub_layer;
+			int sub_layer = clamp(prev_sub_layer + mouse.scroll, 0, 24);
+			
+			if(sub_layer != prev_sub_layer)
+			{
+				select_sub_layer(sub_layer);
+				updated = 2;
+				updated_layer = sub_layer;
+			}
+		}
+		
+		if(show_info != LayerInfoDisplay::None && updated != 0)
+		{
+			if(show_info == LayerInfoDisplay::Compound && (!allow_sub_layer_update || !allow_layer_update))
+			{
+				show_info = LayerInfoDisplay::Individual;
+			}
+			
+			const string info = show_info == LayerInfoDisplay::Individual
+				? (updated == 1 ? 'Layer: ' : 'Sub Layer: ') + updated_layer
+				: 'Layer: ' + layer + '.' + sub_layer;
+			
+			if(@target_element != null)
+			{
+				info_overlay.show(target_element, info, time);
+			}
+			else if(@target != null)
+			{
+				info_overlay.show(target, info, time);
+			}
+			else
+			{
+				info_overlay.show(mouse, info, time);
+			}
+		}
+		
+		return updated != 0;
+	}
+	
 	void transform(const float x, const float y, const int from_layer, const int to_layer,
 		float &out out_x, float &out out_y)
 	{
@@ -878,13 +985,13 @@ class AdvToolScript
 	
 	float get_snap_size(const float custom_snap_size=5, const bool default_shift=false)
 	{
-		if(shift || default_shift && !ctrl && !alt)
+		if(shift.down || default_shift && !ctrl.down && !alt.down)
 			return 48;
 		
-		if(ctrl)
+		if(ctrl.down)
 			return 24;
 		
-		if(alt)
+		if(alt.down)
 			return custom_snap_size;
 		
 		return 0;
@@ -892,13 +999,13 @@ class AdvToolScript
 	
 	float get_snap_angle()
 	{
-		if(shift)
+		if(shift.down)
 			return 45;
 		
-		if(ctrl)
+		if(ctrl.down)
 			return 22.5;
 		
-		if(alt)
+		if(alt.down)
 			return 5;
 		
 		return 0;
@@ -963,6 +1070,15 @@ class AdvToolScript
 		return layer1 >= 12 && layer2 >= 12 || layer1 == layer2;
 	}
 	
+	/**
+	 * Shows a temporary popup below the toolbar.
+	 */
+	void show_info(const string info, const float time=0.75, const PopupPosition position=PopupPosition::Below)
+	{
+		info_overlay.show(toolbar, info, time);
+		info_overlay.position = position;
+	}
+	
 	void show_layer_sublayer_overlay(const float x1, const float y1, const float x2, const float y2,
 		const int layer, const int sublayer)
 	{
@@ -974,9 +1090,10 @@ class AdvToolScript
 		info_overlay.show(target, layer + '.' + sublayer, 0.75);
 	}
 	
-	void show_info_popup(const string &in info, Toolbar@ toolbar = null)
+	void show_info_popup(const string &in info, Toolbar@ toolbar=null, const PopupPosition position=PopupPosition::BelowLeft)
 	{
 		info_label.text = info;
+		info_popup.position = position;
 		ui.show_tooltip(info_popup, @toolbar != null ? toolbar : this.toolbar);
 	}
 	

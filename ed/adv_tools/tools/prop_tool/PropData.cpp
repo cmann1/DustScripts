@@ -66,12 +66,53 @@ class PropData : SelectableData
 		init_prop();
 	}
 	
+	void init_from_prop(
+		AdvToolScript@ script, PropTool@ tool, prop@ prop, const array<array<float>>@ outline,
+		const int layer=-1, const int sub_layer=-1)
+	{
+		@this.script = script;
+		@this.tool = tool;
+		@this.outline = outline;
+		sprite_from_prop(@prop, sprite_set, sprite_name);
+		
+		if(@this.prop == null)
+		{
+			@this.prop = create_prop();
+		}
+		
+		this.prop.x(prop.x());
+		this.prop.y(prop.y());
+		this.prop.rotation(prop.rotation());
+		this.prop.scale_x(prop.scale_x());
+		this.prop.scale_y(prop.scale_y());
+		this.prop.prop_set(prop.prop_set());
+		this.prop.prop_group(prop.prop_group());
+		this.prop.prop_index(prop.prop_index());
+		this.prop.palette(prop.palette());
+		this.prop.layer(layer < 0 ? prop.layer() : layer);
+		this.prop.sub_layer(sub_layer < 0 ? prop.sub_layer() : sub_layer);
+		
+		if(@spr == null)
+		{
+			@spr = create_sprites();
+		}
+		
+		spr.add_sprite_set(sprite_set);
+		
+		align_x = 0.5;
+		align_y = 0.5;
+		
+		requires_update = true;
+		update();
+		init_prop();
+	}
+	
 	void step()
 	{
 		script.transform(x, y, prop.layer(), 22, aabb_x, aabb_y);
 	}
 	
-	void draw( const PropToolHighlight highlight)
+	void draw(const PropToolHighlight highlight)
 	{
 		float line_width;
 		uint line_colour, fill_colour;
@@ -205,6 +246,18 @@ class PropData : SelectableData
 		requires_update = false;
 	}
 	
+	void set_position(const float x, const float y)
+	{
+		init_anchors();
+		
+		float ox, oy;
+		rotate(prop_offset_x, prop_offset_y, prop.rotation() * DEG2RAD, ox, oy);
+		this.x = x - ox;
+		this.y = y - oy;
+		prop.x(this.x);
+		prop.y(this.y);
+	}
+	
 	void set_prop_rotation(float rotation)
 	{
 		rotation = rotation % 360;
@@ -220,6 +273,30 @@ class PropData : SelectableData
 		prop.rotation(rotation % 360);
 		prop.x(x);
 		prop.y(y);
+		requires_update = true;
+	}
+	
+	void set_scale(float scale_x, float scale_y)
+	{
+		prop_scale_x = scale_x;
+		prop_scale_y = scale_y;
+		
+		if(prop_scale_x == 0)
+			prop_scale_x = 0.001;
+		if(prop_scale_y == 0)
+			prop_scale_y = 0.001;
+		
+		if(prop.scale_x() == prop_scale_x && prop.scale_y() == prop_scale_y)
+			return;
+		
+		float ox, oy;
+		rotate(prop_offset_x, prop_offset_y, prop.rotation() * DEG2RAD, ox, oy);
+		
+		x = anchor_x - ox;
+		y = anchor_y - oy;
+		
+		prop.scale_x(prop_scale_x);
+		prop.scale_y(prop_scale_y);
 		requires_update = true;
 	}
 	

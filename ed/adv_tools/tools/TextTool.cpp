@@ -54,7 +54,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	
 	void on_init() override
 	{
-		Tool@ tool = group.script.get_tool('Triggers');
+		Tool@ tool = script.get_tool('Triggers');
 		
 		if(@tool != null)
 		{
@@ -298,7 +298,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 			}
 			else if(text_box.has_focus)
 			{
-				if(!script.ctrl)
+				if(!script.ctrl.down)
 				{
 					script.input.key_clear_gvb(GVB::Return);
 				}
@@ -437,7 +437,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		dummy_overlay.visible = true;
 		dummy_overlay.force_calculate_bounds();
 		
-		popup.interactable = !script.space;
+		popup.interactable = !script.space.down;
 		
 		script.ui.move_to_back(dummy_overlay);
 		script.ui.show_tooltip(popup, dummy_overlay);

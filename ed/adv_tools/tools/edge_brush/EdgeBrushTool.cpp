@@ -94,20 +94,6 @@ class EdgeBrushTool : Tool
 		@mouse = @script.mouse;
 	}
 	
-	void update_layer(int new_layer)
-	{
-		const int prev_layer = layer;
-		layer = clamp(new_layer, 6, 20);
-		layer += layer == 18 ? mouse.scroll : 0;
-		script.editor.selected_layer = layer;
-		
-		if(layer != prev_layer)
-		{
-			script.info_overlay.show(mouse, 'LAYER: ' + layer + '', 0.5);
-			clear_tile_cache();
-		}
-	}
-	
 	void update_mode(const EdgeBrushMode new_mode, const bool notify=true)
 	{
 		if(mode == new_mode)
@@ -312,7 +298,12 @@ class EdgeBrushTool : Tool
 	{
 		// TODO: Add mouse/key shortcuts for toggling update_collision/priority
 		
-		layer = script.editor.selected_layer;
+		layer = script.layer;
+		if(layer == 18)
+		{
+			layer = 19;
+		}
+		
 		x = mouse.x;
 		y = mouse.y;
 		
@@ -404,7 +395,7 @@ class EdgeBrushTool : Tool
 	
 	private void draw_brush(const float sub_frame)
 	{
-		if(!script.shift)
+		if(!script.shift.down)
 		{
 			script.circle(22, 22, x, y, brush_radius, 64,
 				Settings::CursorLineWidth, Settings::CursorLineColour);
@@ -460,11 +451,12 @@ class EdgeBrushTool : Tool
 	
 	private void state_idle()
 	{
-		// Change layer with mouse wheel
-		if(script.ctrl && mouse.scroll != 0)
+		if(script.scroll_layer(true, false, true))
 		{
-			update_layer(layer + mouse.scroll);
+			layer = script.layer;
+			clear_tile_cache();
 		}
+		
 		// Cycle mode
 		if(mouse.middle_press)
 		{
@@ -502,12 +494,12 @@ class EdgeBrushTool : Tool
 	private void brush_state_idle()
 	{
 		// Change brush size mouse wheel
-		if(!script.ctrl && mouse.scroll != 0)
+		if(!script.ctrl.down && mouse.scroll != 0)
 		{
 			update_brush_radius(brush_radius - mouse.scroll * 10, 0.5);
 		}
 		// Change brush size by dragging
-		if(!script.ctrl && !script.shift && script.alt && mouse.left_press)
+		if(!script.ctrl.down && !script.shift.down && script.alt.down && mouse.left_press)
 		{
 			drag_radius_start = brush_radius;
 			drag_radius_x = mouse.x;
@@ -599,7 +591,7 @@ class EdgeBrushTool : Tool
 			return;
 		
 		const bool render_edges = render_mode == Always || render_mode == DrawOnly && update_edges != 0;
-		const bool reset_edges = update_edges == 1 && script.ctrl;
+		const bool reset_edges = update_edges == 1 && script.ctrl.down;
 		
 		float mx, my;
 		script.mouse_layer(layer, mx, my);
@@ -666,7 +658,7 @@ class EdgeBrushTool : Tool
 						
 						for(TileEdge edge = TileEdge::Top; edge <= TileEdge::Right; edge++)
 						{
-							if(!check_edge(tx, ty, data, edge, script.shift, mx, my, brush_radius))
+							if(!check_edge(tx, ty, data, edge, script.shift.down, mx, my, brush_radius))
 								continue;
 							
 							if(

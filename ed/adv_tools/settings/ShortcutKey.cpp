@@ -115,9 +115,9 @@ class ShortcutKey
 			return false;
 		
 		if(
-			script.ctrl != ((modifiers & ModifierKey::Ctrl) != 0) ||
-			script.shift != ((modifiers & ModifierKey::Shift) != 0) ||
-			script.alt != ((modifiers & ModifierKey::Alt) != 0)
+			script.ctrl.down != ((modifiers & ModifierKey::Ctrl) != 0) ||
+			script.shift.down != ((modifiers & ModifierKey::Shift) != 0) ||
+			script.alt.down != ((modifiers & ModifierKey::Alt) != 0)
 		)
 			return false;
 		

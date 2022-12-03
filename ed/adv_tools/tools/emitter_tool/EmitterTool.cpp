@@ -279,7 +279,7 @@ class EmitterTool : Tool
 		
 		if(state == EmitterToolState::Creating)
 		{
-			const bool drag_centre = script.alt;
+			const bool drag_centre = script.alt.down;
 			float sx, sy;
 			script.transform(drag_start_x, drag_start_y, layer, 22, sx, sy);
 			float lx, ly;
@@ -356,9 +356,9 @@ class EmitterTool : Tool
 		
 		if(!force_create && script.mouse_in_scene && mouse.left_press && @hovered_emitter != null)
 		{
-			const SelectAction action = script.shift || (hovered_emitter.selected && !script.ctrl)
+			const SelectAction action = script.shift.down || (hovered_emitter.selected && !script.ctrl.down)
 				? SelectAction::Add
-				: script.ctrl ? SelectAction::Remove : SelectAction::Set;
+				: script.ctrl.down ? SelectAction::Remove : SelectAction::Set;
 			
 			pressed_action = hovered_emitter.selected && action != SelectAction::Remove ? SelectAction::None : action;
 			
@@ -370,7 +370,7 @@ class EmitterTool : Tool
 		
 		if(
 			script.mouse_in_scene && script.pressed_in_scene &&
-			(mouse.left_press || queued_create) && !script.space_on_press && !script.alt &&
+			(mouse.left_press || queued_create) && !script.space_on_press && !script.alt.down &&
 			(@pressed_emitter == null || force_create) && mouse.moved)
 		{
 			queued_create = false;
@@ -393,7 +393,9 @@ class EmitterTool : Tool
 		
 		// Deselect
 		
-		if(script.mouse_in_scene && mouse.left_release && !mouse_moved_after_press && @pressed_emitter == null && !script.shift && !script.ctrl && !script.alt)
+		if(
+			script.mouse_in_scene && mouse.left_release && !mouse_moved_after_press && @pressed_emitter == null &&
+			!script.shift.down && !script.ctrl.down && !script.alt.down)
 		{
 			select_none();
 		}
@@ -402,31 +404,31 @@ class EmitterTool : Tool
 		
 		if(script.key_repeat_gvb(GVB::LeftArrow))
 		{
-			shift_emitters(script.ctrl ? -20 : script.shift ? -10 : -1, 0);
+			shift_emitters(script.ctrl.down ? -20 : script.shift.down ? -10 : -1, 0);
 		}
 		else if(script.key_repeat_gvb(GVB::RightArrow))
 		{
-			shift_emitters(script.ctrl ? 20 : script.shift ? 10 : 1, 0);
+			shift_emitters(script.ctrl.down ? 20 : script.shift.down ? 10 : 1, 0);
 		}
 		else if(script.key_repeat_gvb(GVB::UpArrow))
 		{
-			shift_emitters(0, script.ctrl ? -20 : script.shift ? -10 : -1);
+			shift_emitters(0, script.ctrl.down ? -20 : script.shift.down ? -10 : -1);
 		}
 		else if(script.key_repeat_gvb(GVB::DownArrow))
 		{
-			shift_emitters(0, script.ctrl ? 20 : script.shift ? 10 : 1);
+			shift_emitters(0, script.ctrl.down ? 20 : script.shift.down ? 10 : 1);
 		}
 		
 		// Adjust layer/sublayer
 		
-		if(mouse.scroll != 0 && (script.ctrl || script.alt))
+		if(mouse.scroll != 0 && (script.ctrl.down || script.alt.down))
 		{
 			idle_adjust_layer();
 		}
 		
 		// Deselect on right mouse in empty space
 		
-		if(!force_create && script.mouse_in_scene && mouse.right_press && !script.shift && @hovered_emitter == null)
+		if(!force_create && script.mouse_in_scene && mouse.right_press && !script.shift.down && @hovered_emitter == null)
 		{
 			select_none();
 		}
@@ -449,7 +451,7 @@ class EmitterTool : Tool
 			}
 		}
 		
-		if(@hovered_emitter != null && (mouse.right_press || script.shift && mouse.right_down))
+		if(@hovered_emitter != null && (mouse.right_press || script.shift.down && mouse.right_down))
 		{
 			if(hovered_emitter.selected)
 			{
@@ -480,11 +482,11 @@ class EmitterTool : Tool
 		
 		// Selection rect
 		
-		if(script.mouse_in_scene && mouse.left_press && script.alt)
+		if(script.mouse_in_scene && mouse.left_press && script.alt.down)
 		{
 			drag_start_x = mouse.x;
 			drag_start_y = mouse.y;
-			select_rect_pending = script.shift ? 1 : script.ctrl ? -1 : 0;
+			select_rect_pending = script.shift.down ? 1 : script.ctrl.down ? -1 : 0;
 			
 			if(select_rect_pending == 0)
 			{
@@ -498,7 +500,7 @@ class EmitterTool : Tool
 		
 		// Scroll hover index
 		
-		if(mouse.scroll != 0 && !script.space && !script.ctrl && !script.alt && !script.shift)
+		if(mouse.scroll != 0 && !script.space.down && !script.ctrl.down && !script.alt.down && !script.shift.down)
 		{
 			hover_index_offset -= mouse.scroll;
 		}
@@ -528,14 +530,14 @@ class EmitterTool : Tool
 		EmitterData@ data = null;
 		IWorldBoundingBox@ bounding_box = null;
 		
-		if(script.shift)
+		if(script.shift.down)
 		{
 			selection_bounding_box.reset();
 			
 			for(int i = 0; i < selected_emitters_count; i++)
 			{
 				@data = @selected_emitters[i];
-				data.shift_layer(mouse.scroll, script.alt);
+				data.shift_layer(mouse.scroll, script.alt.down);
 				
 				selection_bounding_box.add(
 					data.x - data.width * 0.5, data.y - data.height * 0.5,
@@ -545,7 +547,7 @@ class EmitterTool : Tool
 		else if(@hovered_emitter != null)
 		{
 			@data = hovered_emitter;
-			data.shift_layer(mouse.scroll, script.alt);
+			data.shift_layer(mouse.scroll, script.alt.down);
 			@bounding_box = data;
 		}
 		
@@ -563,7 +565,7 @@ class EmitterTool : Tool
 	
 	private void idle_start_scaling()
 	{
-		drag_centre = script.alt;
+		drag_centre = script.alt.down;
 		primary_selected.get_handle_position(
 			!drag_centre ? DragHandle::opposite(dragged_handle) : DragHandle::Centre,
 			drag_anchor_x, drag_anchor_y);
@@ -862,7 +864,7 @@ class EmitterTool : Tool
 		if(mouse.left_down)
 			return;
 		
-		const bool drag_centre = script.alt;
+		const bool drag_centre = script.alt.down;
 		float mx, my;
 		script.transform(mouse.x, mouse.y, 22, layer, mx, my);
 		float lx, ly;

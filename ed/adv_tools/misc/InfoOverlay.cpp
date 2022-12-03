@@ -12,6 +12,14 @@ class InfoOverlay
 	private PopupOptions@ popup;
 	private IWorldBoundingBox@ target;
 	private Mouse@ mouse;
+	private Element@ target_element;
+	
+	PopupPosition position {
+		set {
+			create_popup();
+			popup.position = value;
+		}
+	}
 	
 	void init(AdvToolScript@ script)
 	{
@@ -21,12 +29,14 @@ class InfoOverlay
 	void show(IWorldBoundingBox@ target, const string &in text, const float display_time=-1)
 	{
 		@this.target = target;
+		@target_element = null;
 		
 		show(text, display_time);
 	}
 	
 	void show(Mouse@ mouse, const string &in text, const float display_time=-1)
 	{
+		@target_element = null;
 		show(mouse.x, mouse.y, mouse.x, mouse.y, text, display_time);
 		@this.mouse = mouse;
 	}
@@ -34,6 +44,17 @@ class InfoOverlay
 	void show(const float x, const float y, const string &in text, const float display_time=-1)
 	{
 		show(x, y, x, y, text, display_time);
+	}
+	
+	void show(
+		Element@ element,
+		const string text, const float display_time=-1)
+	{
+		@target = null;
+		@mouse = null;
+		@target_element = element;
+		
+		show(text, display_time);
 	}
 	
 	void show(
@@ -46,6 +67,7 @@ class InfoOverlay
 		this.y2 = y2;
 		@target = null;
 		@mouse = null;
+		@target_element = null;
 		
 		show(text, display_time);
 	}
@@ -60,6 +82,7 @@ class InfoOverlay
 		dummy_overlay.visible = true;
 		
 		popup.content_string = text;
+		popup.position = PopupPosition::Above;
 		
 		script.ui.move_to_back(dummy_overlay);
 		script.ui.show_tooltip(popup, dummy_overlay);
@@ -100,6 +123,7 @@ class InfoOverlay
 		this.y2 = y2;
 		@target = null;
 		@mouse = null;
+		@target_element = null;
 		
 		update_popup_position();
 	}
@@ -114,7 +138,7 @@ class InfoOverlay
 	
 	void step()
 	{
-		if(@target != null || @mouse != null)
+		if(@target != null || @mouse != null || @target_element != null)
 		{
 			update_popup_position();
 		}
@@ -147,6 +171,18 @@ class InfoOverlay
 	
 	private void update_popup_position()
 	{
+		bool is_hud = false;
+		
+		if(@target_element != null)
+		{
+			dummy_overlay.x1 = target_element.x1;
+			dummy_overlay.y1 = target_element.y1;
+			dummy_overlay.x2 = target_element.x2;
+			dummy_overlay.y2 = target_element.y2;
+			dummy_overlay.visible = true;
+			return;
+		}
+		
 		if(@target != null)
 		{
 			target.get_bounding_box_world(this.x1, this.y1, this.x2, this.y2);

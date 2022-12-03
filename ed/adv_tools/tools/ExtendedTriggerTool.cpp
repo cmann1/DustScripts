@@ -12,7 +12,7 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 	
 	void on_init() override
 	{
-		Tool@ tool = group.script.get_tool('Triggers');
+		Tool@ tool = script.get_tool('Triggers');
 		
 		if(@tool != null)
 		{
@@ -26,14 +26,14 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 	
 	void tool_step(Tool@ tool) override
 	{
-		if(script.mouse.left_double_click && script.shift)
+		if(script.mouse.left_double_click && script.shift.down)
 		{
 			duplicate_trigger();
 		}
 		
 		if(!script.ui.is_mouse_active && @script.ui.focus == null && !script.input.is_polling_keyboard())
 		{
-			if(script.ctrl && script.input.key_check_pressed_vk(VK::C))
+			if(script.ctrl.down && script.input.key_check_pressed_vk(VK::C))
 			{
 				entity@ trigger = script.editor.get_selected_trigger();
 				if(@trigger != null)
@@ -41,11 +41,11 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 					@clipboard = trigger;
 				}
 			}
-			if(script.ctrl && script.input.key_check_pressed_vk(VK::V))
+			if(script.ctrl.down && script.input.key_check_pressed_vk(VK::V))
 			{
 				paste_trigger(script.mouse.x, script.mouse.y);
 			}
-			if(script.ctrl && script.input.key_check_pressed_vk(VK::H))
+			if(script.ctrl.down && script.input.key_check_pressed_vk(VK::H))
 			{
 				entity@ trigger = script.editor.get_selected_trigger();
 				if(@trigger != null && trigger.type_name() == 'text_trigger')

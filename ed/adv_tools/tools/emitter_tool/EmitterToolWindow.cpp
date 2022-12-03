@@ -171,7 +171,7 @@ class EmitterToolWindow
 			create_ui();
 		}
 		
-		selected_layer = script.editor.selected_layer;
+		selected_layer = script.layer;
 		layer_button.layer_select.set_selected_layer(selected_layer);
 		update_selection(null, 0);
 		window.show();
@@ -221,7 +221,7 @@ class EmitterToolWindow
 			emitter_id_label.text = '[' + selected_emitters[0].emitter.id() + ']';
 			
 			selected_layer = data.layer;
-			script.editor.selected_layer = selected_layer;
+			script.select_layer(selected_layer);
 		}
 		else
 		{
@@ -355,7 +355,7 @@ class EmitterToolWindow
 	
 	void update_selected_layer()
 	{
-		const int new_layer = script.editor.selected_layer;
+		const int new_layer = script.layer;
 		
 		if(new_layer != selected_layer)
 		{
@@ -447,7 +447,7 @@ class EmitterToolWindow
 			selected_emitters[i].update_layer(tool.layer);
 		}
 		
-		script.editor.selected_layer = value;
+		script.select_layer(value);
 		update_selection();
 	}
 	

@@ -9,6 +9,7 @@ class Tool
 	float icon_height;
 	float icon_offset_x;
 	float icon_offset_y;
+	float icon_rotation;
 	
 	bool selectable = true;
 	
@@ -18,6 +19,9 @@ class Tool
 	
 	array<Tool@>@ shortcut_key_group;
 	ShortcutKey key;
+	
+	/** Setting this to true while a tool is performing an action while prevent other tool shortcut keys from being run. */
+	bool active;
 	
 	protected array<IToolEditorLoadListener@> editor_load_listeners;
 	protected array<IToolSelectListener@> select_listeners;
@@ -75,7 +79,7 @@ class Tool
 	
 	Tool@ set_icon(
 		const string sprite_set, const string sprite_name, const float width=-1, const float height=-1,
-		const float offset_x=0, const float offset_y=0)
+		const float offset_x=0, const float offset_y=0, const float rotation=0)
 	{
 		this.icon_sprite_set = sprite_set;
 		this.icon_sprite_name = sprite_name;
@@ -83,6 +87,7 @@ class Tool
 		this.icon_height = height;
 		this.icon_offset_x = offset_x;
 		this.icon_offset_y = offset_y;
+		this.icon_rotation = rotation;
 		
 		return this;
 	}
@@ -274,6 +279,7 @@ class Tool
 	void on_select() final
 	{
 		selected = true;
+		active = false;
 		
 		if(@group != null)
 		{
@@ -296,6 +302,7 @@ class Tool
 	void on_deselect() final
 	{
 		selected = false;
+		active = false;
 		
 		if(@toolbar_button != null)
 		{
