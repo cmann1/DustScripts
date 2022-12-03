@@ -17,7 +17,9 @@ class Image : Graphic
 	
 	/// @brief Normally the sprite's width, height, and offset will be calcualted automatically, but for embedded/script
 	/// sprites (and possibly some other ones too) these do not seem to be accurate
-	Image(UI@ ui, const string _sprite_set, const string _sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
+	Image(
+		UI@ ui, const string _sprite_set, const string _sprite_name, const float width=-1, const float height=-1,
+		const float offset_x=0, const float offset_y=0)
 	{
 		super(ui);
 		
@@ -26,7 +28,9 @@ class Image : Graphic
 	
 	string element_type { get const override { return Image::TYPE_NAME; } }
 	
-	void set_sprite(const string _sprite_set, const string _sprite_name, const float width=-1, const float height=-1, const float offset_x=0, const float offset_y=0)
+	void set_sprite(
+		const string _sprite_set, const string _sprite_name, const float width=-1, const float height=-1,
+		const float offset_x=0, const float offset_y=0)
 	{
 		if(this._sprite_set == _sprite_set && this._sprite_name == _sprite_name)
 			return;
@@ -68,8 +72,10 @@ class Image : Graphic
 		
 		style.draw_sprite(sprite,
 			_sprite_name, frame, palette,
-			(ui._even_screen_width  ? ui._pixel_floor(x1 + draw_x) : ui._pixel_round(x1 + draw_x)) - (ui._even_screen_width  ? 0.0 : 0.5),
-			(ui._even_screen_height ? ui._pixel_floor(y1 + draw_y) : ui._pixel_round(y1 + draw_y)) - (ui._even_screen_height ? 0.0 : 0.5),
+			(ui._even_screen_width ? ui._pixel_floor(x1 + draw_x) : ui._pixel_round(x1 + draw_x))
+				- (ui._even_screen_width  ? 0.0 : 0.5),
+			(ui._even_screen_height ? ui._pixel_floor(y1 + draw_y) : ui._pixel_round(y1 + draw_y))
+				- (ui._even_screen_height ? 0.0 : 0.5),
 			_rotation,
 			is_transposed ? draw_scale_y : draw_scale_x,
 			is_transposed ? draw_scale_x : draw_scale_y,
