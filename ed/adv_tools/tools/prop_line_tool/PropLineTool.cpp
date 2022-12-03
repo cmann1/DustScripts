@@ -34,6 +34,8 @@ class PropLineTool : Tool
 	private string sprite_set, sprite_name;
 	
 	private bool recaclulate_props;
+	/** A per prop value used to inset certain props, e.g. moon and sun */
+	private float auto_spacing_adjustment;
 	private float start_dx, start_dy;
 	private float drag_ox, drag_oy;
 	private DragHandleType drag_handle = DragHandleType::None;
@@ -485,10 +487,14 @@ class PropLineTool : Tool
 			rotation = pick_data.prop.rotation();
 			update_sprite();
 			
+			const string key = prop_set + '.' + prop_group + '.' + prop_index;
+			
+			auto_spacing_adjustment = PropLineAutoOffsets.exists(key)
+				? float(PropLineAutoOffsets[key])
+				: 0.0;
+			
 			if(rotation_mode == PropLineRotationMode::Auto)
 			{
-				const string key = prop_set + '.' + prop_group + '.' + prop_index;
-				
 				if(PropLineRotationOffsets.exists(key))
 				{
 					rotation_offset = float(PropLineRotationOffsets[key]);
@@ -743,6 +749,12 @@ class PropLineTool : Tool
 		}
 		
 		float spacing = this.spacing + spacing_offset;
+		
+		if(auto_space)
+		{
+			spacing += auto_spacing_adjustment;
+		}
+		
 		spacing = max(layer <= 5 ? spacing * 16 : spacing, 0.1);
 		props_count = ceil_int(max((length + spacing * 0.5) / spacing, 1.0));
 		
