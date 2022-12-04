@@ -88,84 +88,6 @@ class EdgeBrushToolbar
 		script.ui.remove_child(toolbar);
 	}
 	
-	void update_mode()
-	{
-		mode_btn.selected_index = tool.mode;
-		
-		const bool brush_mode = tool.mode == Brush;
-		const bool precision_mode = tool.mode == Precision;
-		
-		radius_slider.disabled = tool.mode != Brush;
-		update_neightbour_btn.disabled = tool.mode != Precision;
-		inside_only_btn.disabled = tool.mode != Precision;
-	}
-	
-	void update_edge_mask()
-	{
-		if(edge_mask_img.edge_mask == tool.edge_mask)
-			return;
-		
-		edge_mask_img.edge_mask = tool.edge_mask;
-		
-		for(TileEdge edge = TileEdge::Top; edge <= TileEdge::Right; edge++)
-		{
-			edge_checkboxes[edge].checked = tool.edge_mask & (1 << edge) != 0;
-		}
-	}
-	
-	void update_brush_radius()
-	{
-		radius_slider.value = tool.brush_radius;
-	}
-	
-	void update_collision()
-	{
-		collision_btn.selected = tool.update_collision;
-	}
-	
-	void update_priority()
-	{
-		priority_btn.selected = tool.update_priority;
-	}
-	
-	void update_facing()
-	{
-		facing_btn.selected_index = tool.edge_facing;
-		internal_sprites_checkbox.disabled = tool.edge_facing == Both;
-	}
-	
-	void update_internal_sprites()
-	{
-		internal_sprites_checkbox.checked = tool.check_internal_sprites;
-	}
-	
-	void update_update_neighbour()
-	{
-		update_neightbour_btn.selected = tool.precision_update_neighbour;
-	}
-	
-	void update_render_mode()
-	{
-		render_mode_btn.selected_index = tool.render_mode;
-	}
-	
-	void show_edge_info(TileEdgeData@ data)
-	{
-		string edge_name = '';
-		switch(data.selected_edge)
-		{
-			case TileEdge::Top: edge_name = 'Top'; break;
-			case TileEdge::Bottom: edge_name = 'Bottom'; break;
-			case TileEdge::Left: edge_name = 'Left'; break;
-			case TileEdge::Right: edge_name = 'Right'; break;
-		}
-		
-		string text =
-			edge_name + '\n' +
-			string::reversed(bin(data.edge, 4));
-		script.show_info_popup(text, toolbar);
-	}
-	
 	private void create_ui()
 	{
 		UI@ ui = script.ui;
@@ -370,6 +292,87 @@ class EdgeBrushToolbar
 		update_internal_sprites();
 		update_update_neighbour();
 		update_render_mode();
+		
+		ui.add_child(toolbar);
+		script.window_manager.register_element(toolbar);
+	}
+	
+	void update_mode()
+	{
+		mode_btn.selected_index = tool.mode;
+		
+		const bool brush_mode = tool.mode == Brush;
+		const bool precision_mode = tool.mode == Precision;
+		
+		radius_slider.disabled = tool.mode != Brush;
+		update_neightbour_btn.disabled = tool.mode != Precision;
+		inside_only_btn.disabled = tool.mode != Precision;
+	}
+	
+	void update_edge_mask()
+	{
+		if(edge_mask_img.edge_mask == tool.edge_mask)
+			return;
+		
+		edge_mask_img.edge_mask = tool.edge_mask;
+		
+		for(TileEdge edge = TileEdge::Top; edge <= TileEdge::Right; edge++)
+		{
+			edge_checkboxes[edge].checked = tool.edge_mask & (1 << edge) != 0;
+		}
+	}
+	
+	void update_brush_radius()
+	{
+		radius_slider.value = tool.brush_radius;
+	}
+	
+	void update_collision()
+	{
+		collision_btn.selected = tool.update_collision;
+	}
+	
+	void update_priority()
+	{
+		priority_btn.selected = tool.update_priority;
+	}
+	
+	void update_facing()
+	{
+		facing_btn.selected_index = tool.edge_facing;
+		internal_sprites_checkbox.disabled = tool.edge_facing == Both;
+	}
+	
+	void update_internal_sprites()
+	{
+		internal_sprites_checkbox.checked = tool.check_internal_sprites;
+	}
+	
+	void update_update_neighbour()
+	{
+		update_neightbour_btn.selected = tool.precision_update_neighbour;
+	}
+	
+	void update_render_mode()
+	{
+		render_mode_btn.selected_index = tool.render_mode;
+	}
+	
+	void show_edge_info(TileEdgeData@ data)
+	{
+		string edge_name = '';
+		switch(data.selected_edge)
+		{
+			case TileEdge::Top: edge_name = 'Top'; break;
+			case TileEdge::Bottom: edge_name = 'Bottom'; break;
+			case TileEdge::Left: edge_name = 'Left'; break;
+			case TileEdge::Right: edge_name = 'Right'; break;
+		}
+		
+		string text =
+			edge_name + '\n' +
+			string::reversed(bin(data.edge, 4));
+		script.show_info_popup(text, toolbar);
 	}
 	
 	private void make_edge_checkbox(Container@ container , const string &in name, const TileEdge edge)

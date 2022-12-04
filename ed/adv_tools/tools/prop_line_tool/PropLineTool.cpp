@@ -5,8 +5,10 @@
 #include 'PropLineProp.cpp';
 #include 'PropLineRotationMode.cpp';
 #include 'PropLineRotationOffsets.cpp';
+#include 'PropLineToolbar.cpp';
 #include 'PropLineToolState.cpp';
 
+const string PROP_LINE_TOOL_SPRITES_BASE = SPRITES_BASE + 'prop_line_tool/';
 const string EMBED_spr_icon_prop_line_tool = SPRITES_BASE + 'icon_prop_line_tool.png';
 
 class PropLineTool : Tool
@@ -27,8 +29,9 @@ class PropLineTool : Tool
 	private int scale_index = 0;
 	private float scale = 1.0;
 	private float scale_x, scale_y;
-	private float rotation;
+	float rotation;
 	private int layer, sub_layer;
+	private bool has_auto_rotation_offset;
 	
 	private Sprite spr;
 	private string sprite_set, sprite_name;
@@ -44,6 +47,8 @@ class PropLineTool : Tool
 	private int props_count;
 	private array<PropLineProp> props(props_list_size);
 	
+	private PropLineToolbar toolbar;
+	
 	// Settings
 	
 	/** If false, will snap to angle instead. */
@@ -55,8 +60,7 @@ class PropLineTool : Tool
 	float spacing = 50;
 	float spacing_offset;
 	float rotation_offset;
-	bool has_auto_rotation_offset;
-	bool auto_space = false;
+	bool auto_spacing = true;
 	int repeat_count = 1;
 	float repeat_spacing = 50;
 	
@@ -70,6 +74,8 @@ class PropLineTool : Tool
 	void build_sprites(message@ msg) override
 	{
 		build_sprite(msg, 'icon_prop_line_tool');
+		
+		toolbar.build_sprites(msg);
 	}
 	
 	void create(ToolGroup@ group) override
@@ -84,6 +90,11 @@ class PropLineTool : Tool
 	void on_init() override
 	{
 		@prop_tool = cast<PropTool@>(script.get_tool('Prop Tool'));
+		
+		if(prop_set == -1 || state == PropLineToolState::Picking)
+		{
+			show_pick_popup();
+		}
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -99,6 +110,8 @@ class PropLineTool : Tool
 	protected void on_select_impl()
 	{
 		script.editor.hide_panels_gui(true);
+		
+		toolbar.show(script, this);
 	}
 	
 	protected void on_deselect_impl()
@@ -107,15 +120,11 @@ class PropLineTool : Tool
 		script.editor.hide_panels_gui(false);
 		
 		reset();
+		toolbar.hide();
 	}
 	
 	protected void step_impl() override
 	{
-		if(prop_set == -1 || state == PropLineToolState::Picking)
-		{
-			show_pick_popup();
-		}
-		
 		switch(state)
 		{
 			case PropLineToolState::Idle: state_idle(); break;
@@ -168,306 +177,19 @@ class PropLineTool : Tool
 		}
 	}
 	
-	private void user_update_layer()
-	{
-		if(script.shift.down || script.ctrl.down && script.alt.down)
-			return;
-		
-		script.scroll_layer(true, true, false, LayerInfoDisplay::Compound, null, script.main_toolbar, 0.75);
-		layer = script.layer;
-		sub_layer = script.sub_layer;
-		update_start_point();
-	}
-	
-	private void user_update_rotation()
-	{
-		if(mouse.scroll == 0 || (!script.shift.down && (script.ctrl.down || script.alt.down)))
-			return;
-		
-		float dir = sign(mouse.scroll);
-		
-		if(script.shift.down && script.ctrl.down)
-			dir *= 1;
-		else if(script.shift.down)
-			dir *= 5;
-		else
-			dir *= 10;
-		
-		const float rotation_prev = rotation;
-		rotation = repeat(rotation - dir, 360);
-		
-		if(rotation != rotation_prev)
-		{
-			recaclulate_props = true;
-		}
-	}
-	
-	private void user_update_scale()
-	{
-		if(mouse.scroll == 0 || !script.ctrl.down || !script.alt.down)
-			return;
-		
-		const int prev_scale_index = scale_index;
-		
-		scale_index = int(min(24, max(-24, scale_index + mouse.scroll)));
-		scale = pow(50.0, scale_index / 24.0);
-		
-		if(scale_index != prev_scale_index)
-		{
-			script.show_info('Scale: ' + string::nice_float(scale, 3));
-		}
-	}
-	
-	private void user_update_mirror()
-	{
-		if(!script.scene_focus)
-			return;
-		
-		bool updated = false;
-		
-		if(script.input.key_check_pressed_gvb(GVB::BracketOpen))
-		{
-			scale_x = -scale_x;
-			updated = true;
-		}
-		
-		if(script.input.key_check_pressed_gvb(GVB::BracketClose))
-		{
-			scale_y = -scale_y;
-			updated = true;
-		}
-		
-		if(updated)
-		{
-			recaclulate_props = true;
-		}
-	}
-	
-	private void user_update_snap()
-	{
-		if(script.shift.double_press)
-		{
-			snap_to_grid = !snap_to_grid;
-			script.show_info('Snap: ' + (snap_to_grid ? 'Grid' : 'Angle'));
-		}
-	}
-	
-	private void user_update_scroll_mode()
-	{
-		if(!script.alt.double_press)
-			return;
-		
-		scroll_spacing = !scroll_spacing;
-		script.show_info('Scroll: ' + (scroll_spacing ? 'Spacing' : 'Rotation'));
-	}
-	
-	private void user_update_spacing()
-	{
-		if(mouse.scroll == 0)
-			return;
-		
-		if(scroll_spacing)
-		{
-			float amount = 2;
-			
-			if(script.shift.down)
-				amount = 20;
-			else if(script.ctrl.down)
-				amount = 5;
-			else if(script.alt.down)
-				amount = 1;
-			
-			float spacing_display;
-			
-			if(auto_space)
-			{
-				const float spacing_offset_prev = spacing_offset;
-				spacing_offset = spacing_offset - mouse.scroll * amount;
-				recaclulate_props = recaclulate_props || spacing_offset != spacing_offset_prev;
-				
-				spacing_display = spacing_offset;
-			}
-			else
-			{
-				const float spacing_prev = spacing;
-				spacing = max(spacing - mouse.scroll * amount, 0.0);
-				recaclulate_props = recaclulate_props || spacing != spacing_prev;
-				
-				spacing_display = spacing;
-			}
-			
-			script.show_info('Spacing: ' + int(spacing_display));
-		}
-		else if(rotation_mode == PropLineRotationMode::Auto)
-		{
-			float dir = sign(mouse.scroll);
-			
-			if(script.shift.down && script.ctrl.down)
-				dir *= 1;
-			else if(script.shift.down)
-				dir *= 5;
-			else
-				dir *= 10;
-			
-			const float rotation_offset_prev = rotation_offset;
-			rotation_offset = normalize_degress(rotation_offset - dir);
-			has_auto_rotation_offset = false;
-			
-			if(rotation_offset != rotation_offset_prev)
-			{
-				if(auto_space)
-				{
-					calculate_auto_spacing();
-				}
-				
-				recaclulate_props = true;
-			}
-			
-			script.show_info('Rotation Offset: ' + int(rotation_offset));
-		}
-		else
-		{
-			user_update_rotation();
-		}
-	}
-	
-	private void user_update_repeat()
-	{
-		const int repeat_count_prev = repeat_count;
-		const float repeat_spacing_prev = repeat_spacing;
-		
-		if(script.key_repeat_gvb(GVB::UpArrow))
-		{
-			repeat_count += script.shift.down ? 10 : script.ctrl.down ? 2 : 1;
-		}
-		else if(script.key_repeat_gvb(GVB::DownArrow))
-		{
-			repeat_count = max(repeat_count - (script.shift.down ? 10 : script.ctrl.down ? 2 : 1), 1);
-		}
-		
-		if(script.key_repeat_gvb(GVB::RightArrow))
-		{
-			repeat_spacing += script.shift.down ? 10.0 : script.ctrl.down ? 2.0 : 1.0;
-		}
-		else if(script.key_repeat_gvb(GVB::LeftArrow))
-		{
-			repeat_spacing = max(repeat_spacing - (script.shift.down ? 10.0 : script.ctrl.down ? 2.0 : 1.0), 0.0);
-		}
-		
-		if(repeat_count != repeat_count_prev)
-		{
-			recaclulate_props = true;
-			script.show_info('Repeat: ' + repeat_count);
-		}
-		if(repeat_spacing_prev != repeat_spacing)
-		{
-			recaclulate_props = true;
-			script.show_info('Repeat spacing: ' + int(repeat_spacing));
-		}
-	}
-	
-	private void calculate_auto_spacing()
-	{
-		if(prop_set == -1)
-			return;
-		
-		const float bg_scale = calc_bg_scale(layer);
-		
-		const float length = distance(x1, y1, x2, y2);
-		const float dx = x2 - x1;
-		const float dy = y2 - y1;
-		const float nx = length > 0 ? dx / length : 1.0;
-		const float ny = length > 0 ? dy / length : 0.0;
-		const float angle = atan2(dy, dx);
-		
-		// Caclulate the line in local prop space
-		// --------------------------------------
-		
-		const float prop_angle = rotation_mode == PropLineRotationMode::Auto
-			? rotation_offset * DEG2RAD
-			: rotation * DEG2RAD;
-		
-		const float ray_size = sqrt(
-			spr.sprite_width * spr.sprite_width * 0.25 +
-			spr.sprite_height * spr.sprite_height * 0.25) * 1.5;
-		float lox = 0;
-		float loy = 0;
-		float l1x = -ray_size;
-		float l1y = 0;
-		float l2x = ray_size;
-		float l2y = 0;
-		
-		if(
-			rotation_mode != PropLineRotationMode::Auto &&
-			(state == PropLineToolState::Dragging || state == PropLineToolState::Pending))
-		{
-			rotate(l1x, l1y, angle, l1x, l1y);
-			rotate(l2x, l2y, angle, l2x, l2y);
-		}
-		
-		rotate(l1x, l1y, -prop_angle, l1x, l1y);
-		rotate(l2x, l2y, -prop_angle, l2x, l2y);
-		
-		lox *= scale_x; loy *= scale_y;
-		l1x *= scale_x; l1y *= scale_y;
-		l2x *= scale_x; l2y *= scale_y;
-		
-		float prop_ox = spr.sprite_offset_x - spr.sprite_width * spr.origin_x;
-		float prop_oy = spr.sprite_offset_y - spr.sprite_height * spr.origin_y;
-		
-		lox -= prop_ox; loy -= prop_oy;
-		l1x -= prop_ox; l1y -= prop_oy;
-		l2x -= prop_ox; l2y -= prop_oy;
-		
-		// --------------------------------------
-		
-		float t1_max = -1;
-		float t2_max = -1;
-		
-		const array<array<float>>@ outline = @PROP_OUTLINES[prop_set - 1][prop_group][prop_index - 1];
-		for(int i = 0, path_count = int(outline.length()); i < path_count; i++)
-		{
-			const array<float>@ path = @outline[i];
-			const int count = int(path.length());
-			float p1x = path[count - 2];
-			float p1y = path[count - 1];
-			
-			for(int j = 0; j < count; j += 2)
-			{
-				float p2x = path[j];
-				float p2y = path[j + 1];
-				
-				float ix, iy, t;
-				if(line_line_intersection(lox, loy, l1x, l1y, p1x, p1y, p2x, p2y, ix, iy, t) && t > t1_max)
-				{
-					t1_max = t;
-				}
-				if(line_line_intersection(lox, loy, l2x, l2y, p1x, p1y, p2x, p2y, ix, iy, t) && t > t2_max)
-				{
-					t2_max = t;
-				}
-				
-				p1x = p2x;
-				p1y = p2y;
-			}
-		}
-		
-		if(t1_max == -1 || t2_max == -1)
-			return;
-		
-		const float spacing_prev = spacing;
-		spacing = max(ray_size * t1_max + ray_size * t2_max, 0.0) * scale;
-		recaclulate_props = recaclulate_props || spacing != spacing_prev;
-			
-		//script.show_info('Spacing: ' + int(spacing));
-	}
-	
 	// //////////////////////////////////////////////////////////
 	// States
 	// //////////////////////////////////////////////////////////
 	
 	private void state_idle()
 	{
+		user_update_scroll_mode();
+		user_update_layer();
+		user_update_rotation(rotation_mode != PropLineRotationMode::Auto);
+		user_update_scale();
+		user_update_mirror();
+		user_update_snap();
+		
 		update_start_point();
 		layer = script.layer;
 		sub_layer = script.sub_layer;
@@ -487,12 +209,6 @@ class PropLineTool : Tool
 			state = PropLineToolState::Picking;
 			return;
 		}
-		
-		user_update_scroll_mode();
-		user_update_layer();
-		user_update_rotation();
-		user_update_scale();
-		user_update_mirror();
 	}
 	
 	private void state_picking()
@@ -547,7 +263,7 @@ class PropLineTool : Tool
 		
 		if(prop_set != -1 && !mouse.right_down)
 		{
-			if(auto_space)
+			if(auto_spacing)
 			{
 				calculate_auto_spacing();
 			}
@@ -580,7 +296,7 @@ class PropLineTool : Tool
 		
 		if(recaclulate_props)
 		{
-			if(auto_space)
+			if(auto_spacing)
 			{
 				calculate_auto_spacing();
 			}
@@ -619,6 +335,7 @@ class PropLineTool : Tool
 		user_update_scroll_mode();
 		user_update_spacing();
 		user_update_mirror();
+		user_update_repeat();
 		
 		const bool drag_p1 = script.handles.circle(x1, y1, Settings::RotateHandleSize,
 			Settings::RotateHandleColour, Settings::RotateHandleHoveredColour);
@@ -665,10 +382,15 @@ class PropLineTool : Tool
 		
 		if(recaclulate_props)
 		{
+			if(auto_spacing)
+			{
+				calculate_auto_spacing();
+			}
+			
 			calculate_props();
 		}
 		
-		if(script.input.key_check_pressed_gvb(GVB::Return) || script.escape_press)
+		if(script.scene_focus && (script.input.key_check_pressed_gvb(GVB::Return) || script.escape_press))
 		{
 			if(!script.escape_press)
 			{
@@ -786,7 +508,7 @@ class PropLineTool : Tool
 		const float repeat_spacing = max(this.repeat_spacing, 0.1);
 		float spacing = this.spacing + spacing_offset;
 		
-		if(auto_space)
+		if(auto_spacing)
 		{
 			spacing += auto_spacing_adjustment;
 		}
@@ -852,6 +574,454 @@ class PropLineTool : Tool
 	private float calc_bg_scale(const int layer)
 	{
 		return layer <= 5 ? 2.0 / script.g.layer_scale(layer) : 1.0;
+	}
+	
+	//
+	
+	private void user_update_layer()
+	{
+		if(script.shift.down || script.ctrl.down && script.alt.down)
+			return;
+		
+		script.scroll_layer(true, true, false, LayerInfoDisplay::Compound, null, script.main_toolbar, 0.75);
+		layer = script.layer;
+		sub_layer = script.sub_layer;
+		update_start_point();
+	}
+	
+	private void user_update_rotation(const bool notify=true)
+	{
+		if(mouse.scroll == 0 || (!script.shift.down && (script.ctrl.down || script.alt.down)))
+			return;
+		
+		float dir = sign(mouse.scroll);
+		
+		if(script.shift.down && script.ctrl.down)
+			dir *= 1;
+		else if(script.shift.down)
+			dir *= 5;
+		else
+			dir *= 10;
+		
+		update_rotation(rotation - dir, notify);
+	}
+	
+	private void user_update_scale()
+	{
+		if(mouse.scroll == 0 || !script.ctrl.down || !script.alt.down)
+			return;
+		
+		const int prev_scale_index = scale_index;
+		
+		scale_index = int(min(24, max(-24, scale_index + mouse.scroll)));
+		scale = pow(50.0, scale_index / 24.0);
+		
+		if(scale_index != prev_scale_index)
+		{
+			script.show_info('Scale: ' + string::nice_float(scale, 3));
+		}
+	}
+	
+	private void user_update_mirror()
+	{
+		if(!script.scene_focus)
+			return;
+		
+		bool updated = false;
+		
+		if(script.input.key_check_pressed_gvb(GVB::BracketOpen))
+		{
+			scale_x = -scale_x;
+			updated = true;
+		}
+		
+		if(script.input.key_check_pressed_gvb(GVB::BracketClose))
+		{
+			scale_y = -scale_y;
+			updated = true;
+		}
+		
+		if(updated)
+		{
+			recaclulate_props = true;
+		}
+	}
+	
+	private void user_update_snap()
+	{
+		if(script.shift.double_press)
+		{
+			update_snap_mode(!snap_to_grid);
+		}
+	}
+	
+	private void user_update_spacing()
+	{
+		if(mouse.scroll == 0)
+			return;
+		
+		if(scroll_spacing)
+		{
+			float amount = 2;
+			
+			if(script.shift.down)
+				amount = 20;
+			else if(script.ctrl.down)
+				amount = 5;
+			else if(script.alt.down)
+				amount = 1;
+			
+			if(auto_spacing)
+			{
+				update_spacing_offset(spacing_offset - mouse.scroll * amount);
+			}
+			else
+			{
+				update_spacing(spacing - mouse.scroll * amount);
+			}
+		}
+		else if(rotation_mode == PropLineRotationMode::Auto)
+		{
+			float dir = sign(mouse.scroll);
+			
+			if(script.shift.down && script.ctrl.down)
+				dir *= 1;
+			else if(script.shift.down)
+				dir *= 5;
+			else
+				dir *= 10;
+			
+			update_rotation_offset(normalize_degress(rotation_offset - dir));
+		}
+		else
+		{
+			user_update_rotation();
+		}
+	}
+	
+	private void user_update_repeat()
+	{
+		if(script.key_repeat_gvb(GVB::UpArrow))
+		{
+			update_repeat_count(repeat_count + (script.shift.down ? 10 : script.ctrl.down ? 2 : 1));
+		}
+		else if(script.key_repeat_gvb(GVB::DownArrow))
+		{
+			update_repeat_count(repeat_count - (script.shift.down ? 10 : script.ctrl.down ? 2 : 1));
+		}
+		
+		if(script.key_repeat_gvb(GVB::RightArrow))
+		{
+			update_repeat_spacing(repeat_spacing + (script.shift.down ? 10.0 : script.ctrl.down ? 2.0 : 1.0));
+		}
+		else if(script.key_repeat_gvb(GVB::LeftArrow))
+		{
+			update_repeat_spacing(repeat_spacing - (script.shift.down ? 10.0 : script.ctrl.down ? 2.0 : 1.0));
+		}
+	}
+	
+	private void calculate_auto_spacing()
+	{
+		if(prop_set == -1)
+			return;
+		
+		const float bg_scale = calc_bg_scale(layer);
+		
+		const float length = distance(x1, y1, x2, y2);
+		const float dx = x2 - x1;
+		const float dy = y2 - y1;
+		const float nx = length > 0 ? dx / length : 1.0;
+		const float ny = length > 0 ? dy / length : 0.0;
+		const float angle = atan2(dy, dx);
+		
+		// Caclulate the line in local prop space
+		// --------------------------------------
+		
+		const float prop_angle = rotation_mode == PropLineRotationMode::Auto
+			? rotation_offset * DEG2RAD
+			: rotation * DEG2RAD;
+		
+		const float ray_size = sqrt(
+			spr.sprite_width * spr.sprite_width * 0.25 +
+			spr.sprite_height * spr.sprite_height * 0.25) * 1.5;
+		float lox = 0;
+		float loy = 0;
+		float l1x = -ray_size;
+		float l1y = 0;
+		float l2x = ray_size;
+		float l2y = 0;
+		
+		if(
+			rotation_mode != PropLineRotationMode::Auto &&
+			(state == PropLineToolState::Dragging || state == PropLineToolState::Pending))
+		{
+			rotate(l1x, l1y, angle, l1x, l1y);
+			rotate(l2x, l2y, angle, l2x, l2y);
+		}
+		
+		rotate(l1x, l1y, -prop_angle, l1x, l1y);
+		rotate(l2x, l2y, -prop_angle, l2x, l2y);
+		
+		lox *= scale_x; loy *= scale_y;
+		l1x *= scale_x; l1y *= scale_y;
+		l2x *= scale_x; l2y *= scale_y;
+		
+		float prop_ox = spr.sprite_offset_x - spr.sprite_width * spr.origin_x;
+		float prop_oy = spr.sprite_offset_y - spr.sprite_height * spr.origin_y;
+		
+		lox -= prop_ox; loy -= prop_oy;
+		l1x -= prop_ox; l1y -= prop_oy;
+		l2x -= prop_ox; l2y -= prop_oy;
+		
+		// --------------------------------------
+		
+		float t1_max = -1;
+		float t2_max = -1;
+		
+		const array<array<float>>@ outline = @PROP_OUTLINES[prop_set - 1][prop_group][prop_index - 1];
+		for(int i = 0, path_count = int(outline.length()); i < path_count; i++)
+		{
+			const array<float>@ path = @outline[i];
+			const int count = int(path.length());
+			float p1x = path[count - 2];
+			float p1y = path[count - 1];
+			
+			for(int j = 0; j < count; j += 2)
+			{
+				float p2x = path[j];
+				float p2y = path[j + 1];
+				
+				float ix, iy, t;
+				if(line_line_intersection(lox, loy, l1x, l1y, p1x, p1y, p2x, p2y, ix, iy, t) && t > t1_max)
+				{
+					t1_max = t;
+				}
+				if(line_line_intersection(lox, loy, l2x, l2y, p1x, p1y, p2x, p2y, ix, iy, t) && t > t2_max)
+				{
+					t2_max = t;
+				}
+				
+				p1x = p2x;
+				p1y = p2y;
+			}
+		}
+		
+		if(t1_max == -1 || t2_max == -1)
+			return;
+		
+		const float spacing_prev = spacing;
+		spacing = max(ray_size * t1_max + ray_size * t2_max, 0.0) * scale;
+		recaclulate_props = recaclulate_props || spacing != spacing_prev;
+	}
+	
+	private void user_update_scroll_mode()
+	{
+		if(script.alt.double_press)
+		{
+			update_scroll_mode(!scroll_spacing);
+		}
+	}
+	
+	//
+	
+	void update_snap_mode(const bool new_snap, const bool notify=true)
+	{
+		if(snap_to_grid == new_snap)
+			return;
+		
+		snap_to_grid = new_snap;
+		toolbar.update_snap_mode();
+		
+		if(notify)
+		{
+			script.show_info('Snap: ' + (snap_to_grid ? 'Grid' : 'Angle'));
+		}
+	}
+	
+	void update_spacing_mode(const PropLineSpacingMode new_spacing, const bool notify=true)
+	{
+		if(spacing_mode == new_spacing)
+			return;
+		
+		spacing_mode = new_spacing;
+		recaclulate_props = true;
+		
+		toolbar.update_spacing_mode();
+		
+		if(notify)
+		{
+			script.show_info('Spacing: ' + (spacing_mode == PropLineSpacingMode::Fixed ? 'Fixed' : 'Fill'));
+		}
+	}
+	
+	void update_rotation_mode(const PropLineRotationMode new_rotation, const bool notify=true)
+	{
+		if(rotation_mode == new_rotation)
+			return;
+		
+		rotation_mode = new_rotation;
+		recaclulate_props = true;
+		
+		toolbar.update_rotation_mode();
+		
+		if(rotation_mode == PropLineRotationMode::Fixed)
+		{
+			update_rotation(round(rotation), false);
+		}
+		
+		if(notify)
+		{
+			script.show_info('Rotation: ' + (rotation_mode == PropLineRotationMode::Fixed ? 'Fixed' : 'Auto'));
+		}
+	}
+	
+	void update_spacing(float new_spacing, const bool notify=true)
+	{
+		if(new_spacing < 0)
+		{
+			new_spacing = 0;
+		}
+		
+		if(spacing == new_spacing)
+			return;
+		
+		spacing = new_spacing;
+		recaclulate_props = true;
+		
+		toolbar.update_spacing();
+		
+		if(notify)
+		{
+			script.show_info('Spacing: ' + string::nice_float(spacing, 1, true));
+		}
+	}
+	
+	void update_spacing_offset(const float new_spacing_offset, const bool notify=true)
+	{
+		if(spacing_offset == new_spacing_offset)
+			return;
+		
+		spacing_offset = new_spacing_offset;
+		recaclulate_props = true;
+		
+		toolbar.update_spacing_offset();
+		
+		if(notify)
+		{
+			script.show_info('Spacing: ' + string::nice_float(spacing_offset, 1, true));
+		}
+	}
+	
+	void update_rotation(float new_rotation, const bool notify=true)
+	{
+		new_rotation = normalize_degress(new_rotation);
+		
+		if(rotation == new_rotation)
+			return;
+		
+		rotation = new_rotation;
+		has_auto_rotation_offset = false;
+		recaclulate_props = true;
+		
+		toolbar.update_rotation();
+		
+		if(notify)
+		{
+			script.show_info('Rotation: ' + string::nice_float(rotation, 1, true));
+		}
+	}
+	
+	void update_rotation_offset(const float new_rotation_offset, const bool notify=true)
+	{
+		if(rotation_offset == new_rotation_offset)
+			return;
+		
+		rotation_offset = new_rotation_offset;
+		recaclulate_props = true;
+		
+		toolbar.update_rotation_offset();
+		
+		if(notify)
+		{
+			script.show_info('Rotation Offset: ' + string::nice_float(rotation_offset, 1, true));
+		}
+	}
+	
+	void update_repeat_count(int new_repeat_count, const bool notify=true)
+	{
+		if(new_repeat_count < 1)
+		{
+			new_repeat_count = 1;
+		}
+		
+		if(repeat_count == new_repeat_count)
+			return;
+		
+		repeat_count = new_repeat_count;
+		recaclulate_props = true;
+		
+		toolbar.update_repeat_count();
+		
+		if(notify)
+		{
+			script.show_info('Repeat Count: ' + repeat_count);
+		}
+	}
+	
+	void update_repeat_spacing(float new_repeat_spacing, const bool notify=true)
+	{
+		if(new_repeat_spacing < 0)
+		{
+			new_repeat_spacing = 0;
+		}
+		
+		if(repeat_spacing == new_repeat_spacing)
+			return;
+		
+		repeat_spacing = new_repeat_spacing;
+		recaclulate_props = true;
+		
+		toolbar.update_repeat_spacing();
+		
+		if(notify)
+		{
+			script.show_info('Repeat spacing: ' + string::nice_float(repeat_spacing, 1, true));
+		}
+	}
+	
+	void update_auto_spacing(const bool new_auto_spacing, const bool notify=true)
+	{
+		if(auto_spacing == new_auto_spacing)
+			return;
+		
+		auto_spacing = new_auto_spacing;
+		recaclulate_props = true;
+		
+		if(auto_spacing)
+		{
+			calculate_auto_spacing();
+		}
+		
+		toolbar.update_auto_spacing();
+		
+		if(notify)
+		{
+			script.show_info('Auto spacing: ' + (auto_spacing ? 'On' : 'Off'));
+		}
+	}
+	
+	void update_scroll_mode(const bool new_scroll_mode, const bool notify=true)
+	{
+		if(scroll_spacing == new_scroll_mode)
+			return;
+		
+		scroll_spacing = new_scroll_mode;
+		toolbar.update_scroll_mode();
+		
+		if(notify)
+		{
+			script.show_info('Scroll mode: ' + (scroll_spacing ? 'Spacing' : 'Rotation'));
+		}
 	}
 	
 }

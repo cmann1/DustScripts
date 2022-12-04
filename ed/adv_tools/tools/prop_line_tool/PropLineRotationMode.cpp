@@ -1,9 +1,9 @@
 enum PropLineRotationMode
 {
-	/** Props are automatically rotated along the direction of the line. */
-	Auto,
 	/** Props stay at a fixed rotation. */
 	Fixed,
+	/** Props are automatically rotated along the direction of the line. */
+	Auto,
 }
 
 enum PropLineSpacingMode
