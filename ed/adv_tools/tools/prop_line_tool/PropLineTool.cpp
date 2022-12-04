@@ -506,11 +506,11 @@ class PropLineTool : Tool
 		}
 		
 		const float repeat_spacing = max(this.repeat_spacing, 0.1);
-		float spacing = this.spacing + spacing_offset;
+		float spacing = this.spacing;
 		
 		if(auto_spacing)
 		{
-			spacing += auto_spacing_adjustment;
+			spacing += auto_spacing_adjustment + spacing_offset;
 		}
 		
 		spacing = max(layer <= 5 ? spacing / script.g.layer_scale(layer) * 2 : spacing, 0.1);
