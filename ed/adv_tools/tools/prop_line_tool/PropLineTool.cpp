@@ -280,7 +280,7 @@ class PropLineTool : Tool
 		user_update_spacing();
 		user_update_mirror();
 		user_update_repeat();
-		update_end_point(!mouse.right_down);
+		update_end_point(!mouse.right_down || mouse.right_press);
 		
 		if(mouse.right_press)
 		{
