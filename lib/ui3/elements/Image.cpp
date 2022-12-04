@@ -72,7 +72,7 @@ class Image : Graphic
 		
 		style.draw_sprite(sprite,
 			_sprite_name, frame, palette,
-			(ui._even_screen_width ? ui._pixel_floor(x1 + draw_x) : ui._pixel_round(x1 + draw_x))
+			(ui._even_screen_width ? ui._pixel_floor(x1 + draw_x - 1) : ui._pixel_round(x1 + draw_x - 1))
 				- (ui._even_screen_width  ? 0.0 : 0.5),
 			(ui._even_screen_height ? ui._pixel_floor(y1 + draw_y) : ui._pixel_round(y1 + draw_y))
 				- (ui._even_screen_height ? 0.0 : 0.5),
