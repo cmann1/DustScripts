@@ -90,11 +90,6 @@ class PropLineTool : Tool
 	void on_init() override
 	{
 		@prop_tool = cast<PropTool@>(script.get_tool('Prop Tool'));
-		
-		if(prop_set == -1 || state == PropLineToolState::Picking)
-		{
-			show_pick_popup();
-		}
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -112,6 +107,11 @@ class PropLineTool : Tool
 		script.editor.hide_panels_gui(true);
 		
 		toolbar.show(script, this);
+		
+		if(prop_set == -1 || state == PropLineToolState::Picking)
+		{
+			show_pick_popup();
+		}
 	}
 	
 	protected void on_deselect_impl()
