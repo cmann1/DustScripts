@@ -43,6 +43,9 @@ class PropLineTool : Tool
 	private float drag_ox, drag_oy;
 	private DragHandleType drag_handle = DragHandleType::None;
 	
+	private bool dragging_start_point;
+	private bool mouse_moved;
+	
 	private int props_list_size = 32;
 	private int props_count;
 	private array<PropLineProp> props(props_list_size);
@@ -196,6 +199,8 @@ class PropLineTool : Tool
 		
 		if(mouse.left_press && prop_set != -1)
 		{
+			mouse_moved = false;
+			dragging_start_point = false;
 			update_end_point();
 			calculate_props();
 			state = PropLineToolState::Dragging;
@@ -275,23 +280,43 @@ class PropLineTool : Tool
 	
 	private void state_dragging()
 	{
+		if(!mouse_moved && mouse.moved)
+		{
+			mouse_moved = true;
+		}
+		
 		user_update_snap();
 		user_update_scroll_mode();
 		user_update_spacing();
 		user_update_mirror();
 		user_update_repeat();
-		update_end_point(!mouse.right_down || mouse.right_press);
+		update_end_point(
+			!dragging_start_point || !mouse_moved,
+			dragging_start_point ? drag_ox : 0.0,
+			dragging_start_point ? drag_oy : 0.0);
 		
 		if(mouse.right_press)
 		{
+			dragging_start_point = true;
+			mouse_moved = false;
+			float mx, my;
+			script.transform(mouse.x, mouse.y, 22, layer, mx, my);
+			drag_ox = (x2 - mx);
+			drag_oy = (y2 - my);
 			start_dx = x1 - x2;
 			start_dy = y1 - y2;
 		}
-		else if(mouse.right_down)
+		
+		if(dragging_start_point)
 		{
 			x1 = x2 + start_dx;
 			y1 = y2 + start_dy;
 			recaclulate_props = true;
+			
+			if(!mouse.right_down)
+			{
+				dragging_start_point = false;
+			}
 		}
 		
 		if(recaclulate_props)
@@ -306,12 +331,13 @@ class PropLineTool : Tool
 		
 		if(script.input.key_check_pressed_gvb(GVB::Return))
 		{
+			mouse_moved = true;
+			state = PropLineToolState::Pending;
+			active = false;
 			script.show_info_popup(
 				'Enter : Place props\n' + 
 				'Escape: Cancel',
 				null , PopupPosition::Below);
-			state = PropLineToolState::Pending;
-			active = false;
 			return;
 		}
 		
@@ -370,7 +396,7 @@ class PropLineTool : Tool
 			}
 			else
 			{
-				update_start_point(true, drag_ox, drag_oy);
+				update_start_point(false, drag_ox, drag_oy);
 				x2 = x1 - start_dx;
 				y2 = y1 - start_dy;
 			}
@@ -497,7 +523,10 @@ class PropLineTool : Tool
 		
 		if(rotation_mode == PropLineRotationMode::Auto)
 		{
-			rotation = angle * RAD2DEG;
+			if(mouse_moved)
+			{
+				rotation = angle * RAD2DEG;
+			}
 			final_rotation = rotation + rotation_offset;
 		}
 		else
