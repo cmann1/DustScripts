@@ -539,7 +539,7 @@ class PropLineTool : Tool
 		
 		if(auto_spacing)
 		{
-			spacing += auto_spacing_adjustment + spacing_offset;
+			spacing += auto_spacing_adjustment * scale + spacing_offset;
 		}
 		
 		spacing = max(layer <= 5 ? spacing / script.g.layer_scale(layer) * 2 : spacing, 0.1);
