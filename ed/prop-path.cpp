@@ -4,6 +4,7 @@
 #include '../lib/drawing/common.cpp';
 #include '../lib/math/Bezier.cpp';
 #include '../lib/drawing/Sprite.cpp';
+#include '../lib/utils/RandomStream.cpp';
 
 class script
 {
@@ -23,6 +24,8 @@ class PropDef
 	[text] int sub_layer = 19;
 	[text] int end_layer = -1;
 	[text] int end_sub_layer = -1;
+	[text|tooltip='If set every second prop will use this sub layer.']
+	int alt_sub_layer = -1;
 	[text] int frame = 0;
 	[text] int palette = 0;
 	[text] float scale_x = 1;
@@ -59,18 +62,25 @@ class PropPath : trigger_base
 	scene@ g;
 	scripttrigger @self;
 	
-	[text] bool place = false;
+	[text|tooltip='Click to place the props in the scene.']
+	bool place = false;
 
-	[text] bool relative = true;
-	[text] bool randomise_constantly = false;
-	[text] bool hide_props = false;
-	[text] bool hide_overlays = false;
-	[text] bool smart_handles = true;
+	[text]
+	bool relative = true;
+	[text|tooltip='If true random properties will update every frame.']
+	bool randomise_constantly = false;
+	[text]
+	bool hide_props = false;
+	[text]
+	bool hide_overlays = false;
+	[text]
+	bool smart_handles = true;
 	[text] bool accurate = true;
 	[text] array<Bezier> curves;
 	[text] PropDef prop_def;
 	
 	Sprite spr;
+	RandomStream rng;
 	
 	int vertex_count = 0;
 	array<float> previous_curve_values;
@@ -82,7 +92,15 @@ class PropPath : trigger_base
 	int mouse_dragged_vertex_index = -1;
 	int mouse_over_vertex_index = -1;
 	
+	float mouse_x_prev, mouse_y_prev;
+	
+	float total_length;
+	array<PropPlacementData> props;
+	int prop_count;
+	
 	int t = 0;
+	
+	bool ignore_next_var_change;
 
 	PropPath()
 	{
@@ -111,6 +129,7 @@ class PropPath : trigger_base
 		}
 		
 		init_prop();
+		calculate_props();
 	}
 	
 	void init_prop()
@@ -125,102 +144,73 @@ class PropPath : trigger_base
 	
 	void editor_var_changed(var_info@ info)
 	{
+		if(ignore_next_var_change)
+			return;
+		
+		bool requires_update = true;
+		
 		const string base_name = info.get_name(0);
-		if(base_name == 'prop_def')
+		const string name = info.name;
+		
+		if(base_name == 'place')
+		{
+			place_props();
+			return;
+		}
+		
+		if(base_name == 'curves')
+		{
+			if(name == 'curves')
+			{
+				requires_update = false;
+			}
+			else if(relative)
+			{
+				// Prevent infinite recursion.
+				ignore_next_var_change = true;
+				
+				const int i = info.get_index(0);
+				Bezier@ curve = @curves[i];
+				
+				if(name == 'x1')
+					curve.x1 -= self.x();
+				else if(name == 'y1')
+					curve.y1 -= self.y();
+				else if(name == 'x2')
+					curve.x2 -= self.x();
+				else if(name == 'y2')
+					curve.y2 -= self.y();
+				else if(name == 'x3')
+					curve.x3 -= self.x();
+				else if(name == 'y3')
+					curve.y3 -= self.y();
+				else if(name == 'x4')
+					curve.x4 -= self.x();
+				else if(name == 'y4')
+					curve.y4 -= self.y();
+				
+				ignore_next_var_change = false;
+			}
+		}
+		else if(base_name == 'prop_def')
 		{
 			init_prop();
 		}
-		else if(base_name == 'place')
+		else if(base_name == 'prop_def')
 		{
-			place_props();
+			init_prop();
+		}
+		
+		if(requires_update)
+		{
+			calculate_props();
 		}
 	}
 	
-	void place_props()
-	{
-		const int curve_count = int(curves.length());
-		
-		if(curve_count > 0)
-		{
-			if(!randomise_constantly)
-			{
-				srand(0);
-			}
-			
-			float tx = self.x();
-			float ty = self.y();
-			
-			float total_length = 0;
-			for(int i = 0; i < curve_count; i++)
-				total_length += curves[i].length;
-			
-			const float spacing = prop_def.spacing;
-			float d = spacing;
-			float total_d = d;
-			int curve_index = 0;
-			Bezier@ curve = @curves[curve_index++];
-			float x1 = curve.x1;
-			float y1 = curve.y1;
-			float x, y;
-
-			const float scale_sx = prop_def.scale_sx;
-			const float scale_sy = prop_def.scale_sy;
-			float d_scale_x = prop_def.scale_ex - scale_sx;
-			float d_scale_y = prop_def.scale_ey - scale_sy;
-			
-			int layer_start, layer_end, layer_count;
-			prop_def.calculate_layer_ranges(layer_start, layer_end, layer_count);
-			float layer_current = layer_start;
-			
-			while(true)
-			{
-				const float t = total_d / total_length;
-				
-				const float x2 = curve.mx(d);
-				const float y2 = curve.my(d);
-				const float angle = (atan2(y2 - y1, x2 - x1) * RAD2DEG) + prop_def.rotation + rand_range(-prop_def.rotation_rand, prop_def.rotation_rand);
-				const float scale_x = prop_def.scale_x * (scale_sx + d_scale_x * t);
-				const float scale_y = prop_def.scale_y * (scale_sy + d_scale_y * t);
-				
-				float base_t = (total_d - spacing) / (total_length - spacing);
-				int current_layer, current_sub_layer;
-				prop_def.calculate_layers(layer_start, layer_count, base_t, current_layer, current_sub_layer);
-				
-				spr.real_position(x1, y1, angle, x, y, scale_x, scale_y);
-				prop@ p = create_prop();
-				p.x(relative ? tx + x : x);
-				p.y(relative ? ty + y : y);
-				p.rotation(angle);
-				p.scale_x(scale_x);
-				p.scale_y(scale_y);
-				p.prop_set(prop_def.prop_set);
-				p.prop_group(prop_def.prop_group);
-				p.prop_index(prop_def.prop_index);
-				p.palette(prop_def.palette);
-				p.layer(current_layer);
-				p.sub_layer(current_sub_layer);
-				g.add_prop(p);
-				
-				d += spacing;
-				total_d += spacing;
-				x1 = x2;
-				y1 = y2;
-				if(d > curve.length)
-				{
-					if(curve_index >= curve_count)
-						break;
-						
-					d -= curve.length;
-					@curve = @curves[curve_index++];
-				}
-			}
-		}
-		
-		place_prev = place;
-	}
-
 	void editor_step()
 	{
+		bool requires_update = false;
+		
 		const int curve_count = curves.length();
 
 		if(vertex_count != curve_count * 8)
@@ -230,6 +220,7 @@ class PropPath : trigger_base
 			
 			// Initialise new curves to something reasonable
 			if(curve_count > count_prev)
+			{
 				for(int i = count_prev; i < curve_count; i++)
 				{
 					const int vi = i * 8;
@@ -244,7 +235,11 @@ class PropPath : trigger_base
 					previous_curve_values[vi + 5] = curve.y3 = curve.y1 - 50;
 					previous_curve_values[vi + 6] = curve.x4 = curve.x1 + 200;
 					previous_curve_values[vi + 7] = curve.y4 = curve.y1;
+					curve.update();
 				}
+			}
+			
+			requires_update = true;
 		}
 		
 		float tx = relative ? self.x() : 0;
@@ -254,6 +249,7 @@ class PropPath : trigger_base
 		const bool middle_mouse_down = g.mouse_state(0) & 16 != 0;
 		const float mouse_x = g.mouse_x_world(0, 22) - tx;
 		const float mouse_y = g.mouse_y_world(0, 22) - ty;
+		const bool mouse_moved = mouse_x != mouse_x_prev || mouse_y != mouse_y_prev;
 		
 		bool smart_handles = this.smart_handles;
 
@@ -312,7 +308,7 @@ class PropPath : trigger_base
 				mouse_dragged_vertex_index = -1;
 			}
 			
-			if(mouse_dragged_vertex_index != -1)
+			if(mouse_moved && mouse_dragged_vertex_index != -1)
 			{
 				const int dragged_handle = mouse_dragged_vertex_index % 8;
 				Bezier@ curve = @curves[mouse_dragged_vertex_index / 8];
@@ -325,6 +321,8 @@ class PropPath : trigger_base
 				{ curve.x3 = mouse_x; curve.y3 = mouse_y; }
 				else if(dragged_handle == 6)
 				{ curve.x4 = mouse_x; curve.y4 = mouse_y; }
+				
+				curve.requires_update = true;
 			}
 		}
 		else if(mouse_dragged_vertex_index != -1)
@@ -336,7 +334,7 @@ class PropPath : trigger_base
 		dragged_vertex_dx = 0;
 		dragged_vertex_dy = 0;
 		
-		int pc_index = 0; // previous_curve_values_index
+		int pc_index = 0;
 		for(int i = 0; i < curve_count; i++)
 		{
 			Bezier@ curve = @curves[i];
@@ -506,10 +504,21 @@ class PropPath : trigger_base
 		{
 			Bezier@ curve = @curves[i];
 			if(curve.requires_update)
+			{
 				curve.update();
+				requires_update = true;
+			}
+		}
+		
+		if(requires_update || randomise_constantly)
+		{
+			calculate_props();
 		}
 		
 		t++;
+		
+		mouse_x_prev = mouse_x;
+		mouse_y_prev = mouse_y;
 	}
 	
 	void step()
@@ -527,7 +536,7 @@ class PropPath : trigger_base
 		float y = relative ? self.y() : 0;
 		
 		float total_length = 0;
-		const int layer = 22; // prop_def.layer;
+		const int layer = 22;
 		
 		if(mouse_over_vertex_index != -1 || mouse_dragged_vertex_index != -1)
 		{
@@ -581,118 +590,19 @@ class PropPath : trigger_base
 			draw_dot(g, layer, 24, x + curve.x4, y + curve.y4, 5, 0xFFFF0000, 0);
 		}
 		
-		if(curve_count > 0 && !hide_props)
+		if(!hide_props)
 		{
-			if(!randomise_constantly)
+			for(int i = 0; i < prop_count; i++)
 			{
-				srand(0);
-			}
-
-			const float spacing = prop_def.spacing;
-			float d = spacing;
-			float total_d = d;
-			int curve_index = 0;
-			Bezier@ curve = @curves[curve_index++];
-			float x1 = curve.x1;
-			float y1 = curve.y1;
-			
-			const float scale_sx = prop_def.scale_sx;
-			const float scale_sy = prop_def.scale_sy;
-			float d_scale_x = prop_def.scale_ex - scale_sx;
-			float d_scale_y = prop_def.scale_ey - scale_sy;
-			
-			int layer_start, layer_end, layer_count;
-			prop_def.calculate_layer_ranges(layer_start, layer_end, layer_count);
-			float layer_current = layer_start;
-			
-//			if(is_selected)
-//				puts('--------------');
-//			
-			while(true)
-			{
-//				float current_d = d;
-				float t = total_d / total_length;
-				float x2, y2;
-				float dx, dy;
-				float dist, diff;
-				float prev_diff = 0;
-				int flip_count = 0;
-					
-//				if(is_selected)
-//					puts('  ---------- '  + t + ', ' + d + ' / ' + curve.length);
+				PropPlacementData@ data = @props[i];
 				
-				do
-				{
-					x2 = curve.mx(d);
-					y2 = curve.my(d);
-					dx = x2 - x1;
-					dy = y2 - y1;
-					dist = sqrt(dx * dx + dy * dy);
-					diff = spacing - dist;
-					
-					if(!accurate)
-					{
-						break;
-					}
-					
-					if(prev_diff == 0)
-					{
-						prev_diff = diff * 0.5;
-					}
-					
-//					if(is_selected)
-//						puts('    ' +dist+'  ' + prev_diff+' > '+diff);
-					
-					d += diff;
-					
-					if(d >= curve.length)
-					{
-						x2 = curve.x4;
-						y2 = curve.y4;
-						dist = curve.length - d;
-						break;
-					}
-					
-					if(diff < 0 && prev_diff > 0 || diff > 0 && prev_diff < 0)
-					{
-						if(++flip_count > 4)
-							break;
-					}
-					
-					if(flip_count > 0 && abs(diff) >= abs(prev_diff))
-						break;
-					
-					prev_diff = diff;
-				}
-				while(abs(diff) > 1);
-				
-				float angle = (atan2(dy, dx) * RAD2DEG) + prop_def.rotation + rand_range(-prop_def.rotation_rand, prop_def.rotation_rand);
-				
-				float base_t = (total_d - spacing) / (total_length - spacing);
-				int current_layer, current_sub_layer;
-				prop_def.calculate_layers(layer_start, layer_count, base_t, current_layer, current_sub_layer);
-				
-				spr.draw(current_layer, current_sub_layer, prop_def.frame, prop_def.palette,
-					x + x1, y + y1,
-					angle,
-					prop_def.scale_x * (scale_sx + d_scale_x * t),
-					prop_def.scale_y * (scale_sy + d_scale_y * t),
-					0xFFFFFFFF
+				spr.draw(data.layer, data.sub_layer, prop_def.frame, prop_def.palette,
+					x + data.x, y + data.y,
+					data.rotation,
+					prop_def.scale_x * data.scale_x,
+					prop_def.scale_y * data.scale_y,
+					0xffffffff
 				);
-				
-				d += dist;
-				total_d += dist;
-				x1 = x2;
-				y1 = y2;
-				
-				if(d >= curve.length || dist <= 0)
-				{
-					if(curve_index >= curve_count)
-						break;
-						
-					d -= curve.length;
-					@curve = @curves[curve_index++];
-				}
 			}
 		}
 	}
@@ -701,5 +611,197 @@ class PropPath : trigger_base
 	{
 		editor_draw(sub_frame);
 	}
+	
+	private void calculate_props()
+	{
+		if(curves.length == 0)
+		{
+			prop_count = 0;
+			return;
+		}
+		
+		if(!randomise_constantly)
+		{
+			rng.seed = 0;
+		}
+		
+		float x = relative ? self.x() : 0;
+		float y = relative ? self.y() : 0;
+		
+		total_length = 0;
+		
+		for(uint i = 0; i < curves.length; i++)
+		{
+			total_length += curves[i].length;
+		}
+		
+		int props_list_size = int(total_length / prop_def.spacing) * 2;
+		if(props_list_size < 1)
+		{
+			props_list_size = 1;
+		}
+		if(props_list_size > int(props.length))
+		{
+			props.resize(props_list_size);
+		}
+		props_list_size = props.length;
+		prop_count = 0;
+		
+		const float spacing = prop_def.spacing;
+		float d = spacing;
+		float total_d = d;
+		uint curve_index = 0;
+		Bezier@ curve = @curves[curve_index++];
+		float x1 = curve.x1;
+		float y1 = curve.y1;
+		int prop_index = 0;
+		
+		const float scale_sx = prop_def.scale_sx;
+		const float scale_sy = prop_def.scale_sy;
+		float d_scale_x = prop_def.scale_ex - scale_sx;
+		float d_scale_y = prop_def.scale_ey - scale_sy;
+		
+		int layer_start, layer_end, layer_count;
+		prop_def.calculate_layer_ranges(layer_start, layer_end, layer_count);
+		float layer_current = layer_start;
+		
+		while(true)
+		{
+			float t = total_d / total_length;
+			float x2, y2;
+			float dx, dy;
+			float dist, diff;
+			float prev_diff = 0;
+			int flip_count = 0;
+			
+			do
+			{
+				x2 = curve.mx(d);
+				y2 = curve.my(d);
+				dx = x2 - x1;
+				dy = y2 - y1;
+				dist = sqrt(dx * dx + dy * dy);
+				diff = spacing - dist;
+				
+				if(!accurate)
+					break;
+				
+				if(prev_diff == 0)
+				{
+					prev_diff = diff * 0.5;
+				}
+				
+				d += diff;
+				
+				if(d >= curve.length)
+				{
+					x2 = curve.x4;
+					y2 = curve.y4;
+					dist = curve.length - d;
+					break;
+				}
+				
+				if(diff < 0 && prev_diff > 0 || diff > 0 && prev_diff < 0)
+				{
+					if(++flip_count > 4)
+						break;
+				}
+				
+				if(flip_count > 0 && abs(diff) >= abs(prev_diff))
+					break;
+				
+				prev_diff = diff;
+			}
+			while(abs(diff) > 1);
+			
+			float angle = (atan2(dy, dx) * RAD2DEG) + prop_def.rotation + rng.rangef(-prop_def.rotation_rand, prop_def.rotation_rand);
+			
+			float base_t = (total_d - spacing) / (total_length - spacing);
+			int current_layer, current_sub_layer;
+			prop_def.calculate_layers(layer_start, layer_count, base_t, current_layer, current_sub_layer);
+			
+			if(prop_def.alt_sub_layer != -1 && prop_index % 2 == 1)
+			{
+				current_sub_layer = prop_def.alt_sub_layer;
+			}
+			
+			if(prop_count >= props_list_size)
+			{
+				props.resize(props_list_size *= 2);
+			}
+			
+			PropPlacementData@ data = @props[prop_count++];
+			data.layer = current_layer;
+			data.sub_layer = current_sub_layer;
+			data.x = x1;
+			data.y = y1;
+			data.rotation = angle;
+			data.scale_x = (scale_sx + d_scale_x * t);
+			data.scale_y = (scale_sy + d_scale_y * t);
+			//spr.draw(current_layer, current_sub_layer, prop_def.frame, prop_def.palette,
+			//	x + x1, y + y1,
+			//	angle,
+			//	prop_def.scale_x * (scale_sx + d_scale_x * t),
+			//	prop_def.scale_y * (scale_sy + d_scale_y * t),
+			//	0xFFFFFFFF
+			//);
+			
+			d += dist;
+			total_d += dist;
+			x1 = x2;
+			y1 = y2;
+			
+			if(d >= curve.length || dist <= 0)
+			{
+				if(curve_index >= curves.length)
+					break;
+					
+				d -= curve.length;
+				@curve = @curves[curve_index++];
+			}
+			
+			prop_index++;
+		}
+	}
+	
+	private void place_props()
+	{
+		float tx = relative ? self.x() : 0;
+		float ty = relative ? self.y() : 0;
+		
+		for(int i = 0; i < prop_count; i++)
+		{
+			PropPlacementData@ data = @props[i];
+			
+			const float scale_x = prop_def.scale_x * data.scale_x;
+			const float scale_y = prop_def.scale_y * data.scale_y;
+			float px, py;
+			spr.real_position(data.x, data.y, data.rotation, px, py, scale_x, scale_y);
+			
+			prop@ p = create_prop();
+			p.x(tx + px);
+			p.y(ty + py);
+			p.rotation(data.rotation);
+			p.scale_x(scale_x);
+			p.scale_y(scale_y);
+			p.prop_set(prop_def.prop_set);
+			p.prop_group(prop_def.prop_group);
+			p.prop_index(prop_def.prop_index);
+			p.palette(prop_def.palette);
+			p.layer(data.layer);
+			p.sub_layer(data.sub_layer);
+			g.add_prop(p);
+		}
+	}
+	
+}
 
+class PropPlacementData
+{
+	
+	int layer, sub_layer;
+	float x, y;
+	float rotation;
+	float scale_x, scale_y;
+	
 }

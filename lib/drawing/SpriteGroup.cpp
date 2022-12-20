@@ -147,7 +147,7 @@ class SpriteGroup
 	void draw(
 		float x, float y, float rotation, float scale,
 		int layer = 0, int sub_layer = 0, float alpha=1
-	)
+	) const
 	{
 		const float cs = cos(rotation * DEG2RAD);
 		const float sn = sin(rotation * DEG2RAD);
@@ -160,9 +160,9 @@ class SpriteGroup
 		if(has_alpha)
 			alpha_colour = uint(alpha * 255) << 24;
 		
-		for(int i = 0, count = int(sprite_list.size()); i < count; i++)
+		for(uint i = 0, count = sprite_list.size(); i < count; i++)
 		{
-			SpriteGroupSprite@ spr_group = @sprite_list[i];
+			const SpriteGroupSprite@ spr_group = @sprite_list[i];
 
 			const float px = spr_group.x * cs - spr_group.y * sn;
 			const float py = spr_group.y * cs + spr_group.x * sn;
@@ -207,7 +207,7 @@ class SpriteGroup
 		}
 	}
 	
-	SpriteRectangle get_rectangle(float rotation, float scale)
+	SpriteRectangle get_rectangle(float rotation, float scale) const
 	{
 		const float cs = cos(rotation * DEG2RAD);
 		const float sn = sin(rotation * DEG2RAD);
@@ -222,7 +222,7 @@ class SpriteGroup
 
 		for(int i = 0; i < count; i++)
 		{
-			SpriteGroupSprite@ spr_group = @sprite_list[i];
+			const SpriteGroupSprite@ spr_group = @sprite_list[i];
 
 			const float px = spr_group.x * cs - spr_group.y * sn;
 			const float py = spr_group.y * cs + spr_group.x * sn;
