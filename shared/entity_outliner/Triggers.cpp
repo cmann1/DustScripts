@@ -6,7 +6,7 @@ class EntityOutlinerReset : trigger_base, EnterExitTrigger
 	
 	scripttrigger@ self;
 	[persist] bool only_once = false;
-	[persist|tooltip:'Will smoothly transition from the current settings\nto these settings over the given number of frames']
+	[persist|tooltip:'Will smoothly transition from the current settings\nto these settings over the given number of frames.']
 	float transition = 0;
 	
 	void init(script@ s, scripttrigger@ self)
@@ -85,12 +85,21 @@ class EntityOutlinerSource : trigger_base, EnterExitTrigger
 {
 	
 	scripttrigger@ self;
-	[persist] int sub_layer = 9;
+	[persist|tooltip:'The inner radius/distance at which the trigger\'s effect will be at 100%.']
+	float min_radius = 48;
+	[persist|tooltip:'If set, this will render an additional outline on this sublayer,\notherwise the global outline will be overriden.']
+	int sub_layer = -1;
 	[colour,alpha] uint colour = 0xffffffff;
-	[persist] float offset_min = 2;
-	[persist] float offset_max = 3;
-	[persist] float scale = 1;
-	[persist] float min_radius = 48;
+	[persist|tooltip:'The outline offset at the edges of the trigger.\nCan be negative.']
+	float offset_min = 2;
+	[persist|tooltip:'The outline offset at the centre of the trigger.']
+	float offset_max = 3;
+	[persist]
+	float scale = 1;
+	[persist|tooltip:'Toggles whether the global outline should be faded out\nas this light source outline is faded in.']
+	bool fade_global = true;
+	
+	message@ msg = create_message();
 	
 	void init(script@ s, scripttrigger@ self)
 	{
@@ -120,13 +129,14 @@ class EntityOutlinerSource : trigger_base, EnterExitTrigger
 			const float offset = lerp(offset_min, offset_max, t);
 			const float angle = atan2(y - my, x - mx);
 			
-			message@ msg = create_message();
 			msg.set_int('id', c.id());
 			msg.set_int('sub_layer', sub_layer);
 			msg.set_int('colour', colour);
 			msg.set_float('offset_x', cos(angle) * offset);
 			msg.set_float('offset_y', sin(angle) * offset);
 			msg.set_float('scale', scale);
+			msg.set_int('closest', 1);
+			msg.set_int('fade_global', fade_global ? 1 : 0);
 			msg.set_float('t', t);
 			broadcast_message('EntityOutlinerSource', msg);
 		}

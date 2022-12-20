@@ -242,7 +242,7 @@ class EntityOutliner : callback_base
 			
 			if(data.t > 0)
 			{
-				if(sublayer1 != data.sub_layer)
+				if(data.sub_layer >= 0)
 				{
 					spr.draw_world(
 						layer1, data.sub_layer,
@@ -250,7 +250,11 @@ class EntityOutliner : callback_base
 						x + data.offset_x * _cam_scale, y + data.offset_y * _cam_scale,
 						rotation, c.scale() * data.scale * face, c.scale() * data.scale,
 						multiply_alpha(data.colour, data.t));
-					colour1 = multiply_alpha(colour1, 1 - data.t);
+					
+					if(data.fade_global)
+					{
+						colour1 = multiply_alpha(colour1, 1 - data.t);
+					}
 				}
 				else
 				{
@@ -346,12 +350,19 @@ class EntityOutliner : callback_base
 				if(data.id != c_id)
 					continue;
 				
-				data.sub_layer = msg.get_int('sub_layer');
-				data.colour = uint(msg.get_int('colour'));
-				data.offset_x = msg.get_float('offset_x');
-				data.offset_y = msg.get_float('offset_y');
-				data.scale = msg.get_float('scale');
-				data.t = msg.get_float('t');
+				// If true, these source settings will only be used if the are stronger/closer than other sources.
+				const bool closest = msg.get_int('closest') == 1;
+				const float t = msg.get_float('t');
+				if(!closest || t >= data.t)
+				{
+					data.sub_layer = msg.get_int('sub_layer');
+					data.colour = uint(msg.get_int('colour'));
+					data.offset_x = msg.get_float('offset_x');
+					data.offset_y = msg.get_float('offset_y');
+					data.scale = msg.get_float('scale');
+					data.fade_global = msg.get_int('fade_global') == 1;
+					data.t = t;
+				}
 				break;
 			}
 			return;
@@ -435,6 +446,7 @@ class ControllableOutlineData
 	float offset_x, offset_y;
 	float scale;
 	uint colour;
+	bool fade_global;
 	float t;
 	
 	void reset(controllable@ c)

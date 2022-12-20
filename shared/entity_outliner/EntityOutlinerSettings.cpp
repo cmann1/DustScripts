@@ -15,7 +15,8 @@ class EntityOutlinerSettings
 	
 	[text] int player_layer1 = 18;
 	[text] int player_sublayer1 = 9;
-	[text|tooltip:'Settings for the second sprite when DrawDouble is on.\nLeave at -1 to use the same value as the first'] int player_layer2 = -1;
+	[text|tooltip:'Settings for the second sprite when DrawDouble is on.\nLeave at -1 to use the same value as the first']
+	int player_layer2 = -1;
 	[text] int player_sublayer2 = -1;
 	
 	[text] int enemy_layer1 = 18;
