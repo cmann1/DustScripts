@@ -104,6 +104,10 @@ class EntityOutlinerSource : trigger_base, EnterExitTrigger
 	void init(script@ s, scripttrigger@ self)
 	{
 		@this.self = self;
+		
+		self.editor_colour_circle(0x66beb382);
+		self.editor_colour_inactive(0xaabeb382);
+		self.editor_colour_active(0xfff5ebba);
 	}
 	
 	void activate(controllable@ c)
@@ -115,9 +119,9 @@ class EntityOutlinerSource : trigger_base, EnterExitTrigger
 	{
 		step_enter_exit();
 		
-		const float radius = self.radius();
-		const float x = self.x();
-		const float y = self.y();
+		const float radius = get_source_radius();
+		const float x = get_source_centre_x();
+		const float y = get_source_centre_y();
 		
 		for(int i = entities_enter_exit_list_count - 1; i >= 0 ; i--)
 		{
@@ -140,6 +144,21 @@ class EntityOutlinerSource : trigger_base, EnterExitTrigger
 			msg.set_float('t', t);
 			broadcast_message('EntityOutlinerSource', msg);
 		}
+	}
+	
+	protected float get_source_radius()
+	{
+		return self.radius();
+	}
+	
+	protected float get_source_centre_x()
+	{
+		return self.x();
+	}
+	
+	protected float get_source_centre_y()
+	{
+		return self.y();
 	}
 	
 }
