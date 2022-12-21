@@ -64,14 +64,22 @@ class TileBaseTrigger : trigger_base
 			for(int y = y1; y <= y2; y++)
 			{
 				tileinfo@ tile = g.get_tile(x, y, layer);
-				this.updateTile(x, y, tile);
+				this.update_tile(x, y, tile);
 			}
 		}
 	}
 	
-	void updateTile(int x, int y, tileinfo@ tile)
+	void update_tile(int x, int y, tileinfo@ tile)
 	{
 		
+	}
+	
+	protected bool check_filter(tileinfo@ tile, const int filter_set, int filter_tile, const int filter_palette)
+	{
+		return
+			(filter_set == -1 || filter_set == int(tile.sprite_set())) &&
+			(filter_tile == -1 || filter_tile == int(tile.sprite_tile())) &&
+			(filter_palette == -1 || filter_palette == int(tile.sprite_palette()));
 	}
 	
 	void editor_step()
@@ -104,7 +112,7 @@ class CopyTileEdges: TileBaseTrigger
 	[text] int sprite_tile = 8;
 	[text] int sprite_palette = 1;
 	
-	void updateTile(int x, int y, tileinfo@ tile)
+	void update_tile(int x, int y, tileinfo@ tile)
 	{
 		if(!tile.solid())
 			return;
@@ -131,7 +139,11 @@ class MoveTiles: TileBaseTrigger
 	[text] bool ignore_dustblocks = false;
 	[text] int target_layer = 20;
 	
-	void updateTile(int x, int y, tileinfo@ tile)
+	[text] int filter_set = -1;
+	[text] int filter_tile = -1;
+	[text] int filter_palette = -1;
+	
+	void update_tile(int x, int y, tileinfo@ tile)
 	{
 		if(!tile.solid())
 			return;
@@ -139,6 +151,8 @@ class MoveTiles: TileBaseTrigger
 		if(ignore_dustblocks && tile.is_dustblock())
 			return;
 		
+		if(!check_filter(tile, filter_set, filter_tile, filter_palette))
+			return;
 		g.set_tile(x, y, target_layer, tile, false);
 		
 		if(!copy)
@@ -163,7 +177,7 @@ class SetTileSprites: TileBaseTrigger
 	[text] int target_tile = -1;
 	[text] int target_palette = -1;
 	
-	void updateTile(int x, int y, tileinfo@ tile)
+	void update_tile(int x, int y, tileinfo@ tile)
 	{
 		if(!tile.solid())
 			return;
@@ -171,23 +185,19 @@ class SetTileSprites: TileBaseTrigger
 		if(ignore_dustblocks && tile.is_dustblock())
 			return;
 		
-		if(
-			(filter_set == -1 || filter_set == int(tile.sprite_set())) &&
-			(filter_tile == -1 || filter_tile == int(tile.sprite_tile())) &&
-			(filter_palette == -1 || filter_palette == int(tile.sprite_palette()))
-		)
-		{
-			if(target_set != -1)
-				tile.sprite_set(target_set);
-				
-			if(target_tile != -1)
-				tile.sprite_tile(target_tile);
-				
-			if(target_palette != -1)
-				tile.sprite_palette(target_palette);
+		if(!check_filter(tile, filter_set, filter_tile, filter_palette))
+			return;
+		
+		if(target_set != -1)
+			tile.sprite_set(target_set);
 			
-			g.set_tile(x, y, layer, tile, false);
-		}
+		if(target_tile != -1)
+			tile.sprite_tile(target_tile);
+			
+		if(target_palette != -1)
+			tile.sprite_palette(target_palette);
+		
+		g.set_tile(x, y, layer, tile, false);
 	}
 	
 }
@@ -195,7 +205,7 @@ class SetTileSprites: TileBaseTrigger
 class MakeTilesInvisible: TileBaseTrigger
 {
 	
-	void updateTile(int x, int y, tileinfo@ tile)
+	void update_tile(int x, int y, tileinfo@ tile)
 	{
 		if(!tile.solid()) return;
 		
