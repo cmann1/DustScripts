@@ -28,6 +28,9 @@ class EdgeBrushTool : Tool
 	
 	/// -1 = Off, 1 = On, 0 = None
 	private int draw_mode = 0;
+	/// In precision mode, holding shift before clicking will lock the edge mask to only the current closest edge
+	/// until the mouse is released again.
+	private uint locked_edge_mask;
 	
 	private dictionary tile_chunks;
 	private int tile_cache_layer = -1;
@@ -100,6 +103,7 @@ class EdgeBrushTool : Tool
 			return;
 		
 		mode = new_mode;
+		locked_edge_mask = 0;
 		
 		string mode_name;
 		switch(mode)
@@ -524,7 +528,12 @@ class EdgeBrushTool : Tool
 	
 	private void precision_state_idle()
 	{
-		if(render_mode == Always && script.mouse_in_scene)
+		if(!script.shift.down && locked_edge_mask != 0)
+		{
+			locked_edge_mask = 0;
+		}
+		
+		if((render_mode == Always || script.shift.down) && script.mouse_in_scene)
 		{
 			do_precision_mode(0);
 		}
@@ -732,7 +741,7 @@ class EdgeBrushTool : Tool
 		if(!is_layer_valid)
 			return;
 		
-		const bool render_edges = render_mode == Always || render_mode == DrawOnly && update_edges != 0;
+		const bool render_edges = (render_mode == Always || script.shift.down) || render_mode == DrawOnly && update_edges != 0;
 		
 		float mx, my;
 		script.mouse_layer(layer, mx, my);
@@ -759,7 +768,7 @@ class EdgeBrushTool : Tool
 		{
 			for(int tx = tx1; tx <= tx2; tx++)
 			{
-				data.init(script.g, tx, ty, layer, edge_mask, check_internal_sprites);
+				data.init(script.g, tx, ty, layer, locked_edge_mask != 0 ? locked_edge_mask : edge_mask, check_internal_sprites);
 				data.draw_edges = 0;
 				
 				if(!data.solid)
@@ -824,6 +833,17 @@ class EdgeBrushTool : Tool
 			return;
 		
 		closest_data.select_edge(closest_edge);
+		
+		if(script.shift.down && locked_edge_mask == 0)
+		{
+			switch(closest_edge)
+			{
+				case TileEdge::Top: locked_edge_mask = TopBit; break;
+				case TileEdge::Bottom: locked_edge_mask = BottomBit; break;
+				case TileEdge::Left: locked_edge_mask = LeftBit; break;
+				case TileEdge::Right: locked_edge_mask = RightBit; break;
+			}
+		}
 		
 		if(
 			update_edges != 0 &&

@@ -147,12 +147,13 @@ class MoveTiles: TileBaseTrigger
 	{
 		if(!tile.solid())
 			return;
-			
+		
 		if(ignore_dustblocks && tile.is_dustblock())
 			return;
 		
 		if(!check_filter(tile, filter_set, filter_tile, filter_palette))
 			return;
+		
 		g.set_tile(x, y, target_layer, tile, false);
 		
 		if(!copy)
