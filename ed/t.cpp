@@ -1,4 +1,6 @@
 #include '../lib/std.cpp';
+#include '../lib/tiles/common.cpp';
+#include '../lib/tiles/TileEdge.cpp';
 
 class script
 {
@@ -25,9 +27,9 @@ class script
 class TileBaseTrigger : trigger_base
 {
 	
-	[text] bool run = false;
-	[text] bool run_continuous = false;
-	[text] int layer = 19;
+	[persist] bool run = false;
+	[persist] bool run_continuous = false;
+	[persist] int layer = 19;
 	
 	bool run_prev = false;
 	
@@ -36,6 +38,9 @@ class TileBaseTrigger : trigger_base
 	
 	scene@ g;
 	scripttrigger @self;
+	
+	protected bool run_tile = true;
+	protected bool run_filth = false;
 	
 	TileBaseTrigger()
 	{
@@ -63,13 +68,34 @@ class TileBaseTrigger : trigger_base
 		{
 			for(int y = y1; y <= y2; y++)
 			{
-				tileinfo@ tile = g.get_tile(x, y, layer);
-				this.update_tile(x, y, tile);
+				tileinfo@ tile;
+				
+				if(run_tile)
+				{
+					@tile = g.get_tile(x, y, layer);
+					this.update_tile(x, y, tile);
+				}
+				
+				if(run_filth)
+				{
+					if(@tile == null || layer != 19)
+					{
+						@tile = g.get_tile(x, y, 19);
+					}
+					
+					tilefilth@ filth = g.get_tile_filth(x, y);
+					this.update_filth(x, y, tile, filth);
+				}
 			}
 		}
 	}
 	
 	void update_tile(int x, int y, tileinfo@ tile)
+	{
+		
+	}
+	
+	void update_filth(int x, int y, tileinfo@ tile, tilefilth@ filth)
 	{
 		
 	}
@@ -86,7 +112,7 @@ class TileBaseTrigger : trigger_base
 	{
 		if(run_prev != run or run_continuous)
 		{
-			if(run_continuous)
+			if(run_continuous && run_prev == run)
 			{
 				if(prev_x == self.x() and prev_y == self.y())
 					return;
@@ -106,11 +132,11 @@ class TileBaseTrigger : trigger_base
 class CopyTileEdges: TileBaseTrigger
 {
 	
-	[text] bool ignore_dustblocks = false;
-	[text] int target_layer = 17;
-	[text] int sprite_set = 2;
-	[text] int sprite_tile = 8;
-	[text] int sprite_palette = 1;
+	[persist] bool ignore_dustblocks = false;
+	[persist] int target_layer = 17;
+	[persist] int sprite_set = 2;
+	[persist] int sprite_tile = 8;
+	[persist] int sprite_palette = 1;
 	
 	void update_tile(int x, int y, tileinfo@ tile)
 	{
@@ -135,13 +161,13 @@ class CopyTileEdges: TileBaseTrigger
 class MoveTiles: TileBaseTrigger
 {
 	
-	[text] bool copy = false;
-	[text] bool ignore_dustblocks = false;
-	[text] int target_layer = 20;
+	[persist] bool copy = false;
+	[persist] bool ignore_dustblocks = false;
+	[persist] int target_layer = 20;
 	
-	[text] int filter_set = -1;
-	[text] int filter_tile = -1;
-	[text] int filter_palette = -1;
+	[persist] int filter_set = -1;
+	[persist] int filter_tile = -1;
+	[persist] int filter_palette = -1;
 	
 	void update_tile(int x, int y, tileinfo@ tile)
 	{
@@ -168,15 +194,15 @@ class MoveTiles: TileBaseTrigger
 class SetTileSprites: TileBaseTrigger
 {
 	
-	[text] bool ignore_dustblocks = false;
+	[persist] bool ignore_dustblocks = false;
 	
-	[text] int filter_set = -1;
-	[text] int filter_tile = -1;
-	[text] int filter_palette = -1;
+	[persist] int filter_set = -1;
+	[persist] int filter_tile = -1;
+	[persist] int filter_palette = -1;
 	
-	[text] int target_set = -1;
-	[text] int target_tile = -1;
-	[text] int target_palette = -1;
+	[persist] int target_set = -1;
+	[persist] int target_tile = -1;
+	[persist] int target_palette = -1;
 	
 	void update_tile(int x, int y, tileinfo@ tile)
 	{
@@ -208,13 +234,160 @@ class MakeTilesInvisible: TileBaseTrigger
 	
 	void update_tile(int x, int y, tileinfo@ tile)
 	{
-		if(!tile.solid()) return;
+		if(!tile.solid())
+			return;
 		
 		tile.sprite_set(0);
 		tile.sprite_tile(1);
 		tile.sprite_palette(0);
 		
 		g.set_tile(x, y, layer, tile, false);
+	}
+	
+}
+
+class SetFilth: TileBaseTrigger
+{
+	
+	[persist] bool dust = true;
+	[persist] bool leaves;
+	[persist] bool trash;
+	[persist] bool slime;
+	[persist] bool polygons;
+	[persist] bool spikes;
+	[persist] bool thorns;
+	[persist] bool cones;
+	[persist] bool wires;
+	[persist] bool virtual_spikes;
+	[persist] bool toggle_all;
+	[persist] bool toggle_filth;
+	[persist] bool toggle_spikes;
+	[option,0:Clear,1:Dust,2:Leaves,3:Trash,4:Slime,5:Polygons,9:Spikes,10:Thorns,11:Cones,12:Wires,13:Virtual Spikes] int new_type;
+	
+	private uint AllFilth = 62;
+	private uint AllSpikes = 15872;
+	private uint type_mask;
+	
+	SetFilth()
+	{
+		super();
+		
+		run_tile = false;
+		run_filth = true;
+	}
+	
+	void init(script@ s, scripttrigger@ self)
+	{
+		TileBaseTrigger::init(s, self);
+		update_type_mask();
+	}
+	
+	void editor_var_changed(var_info@ info)
+	{
+		const string name = info.get_name(0);
+		
+		if(name == 'toggle_all')
+		{
+			const bool toggle = type_mask == 0;
+			dust = toggle;
+			leaves = toggle;
+			trash = toggle;
+			slime = toggle;
+			polygons = toggle;
+			spikes = toggle;
+			thorns = toggle;
+			cones = toggle;
+			wires = toggle;
+			virtual_spikes = toggle;
+			self.editor_sync_vars_menu();
+		}
+		else if(name == 'toggle_filth')
+		{
+			const bool toggle = (type_mask & AllFilth) == 0;
+			dust = toggle;
+			leaves = toggle;
+			trash = toggle;
+			slime = toggle;
+			polygons = toggle;
+			self.editor_sync_vars_menu();
+		}
+		else if(name == 'toggle_spikes')
+		{
+			const bool toggle = (type_mask & AllSpikes) == 0;
+			spikes = toggle;
+			thorns = toggle;
+			cones = toggle;
+			wires = toggle;
+			virtual_spikes = toggle;
+			self.editor_sync_vars_menu();
+		}
+		
+		update_type_mask();
+	}
+	
+	private void update_type_mask()
+	{
+		type_mask = 0;
+		type_mask |= dust ? 1 << 1 : 0;
+		type_mask |= leaves ? 1 << 2 : 0;
+		type_mask |= trash ? 1 << 3 : 0;
+		type_mask |= slime ? 1 << 4 : 0;
+		type_mask |= polygons ? 1 << 5 : 0;
+		type_mask |= spikes ? 1 << 9 : 0;
+		type_mask |= thorns ? 1 << 10 : 0;
+		type_mask |= cones ? 1 << 11 : 0;
+		type_mask |= wires ? 1 << 12 : 0;
+		type_mask |= virtual_spikes ? 1 << 13 : 0;
+	}
+	
+	void update_filth(int x, int y, tileinfo@ tile, tilefilth@ filth)
+	{
+		if(!tile.solid())
+			return;
+		
+		uint8 top = filth.top();
+		uint8 bottom = filth.bottom();
+		uint8 left = filth.left();
+		uint8 right = filth.right();
+		
+		bool requires_update = false;
+		if(update_edge(top, top))
+		{
+			filth.top(top);
+			requires_update = true;
+		}
+		if(update_edge(bottom, bottom))
+		{
+			filth.bottom(bottom);
+			requires_update = true;
+		}
+		if(update_edge(left, left))
+		{
+			filth.left(left);
+			requires_update = true;
+		}
+		if(update_edge(right, right))
+		{
+			filth.right(right);
+			requires_update = true;
+		}
+		
+		if(requires_update)
+		{
+			g.set_tile_filth(x, y, filth);
+		}
+	}
+	
+	private bool update_edge(uint8 filth, uint8 &out result)
+	{
+		if(filth != 0 && (1 << filth) & type_mask != 0)
+		{
+			result = new_type;
+			return true;
+		}
+		
+		result = filth;
+		return false;
 	}
 	
 }
