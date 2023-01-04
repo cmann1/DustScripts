@@ -219,6 +219,12 @@ class script {
    * refer to objects in the scene and should be requeried. */
   void checkpoint_load();
 
+  /* Called when a player hits a checkpoint during multiplayer. */
+  void checkpoint_save(int player_index);
+
+  /* Called when a player is respawned during multiplayer. */
+  void checkpoint_load(int player_index);
+
   /* Called when an entity is added to the scene. */
   void entity_on_add(entity@ e);
 
@@ -230,7 +236,7 @@ class script {
    * `script.step` will be too late to affect what segments
    * and entities are loaded and stepped.
    */
-  void move_cameras(); 
+  void move_cameras();
 
   /* Called every game frame (usually 60fps) prior to all entities having their step
    * function called. The list of entities going to be stepped can be accessed
@@ -444,6 +450,11 @@ class script {
  * the trigger to be usable.
  */
 class trigger_base {
+  /* Called only in the editor when a type is selected, before before init.
+   * Can be used to initialise persistent variables which require access to the
+   * script or script trigger instance. */
+  void editor_init(script@ s, scripttrigger@ self);
+  
   /* Called after the trigger is constructed, passing the corresponding game
    * `scripttrigger` handle. */
   void init(script@ s, scripttrigger@ self);
@@ -494,6 +505,11 @@ class enemy_base {
    * enemies to be usable. */
   enemy_base();
 
+  /* Called only in the editor when a type is selected, before before init.
+   * Can be used to initialise persistent variables which require access to the
+   * script or script enemy instance. */
+  void editor_init(script@ s, scriptenemy@ self);
+  
   /* Called after the enemy is constructed, passing the corresponding game
    * `scriptenemy` handle. */
   void init(script@ s, scriptenemy@ self);
@@ -1023,6 +1039,11 @@ class scene {
    * will return an empty string.
    */
   string replay_username();
+
+  /* Clear any ghosts currently loaded. This is meant only to help hide replays
+   * during special events.
+   */
+  void clear_ghosts();
 
 }
 
@@ -1611,6 +1632,18 @@ class entity {
 
   void set_xy(float x, float y);
 
+  /* A shortcut method to calculate the centre of this entity's hitbox, which
+   * for some entities may not be the same as its origin/position. */
+  void centre(float &out x, float &out y);
+
+  float centre_x();
+
+  float centre_y();
+
+  /* Sets this entity's position so that the centre of its hitbox will be
+   * positioned at `x`, `y` */
+  void set_centre(float x, float y);
+
   /* The rotation of the entity in degrees. This should be in the interval
    * [-180, 180]. */
   float rotation();
@@ -1883,6 +1916,32 @@ class controllable : hittable {
 
   int right_surface_angle();
 
+  float run_max();
+
+  void run_max(float run_max);
+
+  float run_start();
+
+  void run_start(float run_start);
+
+  float run_accel();
+
+  void run_accel(float run_accel);
+
+  float idle_fric();
+
+  void idle_fric(float idle_fric);
+
+  float skid_fric();
+
+  void skid_fric(float skid_fric);
+
+  /* Get/set the friction value used by some enemies to control air, turn,
+   * or attack friction. */
+  float fric();
+
+  void fric(float fric);
+
   /* Change which ground surface angles this entity considers slopes, or slants.
    * Slopes default to 45, and slants to 26.
    * Required to allow non-45 degress slope sliding and for the player sprite to
@@ -1999,18 +2058,6 @@ class controllable : hittable {
 }
 
 class dustman : controllable {
-  float run_max();
-
-  void run_max(float run_max);
-
-  float run_start();
-
-  void run_start(float run_start);
-
-  float run_accel();
-
-  void run_accel(float run_accel);
-
   float run_accel_over();
 
   void run_accel_over(float run_accel_over);
@@ -2027,14 +2074,7 @@ class dustman : controllable {
 
   void slope_max(float slope_max);
 
-  float idle_fric();
-
-  void idle_fric(float idle_fric);
-
-  float skid_fric();
-
-  void skid_fric(float skid_fric);
-
+  /* Internally this value is not used anywhere. */
   float land_fric();
 
   void land_fric(float land_fric);
@@ -3052,6 +3092,12 @@ class editor_api {
 
   /* Sets the selected layer. */
   void set_selected_layer(int layer);
+
+  /* Returns the selected sub layer for props. */
+  int get_selected_sub_layer();
+
+  /* Sets the selected sub layer for props. */
+  void set_selected_sub_layer(int sub_layer);
 
   /* Returns true if the given layer is visible. */
   bool get_layer_visible(int layer);
