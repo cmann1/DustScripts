@@ -85,7 +85,8 @@ class EntityOutlinerSource : trigger_base, EnterExitTrigger
 {
 	
 	scripttrigger@ self;
-	[persist|tooltip:'The inner radius/distance at which the trigger\'s effect will be at 100%.']
+	
+	[persist|tooltip:'The inner radius/distance at which the trigger\'s\neffect will be at 100%.']
 	float min_radius = 48;
 	[persist|tooltip:'If set, this will render an additional outline on this sublayer,\notherwise the global outline will be overriden.']
 	int sub_layer = -1;
@@ -159,6 +160,48 @@ class EntityOutlinerSource : trigger_base, EnterExitTrigger
 	protected float get_source_centre_y()
 	{
 		return self.y();
+	}
+	
+}
+
+class EntityOutlinerSourcePos : EntityOutlinerSource
+{
+	
+	[position,mode:world,layer:19,y:src_y] float src_x;
+	[hidden] float src_y;
+	
+	private float real_radius;
+	
+	void init(script@ s, scripttrigger@ self)
+	{
+		EntityOutlinerSource::init(s, self);
+		
+		const float dx = self.x() - src_x;
+		const float dy = self.y() - src_y;
+		const float dist = sqrt(dx * dx + dy * dy);
+		real_radius = self.radius() + dist;
+	}
+	
+	protected float get_source_radius() override
+	{
+		return real_radius;
+	}
+	
+	protected float get_source_centre_x() override
+	{
+		return src_x;
+	}
+	
+	protected float get_source_centre_y() override
+	{
+		return src_y;
+	}
+	
+	void editor_draw(float)
+	{
+		scene@ g = get_scene();
+		g.draw_line_world(22, 1, self.x(), self.y(), src_x, src_y, 3, 0x88ff5522);
+		g.draw_rectangle_world(22, 22, src_x - 5, src_y - 5, src_x + 5, src_y + 5, 45, 0xffff5522);
 	}
 	
 }
