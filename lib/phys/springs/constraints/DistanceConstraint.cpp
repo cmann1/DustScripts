@@ -6,6 +6,7 @@ class DistanceConstraint : Constraint
 	Particle@ particle1;
 	Particle@ particle2;
 	float rest_length;
+	float min_rest_length = -1;
 	float stiffness;
 	float damping;
 	
@@ -23,7 +24,12 @@ class DistanceConstraint : Constraint
 		float dx = particle2.x - particle1.x;
 		float dy = particle2.y - particle1.y;
 		const float d = sqrt(dx * dx + dy * dy);
-		float resting_ratio = d == 0 ? rest_length : (rest_length - d) / d;
+		
+		if(min_rest_length >= 0 && d <= rest_length && d >= min_rest_length)
+			return;
+		
+		const float length = d < min_rest_length ? min_rest_length : rest_length;
+		float resting_ratio = d == 0 ? length : (length - d) / d;
 		resting_ratio = resting_ratio * stiffness - resting_ratio * damping;
 		
 		dx *= resting_ratio;
