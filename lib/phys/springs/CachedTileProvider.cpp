@@ -15,6 +15,9 @@ class CachedTileProvider : ITileProvider
 	private array<TileData@> tiles;
 	private bool init = false;
 	
+	// TODO: Improve this
+	// - Only resize array when necessary to grow
+	// - Change tiles array to non handles
 	TileData@ get_tile(const int tx, const int ty) override
 	{
 		if(tx < tx1 || tx >= tx2 || ty < ty1 || ty >= ty2)
@@ -60,6 +63,32 @@ class CachedTileProvider : ITileProvider
 		
 		@t = @tiles[idx] = TileData(g.get_tile(tx, ty, collision_layer), frame);
 		return t;
+	}
+	
+	/// Clears all cached tiles
+	void clear()
+	{
+		init = false;
+		tx1 = ty1 = tx2 = ty2 = 0;
+	}
+	
+	/// Clears all cached tiles in the region inclusive.
+	void clear(const int x1, const int y1, const int x2, const int y2)
+	{
+		for(int x = x1; x <= x2; x++)
+		{
+			if(x < tx1 || x >= tx2)
+				continue;
+			
+			for(int y = y1; y <= y2; y++)
+			{
+				if(y < ty1 || y > ty2)
+					continue;
+				
+				const int idx = (y - ty1) * (tx2 - tx1) + (x - tx1);
+				@tiles[idx] = null;
+			}
+		}
 	}
 	
 }
