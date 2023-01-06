@@ -3,7 +3,7 @@
 class TileData
 {
 	
-	int type;
+	int type = -1;
 	bool solid;
 	uint8 edge_top;
 	uint8 edge_bottom;
@@ -13,7 +13,17 @@ class TileData
 	
 	float age;
 	
+	TileData()
+	{
+		
+	}
+	
 	TileData(tileinfo@ t, const float age=0)
+	{
+		init(t, age);
+	}
+	
+	void init(tileinfo@ t, const float age=0)
 	{
 		type = t.type();
 		solid = t.solid();

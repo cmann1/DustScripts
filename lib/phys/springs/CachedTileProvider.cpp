@@ -10,14 +10,17 @@ class CachedTileProvider : ITileProvider
 	float frame;
 	
 	int max_age = 6;
+	/// Keep solid tiles cached for longer.
+	int max_age_solid = 24;
+	/// Keep dustblocks cached for shorter since it's more likely they'll change.
+	int max_age_dustblock = 3;
 	
 	private int tx1, ty1, tx2, ty2;
-	private array<TileData@> tiles;
+	private int tiles_size = 32;
+	private int tiles_count;
+	private array<TileData@> tiles(tiles_size);
 	private bool init = false;
 	
-	// TODO: Improve this
-	// - Only resize array when necessary to grow
-	// - Change tiles array to non handles
 	TileData@ get_tile(const int tx, const int ty) override
 	{
 		if(tx < tx1 || tx >= tx2 || ty < ty1 || ty >= ty2)
@@ -43,31 +46,53 @@ class CachedTileProvider : ITileProvider
 				if(ty >= ty2) ty2 = ty + 6;
 			}
 			
-			const int c = (tx2 - tx1) * (ty2 - ty1);
-			tiles.resize(c);
-			for(int i = 0; i < c; i++)
+			const int new_count = (tx2 - tx1) * (ty2 - ty1);
+			while(new_count >= tiles_size)
 			{
-				@tiles[i] = null;
+				tiles.resize(tiles_size *= 2);
 			}
+			
+			for(int i = 0; i < tiles_count; i++)
+			{
+				tiles[i].type = -1;
+			}
+			for(int i = tiles_count; i < new_count; i++)
+			{
+				@tiles[i] = TileData();
+			}
+			tiles_count = new_count;
 		}
 		
-		const int idx = (ty - ty1) * (tx2 - tx1) + (tx - tx1);
+		TileData@ t = @tiles[(ty - ty1) * (tx2 - tx1) + (tx - tx1)];
 		
-		TileData@ t = @tiles[idx];
-		
-		if(@t != null)
+		if(t.type != -1)
 		{
 			if(frame - t.age <= max_age)
 				return t;
 		}
 		
-		@t = @tiles[idx] = TileData(g.get_tile(tx, ty, collision_layer), frame);
+		tileinfo@ tile = g.get_tile(tx, ty, collision_layer);
+		t.init(tile, frame);
+		
+		if(t.solid)
+		{
+			if(tile.is_dustblock())
+			{
+				t.age += max_age_dustblock - max_age;
+			}
+			else
+			{
+				t.age += max_age_solid - max_age;
+			}
+		}
+		
 		return t;
 	}
 	
 	/// Clears all cached tiles
 	void clear()
 	{
+		tiles_count = 0;
 		init = false;
 		tx1 = ty1 = tx2 = ty2 = 0;
 	}
@@ -85,8 +110,7 @@ class CachedTileProvider : ITileProvider
 				if(y < ty1 || y > ty2)
 					continue;
 				
-				const int idx = (y - ty1) * (tx2 - tx1) + (x - tx1);
-				@tiles[idx] = null;
+				tiles[(y - ty1) * (tx2 - tx1) + (x - tx1)].type = -1;
 			}
 		}
 	}
