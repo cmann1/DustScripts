@@ -24,6 +24,7 @@ class script
 	
 }
 
+[hidden]
 class TileBaseTrigger : trigger_base
 {
 	
