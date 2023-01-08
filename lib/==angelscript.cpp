@@ -66,7 +66,7 @@ class array
 
 class dictionary
 {
-
+	
 	// Sets a key/value pair in the dictionary. If the key already exists, the value will be changed.
 	void set(const string key, void* value);
 	void set(const string key, int64 value);
@@ -98,6 +98,8 @@ class dictionary
 
 class string
 {
+	
+	uint length;
 	
 	// Returns the length of the string.
 	uint length() const;
