@@ -7,10 +7,13 @@ funcdef void MessageHandler(const string &in, message@);
 /// 
 /// To use add a field to your script: `MessageSystem mesages`
 /// and call `clear()` in `checkpoint_load`
+/// To listen for events, use `add_listener` in the `on_add` entity callback, and `remove_listener` in the `on_remove` callback.
+/// - Make sure to store a reference to the `MessageHandler` and use the same one for both adding and removing listeners.
 class MessageSystem
 {
 	
 	private dictionary message_handlers;
+	private int iter_i, iter_count;
 	
 	void clear()
 	{
@@ -48,6 +51,16 @@ class MessageSystem
 		if(index != -1)
 		{
 			handlers.removeAt(index);
+			
+			if(iter_i > -1)
+			{
+				if(iter_i >= index)
+				{
+					iter_i--;
+				}
+				
+				iter_count--;
+			}
 		}
 	}
 	
@@ -57,11 +70,14 @@ class MessageSystem
 			return;
 		
 		array<MessageHandler@>@ handlers = cast<array<MessageHandler@>@>(message_handlers[id]);
+		iter_count = int(handlers.length);
 		
-		for(uint i = 0; i < handlers.length; i++)
+		for(iter_i = 0; iter_i < iter_count; iter_i++)
 		{
-			handlers[i](id, msg);
+			handlers[iter_i](id, msg);
 		}
+		
+		iter_i = -1;
 	}
 	
 }
