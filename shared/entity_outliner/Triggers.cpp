@@ -170,6 +170,8 @@ class EntityOutlinerSourcePos : EntityOutlinerSource
 	[position,mode:world,layer:19,y:src_y] float src_x;
 	[hidden] float src_y;
 	
+	private scene@ g;
+	
 	private float real_radius;
 	
 	void init(script@ s, scripttrigger@ self)
@@ -180,6 +182,8 @@ class EntityOutlinerSourcePos : EntityOutlinerSource
 		const float dy = self.y() - src_y;
 		const float dist = sqrt(dx * dx + dy * dy);
 		real_radius = self.radius() + dist;
+		
+		@g = get_scene();
 	}
 	
 	protected float get_source_radius() override
@@ -199,7 +203,6 @@ class EntityOutlinerSourcePos : EntityOutlinerSource
 	
 	void editor_draw(float)
 	{
-		scene@ g = get_scene();
 		g.draw_line_world(22, 1, self.x(), self.y(), src_x, src_y, 3, 0x88ff5522);
 		g.draw_rectangle_world(22, 22, src_x - 5, src_y - 5, src_x + 5, src_y + 5, 45, 0xffff5522);
 	}
