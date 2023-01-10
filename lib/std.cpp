@@ -110,9 +110,25 @@ float rand_range(float min, float max)
 	return min + (max - min) * frand();
 }
 
+/// Return a value between -range and range.
 float rand_range(float range)
 {
 	return (frand() * 2.0 - 1.0) * range;
+}
+
+/// Returns an int in the range 0 >= x < max that is guaranteed to not return the same
+/// value twice in a row. The returned value should be stored and passed in as `prev_val`
+/// when this methods is called again.
+int rand_range_unique(const int prev_val, const int max)
+{
+	return (prev_val + 1 + rand() % (max - 1)) % max;
+}
+
+// Same as `rand_range_unique` but returns an int in the min 0 >= x < max
+int rand_range_unique(const int prev_val, const int min, const int max)
+{
+	const int range = max - min + 1;
+	return min + (prev_val - min + 1 + rand() % (range - 1)) % range;
 }
 
 float prng(const float seed)
