@@ -36,6 +36,7 @@ class SpriteBatch
 			SpriteBatchSprite@ batch_spr = @sprite_list[i];
 			
 			@batch_spr.spr = spr;
+			batch_spr.sprite_set = sprite_set;
 			batch_spr.sprite_name = sprite_set_name[i3];
 			batch_spr.layer = layer_sub_layer[i2];
 			batch_spr.sub_layer = layer_sub_layer[i3];
@@ -48,11 +49,13 @@ class SpriteBatch
 		}
 	}
 	
-	void add(string sprite_set, string sprite_name, int layer, int sub_layer, float x, float y, float scale_x=1, float scale_y=1, float rotation=0, uint palette=0)
+	void add(
+		const string &in sprite_set, const string &in sprite_name, int layer, int sub_layer,
+		float x, float y, float scale_x=1, float scale_y=1, float rotation=0, uint palette=0)
 	{
 		sprites@ spr = get_sprites(sprite_set);
 		sprite_list.insertLast(
-			SpriteBatchSprite(spr, sprite_name, layer, sub_layer, x, y, scale_x, scale_y, rotation, palette)
+			SpriteBatchSprite(spr, sprite_set, sprite_name, layer, sub_layer, x, y, scale_x, scale_y, rotation, palette)
 		);
 		num_sprites++;
 	}
@@ -64,7 +67,7 @@ class SpriteBatch
 		
 		sprites@ spr = get_sprites(sprite_set);
 		sprite_list.insertLast(
-			SpriteBatchSprite(spr, sprite_name, p.layer(), p.sub_layer(), p.x(), p.y(), p.scale_x(), p.scale_y(), p.rotation(), p.palette())
+			SpriteBatchSprite(spr, sprite_set, sprite_name, p.layer(), p.sub_layer(), p.x(), p.y(), p.scale_x(), p.scale_y(), p.rotation(), p.palette())
 		);
 		num_sprites++;
 	}
@@ -128,12 +131,27 @@ class SpriteBatch
 		return SpriteRectangle(y + top, y + bottom, x + left, x + right);
 	}
 	
+	void place_props(scene@ g, const float x, const float y)
+	{
+		for(uint i = 0; i < sprite_list.length; i++)
+		{
+			SpriteBatchSprite@ s = sprite_list[i];
+			uint prop_set, prop_group, prop_index;
+			prop_from_sprite(s.sprite_set, s.sprite_name, prop_set, prop_group, prop_index);
+			prop@ p = create_prop(prop_set, prop_group, prop_index, x + s.x, y + s.y, s.layer, s.sub_layer, s.rotation);
+			p.palette(s.palette);
+			p.scale_x(s.scale_x);
+			p.scale_y(s.scale_y);
+			g.add_prop(p);
+		}
+	}
+	
 }
 
 class SpriteBatchSprite
 {
 	sprites@ spr;
-	string sprite_name;
+	string sprite_set, sprite_name;
 	int layer, sub_layer;
 	float x, y;
 	float scale_x, scale_y;
@@ -142,9 +160,12 @@ class SpriteBatchSprite
 	
 	SpriteBatchSprite(){}
 	
-	SpriteBatchSprite(sprites@ spr, string sprite_name, int layer, int sub_layer, float x, float y, float scale_x=1, float scale_y=1, float rotation=0, uint palette=0)
+	SpriteBatchSprite(
+		sprites@ spr, const string &in sprite_set, const string &in  sprite_name, int layer, int sub_layer,
+		float x, float y, float scale_x=1, float scale_y=1, float rotation=0, uint palette=0)
 	{
 		@this.spr = spr;
+		this.sprite_set = sprite_set;
 		this.sprite_name = sprite_name;
 		this.layer = layer;
 		this.sub_layer = sub_layer;
