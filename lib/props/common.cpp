@@ -15,6 +15,22 @@ void sprite_from_prop(uint prop_set, uint prop_group, uint prop_index, string &o
 	sprite_set = 'props' + prop_set;
 	sprite_name = PROP_GROUP_NAMES[prop_group] + '_' + prop_index;
 }
+bool prop_from_sprite(const string &in sprite_set, const string &in  sprite_name, uint &out prop_set, uint &out prop_group, uint &out prop_index)
+{
+	if(sprite_set.length <= 1)
+		return false;
+	
+	const int u_index = sprite_name.findLastOf('_');
+	
+	if(u_index == -1)
+		return false;
+	
+	prop_set = sprite_set[sprite_set.length - 1] - 48;
+	prop_group = PROP_GROUP_NAMES.find(sprite_name.substr(0, u_index));
+	prop_index = parseUInt(sprite_name.substr(u_index + 1));
+	
+	return true;
+}
 
 prop@ copy_prop(prop@ p)
 {
