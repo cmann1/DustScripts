@@ -31,17 +31,30 @@ class CameraDisconnectTrigger : trigger_base, EnterExitTrigger
 	
 	void on_trigger_enter(controllable@ c)
 	{
-		camera@ cam = get_camera(c.player_index());
+		const int player_index = c.player_index();
+		camera@ cam = get_camera(player_index);
 		
 		if(connect_node != 0)
 		{
 			entity@ e = entity_by_id(connect_node);
 			camera_node@ node = @e != null ? e.as_camera_node() : null;
 			if(@node != null && cam.try_connect(node))
+			{
+				on_connect(player_index, node);
 				return;
+			}
 		}
 		
-		cam.force_disconnect();
+		if(cam.camera_type() != 'player')
+		{
+			cam.force_disconnect();
+			on_connect(player_index, null);
+		}
+	}
+	
+	protected void on_connect(const int player_index, camera_node@ node)
+	{
+		
 	}
 	
 	void editor_draw(float)
