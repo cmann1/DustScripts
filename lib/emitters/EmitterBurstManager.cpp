@@ -36,13 +36,16 @@ class EmitterBurstManager
 	}
 	
 	/// Add a short lived particle burst based on the given settings.
-	void add(const EmitterBurstSettings@ settings, const float x, const float y, const float rotation=0)
+	void add(
+		const EmitterBurstSettings@ settings, const float x, const float y, const float rotation=0,
+		const float size_x=-1, const float size_y=-1)
 	{
 		for(int i = 0; i < settings.count; i++)
 		{
 			entity@ e = create_emitter(settings.emitter_id,
 				x, y,
-				int(settings.size_x), int(settings.size_y),
+				int(size_x <= 0 ? settings.size_x : size_x),
+				int(size_y <= 0 ? settings.size_y : size_y),
 				settings.layer, settings.sub_layer, int(rotation)
 			);
 			g.add_entity(e, false);
@@ -54,6 +57,30 @@ class EmitterBurstManager
 			
 			EmitterBurst@ burst = @bursts[bursts_count++];
 			burst.init(e, settings.time);
+		}
+	}
+	
+	/// Add a short lived particle burst based on the given settings.
+	void add(
+		const float x, const float y, const int emitter_id,
+		const int layer, const int sub_layer, const float size_x, const float size_y, const float rotation=0,
+		float time=15, int count=1)
+	{
+		for(int i = 0; i < count; i++)
+		{
+			entity@ e = create_emitter(emitter_id,
+				x, y, int(size_x), int(size_y),
+				layer, sub_layer, int(rotation)
+			);
+			g.add_entity(e, false);
+			
+			if(bursts_count >= bursts_size)
+			{
+				bursts.resize(bursts_size *= 2);
+			}
+			
+			EmitterBurst@ burst = @bursts[bursts_count++];
+			burst.init(e, time);
 		}
 	}
 	
