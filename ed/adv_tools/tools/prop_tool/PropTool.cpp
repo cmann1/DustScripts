@@ -452,16 +452,17 @@ class PropTool : Tool
 			if(script.input.key_check_pressed_gvb(GVB::BracketOpen))
 			{
 				if(script.shift.down)
-					mirror_selected(true);
-				else
 					flip_props(true, false);
+				else
+					mirror_selected(true);
+					
 			}
 			if(script.input.key_check_pressed_gvb(GVB::BracketClose))
 			{
 				if(script.shift.down)
-					mirror_selected(false);
-				else
 					flip_props(false, true);
+				else
+					mirror_selected(false);
 			}
 			
 			// Cycle palette
