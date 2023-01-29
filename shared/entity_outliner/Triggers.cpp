@@ -127,9 +127,8 @@ class EntityOutlinerSource : trigger_base, EnterExitTrigger
 		for(int i = entities_enter_exit_list_count - 1; i >= 0 ; i--)
 		{
 			controllable@ c = entities_enter_exit_list[i];
-			rectangle@ r = c.base_rectangle();
-			const float mx = c.x() + r.left() + r.width * 0.5;
-			const float my = c.y() + r.top() + r.height * 0.5;
+			float mx, my;
+			c.centre(mx, my);
 			const float t = 1 - clamp01((distance(mx, my, x, y) - min_radius) / (radius - min_radius));
 			const float offset = lerp(offset_min, offset_max, t);
 			const float angle = atan2(y - my, x - mx);
