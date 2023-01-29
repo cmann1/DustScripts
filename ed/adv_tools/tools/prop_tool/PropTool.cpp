@@ -402,6 +402,17 @@ class PropTool : Tool
 			return;
 		}
 		
+		// Pick props
+		if(script.mouse_in_scene && !script.space.down && !script.handles.mouse_over)
+		{
+			pick_props();
+			do_mouse_selection();
+		}
+		else
+		{
+			@pressed_prop = null;
+		}
+		
 		// Keyboard shortcuts
 		if(script.scene_focus)
 		{
@@ -455,7 +466,8 @@ class PropTool : Tool
 					flip_props(true, false);
 				else
 					mirror_selected(true);
-					
+				
+				try_update_info();
 			}
 			if(script.input.key_check_pressed_gvb(GVB::BracketClose))
 			{
@@ -463,6 +475,8 @@ class PropTool : Tool
 					flip_props(false, true);
 				else
 					mirror_selected(false);
+				
+				try_update_info();
 			}
 			
 			// Cycle palette
@@ -488,17 +502,6 @@ class PropTool : Tool
 			{
 				paste(script.shift, script.alt);
 			}
-		}
-		
-		// Pick props
-		if(script.mouse_in_scene && !script.space.down && !script.handles.mouse_over)
-		{
-			pick_props();
-			do_mouse_selection();
-		}
-		else
-		{
-			@pressed_prop = null;
 		}
 		
 		// Start rotating from hovered prop
@@ -729,10 +732,7 @@ class PropTool : Tool
 				prop_data.prop.layer(), prop_data.prop.sub_layer());
 		}
 		
-		if(@hovered_prop != null)
-		{
-			toolbar.show_prop_info(hovered_prop);
-		}
+		try_update_info();
 	}
 	
 	private void state_moving()
@@ -909,6 +909,8 @@ class PropTool : Tool
 			check_rotation_handle();
 			check_scale_handle(true);
 		}
+		
+		try_update_info();
 	}
 	
 	private void state_selecting()
@@ -1206,6 +1208,8 @@ class PropTool : Tool
 			const int count = data.spr.get_palette_count(data.sprite_name);
 			p.palette(mod(p.palette() + dir, count));
 		}
+		
+		try_update_info();
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -1590,6 +1594,18 @@ class PropTool : Tool
 		}
 		
 		show_prop_message(num_locked_sub_layers + ' sub layers unlocked.', true);
+	}
+	
+	private void try_update_info()
+	{
+		if(@hovered_prop != null)
+		{
+			toolbar.show_prop_info(hovered_prop);
+		}
+		else if(selected_props_count == 1)
+		{
+			toolbar.show_prop_info(selected_props[0]);
+		}
 	}
 	
 	// Highlights
