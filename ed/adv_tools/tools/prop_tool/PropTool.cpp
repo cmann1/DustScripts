@@ -883,21 +883,33 @@ class PropTool : Tool
 				drag_start_x - anchor_x, drag_start_y - anchor_y) < 0 ? -1 : 1;
 		const float scale = new_drag_distance / drag_scale_start_distance * distance_sign;
 		
+		//if(script.alt.down)
+		//{
+		//	scale = get_valid_prop_scale(scale);
+		//}
+		
 		for(int i = 0; i < selected_props_count; i++)
 		{
-			selected_props[i].do_scale(scale, scale);
+			selected_props[i].do_scale(scale, scale, script.alt.down);
 		}
 		
-		if(has_custom_anchor)
+		if(script.alt.down)
 		{
-			selection_x = custom_anchor_x + custom_anchor_offset_x * scale;
-			selection_y = custom_anchor_y + custom_anchor_offset_y * scale;
+			update_selection_bounds();
 		}
-		
-		selection_x1 = drag_selection_x1 * scale;
-		selection_y1 = drag_selection_y1 * scale;
-		selection_x2 = drag_selection_x2 * scale;
-		selection_y2 = drag_selection_y2 * scale;
+		else
+		{
+			if(has_custom_anchor)
+			{
+				selection_x = custom_anchor_x + custom_anchor_offset_x * scale;
+				selection_y = custom_anchor_y + custom_anchor_offset_y * scale;
+			}
+			
+			selection_x1 = drag_selection_x1 * scale;
+			selection_y1 = drag_selection_y1 * scale;
+			selection_x2 = drag_selection_x2 * scale;
+			selection_y2 = drag_selection_y2 * scale;
+		}
 		
 		if(show_selection)
 		{

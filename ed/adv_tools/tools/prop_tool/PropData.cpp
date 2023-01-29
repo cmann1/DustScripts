@@ -500,10 +500,16 @@ class PropData : SelectableData
 		start_drag();
 	}
 	
-	void do_scale(const float scale_x, const float scale_y)
+	void do_scale(const float scale_x, const float scale_y, const bool auto_correct=false)
 	{
 		prop_scale_x = drag_start_scale_x * scale_x;
 		prop_scale_y = drag_start_scale_y * scale_y;
+		
+		if(auto_correct)
+		{
+			prop_scale_x = get_valid_prop_scale(prop_scale_x);
+			prop_scale_y = get_valid_prop_scale(prop_scale_y);
+		}
 		
 		if(prop_scale_x == 0)
 			prop_scale_x = 0.001;
