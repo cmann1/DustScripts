@@ -495,7 +495,7 @@ class PropToolToolbar
 			// Group and name
 			string::nice(PROP_GROUP_NAMES[p.prop_group()]) + '::' + prop_index.name + '\n' +
 			prop_data.sprite_set + '::' + prop_data.sprite_name + '\n' +
-			'[' + p.prop_set() + '.' + p.prop_group() + '.' + p.prop_index() + '] [' + p.id() + ']\n' +
+			'[' + p.prop_set() + '.' + p.prop_group() + '.' + p.prop_index() + '|' + p.palette() + '] [' + p.id() + ']\n' +
 			// Layer
 			p.layer() + '.' + p.sub_layer();
 		
