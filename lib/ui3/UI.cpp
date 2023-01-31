@@ -310,6 +310,15 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		set { style.sub_layer = _sub_layer = value; }
 	}
 	
+	bool visible
+	{
+		get const { return contents.visible; }
+		set
+		{
+			contents.visible = value;
+		}
+	}
+	
 	/// Only relevant when hud = true. Will automatically set the hud's region to match the screen
 	bool auto_fit_screen
 	{
