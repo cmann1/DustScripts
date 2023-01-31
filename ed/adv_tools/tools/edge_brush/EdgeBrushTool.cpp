@@ -282,14 +282,14 @@ class EdgeBrushTool : Tool
 	
 	protected void on_select_impl()
 	{
-		script.editor.hide_panels_gui(true);
+		script.hide_gui_panels(true);
 		
 		toolbar.show(script, this);
 	}
 	
 	protected void on_deselect_impl()
 	{
-		script.editor.hide_panels_gui(false);
+		script.hide_gui_panels(false);
 		
 		state = Idle;
 		draw_list_index = 0;

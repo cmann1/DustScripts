@@ -150,7 +150,7 @@ class PropTool : Tool
 	
 	protected void on_select_impl()
 	{
-		script.editor.hide_panels_gui(true);
+		script.hide_gui_panels(true);
 		
 		toolbar.show(script, this);
 		
@@ -159,7 +159,7 @@ class PropTool : Tool
 	
 	protected void on_deselect_impl()
 	{
-		script.editor.hide_panels_gui(false);
+		script.hide_gui_panels(false);
 		script.hide_info_popup();
 		
 		reset();

@@ -96,7 +96,7 @@ class EmitterTool : Tool
 	{
 		properties_window.show(script, this);
 		
-		script.editor.hide_panels_gui(true);
+		script.hide_gui_panels(true);
 		
 		float min_layer_scale = 99999999.0;
 		for(uint i = 0; i < 21; i++)
@@ -119,7 +119,7 @@ class EmitterTool : Tool
 		
 		properties_window.hide();
 		
-		script.editor.hide_panels_gui(false);
+		script.hide_gui_panels(false);
 	}
 	
 	protected void step_impl() override

@@ -133,6 +133,8 @@ class AdvToolScript
 	private bool hide_gui;
 	private bool hide_panels_gui;
 	private bool hide_layers_gui;
+	private bool hide_gui_user = false;
+	private bool hide_toolbar_user = false;
 	
 	//
 	
@@ -191,8 +193,8 @@ class AdvToolScript
 		editor.hide_toolbar_gui(true);
 		
 		editor.hide_gui(hide_gui);
-		editor.hide_panels_gui(hide_panels_gui);
-		editor.hide_layers_gui(hide_layers_gui);
+		hide_gui_panels(hide_panels_gui);
+		hide_gui_layers(hide_layers_gui);
 		
 		store_layer_values();
 	}
@@ -206,9 +208,6 @@ class AdvToolScript
 		
 		editor.hide_toolbar_gui(false);
 		
-		hide_gui = editor.hide_gui();
-		hide_panels_gui = editor.hide_panels_gui();
-		hide_layers_gui = editor.hide_layers_gui();
 		editor.hide_gui(false);
 		editor.hide_panels_gui(false);
 		editor.hide_layers_gui(false);
@@ -531,6 +530,17 @@ class AdvToolScript
 			else if(config.KeyNextTool.check())
 			{
 				select_next_tool(1);
+			}
+			else if(config.KeyToggleUI.check())
+			{
+				hide_gui_user = !hide_gui_user;
+				hide_gui_panels(hide_panels_gui);
+				hide_gui_layers(hide_layers_gui);
+			}
+			else if(config.KeyToggleToolbars.check())
+			{
+				hide_toolbar_user = !hide_toolbar_user;
+				ui.visible = !hide_toolbar_user;
 			}
 			else
 			{
@@ -1127,6 +1137,18 @@ class AdvToolScript
 			layer_indices[layer_positions[i]] = i;
 			layer_scales[i] = g.layer_scale(i);
 		}
+	}
+	
+	void hide_gui_panels(const bool hidden)
+	{
+		hide_panels_gui = hidden;
+		editor.hide_panels_gui(hide_panels_gui || hide_gui_user);
+	}
+	
+	void hide_gui_layers(const bool hidden)
+	{
+		hide_layers_gui = hidden;
+		editor.hide_layers_gui(hide_layers_gui || hide_gui_user);
 	}
 	
 	// //////////////////////////////////////////////////////////

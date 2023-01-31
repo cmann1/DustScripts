@@ -13,6 +13,8 @@ class Config
 	uint UIIconColour;
 	ShortcutKey KeyPrevTool;
 	ShortcutKey KeyNextTool;
+	ShortcutKey KeyToggleUI;
+	ShortcutKey KeyToggleToolbars;
 	
 	private AdvToolScript@ script;
 	private dictionary values;
@@ -128,6 +130,12 @@ class Config
 		UIIconColour = get_colour('UIIconColour', 0xffffffff);
 		KeyPrevTool.init(script).from_config('KeyPrevTool', 'Shift+W');
 		KeyNextTool.init(script).from_config('KeyNextTool', 'Shift+E');
+		KeyToggleUI.init(script).from_config('KeyToggleUI', 'BackSlash');
+		KeyToggleToolbars.init(script).from_config('KeyToggleToolbars');
+		if(!KeyToggleToolbars.is_set())
+		{
+			KeyToggleToolbars.set(KeyToggleUI.vk, KeyToggleUI.modifiers | ModifierKey::Shift, KeyToggleToolbars.priority);
+		}
 	}
 	
 	private void add(string &in key, const string &in value)

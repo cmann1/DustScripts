@@ -26,8 +26,6 @@ class ShortcutKey
 	
 	ShortcutKey@ set(const int vk, const int modifiers=ModifierKey::None, const int priority=0)
 	{
-		@this.script = script;
-		
 		_set(vk, modifiers, priority);
 		return this;
 	}
