@@ -421,7 +421,7 @@ class script
 						tile_x, tile_y,
 						2, off_alpha | 0xff00ff);
 					
-					draw_circle(g, tile_x, tile_y, brush_radius, 32, mouse_layer, 24, thickness, off_alpha | (colour & 0xffffff));
+					drawing::circle(g, tile_x, tile_y, brush_radius, 32, mouse_layer, 24, thickness, off_alpha | (colour & 0xffffff));
 				}
 			}
 			
@@ -440,7 +440,7 @@ class script
 			float cursor_x = drag_size == DragSizeState::Off ? mouse_x : drag_size_x;
 			float cursor_y = drag_size == DragSizeState::Off ? mouse_y : drag_size_y;
 			
-			draw_circle(g, cursor_x, cursor_y, real_radius, 32, mouse_layer, 24, thickness, colour);
+			drawing::circle(g, cursor_x, cursor_y, real_radius, 32, mouse_layer, 24, thickness, colour);
 			
 			g.draw_line(
 				mouse_layer, 24,
