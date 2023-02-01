@@ -148,7 +148,7 @@ class PropLineTool : Tool
 					0, prop_palette, x1, y1,
 					rotation + (rotation_mode == PropLineRotationMode::Auto ? rotation_offset : 0.0),
 					scale_x * scale, scale_y * scale,
-					state == PropToolState::Picking ? 0x77ffffff : 0xffffffff,
+					state == PropToolState::Picking || script.space.down ? 0x77ffffff : 0xffffffff,
 					calc_bg_scale(script.layer));
 			}
 		}
