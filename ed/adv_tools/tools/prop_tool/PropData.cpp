@@ -507,8 +507,8 @@ class PropData : SelectableData
 		
 		if(auto_correct)
 		{
-			prop_scale_x = get_valid_prop_scale(prop_scale_x);
-			prop_scale_y = get_valid_prop_scale(prop_scale_y);
+			prop_scale_x = get_valid_prop_scale(abs(prop_scale_x)) * sign(prop_scale_x);
+			prop_scale_y = get_valid_prop_scale(abs(prop_scale_y)) * sign(prop_scale_y);
 		}
 		
 		if(prop_scale_x == 0)

@@ -883,11 +883,6 @@ class PropTool : Tool
 				drag_start_x - anchor_x, drag_start_y - anchor_y) < 0 ? -1 : 1;
 		const float scale = new_drag_distance / drag_scale_start_distance * distance_sign;
 		
-		//if(script.alt.down)
-		//{
-		//	scale = get_valid_prop_scale(scale);
-		//}
-		
 		for(int i = 0; i < selected_props_count; i++)
 		{
 			selected_props[i].do_scale(scale, scale, script.alt.down);
