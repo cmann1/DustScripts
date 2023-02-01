@@ -304,14 +304,15 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 				}
 			}
 			
-			if(@selected_trigger != null && @entity_by_id(selected_trigger.id()) == null)
+			if(@selected_trigger != null)
+			if(@selected_trigger != null && selected_trigger.destroyed())
 			{
 				select(null);
 				show_edit_button(null, true);
 			}
 		}
 		
-		if(@hovered_trigger != null && @entity_by_id(hovered_trigger.id()) == null)
+		if(@hovered_trigger != null && hovered_trigger.destroyed())
 		{
 			@hovered_trigger = null;
 			show_edit_button(null, true);
