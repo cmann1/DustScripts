@@ -520,7 +520,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		
 		if(@_active_mouse_element != null)
 		{
-			if(!mouse.primary_down || !contents.contains(@_active_mouse_element))
+			if(!mouse.primary_down || !contents.visible || !contents.contains(@_active_mouse_element))
 			{
 				@_active_mouse_element = null;
 			}
@@ -626,7 +626,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			@debug_mouse_over_element = null;
 		}
 		
-		const bool mouse_in_ui = mouse.x >= contents.x1 && mouse.x <= contents.x2 && mouse.y >= contents.y1 && mouse.y <= contents.y2;
+		const bool mouse_in_ui = contents.visible && mouse.x >= contents.x1 && mouse.x <= contents.x2 && mouse.y >= contents.y1 && mouse.y <= contents.y2;
 		
 		Element@ mouse_over_main = update_layout(contents, mouse_in_ui);
 		@_mouse_over_element = mouse_over_main;
@@ -1485,7 +1485,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			
 			do
 			{
-				if(!mouse_over_traversal.disabled)
+				if(!mouse_over_traversal.disabled && mouse_over_traversal.visible)
 				{
 					elements_mouse_enter.insertLast(mouse_over_traversal);
 				}
@@ -1812,7 +1812,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		// Hover tooltip
 		if(
 			mouse_over_element_entered &&
-			@_mouse_over_element != null && !_mouse_over_element.disabled &&
+			@_mouse_over_element != null && !_mouse_over_element.disabled && _mouse_over_element.visible &&
 			@_mouse_over_element.tooltip != null &&
 			_mouse_over_element.tooltip.trigger_type == PopupTriggerType::MouseOver)
 		{
