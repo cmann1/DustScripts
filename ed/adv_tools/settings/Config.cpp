@@ -15,6 +15,7 @@ class Config
 	ShortcutKey KeyNextTool;
 	ShortcutKey KeyToggleUI;
 	ShortcutKey KeyToggleToolbars;
+	ShortcutKey KeyPreviewLayer;
 	
 	private AdvToolScript@ script;
 	private dictionary values;
@@ -136,6 +137,7 @@ class Config
 		{
 			KeyToggleToolbars.set(KeyToggleUI.vk, KeyToggleUI.modifiers | ModifierKey::Shift, KeyToggleToolbars.priority);
 		}
+		KeyPreviewLayer.init(script).from_config('KeyPreviewLayer');
 	}
 	
 	private void add(string &in key, const string &in value)

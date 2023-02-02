@@ -531,17 +531,6 @@ class AdvToolScript
 			{
 				select_next_tool(1);
 			}
-			else if(config.KeyToggleUI.check())
-			{
-				hide_gui_user = !hide_gui_user;
-				hide_gui_panels(hide_panels_gui);
-				hide_gui_layers(hide_layers_gui);
-			}
-			else if(config.KeyToggleToolbars.check())
-			{
-				hide_toolbar_user = !hide_toolbar_user;
-				ui.visible = !hide_toolbar_user;
-			}
 			else
 			{
 				//if(selected_tab == 'Particle')
@@ -556,6 +545,22 @@ class AdvToolScript
 						break;
 					}
 				}
+			}
+			
+			if(config.KeyToggleToolbars.check())
+			{
+				hide_toolbar_user = !hide_toolbar_user;
+				ui.visible = !hide_toolbar_user;
+			}
+			if(config.KeyToggleUI.check())
+			{
+				hide_gui_user = !hide_gui_user;
+				hide_gui_panels(hide_panels_gui);
+				hide_gui_layers(hide_layers_gui);
+			}
+			if(config.KeyPreviewLayer.check())
+			{
+				preview_layer();
 			}
 		}
 		
@@ -643,6 +648,17 @@ class AdvToolScript
 				pressed_key_active = true;
 				break;
 			}
+		}
+	}
+	
+	private void preview_layer()
+	{
+		const int start_layer = editor.get_selected_layer() + 1;
+		const bool visible = !editor.get_layer_visible(start_layer);
+		
+		for(int i = start_layer; i <= 20; i++)
+		{
+			editor.set_layer_visible(i, visible);
 		}
 	}
 	
