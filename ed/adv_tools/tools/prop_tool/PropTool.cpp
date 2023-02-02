@@ -716,9 +716,12 @@ class PropTool : Tool
 			@bounding_box = prop_data;
 		}
 		
-		selection_angle = 0;
-		update_selection_bounds();
-		update_selection_layer();
+		if(@prop_data != null)
+		{
+			selection_angle = 0;
+			recalculate_selection_bounds();
+			update_selection_layer();
+		}
 		
 		if(@bounding_box != null)
 		{
@@ -1159,7 +1162,7 @@ class PropTool : Tool
 		}
 		
 		selection_angle = 0;
-		update_selection_bounds(true, selection_x, selection_y);
+		recalculate_selection_bounds(true, selection_x, selection_y);
 	}
 	
 	private void mirror_selected(const bool x_axis=true)
@@ -1201,7 +1204,7 @@ class PropTool : Tool
 		}
 		
 		selection_angle = 0;
-		update_selection_bounds();
+		recalculate_selection_bounds();
 	}
 	
 	private void cycle_selected_palettes(int dir=1)
@@ -1307,7 +1310,7 @@ class PropTool : Tool
 		}
 		
 		selection_angle = 0;
-		update_selection_bounds();
+		recalculate_selection_bounds();
 		
 		toolbar.update_buttons(selected_props_count);
 	}
@@ -1317,12 +1320,13 @@ class PropTool : Tool
 		select_prop(null, SelectAction::Set);
 	}
 	
-	private void update_selection_bounds(const bool set_origin=false, const float origin_x=0, const float origin_y=0)
+	private void recalculate_selection_bounds(const bool set_origin=false, const float origin_x=0, const float origin_y=0)
 	{
 		if(selected_props_count == 0)
 			return;
 		
 		PropData@ prop_data = @selected_props[0];
+		prop_data.store_selection_bounds();
 		selection_x1 = prop_data.x + prop_data.local_x1;
 		selection_y1 = prop_data.y + prop_data.local_y1;
 		selection_x2 = prop_data.x + prop_data.local_x2;
@@ -1331,6 +1335,7 @@ class PropTool : Tool
 		for(int i = selected_props_count - 1; i >= 1; i--)
 		{
 			@prop_data = @selected_props[i];
+			prop_data.store_selection_bounds();
 			
 			if(prop_data.x + prop_data.local_x1 < selection_x1) selection_x1 = prop_data.x + prop_data.local_x1;
 			if(prop_data.y + prop_data.local_y1 < selection_y1) selection_y1 = prop_data.y + prop_data.local_y1;
@@ -1347,6 +1352,31 @@ class PropTool : Tool
 		{
 			selection_x = selected_props_count > 1 ? selection_x1 + (selection_x2 - selection_x1) * origin_align_x : prop_data.anchor_x;
 			selection_y = selected_props_count > 1 ? selection_y1 + (selection_y2 - selection_y1) * origin_align_y : prop_data.anchor_y;
+		}
+		
+		selection_x1 -= selection_x;
+		selection_y1 -= selection_y;
+		selection_x2 -= selection_x;
+		selection_y2 -= selection_y;
+	}
+	
+	private void update_selection_bounds()
+	{
+		selection_x1 = MAX_FLOAT;
+		selection_y1 = MAX_FLOAT;
+		selection_x2 = MIN_FLOAT;
+		selection_y2 = MIN_FLOAT;
+		
+		for(int i = 0; i < selected_props_count; i++)
+		{
+			PropData@ p = selected_props[i];
+			float ox, oy, x1, y1, x2, y2;
+			rotate(p.x - selection_x, p.y - selection_y, -selection_angle, ox, oy);
+			p.get_selection_bounds(x1, y1, x2, y2);
+			selection_x1 = min(selection_x1, selection_x + ox + x1);
+			selection_y1 = min(selection_y1, selection_y + oy + y1);
+			selection_x2 = max(selection_x2, selection_x + ox + x2);
+			selection_y2 = max(selection_y2, selection_y + oy + y2);
 		}
 		
 		selection_x1 -= selection_x;
@@ -1935,7 +1965,7 @@ class PropTool : Tool
 		if(force_selection_update)
 		{
 			selection_angle = 0;
-			update_selection_bounds();
+			recalculate_selection_bounds();
 		}
 	}
 	
@@ -2021,7 +2051,7 @@ class PropTool : Tool
 		}
 		
 		selection_angle = 0;
-		update_selection_bounds();
+		recalculate_selection_bounds();
 	}
 	
 	void distribute(const AlignmentEdge align)
@@ -2119,7 +2149,7 @@ class PropTool : Tool
 		}
 		
 		selection_angle = 0;
-		update_selection_bounds();
+		recalculate_selection_bounds();
 	}
 	
 	bool is_custom_anchor_active()
@@ -2188,7 +2218,7 @@ class PropTool : Tool
 		}
 		
 		selection_angle = 0;
-		update_selection_bounds();
+		recalculate_selection_bounds();
 	}
 	
 	void cycle_highlight_selection()

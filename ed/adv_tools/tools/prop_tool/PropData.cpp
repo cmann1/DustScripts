@@ -14,6 +14,9 @@ class PropData : SelectableData
 	private float rotate_offset_angle;
 	private float drag_start_scale_x, drag_start_scale_y;
 	
+	private float selection_local_x1, selection_local_y1;
+	private float selection_local_x2, selection_local_y2;
+	
 	float anchor_x, anchor_y;
 	
 	float local_x1, local_y1;
@@ -164,9 +167,9 @@ class PropData : SelectableData
 		script.transform(x, y, prop.layer(), 22, aabb_x, aabb_y);
 		
 		angle = prop.rotation() * DEG2RAD * sign(prop_scale_x) * sign(prop_scale_y);
-		layer_scale = prop.layer() <= 5 ? script.g.layer_scale(prop.layer()) : 1.0;
+		layer_scale = prop.layer() <= 5 ? script.layer_scale(prop.layer()) : 1.0;
 		backdrop_scale = prop.layer() <= 5 ? 2.0 : 1.0;
-		draw_scale = script.g.layer_scale(prop.layer()) / script.g.layer_scale(22);
+		draw_scale = script.layer_scale(prop.layer()) / script.layer_scale(22);
 		
 		const float cos_angle = cos(angle);
 		const float sin_angle = sin(angle);
@@ -419,6 +422,22 @@ class PropData : SelectableData
 		anchor_y += y;
 	}
 	
+	void store_selection_bounds()
+	{
+		selection_local_x1 = local_x1 / abs(prop_scale_x);
+		selection_local_y1 = local_y1 / abs(prop_scale_y);
+		selection_local_x2 = local_x2 / abs(prop_scale_x);
+		selection_local_y2 = local_y2 / abs(prop_scale_y);
+	}
+	
+	void get_selection_bounds(float &out x1, float &out y1, float &out x2, float &out y2)
+	{
+		x1 = selection_local_x1 * abs(prop_scale_x);
+		y1 = selection_local_y1 * abs(prop_scale_y);
+		x2 = selection_local_x2 * abs(prop_scale_x);
+		y2 = selection_local_y2 * abs(prop_scale_y);
+	}
+	
 	//
 	
 	void start_drag()
@@ -493,14 +512,14 @@ class PropData : SelectableData
 	
 	void start_scale(const float anchor_x, const float anchor_y)
 	{
-		drag_start_scale_x = prop.scale_x();
-		drag_start_scale_y = prop.scale_y();
+		drag_start_scale_x = prop_scale_x;
+		drag_start_scale_y = prop_scale_y;
 		anchor_world(anchor_x, anchor_y);
 		
 		start_drag();
 	}
 	
-	void do_scale(const float scale_x, const float scale_y, const bool auto_correct=false)
+	void do_scale(float scale_x, float scale_y, const bool auto_correct=false)
 	{
 		prop_scale_x = drag_start_scale_x * scale_x;
 		prop_scale_y = drag_start_scale_y * scale_y;
@@ -509,6 +528,8 @@ class PropData : SelectableData
 		{
 			prop_scale_x = get_valid_prop_scale(abs(prop_scale_x)) * sign(prop_scale_x);
 			prop_scale_y = get_valid_prop_scale(abs(prop_scale_y)) * sign(prop_scale_y);
+			scale_x = prop_scale_x / drag_start_scale_x;
+			scale_y = prop_scale_y / drag_start_scale_y;
 		}
 		
 		if(prop_scale_x == 0)
