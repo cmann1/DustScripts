@@ -893,7 +893,7 @@ class PropTool : Tool
 		
 		if(script.alt.down)
 		{
-			update_selection_bounds();
+			update_selection_bounds(scale < 0);
 		}
 		else
 		{
@@ -1360,7 +1360,7 @@ class PropTool : Tool
 		selection_y2 -= selection_y;
 	}
 	
-	private void update_selection_bounds()
+	private void update_selection_bounds(const bool flipped=false)
 	{
 		selection_x1 = MAX_FLOAT;
 		selection_y1 = MAX_FLOAT;
@@ -1383,6 +1383,16 @@ class PropTool : Tool
 		selection_y1 -= selection_y;
 		selection_x2 -= selection_x;
 		selection_y2 -= selection_y;
+		
+		if(flipped)
+		{
+			const float tx = selection_x1;
+			const float ty = selection_y1;
+			selection_x1 = selection_x2;
+			selection_y1 = selection_y2;
+			selection_x2 = tx;
+			selection_y2 = ty;
+		}
 	}
 	
 	private void update_selection_layer()

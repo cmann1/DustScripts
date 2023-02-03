@@ -424,18 +424,32 @@ class PropData : SelectableData
 	
 	void store_selection_bounds()
 	{
-		selection_local_x1 = local_x1 / abs(prop_scale_x);
-		selection_local_y1 = local_y1 / abs(prop_scale_y);
-		selection_local_x2 = local_x2 / abs(prop_scale_x);
-		selection_local_y2 = local_y2 / abs(prop_scale_y);
+		selection_local_x1 = local_x1 / prop_scale_x;
+		selection_local_y1 = local_y1 / prop_scale_y;
+		selection_local_x2 = local_x2 / prop_scale_x;
+		selection_local_y2 = local_y2 / prop_scale_y;
 	}
 	
 	void get_selection_bounds(float &out x1, float &out y1, float &out x2, float &out y2)
 	{
-		x1 = selection_local_x1 * abs(prop_scale_x);
-		y1 = selection_local_y1 * abs(prop_scale_y);
-		x2 = selection_local_x2 * abs(prop_scale_x);
-		y2 = selection_local_y2 * abs(prop_scale_y);
+		x1 = selection_local_x1 * prop_scale_x;
+		y1 = selection_local_y1 * prop_scale_y;
+		x2 = selection_local_x2 * prop_scale_x;
+		y2 = selection_local_y2 * prop_scale_y;
+		
+		if(x2 < x1)
+		{
+			const float t = x1;
+			x1 = x2;
+			x2 = t;
+		}
+		
+		if(y2 < y1)
+		{
+			const float t = y1;
+			y1 = y2;
+			y2 = t;
+		}
 	}
 	
 	//
