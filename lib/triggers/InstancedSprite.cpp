@@ -96,9 +96,23 @@ class InstancedSprite : trigger_base
 					}
 					else if(mouse.middle_press)
 					{
-						rotate_start = atan2(y - mouse.y, x - mouse.x) * RAD2DEG - instance.rotation;
-						@active = instance;
-						rotating = true;
+						if(editor.key_check_gvb(GVB::Alt))
+						{
+							if(editor.key_check_gvb(GVB::Shift))
+							{
+								instance.scale_y = -instance.scale_y;
+							}
+							else
+							{
+								instance.scale_x = -instance.scale_x;
+							}
+						}
+						else
+						{
+							rotate_start = atan2(y - mouse.y, x - mouse.x) * RAD2DEG - instance.rotation;
+							@active = instance;
+							rotating = true;
+						}
 					}
 					else if(mouse.right_press)
 					{
