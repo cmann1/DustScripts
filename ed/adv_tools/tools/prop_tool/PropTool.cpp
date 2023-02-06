@@ -677,8 +677,8 @@ class PropTool : Tool
 		float x, y;
 		script.transform(mouse.x, mouse.y, 22, selection_layer, x, y);
 		drag_scale_start_distance = distance(x, y, anchor_x, anchor_y);
-		drag_start_x = mouse.x;
-		drag_start_y = mouse.y;
+		drag_start_x = x;
+		drag_start_y = y;
 		
 		if(has_custom_anchor)
 		{
