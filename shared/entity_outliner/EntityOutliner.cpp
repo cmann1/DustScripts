@@ -301,10 +301,10 @@ class EntityOutliner : callback_base
 		view1_w += padding * 2; view1_h += padding * 2;
 		view2_w += padding * 2; view2_h += padding * 2;
 		
-		float view_x1 = min(view1_x, view2_x);
-		float view_y1 = min(view1_y, view2_y);
-		float view_x2 = max(view1_x + view1_w, view2_x + view2_w);
-		float view_y2 = max(view1_y + view1_h, view2_y + view2_h);
+		const float view_x1 = min(view1_x, view2_x);
+		const float view_y1 = min(view1_y, view2_y);
+		const float view_x2 = max(view1_x + view1_w, view2_x + view2_w);
+		const float view_y2 = max(view1_y + view1_h, view2_y + view2_h);
 		
 		num_entities = 0;
 		
