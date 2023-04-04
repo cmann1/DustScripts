@@ -32,8 +32,8 @@ void draw_arrow(scene@ g, uint layer, uint sub_layer, float x1, float y1, float 
 	if(length <= 0)
 		return;
 	
-	const float x3  = x1 + dx * head_position;
-	const float y3  = y1 + dy * head_position;
+	const float x3 = x1 + dx * head_position;
+	const float y3 = y1 + dy * head_position;
 	
 	dx = dx / length * head_size;
 	dy = dy / length * head_size;
@@ -43,6 +43,41 @@ void draw_arrow(scene@ g, uint layer, uint sub_layer, float x1, float y1, float 
 	draw_line(g, layer, sub_layer, x1, y1, x2, y2, width, colour, world);
 	draw_line(g, layer, sub_layer, x3, y3, x4 + dy, y4 - dx, width, colour, world);
 	draw_line(g, layer, sub_layer, x3, y3, x4 - dy, y4 + dx, width, colour, world);
+}
+
+void draw_arrow_fill(
+	scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float width=2,
+	float head_width=20, float head_length=20, float head_position=1, uint colour=0xFFFFFFFF, bool world=true)
+{
+	float dx = x2 - x1;
+	float dy = y2 - y1;
+	const float length = sqrt(dx * dx + dy * dy);
+	
+	if(length <= 0)
+		return;
+	
+	const float x3 = x1 + dx * head_position;
+	const float y3 = y1 + dy * head_position;
+	
+	dx = length > 0 ? dx / length : 1;
+	dy = length > 0 ? dy / length : 0;
+	const float x4  = x3 - dx * head_length;
+	const float y4  = y3 - dy * head_length;
+	
+	if(head_position == 1)
+	{
+		draw_line(g, layer, sub_layer, x1, y1, x4, y4, width, colour, world);
+	}
+	else
+	{
+		draw_line(g, layer, sub_layer, x1, y1, x2, y2, width, colour, world);
+	}
+	
+	g.draw_quad_world(layer, sub_layer, false,
+		x3, y3, x3, y3,
+		x4 + dy * head_width, y4 - dx * head_width,
+		x4 - dy * head_width, y4 + dx * head_width,
+		colour, colour, colour, colour);
 }
 
 void draw_glowing_line(
