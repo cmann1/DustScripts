@@ -39,6 +39,7 @@
 #include 'tools/prop_tool/PropTool.cpp';
 #include 'tools/TextTool.cpp';
 #include 'tools/ExtendedTriggerTool.cpp';
+#include 'tools/ExtendedTileTool.cpp';
 #include 'tools/HelpTool.cpp';
 #include 'tools/ParticleEditorTool.cpp';
 #include 'ToolGroup.cpp';
@@ -419,6 +420,7 @@ class AdvToolScript
 		
 		// Custom
 		
+		add_tool('Tiles',		ExtendedTileTool(this));
 		add_tool('Tiles',		EdgeBrushTool(this));
 		add_tool('Props',		PropTool(this));
 		add_tool('Props',		PropLineTool(this));
