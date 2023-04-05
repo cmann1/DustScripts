@@ -24,7 +24,7 @@ class ExtendedTileTool : Tool, IToolStepListener
 	
 	void tool_step(Tool@ tool) override
 	{
-		if(script.mouse_in_scene && script.mouse.middle_press)
+		if(script.mouse.middle_press && script.mouse_in_scene && !script.space.down && !script.handles.mouse_over)
 		{
 			for(int layer = 20; layer >= 6; layer--)
 			{
