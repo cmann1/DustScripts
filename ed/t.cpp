@@ -139,12 +139,19 @@ class CopyTileEdges: TileBaseTrigger
 	[persist] int sprite_tile = 8;
 	[persist] int sprite_palette = 1;
 	
+	[persist] int filter_set = -1;
+	[persist] int filter_tile = -1;
+	[persist] int filter_palette = -1;
+	
 	void update_tile(int x, int y, tileinfo@ tile)
 	{
 		if(!tile.solid())
 			return;
 		
 		if(ignore_dustblocks && tile.is_dustblock())
+			return;
+		
+		if(!check_filter(tile, filter_set, filter_tile, filter_palette))
 			return;
 		
 		if(tile.edge_top() & 8 == 0 && tile.edge_bottom() & 8 == 0 && tile.edge_left() & 8 == 0 && tile.edge_right() & 8 == 0)
