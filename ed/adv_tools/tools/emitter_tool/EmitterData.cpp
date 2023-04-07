@@ -190,7 +190,7 @@ class EmitterData : SelectableData
 			const float nx =  sin(rotation * DEG2RAD);
 			const float ny = -cos(rotation * DEG2RAD);
 			
-			draw_line(script.g, 22, 22,
+			script.g.draw_line_world(22, 22,
 				aabb_x + nx * (world_size_y),
 				aabb_y + ny * (world_size_y),
 				aabb_x + nx * (world_size_y + Settings::RotationHandleOffset / script.zoom),

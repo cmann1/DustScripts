@@ -1078,7 +1078,7 @@ class AdvToolScript
 	void circle(
 		const uint layer, const uint sub_layer,
 		const float x, const float y, const float radius, uint segments,
-		const float thickness=2, const uint colour=0xFFFFFFFF,
+		const float thickness=4, const uint colour=0xFFFFFFFF,
 		const float threshold=0, const bool world=true)
 	{
 		if(!circle_segments(radius, segments, segments, threshold, world))

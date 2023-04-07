@@ -176,7 +176,7 @@ class PropLineTool : Tool
 			float x3, y3, x4, y4;
 			script.transform(x1, y1, script.layer, 22, x3, y3);
 			script.transform(x2, y2, script.layer, 22, x4, y4);
-			draw_line(script.g, 22, 22, x3, y3, x4, y4, 1 / script.zoom, clr);
+			script.g.draw_line_world(22, 22, x3, y3, x4, y4, 2 / script.zoom, clr);
 		}
 	}
 	

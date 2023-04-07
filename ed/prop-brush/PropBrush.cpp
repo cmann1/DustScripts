@@ -395,7 +395,7 @@ class script
 			const float brush_radius = @brush != null ? max(brush.spread * spread_mul, 0.0) : 0;
 			const float real_radius = !place_on_tiles ? brush_radius : place_on_tiles_distance;
 			const float radius = max(real_radius, 15.0);
-			const float thickness = 2;
+			const float thickness = 4;
 			const uint colour = alpha | 0xffffff;
 			const uint range_colour = alpha | 0x4444ff;
 			float overlay_angle = @brush == null || brush.rotate_to_dir || place_on_tiles  ? draw_angle : 0;

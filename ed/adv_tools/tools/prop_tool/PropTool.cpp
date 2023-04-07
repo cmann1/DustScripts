@@ -276,7 +276,7 @@ class PropTool : Tool
 				script.transform(custom_anchor_x, custom_anchor_y, custom_anchor_layer, 22, x1, y1);
 				script.transform(custom_anchor_x, custom_anchor_y, selection_layer, 22, x2, y2);
 				
-				draw_line(script.g, 22, 22, x1, y1, x2, y2, 1 / script.zoom, clr);
+				script.g.draw_line_world(22, 22, x1, y1, x2, y2, 1 / script.zoom, clr);
 				draw_rotation_anchor(custom_anchor_x, custom_anchor_y, selection_layer, true, 1, clr);
 			}
 		}
@@ -311,10 +311,10 @@ class PropTool : Tool
 		
 		const float thickness = Settings::BoundingBoxLineWidth / script.zoom;
 		
-		draw_line(script.g, 22, 22, x1, y1, x2, y2, thickness, Settings::BoundingBoxColour);
-		draw_line(script.g, 22, 22, x2, y2, x3, y3, thickness, Settings::BoundingBoxColour);
-		draw_line(script.g, 22, 22, x3, y3, x4, y4, thickness, Settings::BoundingBoxColour);
-		draw_line(script.g, 22, 22, x4, y4, x1, y1, thickness, Settings::BoundingBoxColour);
+		script.g.draw_line_world(22, 22, x1, y1, x2, y2, thickness, Settings::BoundingBoxColour);
+		script.g.draw_line_world(22, 22, x2, y2, x3, y3, thickness, Settings::BoundingBoxColour);
+		script.g.draw_line_world(22, 22, x3, y3, x4, y4, thickness, Settings::BoundingBoxColour);
+		script.g.draw_line_world(22, 22, x4, y4, x1, y1, thickness, Settings::BoundingBoxColour);
 		const float mx = (x1 + x2) * 0.5;
 		const float my = (y1 + y2) * 0.5;
 		
@@ -322,7 +322,7 @@ class PropTool : Tool
 		const float ny = sin(selection_angle - HALF_PI);
 		const float oh = (Settings::RotationHandleOffset - Settings::RotateHandleSize) / script.zoom;
 		
-		draw_line(script.g, 22, 22,
+		script.g.draw_line_world(22, 22,
 			mx, my,
 			mx + nx * oh, my + ny * oh,
 			Settings::BoundingBoxLineWidth / script.zoom, Settings::BoundingBoxColour);
@@ -343,7 +343,7 @@ class PropTool : Tool
 		
 		if(lock)
 		{
-			drawing::circle(script.g, 22, 22, x, y, 4 * size / script.zoom, 12, 1 / script.zoom, clr);
+			drawing::circle(script.g, 22, 22, x, y, 4 * size / script.zoom, 12, 2 / script.zoom, clr);
 		}
 	}
 	

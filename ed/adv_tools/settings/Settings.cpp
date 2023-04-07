@@ -10,35 +10,35 @@ namespace Settings
 	const float UIFadeAlpha = 0.35;
 	const float UIFadeSpeed = 4;
 	
-	const float CursorLineWidth			= 1;
+	const float CursorLineWidth			= 2;
 	const uint CursorLineColour			= 0xaaffffff;
 	const uint CursorFillColour			= 0x10ffffff;
 	
-	const float SelectRectLineWidth			= 1.5;
+	const float SelectRectLineWidth			= 3;
 	const uint SelectRectFillColour			= 0x1144ff44;
 	const uint SelectRectLineColour			= 0x55aaffaa;
 	
-	const float DefaultLineWidth			= 1;
+	const float DefaultLineWidth			= 2;
 	const uint DefaultLineColour			= 0x55ffffff;
 	const uint DefaultFillColour			= 0x10ffffff;
 	
-	const float HoveredLineWidth			= 1.5;
+	const float HoveredLineWidth			= 3;
 	const uint HoveredLineColour			= 0xff44eeff;
 	const uint HoveredFillColour			= 0x5544eeff;
 	
-	const float SelectedLineWidth			= 1;
+	const float SelectedLineWidth			= 2;
 	const uint SelectedLineColour			= 0xcc44eeff;
 	const uint SelectedFillColour			= 0x3344eeff;
 	
-	const float PendingAddLineWidth			= 1;
+	const float PendingAddLineWidth			= 2;
 	const uint PendingAddFillColour			= 0x3344ff44;
 	const uint PendingAddLineColour			= 0xaa44ff44;
 	
-	const float PendingRemoveLineWidth		= 1;
+	const float PendingRemoveLineWidth		= 2;
 	const uint PendingRemoveFillColour		= 0x33ff4444;
 	const uint PendingRemoveLineColour		= 0xaaff4444;
 	
-	const float BoundingBoxLineWidth		= 1.5;
+	const float BoundingBoxLineWidth		= 3;
 	const uint BoundingBoxColour			= 0x55ffffff;
 	
 	const float	RotationHandleOffset		= 18;
@@ -103,8 +103,8 @@ namespace Settings
 	/// Priority off, collision on - In game has same effect as both on
 	const uint EdgeInvisibleColour = 0xff55ff22;
 	
-	const float EdgeMarkerLineWidth = 1.5;
-	const float EdgeMarkerRadius = 8;
+	const float EdgeMarkerLineWidth = 3;
+	const float EdgeMarkerRadius = 9;
 	const uint EdgeArrowMarkerColour = 0x55ffffff;
 	
 }

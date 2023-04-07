@@ -364,7 +364,7 @@ class EdgeBrushTool : Tool
 				
 				const uint clr = data.get_colour();
 				
-				draw_line(script.g, 22, 22, x1, y1, x2, y2, line_width, clr, true);
+				script.g.draw_line_world(22, 22, x1, y1, x2, y2, line_width, clr);
 				
 				if(Settings::EdgeBrushDebugTiming)
 				{
@@ -429,7 +429,7 @@ class EdgeBrushTool : Tool
 		
 		const float line_width = Settings::EdgeMarkerLineWidth / script.zoom;
 		
-		draw_line(script.g, 22, 21,
+		script.g.draw_line_world(22, 21,
 			mouse.x, mouse.y, px, py,
 			line_width, Settings::EdgeArrowMarkerColour);
 		
@@ -442,11 +442,10 @@ class EdgeBrushTool : Tool
 		const float length = sqrt(dx * dx + dy * dy);
 		dx /= length;
 		dy /= length;
-		draw_line(script.g, 22, 21,
-			mx - dy * radius, my + dx * radius,
+		script.g.draw_line_world(22, 21,
 			mx, my,
 			mx + dy * radius, my - dx * radius,
-			min(line_width * 2, 8.0),
+			min(line_width * 1.5, 8.0),
 			clr);
 	}
 	

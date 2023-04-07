@@ -137,11 +137,10 @@ class PropData : SelectableData
 			{
 				LineData@ line = @lines[i];
 				// Draw outlines on separate sublayer to sprite so that they can be batched,
-				script.g.draw_rectangle_world(22, 23,
-					aabb_x + line.mx - line_width, aabb_y + line.my - line.length * 0.5,
-					aabb_x + line.mx + line_width, aabb_y + line.my + line.length * 0.5,
-					line.angle,
-					line_colour);
+				script.g.draw_line_world(22, 23,
+					aabb_x + line.x1, aabb_y + line.y1,
+					aabb_x + line.x2, aabb_y + line.y2,
+					line_width, line_colour);
 			}
 		}
 		

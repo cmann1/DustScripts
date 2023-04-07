@@ -94,8 +94,8 @@ class Handle
 				break;
 			case HandleShape::Line:
 			{
-				draw_line(script.g, 22, 22, x, y, x2, y2, size * 0.5 + shadow_outset, 0x44000000);
-				draw_line(script.g, 22, 22, x, y, x2, y2, size * 0.5, hit ? highlight_colour : colour);
+				script.g.draw_line_world(22, 22, x, y, x2, y2, size * 0.5 + shadow_outset, 0x44000000);
+				script.g.draw_line_world(22, 22, x, y, x2, y2, size * 0.5, hit ? highlight_colour : colour);
 			}
 				break;
 		}
