@@ -41,6 +41,9 @@ class ExtendedTileTool : Tool, IToolStepListener
 				{
 					script.editor.set_tile_sprite(
 						tile.sprite_set(), tile.sprite_tile(), tile.sprite_palette());
+					script.show_info_popup(
+						'Tile: ' + tile.sprite_set() + '.' +tile.sprite_tile() + '.' +tile.sprite_palette(),
+						null, PopupPosition::Below, 2);
 					break;
 				}
 			}

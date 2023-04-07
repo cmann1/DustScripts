@@ -116,6 +116,7 @@ class AdvToolScript
 	private array<Image@> icon_images;
 	
 	private PopupOptions@ info_popup;
+	private float info_popup_timer;
 	private Label@ info_label;
 	
 	/// '_' = Tool has not been initialised yet
@@ -574,6 +575,15 @@ class AdvToolScript
 		}
 		
 		// get_tool('Prop Tool').step();
+		
+		if(info_popup_timer > 0)
+		{
+			info_popup_timer = max(info_popup_timer - DT, 0.0);
+			if(info_popup_timer <= 0)
+			{
+				hide_info_popup();
+			}
+		}
 		
 		info_overlay.step();
 		
@@ -1120,16 +1130,20 @@ class AdvToolScript
 		info_overlay.show(target, layer + '.' + sublayer, 0.75);
 	}
 	
-	void show_info_popup(const string &in info, Toolbar@ toolbar=null, const PopupPosition position=PopupPosition::BelowLeft)
+	void show_info_popup(
+		const string &in info, Toolbar@ toolbar=null, const PopupPosition position=PopupPosition::BelowLeft,
+		const float time=0)
 	{
 		info_label.text = info;
 		info_popup.position = position;
 		ui.show_tooltip(info_popup, @toolbar != null ? toolbar : this.toolbar);
+		info_popup_timer = time;
 	}
 	
 	void hide_info_popup()
 	{
 		ui.hide_tooltip(info_popup);
+		info_popup_timer = 0;
 	}
 	
 	bool key_repeat_gvb(const int gvb)
