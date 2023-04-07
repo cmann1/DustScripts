@@ -42,10 +42,28 @@ class CameraDisconnectTrigger : trigger_base, EnterExitTrigger
 		{
 			entity@ e = entity_by_id(connect_node);
 			camera_node@ node = @e != null ? e.as_camera_node() : null;
-			if(@node != null && cam.try_connect(node))
+			
+			if(@node != null)
 			{
-				on_connect(player_index, node);
-				return;
+				// Check connected nodes. Can prevent jumping around interest nodes if the camera
+				// is already on connect_node's path.
+				camera_node@ current_node = cam.current_node();
+				if(@current_node != null)
+				{
+					for(uint i = 0, count = node.num_edges(); i < count; i++)
+					{
+						if(node.connected_node_id(i) == current_node.id())
+						{
+							return;
+						}
+					}
+				}
+				
+				if(cam.try_connect(node))
+				{
+					on_connect(player_index, node);
+					return;
+				}
 			}
 		}
 		
