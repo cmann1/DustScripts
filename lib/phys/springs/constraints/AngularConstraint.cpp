@@ -94,9 +94,9 @@ class AngularConstraint : Constraint
 		const float y = origin_y + particle1.y;
 		
 		const float l = 24;
-//		draw_line(g, 21, 21, x, y, x + cos(base_angle) * l, y + sin(base_angle) * l, 1, 0x99dddddd);
-//		draw_line(g, 21, 21, x, y, x + cos(base_angle + min) * l, y + sin(base_angle + min) * l, 1, 0x99dd4444);
-//		draw_line(g, 21, 21, x, y, x + cos(base_angle + max) * l, y + sin(base_angle + max) * l, 1, 0x994444dd);
+		g.draw_line_world(21, 21, x, y, x + cos(base_angle) * l, y + sin(base_angle) * l, 2, 0x99dddddd);
+		g.draw_line_world(21, 21, x, y, x + cos(base_angle + min) * l, y + sin(base_angle + min) * l, 2, 0x99dd4444);
+		g.draw_line_world(21, 21, x, y, x + cos(base_angle + max) * l, y + sin(base_angle + max) * l, 2, 0x994444dd);
 	}
 	
 }

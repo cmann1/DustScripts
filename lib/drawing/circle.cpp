@@ -19,11 +19,22 @@ namespace drawing
 		
 		for(uint i = 0; i < segments; i++)
 		{
-			draw_line(g,
-				layer, sub_layer, 
-				x + cos(angle) * radius, y + sin(angle) * radius,
-				x + cos(angle + angle_step) * radius, y + sin(angle + angle_step) * radius,
-				thickness, colour, world);
+			if(world)
+			{
+				g.draw_line_world(
+					layer, sub_layer,
+					x + cos(angle) * radius, y + sin(angle) * radius,
+					x + cos(angle + angle_step) * radius, y + sin(angle + angle_step) * radius,
+					thickness, colour);
+			}
+			else
+			{
+				g.draw_line_hud(
+					layer, sub_layer,
+					x + cos(angle) * radius, y + sin(angle) * radius,
+					x + cos(angle + angle_step) * radius, y + sin(angle + angle_step) * radius,
+					thickness, colour);
+			}
 			
 			angle += angle_step;
 		}
@@ -164,7 +175,7 @@ namespace drawing
 			float px = x + cos(angle) * size_x;
 			float py = y + sin(angle) * size_y;
 			
-			draw_line(g,
+			g.draw_line_hud(
 				layer, sub_layer, 
 				prev_x, prev_y,
 				px, py,

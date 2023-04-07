@@ -31,7 +31,7 @@ class BaseEditorScript
 	Mouse mouse(false);
 	float ed_zoom = 1;
 	float ed_handle_size;
-	float ed_default_thickness = 1;
+	float ed_default_thickness = 2;
 	bool ed_disable_handles;
 	bool ed_disable_snap;
 	int ed_index = 0;

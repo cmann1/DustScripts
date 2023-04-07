@@ -24,7 +24,14 @@ class DebugLine : DebugItem
 	
 	void draw(scene@ g)
 	{
-		draw_line(g, layer, sub_layer, x1, y1, x2, y2, thickness, colour, world);
+		if(world)
+		{
+			g.draw_line_world(layer, sub_layer, x1, y1, x2, y2, thickness, colour);
+		}
+		else
+		{
+			g.draw_line_hud(layer, sub_layer, x1, y1, x2, y2, thickness, colour);
+		}
 	}
 	
 }

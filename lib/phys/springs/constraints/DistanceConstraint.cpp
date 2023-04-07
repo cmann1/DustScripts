@@ -50,9 +50,9 @@ class DistanceConstraint : Constraint
 	
 	void debug_draw(scene@ g, const float origin_x, const float origin_y) override
 	{
-		draw_line(g, 21, 21,
+		g.draw_line_world(21, 21,
 			origin_x + particle1.x, origin_y + particle1.y,
-			origin_x + particle2.x, origin_y + particle2.y, 1, 0xff44dddd);
+			origin_x + particle2.x, origin_y + particle2.y, 2, 0xff44dddd);
 	}
 	
 }

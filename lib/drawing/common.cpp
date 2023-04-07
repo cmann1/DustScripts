@@ -1,28 +1,6 @@
 #include '../math/math.cpp';
 #include '../math/geom.cpp';
 
-/**
- * g.draw_line thickness is truncated to a whole number
- */
-void draw_line(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness, uint colour, bool world=true)
-{
-	const float dx = x2 - x1;
-	const float dy = y2 - y1;
-	const float length = sqrt(dx * dx + dy * dy);
-	
-	const float mx = (x1 + x2) * 0.5;
-	const float my = (y1 + y2) * 0.5;
-	
-	if(world)
-		g.draw_rectangle_world(layer, sub_layer,
-			mx - thickness, my - length * 0.5,
-			mx + thickness, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
-	else
-		g.draw_rectangle_hud(layer, sub_layer,
-			mx - thickness, my - length * 0.5,
-			mx + thickness, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
-}
-
 void draw_arrow(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float width=2, float head_size=20, float head_position=1, uint colour=0xFFFFFFFF, bool world=true)
 {
 	float dx = x2 - x1;
@@ -40,9 +18,18 @@ void draw_arrow(scene@ g, uint layer, uint sub_layer, float x1, float y1, float 
 	const float x4  = x3 - dx;
 	const float y4  = y3 - dy;
 	
-	draw_line(g, layer, sub_layer, x1, y1, x2, y2, width, colour, world);
-	draw_line(g, layer, sub_layer, x3, y3, x4 + dy, y4 - dx, width, colour, world);
-	draw_line(g, layer, sub_layer, x3, y3, x4 - dy, y4 + dx, width, colour, world);
+	if(world)
+	{
+		g.draw_line_world(layer, sub_layer, x1, y1, x2, y2, width, colour);
+		g.draw_line_world(layer, sub_layer, x3, y3, x4 + dy, y4 - dx, width, colour);
+		g.draw_line_world(layer, sub_layer, x3, y3, x4 - dy, y4 + dx, width, colour);
+	}
+	else
+	{
+		g.draw_line_hud(layer, sub_layer, x1, y1, x2, y2, width, colour);
+		g.draw_line_hud(layer, sub_layer, x3, y3, x4 + dy, y4 - dx, width, colour);
+		g.draw_line_hud(layer, sub_layer, x3, y3, x4 - dy, y4 + dx, width, colour);
+	}
 }
 
 void draw_arrow_fill(
@@ -64,20 +51,40 @@ void draw_arrow_fill(
 	const float x4  = x3 - dx * head_length;
 	const float y4  = y3 - dy * head_length;
 	
-	if(head_position == 1)
+	if(world)
 	{
-		draw_line(g, layer, sub_layer, x1, y1, x4, y4, width, colour, world);
+		if(head_position == 1)
+		{
+			g.draw_line_world(layer, sub_layer, x1, y1, x4, y4, width, colour);
+		}
+		else
+		{
+			g.draw_line_world(layer, sub_layer, x1, y1, x2, y2, width, colour);
+		}
+		
+		g.draw_quad_world(layer, sub_layer, false,
+			x3, y3, x3, y3,
+			x4 + dy * head_width, y4 - dx * head_width,
+			x4 - dy * head_width, y4 + dx * head_width,
+			colour, colour, colour, colour);
 	}
 	else
 	{
-		draw_line(g, layer, sub_layer, x1, y1, x2, y2, width, colour, world);
+		if(head_position == 1)
+		{
+			g.draw_line_hud(layer, sub_layer, x1, y1, x4, y4, width, colour);
+		}
+		else
+		{
+			g.draw_line_hud(layer, sub_layer, x1, y1, x2, y2, width, colour);
+		}
+		
+		g.draw_quad_hud(layer, sub_layer, false,
+			x3, y3, x3, y3,
+			x4 + dy * head_width, y4 - dx * head_width,
+			x4 - dy * head_width, y4 + dx * head_width,
+			colour, colour, colour, colour);
 	}
-	
-	g.draw_quad_world(layer, sub_layer, false,
-		x3, y3, x3, y3,
-		x4 + dy * head_width, y4 - dx * head_width,
-		x4 - dy * head_width, y4 + dx * head_width,
-		colour, colour, colour, colour);
 }
 
 void draw_glowing_line(
@@ -98,10 +105,10 @@ void draw_glowing_line(
 	const float angle = atan2(-dx, dy);
 	
 	normalize(-dy, dx, dx, dy);
-	const float outer_dx = dx * (glow_width + thickness);
-	const float outer_dy = dy * (glow_width + thickness);
-	const float inner_dx = dx * thickness;
-	const float inner_dy = dy * thickness;
+	const float outer_dx = dx * (glow_width + thickness * 0.5);
+	const float outer_dy = dy * (glow_width + thickness * 0.5);
+	const float inner_dx = dx * thickness * 0.5;
+	const float inner_dy = dy * thickness * 0.5;
 	const float cap_factor = 0.7;
 	const float cap_dx = dx * glow_width;
 	const float cap_dy = dy * glow_width;
@@ -279,6 +286,7 @@ void draw_dot_hud(scene@ g, int layer, int sub_layer, float x, float y, float si
 
 void outline_rect(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness=2, uint colour=0xFFFFFFFF)
 {
+	thickness *= 0.5;
 	// Top
 	g.draw_rectangle_world(layer, sub_layer,
 		x1 - thickness, y1 - thickness,
@@ -302,6 +310,7 @@ void outline_rect(scene@ g, uint layer, uint sub_layer, float x1, float y1, floa
 }
 void outline_rect_hud(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness=2, uint colour=0xFFFFFFFF)
 {
+	thickness *= 0.5;
 	// Top
 	g.draw_rectangle_hud(layer, sub_layer,
 		x1 - thickness, y1 - thickness,
@@ -326,6 +335,7 @@ void outline_rect_hud(scene@ g, uint layer, uint sub_layer, float x1, float y1, 
 
 void outline_rect_inside(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness, uint colour)
 {
+	thickness *= 0.5;
 	// Left
 	g.draw_rectangle_world(layer, sub_layer,
 		x1,             y1 + thickness,
@@ -345,6 +355,7 @@ void outline_rect_inside(scene@ g, uint layer, uint sub_layer, float x1, float y
 }
 void outline_rect_inside_hud(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness, uint colour)
 {
+	thickness *= 0.5;
 	// Left
 	g.draw_rectangle_hud(layer, sub_layer,
 		x1,             y1 + thickness,
@@ -365,6 +376,7 @@ void outline_rect_inside_hud(scene@ g, uint layer, uint sub_layer, float x1, flo
 
 void outline_rect_outside(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness, uint colour)
 {
+	thickness *= 0.5;
 	// Left
 	g.draw_rectangle_world(layer, sub_layer,
 		x1 - thickness, y1,
@@ -384,6 +396,7 @@ void outline_rect_outside(scene@ g, uint layer, uint sub_layer, float x1, float 
 }
 void outline_rect_outside_hud(scene@ g, uint layer, uint sub_layer, float x1, float y1, float x2, float y2, float thickness, uint colour)
 {
+	thickness *= 0.5;
 	// Left
 	g.draw_rectangle_hud(layer, sub_layer,
 		x1 - 1, y1,
@@ -404,6 +417,7 @@ void outline_rect_outside_hud(scene@ g, uint layer, uint sub_layer, float x1, fl
 
 void outline_rotated_rect(scene@ g, uint layer, uint sub_layer, float x, float y, float size_x, float size_y, float rotation, float thickness=2, uint colour=0xFFFFFFFF)
 {
+	thickness *= 0.5;
 	float p1_x, p1_y, p2_x, p2_y;
 	float p3_x, p3_y, p4_x, p4_y;
 	
@@ -444,6 +458,7 @@ void outline_rotated_rect(scene@ g, uint layer, uint sub_layer, float x, float y
 }
 void outline_rotated_rect_hud(scene@ g, uint layer, uint sub_layer, float x, float y, float size_x, float size_y, float rotation, float thickness=2, uint colour=0xFFFFFFFF)
 {
+	thickness *= 0.5;
 	float p1_x, p1_y, p2_x, p2_y;
 	float p3_x, p3_y, p4_x, p4_y;
 	
