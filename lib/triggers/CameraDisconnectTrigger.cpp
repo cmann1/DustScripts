@@ -12,6 +12,10 @@ class CameraDisconnectTrigger : trigger_base, EnterExitTrigger
 	{
 		@this.script = s;
 		@this.self = self;
+		
+		self.editor_colour_inactive(0x666b7254);
+		self.editor_colour_circle(0xff6b7254);
+		self.editor_colour_active(0xff6b7254);
 	}
 	
 	void activate(controllable@ c)
