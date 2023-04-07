@@ -104,7 +104,7 @@ namespace Settings
 	const uint EdgeInvisibleColour = 0xff55ff22;
 	
 	const float EdgeMarkerLineWidth = 1.5;
-	const float EdgeMarkerRadius = 7;
+	const float EdgeMarkerRadius = 8;
 	const uint EdgeArrowMarkerColour = 0x55ffffff;
 	
 }

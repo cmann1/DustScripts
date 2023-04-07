@@ -444,6 +444,7 @@ class EdgeBrushTool : Tool
 		dy /= length;
 		draw_line(script.g, 22, 21,
 			mx - dy * radius, my + dx * radius,
+			mx, my,
 			mx + dy * radius, my - dx * radius,
 			min(line_width * 2, 8.0),
 			clr);
