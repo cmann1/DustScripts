@@ -29,9 +29,9 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 	
 	void tool_step(Tool@ tool) override
 	{
-		if(script.alt.down && script.mouse.right_down && script.mouse_in_scene && !script.space.down && !script.handles.mouse_over)
+		if(script.alt.down && script.mouse.middle_down && script.mouse_in_scene && !script.space.down && !script.handles.mouse_over)
 		{
-			script.input.key_clear_gvb(GVB::RightClick);
+			script.input.key_clear_gvb(GVB::MiddleClick);
 			@pick_data = null;
 			prop_tool.clear_hovered_props();
 			prop_tool.pick_props();
@@ -56,7 +56,7 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 	
 	void tool_draw(Tool@ tool, const float sub_frame) override
 	{
-		if(script.alt.down && script.mouse.right_down)
+		if(script.alt.down && script.mouse.middle_down)
 		{
 			if(@pick_data != null)
 			{
