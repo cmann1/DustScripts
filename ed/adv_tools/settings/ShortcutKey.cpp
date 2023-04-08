@@ -2,6 +2,11 @@
 #include '../../../lib/input/ModifierKey.cpp';
 #include '../../../lib/utils/vk_from_name.cpp';
 
+/// Special "VK" for mouse wheel up.
+const int VK_MouseWheelUp	= 0xff01;
+/// Special "VK" for mouse wheel down.
+const int VK_MouseWheelDown	= 0xff02;
+
 class ShortcutKey
 {
 	
@@ -41,7 +46,7 @@ class ShortcutKey
 		if(key_str == '')
 			return this;
 		
-		vk = VK::from_name(key_str);
+		vk = name_to_vk(key_str);
 		
 		// The key itself must not be a modifier
 		if(
@@ -85,9 +90,121 @@ class ShortcutKey
 		priority = 0;
 	}
 	
+	bool is_set() const
+	{
+		return vk > 0;
+	}
+	
+	bool check_modifiers()
+	{
+		if(vk <= 0 || @script == null)
+			return false;
+		
+		if(
+			script.ctrl.down != ((modifiers & ModifierKey::Ctrl) != 0) ||
+			script.shift.down != ((modifiers & ModifierKey::Shift) != 0) ||
+			script.alt.down != ((modifiers & ModifierKey::Alt) != 0)
+		)
+			return false;
+		
+		return true;
+	}
+	
+	bool check()
+	{
+		if(!check_modifiers())
+			return false;
+		
+		if(vk == VK_MouseWheelUp)
+			return script.mouse.scroll == -1;
+		if(vk == VK_MouseWheelDown)
+			return script.mouse.scroll == 1;
+		
+		return script.input.key_check_pressed_vk(vk);
+	}
+	
+	bool down()
+	{
+		if(!check_modifiers())
+			return false;
+		
+		if(vk == VK_MouseWheelUp)
+			return script.mouse.scroll == -1;
+		if(vk == VK_MouseWheelDown)
+			return script.mouse.scroll == 1;
+		
+		return script.input.key_check_vk(vk);
+	}
+	
+	bool matches(ShortcutKey@ other)
+	{
+		if(@other == null || other.vk <= 0 || vk <= 0)
+			return false;
+		
+		return other.vk == vk && other.modifiers == modifiers;
+	}
+	
+	void clear_gvb()
+	{
+		if(vk == VK_MouseWheelUp)
+		{
+			script.input.key_clear_gvb(GVB::WheelUp);
+			return;
+		}
+		if(vk == VK_MouseWheelDown)
+		{
+			script.input.key_clear_gvb(GVB::WheelDown);
+			return;
+		}
+		
+		const int gvb = script.input.vk_to_gvb(vk);
+		if(gvb != -1)
+		{
+			script.input.key_clear_gvb(gvb);
+		}
+	}
+	
+	int name_to_vk(const string &in name)
+	{
+		// Nicer names for the mouse button
+		if(name == 'LeftClick')
+			return VK::LeftButton;
+		if(name == 'RightClick')
+			return VK::RightButton;
+		if(name == 'MiddleClick')
+			return VK::MiddleButton;
+		
+		// Special values for mouse wheels since these don't have vk codes.
+		if(name == 'WheelUp')
+			return VK_MouseWheelUp;
+		if(name == 'WheelDown')
+			return VK_MouseWheelDown;
+		
+		return VK::from_name(name);
+	}
+	
+	string vk_to_name(const int vk)
+	{
+		// Nicer names for the mouse button
+		if(vk == VK::LeftButton)
+			return 'LeftClick';
+		if(vk == VK::RightButton)
+			return 'RightClick';
+		if(vk == VK::MiddleButton)
+			return 'MiddleClick';
+		
+		// Special values for mouse wheels since these don't have vk codes.
+		if(vk == VK_MouseWheelUp)
+			return 'WheelUp';
+		if(vk == VK_MouseWheelDown)
+			return 'WheelDown';
+		
+		return VK::to_name(vk);
+	}
+	
 	string to_string()
 	{
-		string str = VK::to_name(vk);
+		string str = vk_to_name(vk);
 		
 		if(str == '')
 			return str;
@@ -100,34 +217,6 @@ class ShortcutKey
 			str = VK::to_name(VK::Control) + '+' + str;
 		
 		return str;
-	}
-	
-	bool is_set() const
-	{
-		return vk > 0;
-	}
-	
-	bool check()
-	{
-		if(vk <= 0 || @script == null)
-			return false;
-		
-		if(
-			script.ctrl.down != ((modifiers & ModifierKey::Ctrl) != 0) ||
-			script.shift.down != ((modifiers & ModifierKey::Shift) != 0) ||
-			script.alt.down != ((modifiers & ModifierKey::Alt) != 0)
-		)
-			return false;
-		
-		return script.input.key_check_pressed_vk(vk);
-	}
-	
-	bool matches(ShortcutKey@ other)
-	{
-		if(@other == null || other.vk <= 0 || vk <= 0)
-			return false;
-		
-		return other.vk == vk && other.modifiers == modifiers;
 	}
 	
 }

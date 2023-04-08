@@ -4,6 +4,8 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 	private PropTool@ prop_tool;
 	private PropData@ pick_data;
 	
+	private ShortcutKey pick_key;
+	
 	ExtendedPropTool(AdvToolScript@ script)
 	{
 		super(script, 'Extended Prop Tool');
@@ -16,11 +18,13 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 		@prop_tool = cast<PropTool@>(script.get_tool('Prop Tool'));
 		Tool@ base_prop_tool = script.get_tool('Props');
 		
-		if(@base_prop_tool != null && @prop_tool != null)
-		{
-			base_prop_tool.register_step_listener(this);
-			base_prop_tool.register_draw_listener(this);
-		}
+		if(@base_prop_tool == null || @prop_tool == null)
+			return;
+		
+		base_prop_tool.register_step_listener(this);
+		base_prop_tool.register_draw_listener(this);
+		
+		pick_key.init(script).from_config('KeyPickProp', 'Alt+MiddleClick');
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -29,9 +33,9 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 	
 	void tool_step(Tool@ tool) override
 	{
-		if(script.alt.down && script.mouse.middle_down && script.mouse_in_scene && !script.space.down && !script.handles.mouse_over)
+		if(script.mouse_in_scene && !script.space.down && !script.handles.mouse_over && pick_key.down())
 		{
-			script.input.key_clear_gvb(GVB::MiddleClick);
+			pick_key.clear_gvb();
 			@pick_data = null;
 			prop_tool.clear_hovered_props();
 			prop_tool.pick_props();
@@ -56,12 +60,9 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 	
 	void tool_draw(Tool@ tool, const float sub_frame) override
 	{
-		if(script.alt.down && script.mouse.middle_down)
+		if(@pick_data != null)
 		{
-			if(@pick_data != null)
-			{
-				pick_data.draw(PropToolHighlight::Both);
-			}
+			pick_data.draw(PropToolHighlight::Both);
 		}
 	}
 	
