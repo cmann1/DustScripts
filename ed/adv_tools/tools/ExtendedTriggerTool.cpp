@@ -43,7 +43,11 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 			}
 			if(script.ctrl.down && script.input.key_check_pressed_vk(VK::V))
 			{
-				paste_trigger(script.mouse.x, script.mouse.y);
+				entity@ trigger = paste_trigger(script.mouse.x, script.mouse.y);
+				if(@trigger != null)
+				{
+					@script.editor.selected_trigger = trigger;
+				}
 			}
 			if(script.ctrl.down && script.input.key_check_pressed_vk(VK::H))
 			{
@@ -72,15 +76,16 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 		paste_trigger(trigger.x() - 48, trigger.y());
 	}
 	
-	private void paste_trigger(const float x, const float y)
+	private entity@ paste_trigger(const float x, const float y)
 	{
 		if(@clipboard == null)
-			return;
+			return null;
 		
 		entity@ copy = create_entity(clipboard.type_name());
 		copy.set_xy(x, y);
 		copy_vars(clipboard, copy);
 		script.g.add_entity(copy);
+		return copy;
 	}
 	
 }
