@@ -24,7 +24,15 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 		base_prop_tool.register_step_listener(this);
 		base_prop_tool.register_draw_listener(this);
 		
-		pick_key.init(script).from_config('KeyPickProp', 'Alt+MiddleClick');
+		pick_key.init(script);
+		reload_shortcut_key();
+	}
+	
+	bool reload_shortcut_key() override
+	{
+		pick_key.from_config('KeyPickProp', 'Alt+MiddleClick');
+		
+		return Tool::reload_shortcut_key();
 	}
 	
 	// //////////////////////////////////////////////////////////

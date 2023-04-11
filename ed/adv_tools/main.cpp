@@ -99,7 +99,6 @@ class AdvToolScript
 	private bool initialised;
 	private bool state_persisted = true;
 	private bool queue_load_config;
-	private bool queue_load_config_trigger;
 	private float frame;
 	
 	private Toolbar@ toolbar;

@@ -18,7 +18,15 @@ class ExtendedTileTool : Tool, IToolStepListener
 			return;
 		
 		tool.register_step_listener(this);
-		pick_key.init(script).from_config('KeyPickTile', 'MiddleClick');
+		pick_key.init(script);
+		reload_shortcut_key();
+	}
+	
+	bool reload_shortcut_key() override
+	{
+		pick_key.from_config('KeyPickTile', 'MiddleClick');
+		
+		return Tool::reload_shortcut_key();
 	}
 	
 	// //////////////////////////////////////////////////////////
