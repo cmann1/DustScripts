@@ -3,7 +3,7 @@
 #include 'common.cpp';
 #include 'get_tile_edge_points.cpp';
 
-bool closest_point_on_tile(
+int closest_point_on_tile(
 	float x, float y, int tile_x, int tile_y, int type, tileinfo@ tile,
 	float &out out_x, float &out out_y, float &out normal_x, float &out normal_y)
 {
@@ -12,7 +12,7 @@ bool closest_point_on_tile(
 	const float local_x = x - tx;
 	const float local_y = y - ty;
 	Line line;
-	bool result = false;
+	int result = -1;
 	float closest_dist = MAX_FLOAT;
 	
 	for(int side = 0; side < 4; side++)
@@ -51,17 +51,17 @@ bool closest_point_on_tile(
 			closest_dist = dist;
 			normal_x = line.y2 - line.y1;
 			normal_y = -(line.x2 - line.x1);
-			result = true;
+			result = side;
 			
-//			get_scene().draw_line_world(22, 22, tx + line.x1, ty + line.y1, tx + line.x2, ty + line.y2, 2, 0x8800ff00);
+			//get_scene().draw_line_world(22, 22, tx + line.x1, ty + line.y1, tx + line.x2, ty + line.y2, 2, 0x8800ff00);
 		}
-//		else
-//		{
-//			get_scene().draw_line_world(22, 22, tx + line.x1, ty + line.y1, tx + line.x2, ty + line.y2, 2, 0x88ff0000);
-//		}
+		//else
+		//{
+		//	get_scene().draw_line_world(22, 22, tx + line.x1, ty + line.y1, tx + line.x2, ty + line.y2, 2, 0x88ff0000);
+		//}
 	}
 	
-	if(result)
+	if(result != -1)
 	{
 		const float l = sqrt(normal_x * normal_x + normal_y * normal_y);
 		normal_x /= l;
