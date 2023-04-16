@@ -25,6 +25,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	protected bool _multi_line = true;
 	protected bool _smart_home = true;
 	protected bool _smart_new_line = true;
+	protected bool _move_lines_shortcut = true;
 	protected bool _remove_lines_shortcut = true;
 	protected bool _duplicate_selection_shortcut = true;
 	protected bool _clipboard_enabled = true;
@@ -338,6 +339,13 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	{
 		get const { return _smart_new_line; }
 		set { _smart_new_line = value; }
+	}
+	
+	/// Allow moving selected lines up and down with Alt+Up and Alt+Down.
+	bool move_lines_shortcut
+	{
+		get const { return _move_lines_shortcut; }
+		set { _move_lines_shortcut = value; }
 	}
 	
 	/// Allow removing lines with Ctrl+Shift+D
@@ -957,15 +965,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	/// Removes all lines between start_line_index and end_line_index (inclusive).
 	void remove_lines(int start_line_index, int end_line_index, const int scroll_to_caret=-1)
 	{
-		start_line_index	= clamp(start_line_index, 0, num_lines - 1);
-		end_line_index		= clamp(end_line_index, 0, num_lines - 1);
-		
-		if(end_line_index < start_line_index)
-		{
-			const int start_line_index_t = start_line_index;
-			start_line_index = end_line_index;
-			end_line_index = start_line_index_t;
-		}
+		validate_line_indices(start_line_index, end_line_index, start_line_index, end_line_index);
 		
 		const int remove_line_count = end_line_index - start_line_index + 1;
 		
@@ -1026,6 +1026,68 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		this.scroll_to_caret(scroll_to_caret);
 		
 		after_change();
+	}
+	
+	/// Moves all lines between the start and end index (inclusive) the given distance.
+	void move_lines(int start_line_index, int end_line_index, int distance, const int scroll_to_caret=-1)
+	{
+		if(distance == 0)
+			return;
+		
+		validate_line_indices(start_line_index, end_line_index, start_line_index, end_line_index);
+		
+		if(distance < 0)
+		{
+			distance = max(distance, -start_line_index);
+		}
+		else if(distance > 0)
+		{
+			distance = min(distance, num_lines - 1 - end_line_index);
+		}
+		
+		if(distance == 0)
+			return;
+		
+		int selection_adjustment = 0;
+		const int dir = distance > 0 ? 1 : -1;
+		
+		while(distance != 0)
+		{
+			const int start_index = dir == -1 ? start_line_index : end_line_index;
+			const int end_index = dir == -1 ? end_line_index : start_line_index;
+			
+			const string line = lines[start_index + dir];
+			const int index = line_end_indices[start_index + dir];
+			array<float>@ widths = @line_character_widths[start_index + dir];
+			
+			const int swap_line_length = (get_line_length(start_index + dir) + 1) * dir;
+			selection_adjustment += swap_line_length;
+			
+			int adjust_line_length = 0;
+			
+			const int end_loop_index = dir == -1 ? end_index + 1 : end_index - 1;
+			for(int line_index = start_index; line_index != end_loop_index; line_index -= dir)
+			{
+				adjust_line_length += get_line_length(line_index) + 1;
+				lines[line_index + dir] = lines[line_index];
+				line_end_indices[line_index + dir] = line_end_indices[line_index] + swap_line_length;
+				@line_character_widths[line_index + dir] = @line_character_widths[line_index];
+			}
+			
+			lines[end_index] = line;
+			line_end_indices[end_index] = index - adjust_line_length * dir;
+			@line_character_widths[end_index] = @widths;
+			
+			end_line_index += dir;
+			start_line_index += dir;
+			distance -= dir;
+		}
+		
+		if(selection_adjustment != 0)
+		{
+			adjust_selection(0, selection_adjustment, false);
+			this.scroll_to_caret(scroll_to_caret);
+		}
 	}
 	
 	/// Replaces the current selection with the given ascii character.
@@ -1931,13 +1993,13 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		const int end_line_index		= get_line_at_index(end_index);
 		const int remove_count			= end_index - start_index;
 		
-//		 puts('== do_replace================================================');
-//		 puts('=============================================================');
-//		 puts('  with: "' + text + '"');
-//		 puts('  range: ' + start_index + ' > ' + end_index);
-//		 puts('  start_line_index: ' + start_line_index);
-//		 puts('  end_line_index: ' + end_line_index);
-//		 puts('  remove_count: ' + remove_count);
+		//puts('== do_replace================================================');
+		//puts('=============================================================');
+		//puts('  with: "' + text + '"');
+		//puts('  range: ' + start_index + ' > ' + end_index);
+		//puts('  start_line_index: ' + start_line_index);
+		//puts('  end_line_index: ' + end_line_index);
+		//puts('  remove_count: ' + remove_count);
 		
 		int current_line_index			= start_line_index;
 		int current_line_start_index	= current_line_index > 0 ? line_end_indices[current_line_index - 1] + 1 : 0;
@@ -1955,10 +2017,10 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		// so that it can be merged with the start line.
 		const string end_line_text		= lines[end_line_index].substr(end_index - get_line_start_index(end_line_index));
 		
-//		 puts('  chr_index: ' + chr_index);
-//		 puts('  line_buffer: "' + line_buffer + '"');
-//		 puts('  current_line_width: ' + current_line_width);
-//		 puts('  end_line_text: "' + end_line_text + '"');
+		 //puts('  chr_index: ' + chr_index);
+		 //puts('  line_buffer: "' + line_buffer + '"');
+		 //puts('  current_line_width: ' + current_line_width);
+		 //puts('  end_line_text: "' + end_line_text + '"');
 		
 		int i = 0;
 		int insert_count = 0;
@@ -2245,6 +2307,23 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	{
 		_selection_start = clamp(_selection_start, 0, _text_length);
 		_selection_end   = clamp(_selection_end,   0, _text_length);
+	}
+	
+	protected void validate_line_indices(int start_line_index, int end_line_index, int &out o_start_line_index, int &out o_end_line_index)
+	{
+		start_line_index	= clamp(start_line_index, 0, num_lines - 1);
+		end_line_index		= clamp(end_line_index, 0, num_lines - 1);
+		
+		if(start_line_index <= end_line_index)
+		{
+			o_start_line_index = start_line_index;
+			o_end_line_index = end_line_index;
+		}
+		else
+		{
+			o_start_line_index = end_line_index;
+			o_end_line_index = start_line_index;
+		}
 	}
 	
 	/// This will need to rescan each character in each line
@@ -2784,10 +2863,16 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 					move_caret_right(keyboard.ctrl, keyboard.shift, true);
 					break;
 				case GVB::UpArrow:
-					move_caret_up(keyboard.shift, true);
+					if(!keyboard.alt || !_move_lines_shortcut)
+						move_caret_up(keyboard.shift, true);
+					else if(_move_lines_shortcut)
+						move_lines(get_line_at_index(_selection_start), get_line_at_index(_selection_end), -1, 8);
 					break;
 				case GVB::DownArrow:
-					move_caret_down(keyboard.shift, true);
+					if(!keyboard.alt || !_move_lines_shortcut)
+						move_caret_down(keyboard.shift, true);
+					else if(_move_lines_shortcut)
+						move_lines(get_line_at_index(_selection_start), get_line_at_index(_selection_end), 1, 8);
 					break;
 				case GVB::Delete:
 					delete(keyboard.ctrl, 1, 8);
