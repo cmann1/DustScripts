@@ -14,6 +14,7 @@ class Config
 	ShortcutKey KeyPrevTool;
 	ShortcutKey KeyNextTool;
 	ShortcutKey KeyToggleUI;
+	ShortcutKey KeyTogglePanels;
 	ShortcutKey KeyToggleToolbars;
 	ShortcutKey KeyPreviewLayer;
 	
@@ -132,10 +133,15 @@ class Config
 		KeyPrevTool.init(script).from_config('KeyPrevTool', 'Shift+W');
 		KeyNextTool.init(script).from_config('KeyNextTool', 'Shift+E');
 		KeyToggleUI.init(script).from_config('KeyToggleUI', 'BackSlash');
+		KeyTogglePanels.init(script).from_config('KeyTogglePanels');
 		KeyToggleToolbars.init(script).from_config('KeyToggleToolbars');
 		if(!KeyToggleToolbars.is_set())
 		{
 			KeyToggleToolbars.set(KeyToggleUI.vk, KeyToggleUI.modifiers | ModifierKey::Shift, KeyToggleToolbars.priority);
+		}
+		if(!KeyTogglePanels.is_set())
+		{
+			KeyTogglePanels.set(KeyToggleUI.vk, KeyToggleUI.modifiers | ModifierKey::Alt, KeyTogglePanels.priority);
 		}
 		KeyPreviewLayer.init(script).from_config('KeyPreviewLayer');
 	}

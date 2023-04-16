@@ -137,6 +137,7 @@ class AdvToolScript
 	private bool hide_layers_gui;
 	private bool hide_gui_user = false;
 	private bool hide_toolbar_user = false;
+	private bool hide_panels_user = false;
 	
 	//
 	
@@ -561,6 +562,11 @@ class AdvToolScript
 				hide_gui_user = !hide_gui_user;
 				hide_gui_panels(hide_panels_gui);
 				hide_gui_layers(hide_layers_gui);
+			}
+			if(config.KeyTogglePanels.check())
+			{
+				hide_panels_user = !hide_panels_user;
+				hide_gui_panels(hide_panels_gui);
 			}
 			if(config.KeyPreviewLayer.check())
 			{
@@ -1175,7 +1181,7 @@ class AdvToolScript
 	void hide_gui_panels(const bool hidden)
 	{
 		hide_panels_gui = hidden;
-		editor.hide_panels_gui(hide_panels_gui || hide_gui_user);
+		editor.hide_panels_gui(hide_panels_gui ||  hide_panels_user || hide_gui_user);
 	}
 	
 	void hide_gui_layers(const bool hidden)
