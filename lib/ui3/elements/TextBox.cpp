@@ -26,6 +26,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	protected bool _smart_home = true;
 	protected bool _smart_new_line = true;
 	protected bool _remove_lines_shortcut = true;
+	protected bool _duplicate_selection_shortcut = true;
 	protected bool _clipboard_enabled = true;
 	protected bool _accept_on_blur = true;
 	protected bool _revert_on_cancel = true;
@@ -344,6 +345,13 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	{
 		get const { return _remove_lines_shortcut; }
 		set { _remove_lines_shortcut = value; }
+	}
+	
+	/// Allow duplicating the selection with Ctrl+D
+	bool duplicate_selection_shortcut
+	{
+		get const { return _duplicate_selection_shortcut; }
+		set { _duplicate_selection_shortcut = value; }
 	}
 	
 	/// Allow copy and paste with ctrl+C and ctrl+V. (Doesn't use the real clipboard for now)
@@ -1010,7 +1018,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 			line_end_indices[i] -= remove_length;
 		}
 		
-//		debug_lines(false);
+		//debug_lines(false);
 		
 		recalculate_text_width(false);
 		recalculate_text_height();
@@ -1050,6 +1058,22 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		}
 		
 		return count;
+	}
+	
+	/// Duplicates the current selection, or entire line if there is none.
+	void dupicate(const bool move_caret_to_end=false, const int scroll_to_caret=-1)
+	{
+		if(_selection_start == _selection_end)
+		{
+			const int line_index = get_line_at_index(_selection_start);
+			const int c1 = get_line_start_index(line_index);
+			const int c2 = get_line_end_index(line_index);
+			insert(get_text(c1, c2) + '\n', c1, move_caret_to_end, scroll_to_caret);
+		}
+		else
+		{
+			insert(get_text(_selection_start, _selection_end), _selection_start, move_caret_to_end, scroll_to_caret);
+		}
 	}
 	
 	/// Insert str at the given index. Returns the number of inserted characters.
@@ -1299,7 +1323,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		return line;
 	}
 	
-	/// Removes all invalid characters b ased on character_validation and allowed_characters
+	/// Removes all invalid characters based on character_validation and allowed_characters
 	void validate_text()
 	{
 		this.text = text;
@@ -2651,6 +2675,11 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 			keyboard.register_vk(VK::D, ModifierKey::Ctrl | ModifierKey::Shift | ModifierKey::Only);
 		}
 		
+		if(_duplicate_selection_shortcut)
+		{
+			keyboard.register_vk(VK::D, ModifierKey::Ctrl | ModifierKey::Only);
+		}
+		
 		if(_clipboard_enabled)
 		{
 			keyboard.register_vk(VK::C, ModifierKey::Ctrl | ModifierKey::Only);
@@ -2716,6 +2745,12 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 			if(key == VK::D && keyboard.ctrl && keyboard.shift)
 			{
 				remove_lines(get_line_at_index(_selection_start), get_line_at_index(_selection_end), 8);
+				return;
+			}
+			
+			if(key == VK::D && keyboard.ctrl)
+			{
+				dupicate(false, 8);
 				return;
 			}
 			
