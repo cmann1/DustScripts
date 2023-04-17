@@ -36,8 +36,7 @@
 #include 'tools/emitter_tool/EmitterTool.cpp';
 #include 'tools/prop_line_tool/PropLineTool.cpp';
 #include 'tools/prop_tool/PropTool.cpp';
-#include 'tools/TextTool.cpp';
-#include 'tools/ExtendedTriggerTool.cpp';
+#include 'tools/trigger_tool/ExtendedTriggerTool.cpp';
 #include 'tools/ExtendedTileTool.cpp';
 #include 'tools/ExtendedPropTool.cpp';
 #include 'tools/HelpTool.cpp';

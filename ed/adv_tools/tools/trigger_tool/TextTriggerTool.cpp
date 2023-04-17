@@ -1,14 +1,14 @@
-#include '../../../lib/ui3/elements/Button.cpp';
-#include '../../../lib/ui3/elements/ColourSwatch.cpp';
-#include '../../../lib/ui3/elements/Container.cpp';
-#include '../../../lib/ui3/elements/Label.cpp';
-#include '../../../lib/ui3/elements/LayerButton.cpp';
-#include '../../../lib/ui3/elements/NumberSlider.cpp';
-#include '../../../lib/ui3/elements/RotationWheel.cpp';
-#include '../../../lib/ui3/elements/Select.cpp';
-#include '../../../lib/ui3/elements/TextBox.cpp';
-#include '../../../lib/ui3/elements/Window.cpp';
-#include '../../../lib/ui3/layouts/AnchorLayout.cpp';
+#include '../../../../lib/ui3/elements/Button.cpp';
+#include '../../../../lib/ui3/elements/ColourSwatch.cpp';
+#include '../../../../lib/ui3/elements/Container.cpp';
+#include '../../../../lib/ui3/elements/Label.cpp';
+#include '../../../../lib/ui3/elements/LayerButton.cpp';
+#include '../../../../lib/ui3/elements/NumberSlider.cpp';
+#include '../../../../lib/ui3/elements/RotationWheel.cpp';
+#include '../../../../lib/ui3/elements/Select.cpp';
+#include '../../../../lib/ui3/elements/TextBox.cpp';
+#include '../../../../lib/ui3/elements/Window.cpp';
+#include '../../../../lib/ui3/layouts/AnchorLayout.cpp';
 
 const string EMBED_spr_icon_text	= SPRITES_BASE + 'icon_text.png';
 
