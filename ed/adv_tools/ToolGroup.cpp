@@ -212,7 +212,6 @@ class ToolGroup
 		
 		@popup_content = Container(script.ui);
 		popup_content.mouse_self = false;
-		popup_content.fit_to_contents(true);
 
 		@popup = PopupOptions(script.ui, popup_content, true, PopupPosition::Below, PopupTriggerType::Manual);
 		popup.mouse_self = false;
@@ -225,6 +224,8 @@ class ToolGroup
 		{
 			create_popup_button(tools[i]);
 		}
+		
+		popup_content.fit_to_contents(true);
 	}
 	
 	private void create_popup_button(Tool@ tool)
