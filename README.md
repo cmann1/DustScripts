@@ -26,13 +26,6 @@ Once added to a map and compiled, left click the script name to save it as a pre
 2. Open the script tab in the editor.
 3. Click the text box, type **ed/path/to/script.cpp** and hit enter
 
-### AdvTools
-Combines and improves some of the old editor scripts using the new editor api.   
-Must be compiled as an editor plugin to work correctly.   
-A compiled version can be found [here](https://github.com/cmann1/DustScripts/releases/latest).  
-The release also contain the `AdvTools.map` map file for an overview of everything it the plugin can do,
-and `advtools.ini` for a list of possible config values and how to change them.
-
 ### Tiles (t.cpp)
 - **CopyTileEdges** - Copies only tiles with one or more solid edges to the target layer.
 - **MoveTiles** - Move or copy tiles to the target layer.
