@@ -1,4 +1,4 @@
-class ExtendedTileTool : Tool, IToolStepListener
+class ExtendedTileTool : Tool
 {
 	
 	private ShortcutKey pick_key;
@@ -17,7 +17,7 @@ class ExtendedTileTool : Tool, IToolStepListener
 		if(@tool == null)
 			return;
 		
-		tool.register_step_listener(this);
+		tool.register_sub_tool(this);
 		pick_key.init(script);
 		reload_shortcut_key();
 	}
@@ -33,7 +33,7 @@ class ExtendedTileTool : Tool, IToolStepListener
 	// Tool Callbacks
 	// //////////////////////////////////////////////////////////
 	
-	void tool_step(Tool@ tool) override
+	protected void step_impl() override
 	{
 		if(script.mouse_in_scene && !script.space.down && !script.handles.mouse_over && pick_key.down())
 		{

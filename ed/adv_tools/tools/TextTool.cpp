@@ -12,7 +12,7 @@
 
 const string EMBED_spr_icon_text	= SPRITES_BASE + 'icon_text.png';
 
-class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener, IToolEditorLoadListener
+class TextTool : Tool
 {
 	
 	private Container@ dummy_overlay;
@@ -58,10 +58,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		
 		if(@tool != null)
 		{
-			tool.register_editor_load_listener(this);
-			tool.register_select_listener(this);
-			tool.register_step_listener(this);
-			tool.register_draw_listener(this);
+			tool.register_sub_tool(this);
 		}
 	}
 	
@@ -250,11 +247,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 	// Tool Callbacks
 	// //////////////////////////////////////////////////////////
 	
-	void tool_editor_loaded(Tool@ tool) override
-	{
-	}
-	
-	void tool_editor_unloaded(Tool@ tool) override
+	protected void on_editor_unloaded_impl() override
 	{
 		if(@window != null)
 		{
@@ -265,17 +258,13 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		show_edit_button(null, true);
 	}
 	
-	void tool_select(Tool@ tool) override
-	{
-	}
-	
-	void tool_deselect(Tool@ tool) override
+	protected void on_select_impl() override
 	{
 		select(null);
 		show_edit_button(null, true);
 	}
 	
-	void tool_step(Tool@ tool) override
+	protected void step_impl() override
 	{
 		if(@selected_trigger != null)
 		{
@@ -304,7 +293,6 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 				}
 			}
 			
-			if(@selected_trigger != null)
 			if(@selected_trigger != null && selected_trigger.destroyed())
 			{
 				select(null);
@@ -329,7 +317,7 @@ class TextTool : Tool, IToolSelectListener, IToolStepListener, IToolDrawListener
 		}
 	}
 	
-	void tool_draw(Tool@ tool, const float sub_frame) override
+	protected void draw_impl(const float sub_frame) override
 	{
 		if(@selected_trigger == null)
 			return;

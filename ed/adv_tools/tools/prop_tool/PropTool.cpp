@@ -138,14 +138,12 @@ class PropTool : Tool
 	// Callbacks
 	// //////////////////////////////////////////////////////////
 	
-	void on_editor_unloaded() override
+	protected void on_editor_unloaded_impl() override
 	{
 		select_none();
 		clear_highlighted_props(true);
 		clear_temporary_selection();
 		state = PropToolState::Idle;
-		
-		Tool::on_editor_unloaded();
 	}
 	
 	protected void on_select_impl()

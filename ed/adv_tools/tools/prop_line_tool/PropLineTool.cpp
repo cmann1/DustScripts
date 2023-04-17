@@ -99,10 +99,9 @@ class PropLineTool : Tool
 	// Callbacks
 	// //////////////////////////////////////////////////////////
 	
-	void on_editor_unloaded() override
+	protected void on_editor_unloaded_impl() override
 	{
 		reset();
-		Tool::on_editor_unloaded();
 	}
 	
 	protected void on_select_impl()

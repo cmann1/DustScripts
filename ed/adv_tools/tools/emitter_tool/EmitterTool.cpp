@@ -77,7 +77,7 @@ class EmitterTool : Tool
 	// Callbacks
 	// //////////////////////////////////////////////////////////
 	
-	void on_editor_unloaded() override
+	protected void on_editor_unloaded_impl() override
 	{
 		for(int j = 0; j < selected_emitters_count; j++)
 		{
@@ -88,8 +88,6 @@ class EmitterTool : Tool
 		clear_highlighted_emitters();
 		clear_pending_emitters();
 		state = EmitterToolState::Idle;
-		
-		Tool::on_editor_unloaded();
 	}
 	
 	protected void on_select_impl()

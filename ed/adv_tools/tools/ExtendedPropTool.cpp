@@ -1,4 +1,4 @@
-class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
+class ExtendedPropTool : Tool
 {
 	
 	private PropTool@ prop_tool;
@@ -21,8 +21,7 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 		if(@base_prop_tool == null || @prop_tool == null)
 			return;
 		
-		base_prop_tool.register_step_listener(this);
-		base_prop_tool.register_draw_listener(this);
+		base_prop_tool.register_sub_tool(this);
 		
 		pick_key.init(script);
 		reload_shortcut_key();
@@ -39,7 +38,7 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 	// Tool Callbacks
 	// //////////////////////////////////////////////////////////
 	
-	void tool_step(Tool@ tool) override
+	protected void step_impl() override
 	{
 		if(script.mouse_in_scene && !script.space.down && !script.handles.mouse_over && pick_key.down())
 		{
@@ -66,7 +65,7 @@ class ExtendedPropTool : Tool, IToolStepListener, IToolDrawListener
 		}
 	}
 	
-	void tool_draw(Tool@ tool, const float sub_frame) override
+	protected void draw_impl(const float sub_frame) override
 	{
 		if(@pick_data != null)
 		{

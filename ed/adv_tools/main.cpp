@@ -29,7 +29,6 @@
 #include 'misc/IWorldBoundingBox.cpp';
 #include 'misc/LayerInfoDisplay.cpp';
 #include 'misc/ShortcutKeySorter.cpp';
-#include 'misc/ToolListenerInterfaces.cpp';
 #include 'misc/WorldBoundingBox.cpp';
 #include 'settings/Config.cpp';
 #include 'settings/Settings.cpp';

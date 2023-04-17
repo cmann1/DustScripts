@@ -23,14 +23,7 @@ class Tool
 	/** Setting this to true while a tool is performing an action while prevent other tool shortcut keys from being run. */
 	bool active;
 	
-	protected array<IToolEditorLoadListener@> editor_load_listeners;
-	protected array<IToolSelectListener@> select_listeners;
-	protected array<IToolStepListener@> step_listeners;
-	protected array<IToolDrawListener@> draw_listeners;
-	protected int num_editor_load_listeners;
-	protected int num_select_listeners;
-	protected int num_step_listeners;
-	protected int num_draw_listeners;
+	protected array<Tool@> sub_tools;
 	
 	protected bool selected = false;
 	
@@ -136,112 +129,50 @@ class Tool
 	// Methods
 	// //////////////////////////////////////////////////////////
 	
-	// Select
-	
-	void register_editor_load_listener(IToolEditorLoadListener@ listener)
+	void register_sub_tool(Tool@ tool)
 	{
-		if(editor_load_listeners.findByRef(listener) != -1)
+		if(@tool == null || @tool == @this)
 			return;
 		
-		editor_load_listeners.insertLast(listener);
-		num_editor_load_listeners++;
-	}
-	
-	void deregister_editor_load_listener(IToolEditorLoadListener@ listener)
-	{
-		const int index = editor_load_listeners.findByRef(listener);
-		
-		if(index == -1)
-			return;
-		
-		editor_load_listeners.removeAt(index);
-		num_editor_load_listeners--;
-	}
-	
-	// Select
-	
-	void register_select_listener(IToolSelectListener@ listener)
-	{
-		if(select_listeners.findByRef(listener) != -1)
-			return;
-		
-		select_listeners.insertLast(listener);
-		num_select_listeners++;
-	}
-	
-	void deregister_select_listener(IToolSelectListener@ listener)
-	{
-		const int index = select_listeners.findByRef(listener);
-		
-		if(index == -1)
-			return;
-		
-		select_listeners.removeAt(index);
-		num_select_listeners--;
-	}
-	
-	// Step
-	
-	void register_step_listener(IToolStepListener@ listener)
-	{
-		if(step_listeners.findByRef(listener) != -1)
-			return;
-		
-		step_listeners.insertLast(listener);
-		num_step_listeners++;
-	}
-	
-	void deregister_step_listener(IToolStepListener@ listener)
-	{
-		const int index = step_listeners.findByRef(listener);
-		
-		if(index == -1)
-			return;
-		
-		step_listeners.removeAt(index);
-		num_step_listeners--;
-	}
-	
-	// Draw
-	
-	void register_draw_listener(IToolDrawListener@ listener)
-	{
-		if(draw_listeners.findByRef(listener) != -1)
-			return;
-		
-		draw_listeners.insertLast(listener);
-		num_draw_listeners++;
-	}
-	
-	void deregister_draw_listener(IToolDrawListener@ listener)
-	{
-		const int index = draw_listeners.findByRef(listener);
-		
-		if(index == -1)
-			return;
-		
-		draw_listeners.removeAt(index);
-		num_draw_listeners--;
+		const int index = sub_tools.findByRef(tool);
+		if(index < 0)
+		{
+			sub_tools.insertLast(tool);
+		}
 	}
 	
 	// //////////////////////////////////////////////////////////
 	// Callbacks
 	// //////////////////////////////////////////////////////////
 	
-	void on_editor_loaded()
+	void on_editor_loaded() final
 	{
-		for(int i = num_editor_load_listeners - 1; i >= 0; i--)
+		on_editor_loaded_impl();
+		
+		for(uint i = 0; i < sub_tools.length; i++)
 		{
-			editor_load_listeners[i].tool_editor_loaded(this);
+			sub_tools[i].on_editor_loaded_impl();
 		}
 	}
 
-	void on_editor_unloaded()
+	void on_editor_unloaded() final
 	{
-		for(int i = num_editor_load_listeners - 1; i >= 0; i--)
+		on_editor_unloaded_impl();
+		
+		for(uint i = 0; i < sub_tools.length; i++)
 		{
-			editor_load_listeners[i].tool_editor_unloaded(this);
+			sub_tools[i].on_editor_unloaded_impl();
 		}
+	}
+	
+	protected void on_editor_loaded_impl()
+	{
+		
+	}
+	
+	protected void on_editor_unloaded_impl()
+	{
+		
 	}
 	
 	Tool@ on_shortcut_key()
@@ -293,9 +224,9 @@ class Tool
 		
 		on_select_impl();
 		
-		for(int i = num_select_listeners - 1; i >= 0; i--)
+		for(uint i = 0; i < sub_tools.length; i++)
 		{
-			select_listeners[i].tool_select(this);
+			sub_tools[i].on_select_impl();
 		}
 	}
 	
@@ -311,9 +242,9 @@ class Tool
 		
 		on_deselect_impl();
 		
-		for(int i = num_select_listeners - 1; i >= 0; i--)
+		for(uint i = 0; i < sub_tools.length; i++)
 		{
-			select_listeners[i].tool_deselect(this);
+			sub_tools[i].on_deselect_impl();
 		}
 	}
 	
@@ -331,9 +262,9 @@ class Tool
 	{
 		step_impl();
 		
-		for(int i = num_step_listeners - 1; i >= 0; i--)
+		for(uint i = 0; i < sub_tools.length; i++)
 		{
-			step_listeners[i].tool_step(this);
+			sub_tools[i].step_impl();
 		}
 	}
 	
@@ -341,9 +272,9 @@ class Tool
 	{
 		draw_impl(sub_frame);
 		
-		for(int i = num_draw_listeners - 1; i >= 0; i--)
+		for(uint i = 0; i < sub_tools.length; i++)
 		{
-			draw_listeners[i].tool_draw(this, sub_frame);
+			sub_tools[i].draw_impl(sub_frame);
 		}
 	}
 	
@@ -352,12 +283,12 @@ class Tool
 		
 	}
 	
-	protected void draw_impl(const float sub_frame)
+	protected void step_impl()
 	{
 		
 	}
 	
-	protected void step_impl()
+	protected void draw_impl(const float sub_frame)
 	{
 		
 	}

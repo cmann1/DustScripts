@@ -1,4 +1,4 @@
-class ExtendedTriggerTool : Tool, IToolStepListener
+class ExtendedTriggerTool : Tool
 {
 	
 	entity@ clipboard;
@@ -16,7 +16,7 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 		
 		if(@tool != null)
 		{
-			tool.register_step_listener(this);
+			tool.register_sub_tool(this);
 		}
 	}
 	
@@ -24,7 +24,7 @@ class ExtendedTriggerTool : Tool, IToolStepListener
 	// Tool Callbacks
 	// //////////////////////////////////////////////////////////
 	
-	void tool_step(Tool@ tool) override
+	protected void step_impl() override
 	{
 		if(script.mouse.left_double_click && script.shift.down)
 		{
