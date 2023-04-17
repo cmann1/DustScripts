@@ -5,19 +5,14 @@ class ExtendedTriggerTool : Tool
 	
 	ExtendedTriggerTool(AdvToolScript@ script)
 	{
-		super(script, 'Extended Trigger Tool');
+		super(script, 'Triggers');
 		
-		selectable = false;
+		init_shortcut_key(VK::T);
 	}
 	
-	void on_init() override
+	void create(ToolGroup@ group) override
 	{
-		Tool@ tool = script.get_tool('Triggers');
-		
-		if(@tool != null)
-		{
-			tool.register_sub_tool(this);
-		}
+		set_icon('editor', 'triggersicon');
 	}
 	
 	// //////////////////////////////////////////////////////////
@@ -35,7 +30,7 @@ class ExtendedTriggerTool : Tool
 		{
 			if(script.ctrl.down && script.input.key_check_pressed_vk(VK::C))
 			{
-				entity@ trigger = script.editor.get_selected_trigger();
+				entity@ trigger = script.editor.selected_trigger;
 				if(@trigger != null)
 				{
 					@clipboard = trigger;
@@ -51,7 +46,7 @@ class ExtendedTriggerTool : Tool
 			}
 			if(script.ctrl.down && script.input.key_check_pressed_vk(VK::H))
 			{
-				entity@ trigger = script.editor.get_selected_trigger();
+				entity@ trigger = script.editor.selected_trigger;
 				if(@trigger != null && trigger.type_name() == 'text_trigger')
 				{
 					trigger.vars().get_var('hide').set_bool(!trigger.vars().get_var('hide').get_bool());

@@ -63,7 +63,9 @@ class ToolGroup
 	{
 		for(uint i = 0; i < tools.length(); i++)
 		{
-			tools[i].on_init();
+			Tool@ tool = tools[i];
+			@tool.group = this;
+			tool.on_init();
 		}
 	}
 	

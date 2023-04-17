@@ -8,20 +8,19 @@ class ExtendedPropTool : Tool
 	
 	ExtendedPropTool(AdvToolScript@ script)
 	{
-		super(script, 'Extended Prop Tool');
+		super(script, 'Props');
 		
-		selectable = false;
+		init_shortcut_key(VK::Q);
+	}
+	
+	void create(ToolGroup@ group) override
+	{
+		set_icon('editor', 'propsicon');
 	}
 	
 	void on_init() override
 	{
 		@prop_tool = cast<PropTool@>(script.get_tool('Prop Tool'));
-		Tool@ base_prop_tool = script.get_tool('Props');
-		
-		if(@base_prop_tool == null || @prop_tool == null)
-			return;
-		
-		base_prop_tool.register_sub_tool(this);
 		
 		pick_key.init(script);
 		reload_shortcut_key();

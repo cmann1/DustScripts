@@ -5,19 +5,18 @@ class ExtendedTileTool : Tool
 	
 	ExtendedTileTool(AdvToolScript@ script)
 	{
-		super(script, 'Extended Tile Tool');
+		super(script, 'Tiles');
 		
-		selectable = false;
+		init_shortcut_key(VK::W);
+	}
+	
+	void create(ToolGroup@ group) override
+	{
+		set_icon('editor', 'tilesicon');
 	}
 	
 	void on_init() override
 	{
-		Tool@ tool = script.get_tool('Tiles');
-		
-		if(@tool == null)
-			return;
-		
-		tool.register_sub_tool(this);
 		pick_key.init(script);
 		reload_shortcut_key();
 	}

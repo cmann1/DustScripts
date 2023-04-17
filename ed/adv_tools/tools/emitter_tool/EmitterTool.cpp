@@ -65,10 +65,11 @@ class EmitterTool : Tool
 	
 	void create(ToolGroup@ group) override
 	{
-		Tool::create(group);
-		
 		set_icon('editor', 'emittericon');
-		
+	}
+	
+	void on_init() override
+	{
 		@mouse = @script.mouse;
 		@selection_bounding_box.script = script;
 	}

@@ -121,16 +121,14 @@ class PropTool : Tool
 	
 	void create(ToolGroup@ group) override
 	{
-		Tool::create(group);
-		
 		set_icon(SPRITE_SET, 'icon_prop_tool');
-		
-		@mouse = @script.mouse;
-		@selection_bounding_box.script = script;
 	}
 	
 	void on_init() override
 	{
+		@mouse = @script.mouse;
+		@selection_bounding_box.script = script;
+		
 		update_alignments_from_origin();
 	}
 	

@@ -55,11 +55,12 @@ class Tool
 		construct(script, base_tool_name, name);
 	}
 	
+	/// The tool icon must be initialised during create to be properly added to the tool group menu.
 	void create(ToolGroup@ group)
 	{
-		@this.group = group;
 	}
 	
+	/// Initialisation that may depend on other tools.
 	void on_init()
 	{
 		

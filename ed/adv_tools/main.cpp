@@ -405,10 +405,10 @@ class AdvToolScript
 		// Built in
 		
 		add_tool(Tool(this, 'Select')			.set_icon('editor',  'selecticon').init_shortcut_key(VK::R));
-		add_tool(Tool(this, 'Tiles')			.set_icon('editor',  'tilesicon').init_shortcut_key(VK::W));
-		add_tool(Tool(this, 'Props')			.set_icon('editor',  'propsicon').init_shortcut_key(VK::Q));
+		add_tool(ExtendedTileTool(this));
+		add_tool(ExtendedPropTool(this));
 		add_tool(Tool(this, 'Entities')			.set_icon('editor',  'entityicon').init_shortcut_key(VK::E));
-		add_tool(Tool(this, 'Triggers')			.set_icon('editor',  'triggersicon').init_shortcut_key(VK::T));
+		add_tool(ExtendedTriggerTool(this));
 		add_tool(Tool(this, 'Camera')			.set_icon('editor',  'cameraicon').init_shortcut_key(VK::C));
 		add_tool(EmitterTool(this));
 		add_tool(Tool(this, 'Level Settings')	.set_icon('editor',  'settingsicon'));
@@ -421,13 +421,10 @@ class AdvToolScript
 		
 		// Custom
 		
-		add_tool('Tiles',		ExtendedTileTool(this));
 		add_tool('Tiles',		EdgeBrushTool(this));
 		add_tool('Props',		PropTool(this));
-		add_tool('Props',		ExtendedPropTool(this));
 		add_tool('Props',		PropLineTool(this));
 		add_tool('Triggers',	TextTool(this));
-		add_tool('Triggers',	ExtendedTriggerTool(this));
 		
 		sort_shortcut_tools();
 	}

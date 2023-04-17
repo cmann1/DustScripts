@@ -83,16 +83,13 @@ class PropLineTool : Tool
 	
 	void create(ToolGroup@ group) override
 	{
-		Tool::create(group);
-		
 		set_icon(SPRITE_SET, 'icon_prop_line_tool');
-		
-		@mouse = @script.mouse;
 	}
 	
 	void on_init() override
 	{
 		@prop_tool = cast<PropTool@>(script.get_tool('Prop Tool'));
+		@mouse = @script.mouse;
 	}
 	
 	// //////////////////////////////////////////////////////////

@@ -88,10 +88,8 @@ class EdgeBrushTool : Tool
 		toolbar.build_sprites(msg);
 	}
 	
-	void create(ToolGroup@ group) override
+	void on_init() override
 	{
-		Tool::create(group);
-		
 		set_icon(SPRITE_SET, 'icon_edge_brush');
 		
 		@mouse = @script.mouse;
