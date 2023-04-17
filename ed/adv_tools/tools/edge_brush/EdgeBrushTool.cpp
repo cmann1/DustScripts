@@ -88,10 +88,13 @@ class EdgeBrushTool : Tool
 		toolbar.build_sprites(msg);
 	}
 	
-	void on_init() override
+	void create(ToolGroup@ group) override
 	{
 		set_icon(SPRITE_SET, 'icon_edge_brush');
-		
+	}
+	
+	void on_init() override
+	{
 		@mouse = @script.mouse;
 	}
 	
