@@ -1,7 +1,0 @@
-enum EdgeBrushMode
-{
-	
-	Brush,
-	Precision,
-	
-}

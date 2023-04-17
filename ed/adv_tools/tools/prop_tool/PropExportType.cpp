@@ -1,7 +1,0 @@
-enum PropExportType
-{
-	
-	SpriteBatch,
-	SpriteGroup,
-	
-}
