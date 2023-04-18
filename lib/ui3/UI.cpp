@@ -758,12 +758,12 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		show_tooltip(element._id, element.tooltip, element);
 	}
 	
-	void hide_tooltip(Element@ element)
+	void hide_tooltip(Element@ element, const bool fade=true)
 	{
 		if(@element == null || @element.tooltip == null)
 			return;
 		
-		hide_tooltip(element._id);
+		hide_tooltip(element._id, fade);
 	}
 	
 	void show_tooltip(PopupOptions@ options, Element@ target = null)
@@ -777,12 +777,12 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		show_tooltip(options._id, options, target);
 	}
 	
-	void hide_tooltip(PopupOptions@ options)
+	void hide_tooltip(PopupOptions@ options, const bool fade=true)
 	{
 		if(@options == null)
 			return;
 		
-		hide_tooltip(options._id);
+		hide_tooltip(options._id, fade);
 	}
 	
 	void update_tooltip(Element@ element)
@@ -2271,24 +2271,24 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		{
 			Popup@ tooltip = Popup(this, options, element);
 			tooltip.hide.on(on_tooltip_hide_delegate);
-			overlays.add_child(tooltip);
+			(options.as_overlay ? overlays : contents).add_child(tooltip);
 			@tooltips[id] = tooltip;
 		}
 		else
 		{
 			Popup@ tooltip = cast<Popup@>(tooltips[id]);
 			tooltip.update(options, element);
-			overlays.move_to_front(tooltip);
+			tooltip.parent.move_to_front(tooltip);
 		}
 	}
 	
-	private void hide_tooltip(const string id)
+	private void hide_tooltip(const string id, const bool fade=true)
 	{
 		if(!tooltips.exists(id))
 			return;
 		
 		Popup@ tooltip = cast<Popup@>(tooltips[id]);
-		tooltip.force_hide();
+		tooltip.force_hide(fade);
 	}
 	
 	private void update_tooltip(const string id, PopupOptions@ options)

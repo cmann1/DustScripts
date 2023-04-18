@@ -561,6 +561,8 @@ class Window : MoveableDialog
 			_height += max(@_buttons_left != null ? _buttons_left._height : 0, @_buttons_right != null ? _buttons_right._height : 0);
 		}
 		
+		_width = max(_width, min_width);
+		_height = max(_height, min_height);
 		_set_height = _height;
 		validate_layout = true;
 	}

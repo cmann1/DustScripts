@@ -358,7 +358,7 @@ class Keyboard
 	}
 	
 	/// Registers all text input keys and automatically processes and returns the character in the
-	/// IKeyboardFocus "input" param of on_key_press and on_key, or an empty string of the key does not have a textual representation.
+	/// IKeyboardFocus "input" param of on_key_press and on_key, or an empty string if the key does not have a textual representation.
 	void register_inputs()
 	{
 		process_input = true;

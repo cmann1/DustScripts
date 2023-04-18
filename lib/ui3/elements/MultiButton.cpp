@@ -67,9 +67,11 @@ class MultiButton : SingleContainer
 		return image;
 	}
 	
-	Image@ add(const string name, const string sprite_text, const string sprite_name, const float width=-1, const float height=-1, const float offset_x=-0.5, const float offset_y=-0.5)
+	Image@ add(
+		const string name, const string sprite_set, const string sprite_name, const float width=-1, const float height=-1,
+		const float offset_x=-0.5, const float offset_y=-0.5)
 	{
-		return add(name, Image(ui, sprite_text, sprite_name, width, height, offset_x, offset_y));
+		return add(name, Image(ui, sprite_set, sprite_name, width, height, offset_x, offset_y));
 	}
 	
 	Image@ remove(const string name)

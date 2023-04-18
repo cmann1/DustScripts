@@ -20,8 +20,11 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	
 	protected string _font;
 	protected uint _size;
+	protected uint _colour;
+	protected bool _has_colour;
 	protected float _text_scale;
 	protected float _line_spacing = 6;
+	protected bool _lock_input = false;
 	protected bool _multi_line = true;
 	protected bool _smart_home = true;
 	protected bool _smart_new_line = true;
@@ -245,6 +248,22 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		}
 	}
 	
+	bool has_colour
+	{
+		get const { return _has_colour; }
+		set { _has_colour = value; }
+	}
+	
+	uint colour
+	{
+		get const { return _colour; }
+		set
+		{
+			_colour = value;
+			_has_colour = true;
+		}
+	}
+	
 	void set_font(const string font, const uint size)
 	{
 		if(_font == font && _size == size)
@@ -285,6 +304,13 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 			_line_spacing = value;
 			recalculate_text_height();
 		}
+	}
+	
+	/// Prevents all input
+	bool lock_input
+	{
+		get const { return _lock_input; }
+		set { _lock_input = value; }
 	}
 	
 	/// Can this TextBox contain more than one line?
@@ -1769,7 +1795,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		textfield@ text_field = style._initialise_text_field(
 			@c,
 			dx, dy,
-			style.text_clr,
+			_has_colour ? _colour : style.text_clr,
 			text_scale, text_scale, 0,
 			TextAlign::Left, TextAlign::Top,
 			_font, _size);
@@ -1945,18 +1971,18 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		
 		// Debug
 		
-//		line_y = y1 + dy + padding_top + scroll_y;
-//		
-//		for(int line_index = 0; line_index < _num_lines; line_index++)
-//		{
-//			style.outline(x - dx, line_y - dy, x - dx + get_line_width(line_index), line_y - dy + line_height, 1, 0x77ff0000);
-//			line_y += line_spacing;
-//		}
-//		
-//		style.outline(
-//			x1 + _scroll_x + padding_left, y1 + _scroll_y + padding_top,
-//			x1 + _scroll_x + padding_left + text_width, y1 + _scroll_y + padding_top + text_height,
-//			1, 0x9900ffff);
+		//line_y = y1 + dy + padding_top + scroll_y;
+		//
+		//for(int line_index = 0; line_index < _num_lines; line_index++)
+		//{
+		//	style.outline(x - dx, line_y - dy, x - dx + get_line_width(line_index), line_y - dy + line_height, 1, 0x77ff0000);
+		//	line_y += line_spacing;
+		//}
+		//
+		//style.outline(
+		//	x1 + _scroll_x + padding_left, y1 + _scroll_y + padding_top,
+		//	x1 + _scroll_x + padding_left + text_width, y1 + _scroll_y + padding_top + text_height,
+		//	1, 0x9900ffff);
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -2808,6 +2834,9 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	
 	void on_key_press(Keyboard@ keyboard, const int key, const bool is_gvb, const string text)
 	{
+		if(_lock_input)
+			return;
+		
 		if(!is_gvb && key == VK::A && keyboard.ctrl)
 		{
 			select_all();
@@ -2819,6 +2848,9 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	
 	void on_key(Keyboard@ keyboard, const int key, const bool is_gvb, const string text)
 	{
+		if(_lock_input)
+			return;
+		
 		if(!is_gvb)
 		{
 			if(key == VK::D && keyboard.ctrl && keyboard.shift)
@@ -2904,6 +2936,10 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		}
 	}
 	
-	void on_key_release(Keyboard@ keyboard, const int key, const bool is_gvb) { }
+	void on_key_release(Keyboard@ keyboard, const int key, const bool is_gvb)
+	{
+		if(_lock_input)
+			return;
+	}
 	
 }

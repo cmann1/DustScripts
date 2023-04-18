@@ -36,6 +36,8 @@ abstract class Element
 	bool pressed;
 	/// Disabled this element. Only relevant for interactive elements
 	bool disabled;
+	/// If true MoveableDialogs will be able to snap to this element.
+	bool is_snap_target = true;
 	
 	uint background_colour = 0;
 	bool background_blur = false;

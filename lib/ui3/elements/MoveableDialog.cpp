@@ -149,18 +149,7 @@ abstract class MoveableDialog : Container, IStepHandler
 			return;
 		
 		float view_x1, view_y1, view_x2, view_y2;
-		
-		if(@parent != null)
-		{
-			view_x1 = parent.x1;
-			view_y1 = parent.y1;
-			view_x2 = parent.x2;
-			view_y2 = parent.y2;
-		}
-		else
-		{
-			ui.get_region(view_x1, view_y1, view_x2, view_y2);
-		}
+		get_container_extents(view_x1, view_y1, view_x2, view_y2);
 		
 		update_world_bounds(parent);
 		
@@ -202,7 +191,7 @@ abstract class MoveableDialog : Container, IStepHandler
 			{
 				Element@ sibling = @siblings[i];
 				
-				if(!sibling._visible || @sibling == @this)
+				if(!sibling._visible || !sibling.is_snap_target || @sibling == @this)
 					continue;
 				
 				if(
@@ -359,13 +348,32 @@ abstract class MoveableDialog : Container, IStepHandler
 		return @ui.mouse_over_element == @this;
 	}
 	
+	protected void get_container_extents(float &out view_x1, float &out view_y1, float &out view_x2, float &out view_y2)
+	{
+		if(@parent != null)
+		{
+			view_x1 = parent.x1;
+			view_y1 = parent.y1;
+			view_x2 = parent.x2;
+			view_y2 = parent.y2;
+		}
+		else
+		{
+			ui.get_region(view_x1, view_y1, view_x2, view_y2);
+		}
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////////////////////////////
 	
 	void _mouse_press(EventInfo@ event) override
 	{
-		parent.move_to_front(this);
+		LockedContainer@ container = cast<LockedContainer@>(parent);
+		if(@container == null)
+		{
+			parent.move_to_front(this);
+		}
 		
 		if(event.button != ui.primary_button)
 			return;

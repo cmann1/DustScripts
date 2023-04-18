@@ -12,6 +12,9 @@ class PopupOptions : IGenericEventTarget
 	
 	bool enabled = true;
 	PopupPosition position;
+	/// If false the popup will instead be added to the normal UI layer along with other elements,
+	/// instead of the overlay layer displayed above the normal UI.
+	bool as_overlay = true;
 	/// If true, the popup will try to stretch to fit the target
 	bool stretch;
 	PopupTriggerType trigger_type;
@@ -80,6 +83,8 @@ class PopupOptions : IGenericEventTarget
 	/*protected*/ bool _has_blur_inset = false;
 	
 	/*protected*/ bool _invalidated = false;
+	
+	protected bool _popup_visible;
 	
 	PopupOptions(
 		UI@ ui, Element@ content, bool interactable=false, PopupPosition position=PopupPosition::Above,
@@ -235,6 +240,11 @@ class PopupOptions : IGenericEventTarget
 		set { _has_blur_inset = value; }
 	}
 	
+	bool popup_visible
+	{
+		get const { return _popup_visible; }
+	}
+	
 	void set_content(Element@ content)
 	{
 		if(@content_str_label != null)
@@ -303,11 +313,13 @@ class PopupOptions : IGenericEventTarget
 	
 	void _on_popup_show(Popup@ popup)
 	{
+		_popup_visible = true;
 		ui._queue_event(@show, EventType::SHOW, @popup, @this);
 	}
 	
 	void _on_popup_start_hide(Popup@ popup)
 	{
+		_popup_visible = false;
 		ui._queue_event(@hide_start, EventType::SHOW, @popup, @this);
 	}
 	

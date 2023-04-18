@@ -36,6 +36,7 @@ class Popup : SingleContainer, IStepHandler
 	Popup(UI@ ui, PopupOptions@ options, Element@ target)
 	{
 		super(ui, options.get_content_element());
+		is_snap_target = false;
 		
 		update(options, target);
 		options._on_popup_show(this);
@@ -69,10 +70,19 @@ class Popup : SingleContainer, IStepHandler
 		update_fade();
 	}
 	
-	void force_hide()
+	void force_hide(const bool fade=true)
 	{
-		_force_hide = true;
 		waiting_for_mouse = false;
+		
+		if(!fade)
+		{
+			this.fade = 0;
+			update_fade();
+			on_fade_complete();
+			return;
+		}
+		
+		_force_hide = true;
 	}
 	
 	bool ui_step() override
@@ -303,11 +313,7 @@ class Popup : SingleContainer, IStepHandler
 		}
 		else
 		{
-			if(!fading_out)
-			{
-				fading_out = true;
-				_options._on_popup_start_hide(this);
-			}
+			on_fade_start();
 			
 			if(fade > 0)
 			{
@@ -316,13 +322,7 @@ class Popup : SingleContainer, IStepHandler
 			}
 			else
 			{
-				if(stepping)
-				{
-					stepping = false;
-				}
-				
-				ui._queue_event(@hide, EventType::HIDE, @this);
-				_options._on_popup_hide(this);
+				on_fade_complete();
 			}
 		}
 		
@@ -408,6 +408,26 @@ class Popup : SingleContainer, IStepHandler
 		{
 			mouse_enabled = children_mouse_enabled = _options.interactable;
 		}
+	}
+	
+	private void on_fade_start()
+	{
+		if(fading_out)
+			return;
+		
+		fading_out = true;
+		_options._on_popup_start_hide(this);
+	}
+	
+	private void on_fade_complete()
+	{
+		on_fade_start();
+		
+		stepping = false;
+		fade = 0;
+		
+		ui._queue_event(@hide, EventType::HIDE, @this);
+		_options._on_popup_hide(this);
 	}
 	
 	private void position_x(const PopupPosition position)
