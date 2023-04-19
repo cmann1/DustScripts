@@ -969,15 +969,17 @@ class LayerSelector : LockedContainer
 	// Get/set selected
 	
 	/// Sets a single layer as the only selected layer. Returns true if something changed.
-	bool set_selected_layer(const int layer, const bool trigger_event=true)
+	/// If layer < 0 will select none.
+	bool set_selected_layer(const int layer, const bool trigger_event=true, const bool ignore_min_select=false)
 	{
-		return @layers != null ? layers.set_selected(layer, trigger_event) : false;
+		return @layers != null ? layers.set_selected(layer, trigger_event, ignore_min_select) : false;
 	}
 	
 	/// Sets a single sublayer as the only selected layer. Returns true if something changed.
-	bool set_selected_sub_layer(const int layer, const bool trigger_event=true)
+	/// If layer < 0 will select none.
+	bool set_selected_sub_layer(const int layer, const bool trigger_event=true, const bool ignore_min_select=false)
 	{
-		return @sub_layers != null ? sub_layers.set_selected(layer, trigger_event) : false;
+		return @sub_layers != null ? sub_layers.set_selected(layer, trigger_event, ignore_min_select) : false;
 	}
 	
 	/// Returns the selected layer index or -1 if none are selected. If multiple are selected returns the highest index.

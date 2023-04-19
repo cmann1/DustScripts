@@ -279,26 +279,42 @@ class LayerSelectorSet : Container
 	{
 		const int end = num_layers < int(checked_list.length()) ? num_layers : int(checked_list.length());
 		
-		if(end == 0)
+		const int list_size = int(checked_list.length);
+		if(list_size == 0)
 			return 0;
 		
 		int result = 0;
 		uint selected_count = uint(count_selected());
+		int deselect_count = ignore_min_select ? num_layers : min(max(int(selected_count - min_select), 0), num_layers);
+		int select_count = multi_select ? num_layers : 1;
 		
-		if(!multi_select && !ignore_min_select && selected_count >= 1)
-			return 0;
-		
-		for(int i = 0; i < end; i++)
+		for(int i = num_layers - 1; i >= 0; i--)
 		{
 			Checkbox@ checkbox = checkboxes[i];
 			
 			if(@checkbox == null || @checkbox == @all_checkbox)
 				continue;
 			
-			const bool checked = checked_list[i];
+			const bool checked = i < list_size ? checked_list[i] : checkbox.checked;
 			
 			if(checkbox.checked != checked)
 			{
+				if(checked && select_count == 0)
+					continue;
+				if(!checked && deselect_count == 0)
+					continue;
+				
+				if(checked)
+				{
+					select_count--;
+					deselect_count++;
+				}
+				else
+				{
+					select_count++;
+					deselect_count--;
+				}
+				
 				checkbox.initialise_state(checked);
 				result++;
 				
@@ -306,12 +322,13 @@ class LayerSelectorSet : Container
 					selected_count--;
 				else
 					selected_count++;
-				
-				if(checked && !multi_select && selected_count >= 1)
-					break;
-				
-				if(!checked && !ignore_min_select && selected_count <= min_select)
-					break;
+			}
+			else
+			{
+				if(checkbox.checked)
+					selected_count++;
+				else
+					selected_count--;
 			}
 		}
 		
@@ -427,9 +444,14 @@ class LayerSelectorSet : Container
 		}
 	}
 	
-	bool set_selected(const int layer, const bool trigger_event=true)
+	bool set_selected(const int layer, const bool trigger_event=true, const bool ignore_min_select=false)
 	{
-		if(layer < 0 || layer >= num_layers)
+		if(layer < 0)
+		{
+			return select_none(trigger_event, ignore_min_select) > 0;
+		}
+		
+		if(layer >= num_layers)
 			return false;
 		
 		bool changed = false;

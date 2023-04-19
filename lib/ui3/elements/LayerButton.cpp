@@ -154,16 +154,29 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		ui.hide_tooltip(popup_options);
 	}
 	
+	bool layer_changed { get const { return has_selected_layer; } }
+	
+	bool sub_layer_changed { get const { return has_selected_sublayer; } }
+	
+	bool is_open { get const { return _open; } }
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Internal
 	// ///////////////////////////////////////////////////////////////////
 	
 	bool ui_step() override
 	{
-		if(_open && ui.has_input && input_api::consume_gvb_press(ui.input, GVB::Escape))
+		if(_open && ui.has_input)
 		{
-			canceled = true;
-			hide();
+			if(input_api::consume_gvb_press(ui.input, GVB::Escape))
+			{
+				canceled = true;
+				hide();
+			}
+			else if(input_api::consume_gvb_press(ui.input, GVB::Return))
+			{
+				hide();
+			}
 		}
 		
 		return _open;
