@@ -10,6 +10,9 @@ namespace RotationWheel { const string TYPE_NAME = 'RotationWheel'; }
 class RotationWheel : Image, IStepHandler
 {
 	
+	Event change;
+	Event range_change;
+	
 	bool allow_range = true;
 	bool enable_mouse_wheel = true;
 	bool drag_relative = true;
@@ -28,9 +31,6 @@ class RotationWheel : Image, IStepHandler
 	protected bool _tooltip_trim_trailing_zeros = true;
 	protected bool _tooltip_degrees = true;
 	
-	Event change;
-	Event range_change;
-	
 	protected float _angle;
 	protected float _range;
 	protected float _start_angle = -PI;
@@ -39,6 +39,11 @@ class RotationWheel : Image, IStepHandler
 	protected bool drag_angle;
 	protected bool drag_range;
 	protected float drag_offset;
+	
+	/// Whether or not to snap values when being set.
+	/// Automatically set during user interaction, and false by default to prevent snapping when
+	/// being set from script while the snap keys are held.
+	protected bool do_snap = false;
 	
 	RotationWheel(UI@ ui)
 	{
@@ -214,6 +219,7 @@ class RotationWheel : Image, IStepHandler
 		{
 			if(ui.mouse.primary_down)
 			{
+				do_snap = true;
 				angle = get_mouse_angle() - drag_offset;
 				
 				if(_auto_tooltip)
@@ -230,6 +236,7 @@ class RotationWheel : Image, IStepHandler
 		{
 			if(ui.mouse.secondary_down)
 			{
+				do_snap = true;
 				range = abs(shortest_angle(_angle, get_mouse_angle() - drag_offset));
 				
 				if(_auto_tooltip)
@@ -274,8 +281,10 @@ class RotationWheel : Image, IStepHandler
 	
 	protected float snap(const float angle)
 	{
-		if(!ui.has_input)
+		if(!ui.has_input || !do_snap)
 			return angle;
+		
+		do_snap = false;
 		
 		if(ui.input.key_check_vk(VK::Shift))
 			return round(angle / snap_big) * snap_big;
