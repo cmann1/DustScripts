@@ -28,6 +28,7 @@ abstract class SelectBase : LockedContainer
 	protected int _num_icons;
 	protected bool _show_icons;
 	protected bool _allow_custom_value;
+	protected bool _allow_reselect;
 	
 	SelectBase(UI@ ui, const string placeholder_text='',
 		const string placeholder_icon_set='', const string placeholder_icon_name='',
@@ -125,6 +126,19 @@ abstract class SelectBase : LockedContainer
 		}
 	}
 	
+	/// If true will dispatch the change event, even if the same item is selected.
+	bool allow_reselect
+	{
+		get const { return _allow_reselect; }
+		set
+		{
+			if(_allow_reselect == value)
+				return;
+			
+			_allow_reselect = value;
+		}
+	}
+	
 	int num_values { get const { return _num_values; } }
 	
 	int selected_index
@@ -136,7 +150,13 @@ abstract class SelectBase : LockedContainer
 				value = _num_values - 1;
 			
 			if(_selected_index == value && !(value == -1 && custom_value_selected))
+			{
+				if(_allow_reselect)
+				{
+					ui._dispatch_event(@change, EventType::CHANGE, this);
+				}
 				return;
+			}
 			
 			_selected_index = value;
 			custom_value = '';
@@ -473,4 +493,3 @@ abstract class SelectBase : LockedContainer
 	}
 	
 }
-

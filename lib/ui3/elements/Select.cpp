@@ -243,6 +243,10 @@ class Select : SelectBase, IStepHandler
 		{
 			selected_index = list_view.selected_index;
 		}
+		else if(_allow_reselect)
+		{
+			selected_index = _selected_index;
+		}
 		
 		close();
 	}
