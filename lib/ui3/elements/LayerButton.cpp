@@ -11,11 +11,11 @@ namespace LayerButton { const string TYPE_NAME = 'LayerButton'; }
 class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 {
 	
-	/// Triggered when layer is selected or deselected.
+	/// Triggered when a layer is selected or deselected.
 	/// If auto_close is true and multi select is false, this is the same as the select event.
 	Event change;
-	/// Triggered when the layer selection popup closes. The event type will be SELECT if the selection is accepted, or CANCEL
-	/// if it is cancel by pressing the escape key
+	/// Triggered when the layer selection popup opens closes.
+	/// The event type will be SELECT if the selection is accepted, or CANCEL if it is cancel by pressing the escape key.
 	Event select;
 	
 	protected Orientation _orientation;
@@ -23,7 +23,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 	protected PopupPosition _position = PopupPosition::Below;
 	
 	protected bool _open;
-	protected bool canceled;
+	protected bool cancelled;
 	protected bool has_layer_select;
 	protected LayerSelector@ _layer_select;
 	protected PopupOptions@ popup_options;
@@ -143,6 +143,8 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		
 		has_selected_sublayer = false;
 		has_selected_layer = false;
+		
+		ui._dispatch_event(@select, EventType::OPEN, this);
 	}
 	
 	/// Hides the layer selection popup if it is open
@@ -170,7 +172,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		{
 			if(input_api::consume_gvb_press(ui.input, GVB::Escape))
 			{
-				canceled = true;
+				cancelled = true;
 				hide();
 			}
 			else if(input_api::consume_gvb_press(ui.input, GVB::Return))
@@ -444,7 +446,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		_open = false;
 		string event_type;
 		
-		if(!canceled)
+		if(!cancelled)
 		{
 			accept_layers_selection();
 			event_type = EventType::SELECT;
@@ -461,7 +463,7 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 				layer_select.set_sub_layers_selected(@selected_sub_layers, true, true);
 			}
 			
-			canceled = false;
+			cancelled = false;
 			event_type = EventType::CANCEL;
 			update_labels();
 		}
