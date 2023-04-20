@@ -296,6 +296,40 @@ abstract class Element
 	}
 	
 	// ------------------------------------------------
+	// Util
+	// ------------------------------------------------
+	
+	/**
+	 * @brief Utitlity layout method that sets this element's y position so it aligns with the top of `other`.
+	 * @param other The element to align to.
+	 */
+	Element@ layout_align_top(Element@ other)
+	{
+		y = other.y;
+		return this;
+	}
+	
+	/**
+	 * @brief Utitlity layout method that sets this element's y position so that it is centred on `other`.
+	 * @param other The element to align to.
+	 */
+	Element@ layout_align_middle(Element@ other)
+	{
+		y = other.y + (other.height - height) * 0.5;
+		return this;
+	}
+	
+	/**
+	 * @brief Utitlity layout method that sets this element's y position so it aligns with the bottom of `other`.
+	 * @param other The element to align to.
+	 */
+	Element@ layout_align_bottom(Element@ other)
+	{
+		y = other.y + other.height;
+		return this;
+	}
+	
+	// ------------------------------------------------
 	// Internal
 	// ------------------------------------------------
 	

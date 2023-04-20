@@ -64,6 +64,17 @@ class LayoutAnchor
 		return this;
 	}
 	
+	/**
+	 * @brief Anchors after the givven sibling with the given padding.
+	 * @param sibling The sibling to anchor to.
+	 * @param padding The amount of padding. Leave out to set to the default style spacing.
+	 * @return This anchor.
+	 */
+	LayoutAnchor@ after(Element@ sibling, const float padding=NAN)
+	{
+		return this.sibling(sibling, 0.0).padding(padding);
+	}
+	
 	LayoutAnchor@ padding(const float padding=0)
 	{
 		this._padding = padding;
@@ -105,7 +116,7 @@ class LayoutAnchor
 		
 		// Ignore the padding if anchored to a sibling that isn't visible
 		const float padding = @this.element != null && @sibling == null
-			? 0 : _padding;
+			? 0 : is_nan(_padding) ? element.ui.style.spacing : _padding;
 		x = anchor_p + (type == Percent
 			? anchor_size * position + padding
 			: position + padding) * (side == Position::Left || side == Position::Top ? 1 : -1);
