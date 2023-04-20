@@ -136,6 +136,11 @@ class Window : MoveableDialog
 		ui._dispatch_event(@close, EventType::CLOSE, this, hide_type);
 	}
 	
+	void hide(bool fade)
+	{
+		hide('user', fade);
+	}
+	
 	Layout@ layout
 	{
 		get override { return @_contents.layout; }
