@@ -58,6 +58,7 @@ class PopupOptions : IGenericEventTarget
 	
 	// Content can be any element
 	protected Element@ _content;
+	protected Popup@ _popup;
 	// Content can be set to a string and this will be used instead of "content".
 	// Behind the scenes a Label with some default settings element will be created if need
 	// and used to display the string
@@ -133,6 +134,11 @@ class PopupOptions : IGenericEventTarget
 	}
 	
 	string name { get const { return _id; } }
+	
+	Popup@ popup
+	{
+		get { return _popup; }
+	}
 	
 	float fade_max
 	{
@@ -313,6 +319,7 @@ class PopupOptions : IGenericEventTarget
 	
 	void _on_popup_show(Popup@ popup)
 	{
+		@_popup = popup;
 		_popup_visible = true;
 		ui._queue_event(@show, EventType::SHOW, @popup, @this);
 	}
@@ -332,6 +339,7 @@ class PopupOptions : IGenericEventTarget
 		}
 		
 		ui._queue_event(@hide, EventType::HIDE, @popup, @this);
+		@_popup = null;
 	}
 	
 	private void invalidate()
