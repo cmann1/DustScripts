@@ -28,6 +28,12 @@ class BasicColourSwatch : Element
 		const float _width  = x2 - x1;
 		const float _height = y2 - y1;
 		
+		const float alpha = ctx.alpha;
+		if(disabled)
+		{
+			ctx.alpha *= 0.5;
+		}
+		
 		if((background_colour >> 24) & 0xff != 255)
 		{
 			style.draw_rectangle(x1, y1, x1 + _width * 0.5, y2, 0, 0xffffffff);
@@ -66,6 +72,11 @@ class BasicColourSwatch : Element
 				this.x1, this.y1,
 				this.x2, this.y2,
 				border_size, border_colour);
+		}
+		
+		if(disabled)
+		{
+			ctx.alpha = alpha;
 		}
 	}
 	
