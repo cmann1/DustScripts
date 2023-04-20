@@ -22,8 +22,6 @@ class Checkbox : Element
 	{
 		super(ui);
 		
-		@label_click_delegate = EventCallback(on_label_click);
-		
 		fit();
 	}
 	

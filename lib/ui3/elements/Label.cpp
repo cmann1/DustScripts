@@ -128,7 +128,7 @@ class Label : Graphic
 		}
 		
 		style.draw_text(_text,
-			ui._pixel_round(x1) + draw_x + dx,
+			ui._pixel_round(x1) + draw_x + dx - 1,
 			ui._pixel_round(y1) + draw_y + dy,
 			get_draw_colour(),
 			final_scale_x, final_scale_y,
