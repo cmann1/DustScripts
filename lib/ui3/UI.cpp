@@ -2365,7 +2365,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		
 		tooltip.hide.off(on_tooltip_hide_delegate);
 		tooltips.delete(id);
-		overlays.remove_child(tooltip);
+		tooltip.parent.remove_child(tooltip);
 	}
 	
 	private void on_layer_select(EventInfo@ event)
