@@ -265,17 +265,17 @@ class RotationWheel : Image, IStepHandler
 		
 		float nx = cos(_angle + indicator_offset);
 		float ny = sin(_angle + indicator_offset);
-		style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 1.5, main_clr);
+		style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 3, main_clr);
 		
 		if(allow_range && _range != 0)
 		{
 			const uint range_clr = drag_range ? style.selected_highlight_border_clr : style.secondary_bg_clr;
 			nx = cos(_angle + indicator_offset - _range);
 			ny = sin(_angle + indicator_offset - _range);
-			style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 1, range_clr);
+			style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 2, range_clr);
 			nx = cos(_angle + indicator_offset + _range);
 			ny = sin(_angle + indicator_offset + _range);
-			style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 1, range_clr);
+			style.draw_line(mid_x, mid_y, mid_x + nx * radius, mid_y + ny * radius, 2, range_clr);
 		}
 	}
 	

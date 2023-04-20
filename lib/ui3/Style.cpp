@@ -403,16 +403,7 @@ class Style
 		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
-		const float dx = x2 - x1;
-		const float dy = y2 - y1;
-		const float length = sqrt(dx * dx + dy * dy);
-		
-		const float mx = (x1 + x2) * 0.5;
-		const float my = (y1 + y2) * 0.5;
-		
-		c.draw_rectangle(
-			mx - width, my - length * 0.5,
-			mx + width, my + length * 0.5, atan2(-dx, dy) * RAD2DEG, colour);
+		c.draw_line(x1, y1, x2, y2, width, colour);
 	}
 
 	void draw_quad(
