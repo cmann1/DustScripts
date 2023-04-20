@@ -107,6 +107,7 @@ class Style
 	private int drawing_context_pool_index = 0;
 	private array<DrawingContext@> drawing_context_pool(drawing_context_pool_size);
 	
+	private UI@ ui;
 	private scene@ g;
 	private canvas@ c;
 	
@@ -114,10 +115,15 @@ class Style
 	private uint _sub_layer;
 	private bool _hud;
 	
-	Style() { }
-	
-	Style(bool hud)
+	Style(UI@ ui)
 	{
+		@this.ui = ui;
+	}
+	
+	Style(UI@ ui, bool hud)
+	{
+		@this.ui = ui;
+		
 		@c = create_canvas(hud, _layer, _sub_layer);
 		c.scale_hud(false);
 		this.hud = hud;
@@ -368,7 +374,9 @@ class Style
 		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
-		c.draw_rectangle(x1, y1, x2, y2, rotation, colour);
+		c.draw_rectangle(
+			ui._pixel_ceil(x1), ui._pixel_ceil(y1), ui._pixel_ceil(x2), ui._pixel_ceil(y2),
+			rotation, colour);
 	}
 	
 	void draw_glass(
@@ -378,7 +386,10 @@ class Style
 		if(ctx.alpha < 1)
 			return;
 		
-		c.draw_glass(x1, y1, x2, y2, rotation, colour);
+		c.draw_glass(
+			ui._pixel_ceil(x1), ui._pixel_ceil(y1),
+			ui._pixel_ceil(x2), ui._pixel_ceil(y2),
+			rotation, colour);
 	}
 
 	void draw_gradient(
@@ -393,7 +404,10 @@ class Style
 			c01 = set_alpha(c01);
 		}
 		
-		c.draw_gradient(x1, y1, x2, y2, c00, c10, c11, c01);
+		c.draw_gradient(
+			ui._pixel_ceil(x1), ui._pixel_ceil(y1),
+			ui._pixel_ceil(x2), ui._pixel_ceil(y2),
+			c00, c10, c11, c01);
 	}
 
 	void draw_line(
@@ -403,7 +417,10 @@ class Style
 		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
-		c.draw_line(x1, y1, x2, y2, width, colour);
+		c.draw_line(
+			ui._pixel_ceil(x1), ui._pixel_ceil(y1),
+			ui._pixel_ceil(x2), ui._pixel_ceil(y2),
+			width, colour);
 	}
 
 	void draw_quad(
@@ -420,7 +437,13 @@ class Style
 			c4 = set_alpha(c4);
 		}
 		
-		c.draw_quad(is_glass, x1, y1, x2, y2, x3, y3, x4, y4, c1, c2, c3, c4);
+		c.draw_quad(
+			is_glass,
+			ui._pixel_ceil(x1), ui._pixel_ceil(y1),
+			ui._pixel_ceil(x2), ui._pixel_ceil(y2),
+			ui._pixel_ceil(x3), ui._pixel_ceil(y3),
+			ui._pixel_ceil(x4), ui._pixel_ceil(y4),
+			c1, c2, c3, c4);
 	}
 	
 	void draw_sprite(
@@ -433,7 +456,10 @@ class Style
 		if(ctx.alpha != 1)
 			colour = set_alpha(colour);
 		
-		c.draw_sprite(sprite, sprite_name, frame, palette, x, y, rotation, scale_x, scale_y, colour);
+		c.draw_sprite(
+			sprite, sprite_name, frame, palette,
+			ui._pixel_ceil(x), ui._pixel_ceil(y),
+			rotation, scale_x, scale_y, colour);
 	}
 	
 	void draw_text(

@@ -72,10 +72,11 @@ class Image : Graphic
 		
 		style.draw_sprite(sprite,
 			_sprite_name, frame, palette,
-			(ui._even_screen_width ? ui._pixel_floor(x1 + draw_x - 1) : ui._pixel_round(x1 + draw_x - 1))
-				- (ui._even_screen_width  ? 0.0 : 0.5),
-			(ui._even_screen_height ? ui._pixel_floor(y1 + draw_y) : ui._pixel_round(y1 + draw_y))
-				- (ui._even_screen_height ? 0.0 : 0.5),
+			// Add 0.5 based on the screen size to get pixel perfect images (seems like screen size was forced to be even by some dustmod update).
+			// All other drawing operations are `ceil`ed by `Style` and the values here rounded down to make sure everything aligns correctly.
+			// X and Y outputs seem to differe though when rendered so one needs to be incremented and the other decremented.
+			ui._pixel_round(x1 + draw_x - 0.5) - (ui._even_screen_width  ? 0.0 : 0.5),
+			ui._pixel_round(y1 + draw_y + 0.5) - (ui._even_screen_height ? 0.0 : 0.5),
 			_rotation,
 			is_transposed ? draw_scale_y : draw_scale_x,
 			is_transposed ? draw_scale_x : draw_scale_y,

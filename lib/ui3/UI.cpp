@@ -225,7 +225,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		
 		@_event_info.mouse = mouse;
 		
-		@style = Style(hud);
+		@style = Style(this, hud);
 		
 		@debug_text_field = create_textfield();
 		debug_text_field.set_font(font::PROXIMANOVA_REG, 26);
