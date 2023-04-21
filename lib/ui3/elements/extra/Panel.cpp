@@ -10,13 +10,14 @@ namespace Panel { const string TYPE_NAME = 'Panel'; }
  * @class Panel
  * @brief A container that can also display a title and can be collapsed.
  */
-class Panel : Container, IStepHandler
+class Panel : Container
 {
+	
+	Event collapse;
 	
 	protected string _title;
 	protected bool _collapsible;
 	protected bool _show_collapse_arrow;
-	protected float _collapse_time;
 	protected bool _collapsed;
 	protected bool _only_title_border;
 	
@@ -26,7 +27,6 @@ class Panel : Container, IStepHandler
 	protected Label@ _title_label;
 	
 	protected bool has_title_contents;
-	protected float open_t = 0;
 	
 	Panel(UI@ ui)
 	{
@@ -34,13 +34,6 @@ class Panel : Container, IStepHandler
 	}
 	
 	string element_type { get const override { return Panel::TYPE_NAME; } }
-	
-	bool ui_step() override
-	{
-		
-		
-		return true;
-	}
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Basic properties
@@ -119,22 +112,6 @@ class Panel : Container, IStepHandler
 	}
 	
 	/**
-	 * @brief Sets the animation speed when collapsing/uncollapsing this panel.
-	 *        Set to <= 0 to disable animation.
-	 */
-	float collapse_time
-	{
-		get { return _collapse_time; }
-		set
-		{
-			if(value == _collapse_time)
-				return;
-			
-			_collapse_time = value;
-		}
-	}
-	
-	/**
 	 * @brief Set to collapse/uncollapse this panel.
 	 */
 	bool collapsed
@@ -146,8 +123,15 @@ class Panel : Container, IStepHandler
 				return;
 			
 			_collapsed = value;
+			children_visible = !_collapsed;
 			
-			// TODO: Toggle, or start animation.
+			if(@_collapse_arrow_icon != null)
+			{
+				_collapse_arrow_icon.rotation = _collapsed ? 0 : 90;
+			}
+			
+			invalidate_layout();
+			ui._dispatch_event(@collapse, _collapsed ? EventType::CLOSE : EventType::OPEN, this);
 		}
 	}
 	
@@ -166,6 +150,7 @@ class Panel : Container, IStepHandler
 			_title_button.draw_border = DrawOption::Never;
 			_title_button.draw_background = DrawOption::Never;
 			_title_button.set_padding(0);
+			_title_button.mouse_click.on(EventCallback(on_title_click));
 		}
 		
 		_title_button._visible = title != '' || _show_collapse_arrow || _collapsible;
@@ -234,7 +219,10 @@ class Panel : Container, IStepHandler
 	
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
-		stack.push_reversed(@children);
+		if(!_collapsed)
+		{
+			stack.push_reversed(@children);
+		}
 		
 		if(has_title_contents)
 		{
@@ -249,13 +237,15 @@ class Panel : Container, IStepHandler
 		
 		if(has_title_contents)
 		{
+			_title_button_content._x = 0;
+			_title_button_content._y = 0;
 			_title_button_content.fit_to_contents();
 			_title_button.fit_to_contents();
 			_title_button_content._width = _width;
 			_title_button._width = _width;
 			_title_button._y = -_title_button._height;
 			
-			float x = ui.style.spacing * 3;
+			float x = ui.style.spacing * 2.5;
 			const float title_height = calc_title_height();
 			
 			if(_show_collapse_arrow)
@@ -299,7 +289,7 @@ class Panel : Container, IStepHandler
 			{
 				const float ty1 = _title_button.y1 + _title_button._height * 0.5;
 				
-				if(!_only_title_border)
+				if(!_only_title_border && !_collapsed)
 				{
 					//Left
 					style.draw_rectangle(
@@ -352,5 +342,13 @@ class Panel : Container, IStepHandler
 	// ///////////////////////////////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////////////////////////////
+	
+	private void on_title_click(EventInfo@ event)
+	{
+		if(!_collapsible)
+			return;
+		
+		collapsed = !_collapsed;
+	}
 	
 }

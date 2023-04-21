@@ -30,6 +30,7 @@ class Container : Element
 	
 	protected array<Element@> children;
 	protected int num_children;
+	protected bool children_visible = true;
 	
 	protected bool auto_update_scroll_rect = true;
 	
@@ -299,7 +300,10 @@ class Container : Element
 	
 	void _queue_children_for_layout(ElementStack@ stack) override
 	{
-		stack.push_reversed(@children);
+		if(children_visible)
+		{
+			stack.push_reversed(@children);
+		}
 	}
 	
 	void _do_layout(LayoutContext@ ctx) override
@@ -396,7 +400,7 @@ class Container : Element
 		const float max_x = scroll_max_x;
 		const float max_y = scroll_max_y;
 		
-		if(num_children == 0)
+		if(num_children == 0 || !children_visible)
 		{
 			scroll_min_x = 0;
 			scroll_min_y = 0;
@@ -441,7 +445,7 @@ class Container : Element
 	
 	protected void do_fit_contents(const bool fit_min)
 	{
-		if(@_layout != null)
+		if(@_layout != null && children_visible)
 		{
 			const float min_x = scroll_min_x;
 			const float min_y = scroll_min_y;
@@ -459,7 +463,7 @@ class Container : Element
 				ui._dispatch_event(@scroll_change, EventType::SCROLL_CHANGE, @this);
 			}
 		}
-		else if(auto_update_scroll_rect)
+		else if(auto_update_scroll_rect || !children_visible)
 		{
 			calculate_scroll_rect(fit_min);
 		}

@@ -36,12 +36,17 @@ class Event
 		if(!enabled)
 			return;
 		
-//		puts(event.type + (@event.target != null ? ' ' + event.target._id : ''));
+		//puts(event.type + (@event.target != null ? ' ' + event.target._id : ''));
 		
 		for(int i = 0; i < num_listeners; i++)
 		{
 			listeners[i](event);
 		}
+	}
+	
+	bool has(EventCallback@ callback) const
+	{
+		return listeners.findByRef(callback) >= 0;
 	}
 	
 }
