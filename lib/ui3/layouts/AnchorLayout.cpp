@@ -1,9 +1,12 @@
 class AnchorLayout : Layout
 {
 	
-	int size_pass2 = 8;
-	int num_pass2;
-	array<Element@> pass2(size_pass2);
+	/* Allow shrinking beyond explcitly set element sizes. */
+	bool allow_shrink = false;
+	
+	private int size_pass2 = 8;
+	private int num_pass2;
+	private array<Element@> pass2(size_pass2);
 	
 	AnchorLayout(UI@ ui)
 	{
@@ -50,8 +53,8 @@ class AnchorLayout : Layout
 				
 				float el_x1 = element._x;
 				float el_y1 = element._y;
-				float el_x2 = el_x1 + element._width;
-				float el_y2 = el_y1 + element._height;
+				float el_x2 = el_x1 + (allow_shrink ? element._width : element._set_width);
+				float el_y2 = el_y1 + (allow_shrink ? element._height : element._set_height);
 				
 				if(element.anchor_left.type != None)
 				{
@@ -77,6 +80,10 @@ class AnchorLayout : Layout
 					{
 						@pass2[num_pass2++] = element;
 						continue;
+					}
+					else
+					{
+						nx = c_x2;
 					}
 					
 					if(element.anchor_left.type == None)
@@ -112,6 +119,10 @@ class AnchorLayout : Layout
 						@pass2[num_pass2++] = element;
 						continue;
 					}
+					else
+					{
+						ny = c_y2;
+					}
 					
 					if(element.anchor_top.type == None)
 					{
@@ -125,6 +136,18 @@ class AnchorLayout : Layout
 					el_x2 = el_x1;
 				if(el_y2 < el_y1)
 					el_y2 = el_y1;
+				
+				if(!allow_shrink)
+				{
+					if(el_x2 - el_x1 < element._set_width)
+					{
+						el_x2 = el_x1 + element._set_width;
+					}
+					if(el_y2 - el_y1 < element._set_height)
+					{
+						el_y2 = el_y1 + element._set_height;
+					}
+				}
 				
 				if(
 					element._x != el_x1 || element._y != el_y1 ||

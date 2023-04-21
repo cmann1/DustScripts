@@ -65,14 +65,14 @@ class LayoutAnchor
 	}
 	
 	/**
-	 * @brief Anchors after the givven sibling with the given padding.
+	 * @brief Anchors next_to the givven sibling with the given padding.
 	 * @param sibling The sibling to anchor to.
 	 * @param padding The amount of padding. Leave out to set to the default style spacing.
 	 * @return This anchor.
 	 */
-	LayoutAnchor@ after(Element@ sibling, const float padding=NAN)
+	LayoutAnchor@ next_to(Element@ sibling, const float padding=NAN)
 	{
-		return this.sibling(sibling, 0.0).padding(padding);
+		return this.sibling(sibling).padding(padding);
 	}
 	
 	LayoutAnchor@ padding(const float padding=0)
