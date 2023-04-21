@@ -33,7 +33,11 @@ class ColourPicker : LockedContainer, IStepHandler
 	protected uint _previous_colour = 0xffffffff;
 	protected int _r, _g, _b, _a;
 	protected float _h, _s, _l;
+	protected bool _show_hsl = true;
+	protected bool _show_rgb = true;
 	protected bool _show_alpha = true;
+	protected bool _show_hex = true;
+	protected bool _show_swatches = true;
 	protected bool _show_buttons = true;
 	protected bool _accept_on_keybaord = false;
 	
@@ -78,21 +82,30 @@ class ColourPicker : LockedContainer, IStepHandler
 		@input_a = create_input('A', Integer);
 		
 		@input_hex = create_input('Hex', Hex);
-		input_hex.width = 95;
 		
 		@ok_button = Button(ui, 'OK', Centre);
-		@cancel_button = Button(ui, 'Cancel', Centre);
 		ok_button.name = EventType::ACCEPT;
-		cancel_button.name = EventType::CANCEL;
 		ok_button.mouse_click.on(on_button_click_delegate);
-		cancel_button.mouse_click.on(on_button_click_delegate);
+		ok_button.fit_to_contents();
 		Container::add_child(ok_button);
+		
+		@cancel_button = Button(ui, 'Cancel', Centre);
+		cancel_button.name = EventType::CANCEL;
+		cancel_button.mouse_click.on(on_button_click_delegate);
+		cancel_button.fit_to_contents();
 		Container::add_child(cancel_button);
 		
 		@swatch = BasicColourSwatch(ui);
 		@swatch_previous = BasicColourSwatch(ui);
 		Container::add_child(swatch);
 		Container::add_child(swatch_previous);
+		
+		const float side_size = max(input_hex.width, max(swatch.width, max(ok_button.width, cancel_button.width)));
+		input_hex.width = side_size;
+		swatch.width = side_size;
+		swatch_previous.width = side_size;
+		ok_button.width = side_size;
+		cancel_button.width = side_size;
 		
 		calculate_colour_values();
 		update_all();
@@ -186,7 +199,77 @@ class ColourPicker : LockedContainer, IStepHandler
 		set { if(_a != value) update_from_rgb(value, A); }
 	}
 	
-	/// Whether or not to show the alpha slider and input
+	/**
+	 * Whether or not to show the hsl sliders and input.
+	 */
+	bool show_hsl
+	{
+		get const { return _show_hsl; }
+		set
+		{
+			if(_show_hsl == value)
+				return;
+			
+			_show_hsl = value;
+			label_h.visible = _show_hsl;
+			input_h.visible = _show_hsl;
+			slider_h.visible = _show_hsl;
+			label_s.visible = _show_hsl;
+			input_s.visible = _show_hsl;
+			slider_s.visible = _show_hsl;
+			label_l.visible = _show_hsl;
+			input_l.visible = _show_hsl;
+			slider_l.visible = _show_hsl;
+			update_inputs();
+			
+			if(_show_hsl)
+			{
+				update_sliders();
+			}
+			
+			_do_layout(null);
+			validate_layout = true;
+			fit_to_contents(true);
+		}
+	}
+	
+	/**
+	 * Whether or not to show the rgb sliders and input.
+	 */
+	bool show_rgb
+	{
+		get const { return _show_rgb; }
+		set
+		{
+			if(_show_rgb == value)
+				return;
+			
+			_show_rgb = value;
+			label_r.visible = _show_rgb;
+			input_r.visible = _show_rgb;
+			slider_r.visible = _show_rgb;
+			label_g.visible = _show_rgb;
+			input_g.visible = _show_rgb;
+			slider_g.visible = _show_rgb;
+			label_b.visible = _show_rgb;
+			input_b.visible = _show_rgb;
+			slider_b.visible = _show_rgb;
+			update_inputs();
+			
+			if(_show_rgb)
+			{
+				update_sliders();
+			}
+			
+			_do_layout(null);
+			validate_layout = true;
+			fit_to_contents(true);
+		}
+	}
+	
+	/**
+	 * Whether or not to show the alpha slider and input
+	 */
 	bool show_alpha
 	{
 		get const { return _show_alpha; }
@@ -201,18 +284,56 @@ class ColourPicker : LockedContainer, IStepHandler
 			slider_a.visible = _show_alpha;
 			update_inputs();
 			
+			if(_show_alpha)
+			{
+				update_sliders();
+			}
+			
 			_do_layout(null);
 			validate_layout = true;
 			fit_to_contents(true);
+		}
+	}
+	
+	/// Whether or not to show the alpha slider and input
+	bool show_hex
+	{
+		get const { return _show_hex; }
+		set
+		{
+			if(_show_hex == value)
+				return;
 			
-			if(_show_alpha)
-			{
-				navigation_group.remove(input_a);
-			}
-			else
-			{
-				navigation_group.add_before(input_a, input_hex);
-			}
+			_show_hex = value;
+			input_hex.visible = _show_hex;
+			update_inputs();
+			
+			_do_layout(null);
+			validate_layout = true;
+			fit_to_contents(true);
+		}
+	}
+	
+	/**
+	 * Whether or not to show the preview swatch
+	 */
+	bool show_swatches
+	{
+		get const { return _show_swatches; }
+		set
+		{
+			if(_show_swatches == value)
+				return;
+			
+			_show_swatches = value;
+			swatch.visible = _show_swatches;
+			swatch_previous.visible = _show_swatches;
+			
+			update_swatches();
+			
+			_do_layout(null);
+			validate_layout = true;
+			fit_to_contents(true);
 		}
 	}
 	
@@ -261,6 +382,7 @@ class ColourPicker : LockedContainer, IStepHandler
 	private Label@ create_label(const string text)
 	{
 		Label@ label = Label(ui, text);
+		label.name = text;
 		label.set_font(font::ENVY_BOLD, 20);
 		label.text_align_h = TextAlign::Centre;
 		label.align_h = GraphicAlign::Centre;
@@ -309,39 +431,49 @@ class ColourPicker : LockedContainer, IStepHandler
 	
 	private void update_sliders()
 	{
-		slider_h.value = _h;
-		slider_s.value = _s;
-		slider_l.value = _l;
-		slider_r.colour = _colour;
-		slider_g.colour = _colour;
-		slider_b.colour = _colour;
-		slider_a.colour = _colour;
-		slider_r.value = _r / 255.0;
-		slider_g.value = _g / 255.0;
-		slider_b.value = _b / 255.0;
-		slider_a.value = _a / 255.0;
+		if(_show_hsl)
+		{
+			slider_h.value = _h;
+			slider_s.value = _s;
+			slider_l.value = _l;
+			slider_s.hue = _h;
+			slider_l.hue = _h;
+		}
 		
-		slider_s.hue = _h;
-		slider_l.hue = _h;
+		if(_show_rgb)
+		{
+			slider_r.colour = _colour;
+			slider_g.colour = _colour;
+			slider_b.colour = _colour;
+			slider_r.value = _r / 255.0;
+			slider_g.value = _g / 255.0;
+			slider_b.value = _b / 255.0;
+		}
+		
+		if(_show_alpha)
+		{
+			slider_a.colour = _colour;
+			slider_a.value = _a / 255.0;
+		}
 	}
 	
 	private void update_inputs(TextBox@ updated_from=null)
 	{
 		// HSL
 		
-		if(@updated_from != @input_h)
+		if(@updated_from != @input_h && input_h.visible)
 		{
 			input_h.ignore_next_change();
 			input_h.float_value = _h;
 		}
 		
-		if(@updated_from != @input_s)
+		if(@updated_from != @input_s && input_s.visible)
 		{
 			input_s.ignore_next_change();
 			input_s.float_value = _s;
 		}
 		
-		if(@updated_from != @input_l)
+		if(@updated_from != @input_l && input_l.visible)
 		{
 			input_l.ignore_next_change();
 			input_l.float_value = _l;
@@ -349,25 +481,25 @@ class ColourPicker : LockedContainer, IStepHandler
 		
 		// RGBA
 		
-		if(@updated_from != @input_r)
+		if(@updated_from != @input_r && input_r.visible)
 		{
 			input_r.ignore_next_change();
 			input_r.int_value = _r;
 		}
 		
-		if(@updated_from != @input_g)
+		if(@updated_from != @input_g && input_g.visible)
 		{
 			input_g.ignore_next_change();
 			input_g.int_value = _g;
 		}
 		
-		if(@updated_from != @input_b)
+		if(@updated_from != @input_b && input_b.visible)
 		{
 			input_b.ignore_next_change();
 			input_b.int_value = _b;
 		}
 		
-		if(@updated_from != @input_a)
+		if(@updated_from != @input_a && input_a.visible)
 		{
 			input_a.ignore_next_change();
 			input_a.int_value = _a;
@@ -375,7 +507,7 @@ class ColourPicker : LockedContainer, IStepHandler
 		
 		// Hex
 		
-		if(@updated_from != @input_hex)
+		if(@updated_from != @input_hex && input_hex.visible)
 		{
 			input_hex.ignore_next_change();
 			input_hex.text = hex(_show_alpha ? _colour : _colour & 0xffffff, _show_alpha ? 8 : 6);
@@ -384,6 +516,9 @@ class ColourPicker : LockedContainer, IStepHandler
 	
 	private void update_swatches()
 	{
+		if(!_show_swatches)
+			return;
+		
 		swatch.background_colour = _colour;
 		swatch_previous.background_colour = _previous_colour;
 		
@@ -494,6 +629,7 @@ class ColourPicker : LockedContainer, IStepHandler
 	{
 		update_sliders();
 		update_inputs(updated_from);
+		
 		update_swatches();
 	}
 	
@@ -525,59 +661,78 @@ class ColourPicker : LockedContainer, IStepHandler
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		slider_h._x = 0;
-		slider_h._y = 0;
-		slider_s._x = slider_h._x;
-		slider_s._y = slider_h._y + slider_h._height + ui.style.spacing;
-		slider_l._x = slider_s._x;
-		slider_l._y = slider_s._y + slider_s._height + ui.style.spacing;
-		slider_r._x = slider_l._x;
-		slider_r._y = slider_l._y + slider_l._height + ui.style.spacing;
-		slider_g._x = slider_r._x;
-		slider_g._y = slider_r._y + slider_r._height + ui.style.spacing;
-		slider_b._x = slider_g._x;
-		slider_b._y = slider_g._y + slider_g._height + ui.style.spacing;
+		Element@ first_end = null;
+		Element@ prev = null;
+		Element@ prev_end = null;
 		
-		label_h._x = slider_h._x + slider_r._width + ui.style.spacing;
-		label_h._y = slider_h._y;
-		label_s._x = slider_s._x + slider_r._width + ui.style.spacing;
-		label_s._y = slider_s._y;
-		label_l._x = slider_l._x + slider_r._width + ui.style.spacing;
-		label_l._y = slider_l._y;
-		label_r._x = slider_r._x + slider_r._width + ui.style.spacing;
-		label_r._y = slider_r._y;
-		label_g._x = slider_g._x + slider_r._width + ui.style.spacing;
-		label_g._y = slider_g._y;
-		label_b._x = slider_b._x + slider_r._width + ui.style.spacing;
-		label_b._y = slider_b._y;
+		if(_show_hsl)
+		{
+			slider_h._x = 0;
+			slider_h._y = 0;
+			slider_s._x = slider_h._x;
+			slider_s._y = slider_h._y + slider_h._height + ui.style.spacing;
+			slider_l._x = slider_s._x;
+			slider_l._y = slider_s._y + slider_s._height + ui.style.spacing;
+			
+			label_h._x = slider_h._x + slider_r._width + ui.style.spacing;
+			label_h._y = slider_h._y;
+			label_s._x = slider_s._x + slider_r._width + ui.style.spacing;
+			label_s._y = slider_s._y;
+			label_l._x = slider_l._x + slider_r._width + ui.style.spacing;
+			label_l._y = slider_l._y;
+			
+			label_h._height = slider_h._height - 2;
+			label_s._height = slider_s._height - 2;
+			label_l._height = slider_l._height - 2;
+			
+			input_h._x = label_h._x + label_h._width + ui.style.spacing;
+			input_h._y = label_h._y;
+			input_s._x = label_s._x + label_s._width + ui.style.spacing;
+			input_s._y = label_s._y;
+			input_l._x = label_l._x + label_l._width + ui.style.spacing;
+			input_l._y = label_l._y;
+			
+			@first_end = input_h;
+			@prev = slider_l;
+			@prev_end = input_l;
+		}
 		
-		label_h._height = slider_h._height - 2;
-		label_s._height = slider_s._height - 2;
-		label_l._height = slider_l._height - 2;
-		label_r._height = slider_r._height - 2;
-		label_g._height = slider_g._height - 2;
-		label_b._height = slider_b._height - 2;
-		
-		input_h._x = label_h._x + label_h._width + ui.style.spacing;
-		input_h._y = label_h._y;
-		input_s._x = label_s._x + label_s._width + ui.style.spacing;
-		input_s._y = label_s._y;
-		input_l._x = label_l._x + label_l._width + ui.style.spacing;
-		input_l._y = label_l._y;
-		
-		input_r._x = label_r._x + label_r._width + ui.style.spacing;
-		input_r._y = label_r._y;
-		input_g._x = label_g._x + label_g._width + ui.style.spacing;
-		input_g._y = label_g._y;
-		input_b._x = label_b._x + label_b._width + ui.style.spacing;
-		input_b._y = label_b._y;
-		
-		Element@ last_el = input_b;
+		if(_show_rgb)
+		{
+			slider_r._x = @prev != null ? prev._x : 0;
+			slider_r._y = @prev != null ? prev_end._y + prev_end._height + ui.style.spacing : 0;
+			slider_g._x = slider_r._x;
+			slider_g._y = slider_r._y + slider_r._height + ui.style.spacing;
+			slider_b._x = slider_g._x;
+			slider_b._y = slider_g._y + slider_g._height + ui.style.spacing;
+			
+			label_r._x = slider_r._x + slider_r._width + ui.style.spacing;
+			label_r._y = slider_r._y;
+			label_g._x = slider_g._x + slider_r._width + ui.style.spacing;
+			label_g._y = slider_g._y;
+			label_b._x = slider_b._x + slider_r._width + ui.style.spacing;
+			label_b._y = slider_b._y;
+			
+			label_r._height = slider_r._height - 2;
+			label_g._height = slider_g._height - 2;
+			label_b._height = slider_b._height - 2;
+			
+			input_r._x = label_r._x + label_r._width + ui.style.spacing;
+			input_r._y = label_r._y;
+			input_g._x = label_g._x + label_g._width + ui.style.spacing;
+			input_g._y = label_g._y;
+			input_b._x = label_b._x + label_b._width + ui.style.spacing;
+			input_b._y = label_b._y;
+			
+			@first_end = @first_end == null ? cast<Element@>(input_r) : first_end;
+			@prev = slider_b;
+			@prev_end = input_b;
+		}
 		
 		if(_show_alpha)
 		{
-			slider_a._x = slider_b._x;
-			slider_a._y = slider_b._y + slider_b._height + ui.style.spacing;
+			slider_a._x = @prev != null ? prev._x : 0;
+			slider_a._y = @prev != null ? prev_end._y + prev_end._height + ui.style.spacing : 0;
 			
 			label_a._x = slider_a._x + slider_r._width + ui.style.spacing;
 			label_a._y = slider_a._y;
@@ -587,29 +742,47 @@ class ColourPicker : LockedContainer, IStepHandler
 			input_a._x = label_a._x + label_a._width + ui.style.spacing;
 			input_a._y = label_a._y;
 			
-			@last_el = input_a;
+			@first_end = @first_end == null ? cast<Element@>(input_a) : first_end;
+			@prev = input_a;
+			@prev_end = input_a;
 		}
 		
-		input_hex._x = input_h._x + input_h._width + ui.style.spacing;
+		Element@ side = null;
 		
-		swatch._x = input_s._x + input_s._width + ui.style.spacing;
-		swatch._y = input_s._y;
-		swatch._width = input_hex._width;
-		swatch._height = input_s._height + ui.style.spacing * 0.5;
-		swatch_previous._x = swatch._x;
-		swatch_previous._y = swatch._y + swatch._height;
-		swatch_previous._width = swatch._width;
-		swatch_previous._height = swatch._height;
+		if(_show_hex)
+		{
+			input_hex._x = @first_end != null ? (first_end._x + first_end._width + ui.style.spacing) : 0;
+			input_hex._y = @first_end != null ? first_end._y : 0;
+			
+			@side = input_hex;
+		}
 		
-		cancel_button._x = last_el._x + last_el._width + ui.style.spacing;
-		cancel_button._y = last_el._y;
-		cancel_button._width = input_hex._width;
-		cancel_button._height = last_el._height;
+		if(_show_swatches)
+		{
+			swatch._x = @first_end != null ? (first_end._x + first_end._width + ui.style.spacing) : 0;
+			swatch._y = @side != null ? side._y + side._height +  ui.style.spacing : 0;
+			swatch._width = @side != null ? side._width : swatch._width;
+			swatch._height = @first_end != null ? (first_end._height + ui.style.spacing * 0.5) : (swatch._width * 1.5);
+			swatch_previous._x = swatch._x;
+			swatch_previous._y = swatch._y + swatch._height;
+			swatch_previous._width = swatch._width;
+			swatch_previous._height = swatch._height;
+			
+			@side = swatch_previous;
+		}
 		
-		ok_button._x = cancel_button._x;
-		ok_button._y = cancel_button._y - cancel_button._height - ui.style.spacing;
-		ok_button._width = cancel_button._width;
-		ok_button._height = cancel_button._height;
+		if(_show_buttons)
+		{
+			cancel_button._width = @side != null ? side._width : swatch._width;
+			cancel_button.height = @prev_end != null ? prev_end._height : cancel_button._height;
+			cancel_button._x = @prev_end != null ? prev_end._x + prev_end._width + ui.style.spacing : 0;
+			cancel_button._y = max(@prev_end != null ? prev_end._y : 0, @side != null ? side._y + side._height + ui.style.spacing * 2 + cancel_button._height : 0);
+			
+			ok_button._x = cancel_button._x;
+			ok_button._y = cancel_button._y - cancel_button._height - ui.style.spacing;
+			ok_button._width = cancel_button._width;
+			ok_button.height = cancel_button._height;
+		}
 	}
 	
 	// ///////////////////////////////////////////////////////////////////

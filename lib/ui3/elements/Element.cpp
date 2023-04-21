@@ -329,6 +329,17 @@ abstract class Element
 		return this;
 	}
 	
+	/**
+	 * @brief Utitlity layout method to position this element below another.
+	 * @param sibling The element to be placed below of.
+	 * @param padding The amount of padding if specified, other wise defaults to the style default spacing.
+	 */
+	Element@ position_below(Element@ other, const float padding=NAN)
+	{
+		y = other.y + other.height + padding;
+		return this;
+	}
+	
 	// ------------------------------------------------
 	// Internal
 	// ------------------------------------------------
