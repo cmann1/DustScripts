@@ -151,10 +151,14 @@ class NavigationGroup : INavigable
 		}
 		
 		NavigationGroupItem@ item = NavigationGroupItem(element);
-		NavigationGroupItem@ other_item = cast<NavigationGroupItem@>(elements_map[element.id]);
+		NavigationGroupItem@ other_item = cast<NavigationGroupItem@>(elements_map[other.id]);
 		@elements_map[element.id] = @item;
 		
 		@element.navigation_parent = @this;
+		if(@other_item.previous != null)
+		{
+			@other_item.previous.next = @item;
+		}
 		@other_item.previous = @item;
 		@item.next = @other_item;
 		
@@ -184,10 +188,14 @@ class NavigationGroup : INavigable
 		}
 		
 		NavigationGroupItem@ item = NavigationGroupItem(element);
-		NavigationGroupItem@ other_item = cast<NavigationGroupItem@>(elements_map[element.id]);
+		NavigationGroupItem@ other_item = cast<NavigationGroupItem@>(elements_map[other.id]);
 		@elements_map[element.id] = @item;
 		
 		@element.navigation_parent = @this;
+		if(@other_item.next != null)
+		{
+			@other_item.next.previous = @item;
+		}
 		@other_item.next = @item;
 		@item.previous = @other_item;
 		
@@ -208,12 +216,12 @@ class NavigationGroup : INavigable
 		
 		if(@item.previous != null)
 		{
-			@item.previous = @item.next;
+			@item.previous.next = @item.next;
 		}
 		
 		if(@item.next != null)
 		{
-			@item.next = @item.previous;
+			@item.next.previous = @item.previous;
 		}
 		
 		if(@item == @first_item)
@@ -241,6 +249,27 @@ class NavigationGroup : INavigable
 		
 		@first_item = null;
 		@last_item = null;
+	}
+	
+	void print_items()
+	{
+		puts('NavigationGroupItems:');
+		
+		NavigationGroupItem@ item = first_item;
+		int i = 0;
+		
+		while(@item != null)
+		{
+			Element@ el = cast<Element@>(item.element);
+			
+			if(@el != null)
+			{
+				puts('  ' + i + ' ' + el.element_type + '[' + el.name + ']');
+			}
+			
+			@item = item.next;
+			i++;
+		}
 	}
 	
 }
