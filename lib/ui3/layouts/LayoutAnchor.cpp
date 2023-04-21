@@ -11,6 +11,8 @@ class LayoutAnchor
 	
 	LayoutAnchorType type = None;
 	float position;
+	float _align_v;
+	float _align_h;
 	float _padding;
 	Element@ element;
 	
@@ -49,6 +51,25 @@ class LayoutAnchor
 	LayoutAnchor@ percent(const float position)
 	{
 		return percent(position, _padding);
+	}
+	
+	LayoutAnchor@ align(const float align_h, const float align_v)
+	{
+		_align_h = align_h;
+		_align_v = align_v;
+		return this;
+	}
+	
+	LayoutAnchor@ align_h(const float align_h)
+	{
+		_align_h = align_h;
+		return this;
+	}
+	
+	LayoutAnchor@ align_v(const float align_v)
+	{
+		_align_v = align_v;
+		return this;
 	}
 	
 	LayoutAnchor@ sibling(Element@ element, const float position=0)
@@ -91,6 +112,8 @@ class LayoutAnchor
 		if(@sibling != null && pass1)
 			return false;
 		
+		float anchor_align = 0;
+		
 		if(@sibling != null)
 		{
 			switch(side)
@@ -98,18 +121,22 @@ class LayoutAnchor
 				case Position::Left:
 					anchor_p = sibling._x + sibling._width;
 					anchor_size = -sibling._width;
+					anchor_align = -element._width * _align_h;
 					break;
 				case Position::Right:
 					anchor_p = sibling._x;
 					anchor_size = -sibling._width;
+					anchor_align = element._width * _align_h;
 					break;
 				case Position::Top:
 					anchor_p = sibling._y + sibling._height;
 					anchor_size = -sibling._height;
+					anchor_align = -element._height * _align_v;
 					break;
 				case Position::Bottom:
 					anchor_p = sibling._y;
 					anchor_size = -sibling._height;
+					anchor_align = element._height * _align_v;
 					break;
 			}
 		}
@@ -117,9 +144,11 @@ class LayoutAnchor
 		// Ignore the padding if anchored to a sibling that isn't visible
 		const float padding = @this.element != null && @sibling == null
 			? 0 : is_nan(_padding) ? element.ui.style.spacing : _padding;
-		x = anchor_p + (type == Percent
-			? anchor_size * position + padding
-			: position + padding) * (side == Position::Left || side == Position::Top ? 1 : -1);
+		x = anchor_p + 
+			(type == Percent
+				? anchor_size * position + padding
+				: position + padding) * (side == Position::Left || side == Position::Top ? 1 : -1)
+			+ anchor_align;
 		return true;
 	}
 	
