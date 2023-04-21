@@ -270,19 +270,22 @@ class Container : Element
 	
 	void fit_to_contents(const bool fit_min=false)
 	{
-		const float padding_left	= layout_padding_left;
-		const float padding_top		= layout_padding_top;
-		const float padding_right	= layout_padding_right;
-		const float padding_bottom	= layout_padding_bottom;
-		const float border_size		= layout_border_size;
-		
 		if(validate_layout || fit_min)
 		{
 			do_fit_contents(fit_min);
 		}
 		
-		float width  = padding_left + (scroll_max_x - scroll_min_x) + padding_right;
-		float height = padding_top  + (scroll_max_y - scroll_min_y) + padding_bottom;
+		float inset_x, inset_y;
+		_get_subtree_insets(inset_x, inset_y);
+		
+		const float padding_left	= layout_padding_left + inset_x;
+		const float padding_top		= layout_padding_top + inset_y;
+		const float padding_right	= layout_padding_right;
+		const float padding_bottom	= layout_padding_bottom;
+		const float border_size		= layout_border_size;
+		
+		float width  = padding_left + scroll_max_x + padding_right;
+		float height = padding_top  + scroll_max_y + padding_bottom;
 		
 		if(border_size > 0)
 		{

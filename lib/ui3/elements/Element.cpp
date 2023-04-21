@@ -354,7 +354,15 @@ abstract class Element
 		hovered = false;
 	}
 	
-	/// Internal. Append all children of this element to the stack. Must be in reverse order
+	void _get_subtree_insets(float &out inset_x, float &out inset_y)
+	{
+		inset_x = 0;
+		inset_y = 0;
+	}
+	
+	/**
+	 * @brief Internal. Append all children of this element to the stack. Must be in reverse order
+	 */
 	void _queue_children_for_layout(ElementStack@ stack)
 	{
 		

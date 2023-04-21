@@ -15,6 +15,10 @@ class Button : SingleContainer
 	protected bool _selectable;
 	protected bool _user_selectable = true;
 	protected bool _selected;
+	protected float _padding_left = NAN;
+	protected float _padding_right = NAN;
+	protected float _padding_top = NAN;
+	protected float _padding_bottom = NAN;
 	
 	DrawOption draw_background = DrawOption::Always;
 	DrawOption draw_border = DrawOption::Always;
@@ -134,22 +138,70 @@ class Button : SingleContainer
 		}
 	}
 	
+	float padding_left
+	{
+		get const { return _padding_left; }
+		set { if(_padding_left == value) return; _padding_left = value; validate_layout = true; }
+	}
+	
+	float padding_right
+	{
+		get const { return _padding_right; }
+		set { if(_padding_right == value) return; _padding_right = value; validate_layout = true; }
+	}
+	
+	float padding_top
+	{
+		get const { return _padding_top; }
+		set { if(_padding_top == value) return; _padding_top = value; validate_layout = true; }
+	}
+	
+	float padding_bottom
+	{
+		get const { return _padding_bottom; }
+		set { if(_padding_bottom == value) return; _padding_bottom = value; validate_layout = true; }
+	}
+	
+	void set_padding(const float padding)
+	{
+		_padding_left = _padding_right = _padding_top = _padding_bottom = padding;
+		validate_layout= true;
+	}
+	
+	void set_padding(const float padding_left_right, const float padding_top_bottom)
+	{
+		_padding_left	= padding_left_right;
+		_padding_right	= padding_left_right;
+		_padding_top	= padding_top_bottom;
+		_padding_bottom	= padding_top_bottom;
+		validate_layout= true;
+	}
+	
+	void set_padding(const float padding_left, const float padding_right, const float padding_top, const float padding_bottom)
+	{
+		this._padding_left		= padding_left;
+		this._padding_right		= padding_right;
+		this._padding_top		= padding_top;
+		this._padding_bottom	= padding_bottom;
+		validate_layout= true;
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Internal
 	// ///////////////////////////////////////////////////////////////////
 	
 	void _do_layout(LayoutContext@ ctx) override
 	{
-		if(@_content != null)
+		if(@_content == null)
+			return;
+		
+		_content._x = (_width  - _content._width)  * 0.5;
+		_content._y = (_height - _content._height) * 0.5;
+		
+		if(pressed)
 		{
-			_content._x = (_width  - _content._width)  * 0.5;
-			_content._y = (_height - _content._height) * 0.5;
-			
-			if(pressed)
-			{
-				_content._x += ui.style.button_pressed_icon_offset;
-				_content._y += ui.style.button_pressed_icon_offset;
-			}
+			_content._x += ui.style.button_pressed_icon_offset;
+			_content._y += ui.style.button_pressed_icon_offset;
 		}
 	}
 	
@@ -165,15 +217,22 @@ class Button : SingleContainer
 			draw_border == DrawOption::Always || draw_border == DrawOption::Hover && hovered);
 	}
 	
-	protected float layout_padding_left		{ get const override { return ui.style.spacing; } }
+	protected float layout_padding_left { get const override { return ui.style.padding(_padding_left); } }
 	
-	protected float layout_padding_right	{ get const override { return ui.style.spacing; } }
+	protected float layout_padding_right { get const override { return ui.style.padding(_padding_right); } }
 	
-	protected float layout_padding_top		{ get const override { return ui.style.spacing; } }
+	protected float layout_padding_top { get const override { return ui.style.padding(_padding_top); } }
 	
-	protected float layout_padding_bottom	{ get const override { return ui.style.spacing; } }
+	protected float layout_padding_bottom { get const override { return ui.style.padding(_padding_bottom); } }
 	
-	protected float layout_border_size		{ get const override { return ui.style.border_size; } }
+	protected float layout_border_size
+	{
+		get const override
+		{
+			return draw_border == DrawOption::Always || draw_border == DrawOption::Hover && hovered
+				? ui.style.border_size : 0;
+		}
+	}
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Events

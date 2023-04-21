@@ -350,13 +350,13 @@ class ScrollView : LockedContainer
 		}
 	}
 	
-	protected float layout_padding_left		{ get const override { return is_nan(this.content_padding_left)		? ui.style.spacing : this.content_padding_left; } }
+	protected float layout_padding_left		{ get const override { return ui.style.padding(content_padding_left); } }
 	
-	protected float layout_padding_right	{ get const override { return is_nan(this.content_padding_right)	? ui.style.spacing : this.content_padding_right; } }
+	protected float layout_padding_right	{ get const override { return ui.style.padding(content_padding_right); } }
 	
-	protected float layout_padding_top		{ get const override { return is_nan(this.content_padding_top)		? ui.style.spacing : this.content_padding_top; } }
+	protected float layout_padding_top		{ get const override { return ui.style.padding(content_padding_top); } }
 	
-	protected float layout_padding_bottom	{ get const override { return is_nan(this.content_padding_bottom)	? ui.style.spacing : this.content_padding_bottom; } }
+	protected float layout_padding_bottom	{ get const override { return ui.style.padding(content_padding_bottom); } }
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Events

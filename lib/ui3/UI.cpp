@@ -1336,10 +1336,12 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 					element.validate_layout = false;
 				}
 				
+				element._get_subtree_insets(ctx.inset_x1, ctx.inset_y1);
+				
 				if(@parent != null)
 				{
-					element.x1 = ctx.scroll_x + parent.x1 + element.x;
-					element.y1 = ctx.scroll_y + parent.y1 + element.y;
+					element.x1 = ctx.scroll_x + ctx.parent.inset_x1 + parent.x1 + element.x;
+					element.y1 = ctx.scroll_y + ctx.parent.inset_y1 + parent.y1 + element.y;
 					element.x2 = element.x1 + element._width;
 					element.y2 = element.y1 + element._height;
 					
@@ -1421,7 +1423,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			while(ctx.num_children-- == 0)
 			{
 				if(layout_context_pool_index == layout_context_pool_size)
-					layout_context_pool.resize(layout_context_pool_size += 16);
+					layout_context_pool.resize(layout_context_pool_size *= 2);
 				
 				LayoutContext@ parent = @ctx.parent;
 				
@@ -1457,7 +1459,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		while(@ctx != null && @ctx.parent != null)
 		{
 			if(layout_context_pool_index == layout_context_pool_size)
-				layout_context_pool.resize(layout_context_pool_size += 16);
+				layout_context_pool.resize(layout_context_pool_size *= 2);
 			
 			@layout_context_pool[layout_context_pool_index++] = @ctx;
 			@ctx = @ctx.parent;

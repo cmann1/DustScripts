@@ -797,4 +797,18 @@ class Style
 		}
 	}
 
+	// -----------------------------------------------------------------
+	// Util
+	// -----------------------------------------------------------------
+	
+	/**
+	 * @brief Calculates a padding value.
+	 * @param padding If this is `NAN` returns the style's default spacing, otherwise return the value.
+	 * @return The calculated padding value.
+	 */
+	float padding(const float padding) const
+	{
+		return is_nan(padding) ? spacing : padding;
+	}
+	
 }

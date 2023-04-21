@@ -16,6 +16,8 @@ class LayoutContext
 	float subtree_y1;
 	float subtree_x2;
 	float subtree_y2;
+	float inset_x1;
+	float inset_y1;
 	
 	float scroll_x;
 	float scroll_y;
