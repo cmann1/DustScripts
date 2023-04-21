@@ -39,6 +39,7 @@ class ColourSlider : Element, IStepHandler
 			return true;
 		
 		update_value();
+		@ui._active_mouse_element = @this;
 		
 		return true;
 	}
@@ -183,11 +184,17 @@ class ColourSlider : Element, IStepHandler
 		
 		update_value();
 		dragging = ui._step_subscribe(this, dragging);
+		@ui._active_mouse_element = @this;
 	}
 	
 	void _mouse_release(EventInfo@ event) override
 	{
 		dragging = false;
+		
+		if(@ui._active_mouse_element == @this)
+		{
+			@ui._active_mouse_element = @null;
+		}
 	}
 	
 }
