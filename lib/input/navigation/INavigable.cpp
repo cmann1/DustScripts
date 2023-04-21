@@ -6,6 +6,8 @@ interface INavigable
 	
 	string id { get const; }
 	
+	bool can_navigate_to { get const; }
+	
 	/// Internal - don't set explicitly.
 	NavigationGroup@ navigation_parent { get; set; }
 	

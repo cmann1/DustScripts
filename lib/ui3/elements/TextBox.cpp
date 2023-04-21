@@ -1647,6 +1647,10 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		set { _navigate_on = value; }
 	}
 	
+	bool can_navigate_to {
+		get const { return visible && !disabled; }
+	}
+	
 	INavigable@ previous_navigable(INavigable@ from)
 	{
 		return @_navigation_parent != null ? _navigation_parent.previous_navigable(@this) : null;

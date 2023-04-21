@@ -41,6 +41,10 @@ class NavigationGroup : INavigable
 		set { _navigate_on = value; }
 	}
 	
+	bool can_navigate_to {
+		get const { return true; }
+	}
+	
 	INavigable@ previous_navigable(INavigable@ from)
 	{
 		if(@from == null || @from.navigation_parent != @this)
@@ -57,7 +61,7 @@ class NavigationGroup : INavigable
 		if(@item.previous == null && @_parent != null)
 			return @_parent.previous_navigable(@this);
 		
-		return @item.previous != null ? @item.previous.element : null;
+		return check_next(item, -1);
 	}
 	
 	INavigable@ next_navigable(INavigable@ from)
@@ -76,7 +80,25 @@ class NavigationGroup : INavigable
 		if(@item.next == null && @_parent != null)
 			return @_parent.next_navigable(@this);
 		
-		return @item.next != null ? @item.next.element : null;
+		return check_next(item, 1);
+	}
+	
+	private INavigable@ check_next(NavigationGroupItem@ item, const int dir)
+	{
+		NavigationGroupItem@ from_item = item;
+		
+		do
+		{
+			@item = (dir >= 0 ? item.next : item.previous);
+			if(@item.element != null && item.element.can_navigate_to)
+				return item.element;
+			
+			if(@item.next == null)
+				return null;
+		}
+		while(@item != null && @item != @from_item);
+		
+		return null;
 	}
 	
 	void add_first(INavigable@ element)
