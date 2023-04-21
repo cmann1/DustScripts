@@ -14,7 +14,7 @@ class Label : Graphic
 	protected uint _size;
 	TextAlign text_align_h = TextAlign::Left;
 	
-	Label(UI@ ui, const string text, const bool auto_size=false, const string font='', const uint size=0)
+	Label(UI@ ui, const string text='', const bool auto_size=false, const string font='', const uint size=0)
 	{
 		super(ui);
 		

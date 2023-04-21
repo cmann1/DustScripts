@@ -72,6 +72,10 @@ class AnchorLayout : Layout
 					
 					el_x1 = nx;
 				}
+				else if(is_pass1 && element.anchor_right.type == None && el_x1 < padding_left)
+				{
+					el_x1 = padding_left;
+				}
 				
 				if(element.anchor_right.type != None)
 				{
@@ -109,6 +113,10 @@ class AnchorLayout : Layout
 					}
 					
 					el_y1 = ny;
+				}
+				else if(is_pass1 && element.anchor_bottom.type == None && el_y1 < padding_top)
+				{
+					el_y1 = padding_top;
 				}
 				
 				if(element.anchor_bottom.type != None)
@@ -194,6 +202,11 @@ class AnchorLayout : Layout
 			out_y1 = y1;
 			out_x2 = x1 + padding_h;
 			out_y2 = y1 + padding_v;
+		}
+		else
+		{
+			out_x2 += padding_right;
+			out_y2 += padding_bottom;
 		}
 	}
 	
