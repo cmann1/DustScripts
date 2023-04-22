@@ -116,7 +116,6 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		set
 		{
 			_position = value;
-			LayerSelector@ l = layer_select;
 			popup_options.position = _position;
 		}
 	}

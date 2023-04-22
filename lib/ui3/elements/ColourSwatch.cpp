@@ -131,7 +131,11 @@ class ColourSwatch : BasicColourSwatch
 	
 	void on_colour_picker_change(EventInfo@ event)
 	{
-		if(event.type == EventType::CHANGE)
+		if(event.type == EventType::CLOSE)
+		{
+			hide(true);
+		}
+		else if(event.type == EventType::CHANGE)
 		{
 			_colour = event.type == EventType::CANCEL
 				? ui.colour_picker_instance.previous_colour
