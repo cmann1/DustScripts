@@ -143,6 +143,8 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		has_selected_sublayer = false;
 		has_selected_layer = false;
 		
+		ui.hide_tooltip(this);
+		
 		ui._dispatch_event(@select, EventType::OPEN, this);
 	}
 	

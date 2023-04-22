@@ -83,6 +83,7 @@ class ColourSwatch : BasicColourSwatch
 		ui.show_colour_picker(_colour,
 			on_colour_picker_change_delegate, on_colour_picker_change_delegate,
 			_show_alpha);
+		ui.hide_tooltip(this);
 		
 		ui._dispatch_event(@activate, EventType::OPEN, this);
 	}
