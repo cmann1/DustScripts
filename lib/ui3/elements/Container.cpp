@@ -285,8 +285,8 @@ class Container : Element
 		const float padding_bottom	= layout_padding_bottom;
 		const float border_size		= layout_border_size;
 		
-		float width  = padding_left + scroll_max_x + padding_right;
-		float height = padding_top  + scroll_max_y + padding_bottom;
+		float width  = padding_left + (scroll_max_x - scroll_min_x) + padding_right;
+		float height = padding_top  + (scroll_max_y - scroll_min_y) + padding_bottom;
 		
 		if(border_size > 0)
 		{
@@ -469,13 +469,13 @@ class Container : Element
 		}
 	}
 	
-	protected float layout_padding_left		{ get const { return 0; } }
+	protected float layout_padding_left		{ get const { return @_layout != null ? _layout.padding_left: 0; } }
 	
-	protected float layout_padding_right	{ get const { return 0; } }
+	protected float layout_padding_right	{ get const { return @_layout != null ? _layout.padding_right : 0; } }
 	
-	protected float layout_padding_top		{ get const { return 0; } }
+	protected float layout_padding_top		{ get const { return @_layout != null ? _layout.padding_top: 0; } }
 	
-	protected float layout_padding_bottom	{ get const { return 0; } }
+	protected float layout_padding_bottom	{ get const { return @_layout != null ? _layout.padding_bottom: 0; } }
 	
 	protected float layout_border_size		{ get const { return 0; } }
 	

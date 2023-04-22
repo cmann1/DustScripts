@@ -339,6 +339,17 @@ class Panel : Container
 		}
 	}
 	
+	
+	protected float layout_padding_top
+	{
+		get const { return !_collapsed ? Container::get_layout_padding_top() : 0; }
+	}
+	
+	protected float layout_padding_bottom
+	{
+		get const { return !_collapsed ? Container::get_layout_padding_bottom() : 0; }
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////////////////////////////
