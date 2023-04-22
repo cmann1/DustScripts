@@ -21,6 +21,7 @@
 #include 'events/Event.cpp';
 #include 'elements/layer_selector/LayerSelector.cpp';
 #include 'elements/colour_picker/ColourPicker.cpp';
+#include 'elements/colour_picker/ColourPickerSettings.cpp';
 #include 'elements/Element.cpp';
 #include 'elements/Container.cpp';
 #include 'elements/Image.cpp';
@@ -859,12 +860,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 	
 	// ColourPicker
 	
-	void show_colour_picker(
-		const uint colour,
-		EventCallback@ on_colour_picker_change_callback,
-		EventCallback@ on_colour_picker_accept_callback,
-		const bool show_alpha=true,
-		const bool close_on_click_outside=true)
+	void show_colour_picker(ColourPickerSettings@ settings)
 	{
 		if(@colour_picker == null)
 		{
@@ -889,16 +885,29 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 			}
 		}
 		
-		colour_picker.colour = colour;
-		colour_picker.previous_colour = colour;
-		colour_picker.show_alpha = show_alpha;
-		colour_picker_window.close_on_click_outside = close_on_click_outside;
+		if(settings.force_hsl)
+		{
+			colour_picker.set_hsl(settings.h, settings.s, settings.l);
+			colour_picker.a = settings.a;
+		}
+		else
+		{
+			colour_picker.colour = settings.colour;
+		}
+		
+		colour_picker.previous_colour = colour_picker.colour;
+		
+		colour_picker.show_hsl = settings.show_hsl;
+		colour_picker.show_rgb = settings.show_rgb;
+		colour_picker.show_alpha = settings.show_alpha;
+		colour_picker.show_hex = settings.show_hex;
+		colour_picker_window.close_on_click_outside = settings.close_on_click_outside;
 		colour_picker_window.fit_to_contents(true);
 		colour_picker.visible = true;
 		colour_picker.accept_on_keybaord = true;
 		
-		@this.on_colour_picker_change_callback = @on_colour_picker_change_callback;
-		@this.on_colour_picker_accept_callback = @on_colour_picker_accept_callback;
+		@this.on_colour_picker_change_callback = @settings.on_change_callback;
+		@this.on_colour_picker_accept_callback = @settings.on_accept_callback;
 		
 		move_to_front(colour_picker_window);
 		colour_picker_window.show();

@@ -375,6 +375,55 @@ class ColourPicker : LockedContainer, IStepHandler
 		}
 	}
 	
+	void set_hsl(float h, float s, float l)
+	{
+		set_hsl(h, s, l, _a);
+	}
+	
+	void set_hsl(float h, float s, float l, int a)
+	{
+		h = clamp01(h);
+		s = clamp01(s);
+		l = clamp01(l);
+		a = clamp(a, 0, 255);
+		
+		if(h == _h && s == _s && l == _l && a == _a)
+			return;
+		
+		_h = h;
+		_l = l;
+		_s = s;
+		_a = a;
+		
+		_colour = hsv_to_rgb(_h, _s, _l) | (_a << 24);
+		int_to_rgba(colour, _r, _g, _b, _a);
+		update_all();
+		
+		trigger_change();
+	}
+	
+	void set_rgb(int r, int g, int b)
+	{
+		set_rgb(r, g, b, a);
+	}
+	
+	void set_rgb(int r, int g, int b, int a)
+	{
+		r = clamp(r, 0, 255);
+		g = clamp(g, 0, 255);
+		b = clamp(b, 0, 255);
+		a = clamp(b, 0, 255);
+		
+		if(r == _r && g == _g && b == _b && a == _a)
+			return;
+		
+		_colour = rgba(_r, _g, _b, _a);
+		rgb_to_hsv(_r, _g, _b, _h, _s, _l);
+		update_all();
+		
+		trigger_change();
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Methods
 	// ///////////////////////////////////////////////////////////////////
