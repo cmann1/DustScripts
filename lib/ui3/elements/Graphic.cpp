@@ -177,7 +177,7 @@ abstract class Graphic : Element
 	float real_padding_top		{ get const { return is_nan(this._padding_top)		? ui.style.spacing : this._padding_top; } }
 	float real_padding_bottom	{ get const { return is_nan(this._padding_bottom)	? ui.style.spacing : this._padding_bottom; } }
 	
-	void _do_layout(LayoutContext@ ctx)
+	void _do_layout(LayoutContext@ ctx) override
 	{
 		float x1 = 0;
 		float y1 = 0;

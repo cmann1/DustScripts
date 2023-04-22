@@ -6,6 +6,13 @@
 #include 'utils/Orientation.cpp';
 #include 'utils/DrawingContext.cpp';
 
+namespace Style
+{
+	
+	const float DefaultPadding = NAN;
+	
+}
+
 class Style
 {
 	

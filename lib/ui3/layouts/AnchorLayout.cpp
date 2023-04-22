@@ -85,10 +85,6 @@ class AnchorLayout : Layout
 						@pass2[num_pass2++] = element;
 						continue;
 					}
-					else
-					{
-						nx = c_x2;
-					}
 					
 					if(element.anchor_left.type == None)
 					{
@@ -126,10 +122,6 @@ class AnchorLayout : Layout
 					{
 						@pass2[num_pass2++] = element;
 						continue;
-					}
-					else
-					{
-						ny = c_y2;
 					}
 					
 					if(element.anchor_top.type == None)

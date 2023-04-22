@@ -316,7 +316,6 @@ class LayerButton : LockedContainer, ILayerSelectorControl, IStepHandler
 		label.set_font(font::ENVY_BOLD, 20);
 		label.text_align_h = TextAlign::Centre;
 		label.sizing = ImageSize::ConstrainInside;
-		label.align_h = GraphicAlign::Centre;
 		label.align_v = GraphicAlign::Middle;
 		
 		Container::add_child(label);

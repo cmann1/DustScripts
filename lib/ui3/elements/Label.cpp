@@ -12,7 +12,7 @@ class Label : Graphic
 	protected string _text;
 	protected string _font;
 	protected uint _size;
-	TextAlign text_align_h = TextAlign::Left;
+	TextAlign _text_align_h = TextAlign::Left;
 	
 	Label(UI@ ui, const string text='', const bool auto_size=false, const string font='', const uint size=0)
 	{
@@ -69,6 +69,19 @@ class Label : Graphic
 		}
 	}
 	
+	TextAlign text_align_h
+	{
+		get const { return _text_align_h; }
+		set
+		{
+			if(value == _text_align_h)
+				return;
+			
+			_text_align_h = value;
+			validate_layout = true;
+		}
+	}
+	
 	bool auto_size
 	{
 		get const { return _auto_size; }
@@ -99,6 +112,14 @@ class Label : Graphic
 		return @this;
 	}
 	
+	void _do_layout(LayoutContext@ ctx) override
+	{
+		// Force a graphic align of left and calculate the offsets ourselves.
+		_align_h = GraphicAlign::Left;
+		
+		Graphic::_do_layout(ctx);
+	}
+	
 	void set_font(const string font, const uint size)
 	{
 		_font = font;
@@ -110,7 +131,7 @@ class Label : Graphic
 	{
 		float align_origin;
 		
-		switch(text_align_h)
+		switch(_text_align_h)
 		{
 			case TextAlign::Left:   align_origin = 0; break;
 			case TextAlign::Centre: align_origin = 0.5; break;
@@ -119,8 +140,11 @@ class Label : Graphic
 		
 		const float final_scale_x = is_transposed ? draw_scale_y : draw_scale_x;
 		const float final_scale_y = is_transposed ? draw_scale_x : draw_scale_y;
-		float dx = (is_transposed ? _graphic_height : _graphic_width)  * align_origin * final_scale_x;
+		const float size = is_transposed ? _graphic_height : _graphic_width;
+		float dx = size * align_origin;
 		float dy = 0;
+		
+		dx += (is_transposed ? _height - size : _width - size) * align_origin;
 		
 		if(_rotation != 0)
 		{
@@ -132,7 +156,7 @@ class Label : Graphic
 			ui._pixel_round(y1) + draw_y + dy,
 			get_draw_colour(),
 			final_scale_x, final_scale_y,
-			_rotation, text_align_h, TextAlign::Top, _font, _size);
+			_rotation, _text_align_h, TextAlign::Top, _font, _size);
 	}
 	
 	private void update_size()
