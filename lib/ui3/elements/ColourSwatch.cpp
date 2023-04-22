@@ -9,6 +9,9 @@ class ColourSwatch : BasicColourSwatch
 	Event activate;
 	Event change;
 	
+	/* If true the colour can be quickly copied and pasted with Right mouse and Alt+Right mouse respectively
+     * without needing to open the colour picker. */
+	bool allow_quick_copy = true;
 	
 	protected float _h, _s, _l;
 	protected float _h_prev, _s_prev, _l_prev;
@@ -72,9 +75,10 @@ class ColourSwatch : BasicColourSwatch
 			_colour = value;
 			background_colour = _colour;
 			
-			
 			update_from_rgb();
 			update_colour_picker();
+			
+			dispatch_change();
 		}
 	}
 	
@@ -90,6 +94,8 @@ class ColourSwatch : BasicColourSwatch
 			_h = value;
 			update_from_hsl();
 			update_colour_picker();
+			
+			dispatch_change();
 		}
 	}
 	
@@ -105,6 +111,8 @@ class ColourSwatch : BasicColourSwatch
 			_s = value;
 			update_from_hsl();
 			update_colour_picker();
+			
+			dispatch_change();
 		}
 	}
 	
@@ -120,6 +128,8 @@ class ColourSwatch : BasicColourSwatch
 			_l = value;
 			update_from_hsl();
 			update_colour_picker();
+			
+			dispatch_change();
 		}
 	}
 	
@@ -136,6 +146,8 @@ class ColourSwatch : BasicColourSwatch
 			_colour = (_colour & 0x00ffffff) | ((_a & 0xff) << 24);
 			background_colour = _colour;
 			update_colour_picker();
+			
+			dispatch_change();
 		}
 	}
 	
@@ -150,6 +162,8 @@ class ColourSwatch : BasicColourSwatch
 			
 			picker_setting.show_hsl = value;
 			update_colour_picker();
+			
+			dispatch_change();
 		}
 	}
 	
@@ -164,6 +178,8 @@ class ColourSwatch : BasicColourSwatch
 			
 			picker_setting.show_rgb = value;
 			update_colour_picker();
+			
+			dispatch_change();
 		}
 	}
 	
@@ -178,6 +194,8 @@ class ColourSwatch : BasicColourSwatch
 			
 			picker_setting.show_alpha = value;
 			update_colour_picker();
+			
+			dispatch_change();
 		}
 	}
 	
@@ -192,6 +210,8 @@ class ColourSwatch : BasicColourSwatch
 			
 			picker_setting.show_hex = value;
 			update_colour_picker();
+			
+			dispatch_change();
 		}
 	}
 	
@@ -216,6 +236,8 @@ class ColourSwatch : BasicColourSwatch
 		_a = a;
 		update_from_hsl();
 		update_colour_picker();
+		
+		dispatch_change();
 	}
 	
 	void set_rgb(int r, int g, int b)
@@ -233,6 +255,8 @@ class ColourSwatch : BasicColourSwatch
 		_colour = rgba(r, g, b, a);
 		update_from_rgb();
 		update_colour_picker();
+		
+		dispatch_change();
 	}
 	
 	// ///////////////////////////////////////////////////////////////////
@@ -312,6 +336,11 @@ class ColourSwatch : BasicColourSwatch
 		rgb_to_hsv(_r, _g, _b, _h, _s, _l);
 	}
 	
+	protected void dispatch_change()
+	{
+		ui._dispatch_event(@change, EventType::CHANGE, this);
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Internal
 	// ///////////////////////////////////////////////////////////////////
@@ -326,6 +355,21 @@ class ColourSwatch : BasicColourSwatch
 	// ///////////////////////////////////////////////////////////////////
 	// Events
 	// ///////////////////////////////////////////////////////////////////
+	
+	void _mouse_button_click(EventInfo@ event) override
+	{
+		if(ui.has_input && allow_quick_copy && event.button == MouseButton::Right)
+		{
+			if(ui.input.key_check_gvb(GVB::Alt))
+			{
+				colour = string::try_parse_rgb(ui.input.clipboard);
+			}
+			else
+			{
+				ui.input.clipboard = hex(_colour);
+			}
+		}
+	}
 	
 	void _mouse_click(EventInfo@ event) override
 	{
