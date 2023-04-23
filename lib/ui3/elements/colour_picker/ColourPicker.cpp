@@ -67,10 +67,10 @@ class ColourPicker : LockedContainer, IStepHandler
 		@slider_h = create_slider('H', H);
 		@slider_s = create_slider('S', S);
 		@slider_l = create_slider('L', L);
-		@slider_r = create_slider('R', R, 255);
-		@slider_g = create_slider('G', G, 255);
-		@slider_b = create_slider('B', B, 255);
-		@slider_a = create_slider('A', A, 255);
+		@slider_r = create_slider('R', R);
+		@slider_g = create_slider('G', G);
+		@slider_b = create_slider('B', B);
+		@slider_a = create_slider('A', A);
 		
 		@input_h = create_input('H', Decimal);
 		@input_s = create_input('S', Decimal);
@@ -424,6 +424,11 @@ class ColourPicker : LockedContainer, IStepHandler
 		trigger_change();
 	}
 	
+	NavigationGroup@ navigation
+	{
+		get { return navigation_group; }
+	}
+	
 	// ///////////////////////////////////////////////////////////////////
 	// Methods
 	// ///////////////////////////////////////////////////////////////////
@@ -443,12 +448,11 @@ class ColourPicker : LockedContainer, IStepHandler
 		return label;
 	}
 	
-	private ColourSlider@ create_slider(const string name, const ColourSliderType type, const float value_multiplier=1)
+	private ColourSlider@ create_slider(const string name, const ColourSliderType type)
 	{
 		ColourSlider@ slider = ColourSlider(ui);
 		slider.name = name;
 		slider.type = type;
-		slider.value_multiplier = value_multiplier;
 		slider.change.on(on_slider_change_delegate);
 		
 		Container::add_child(slider);

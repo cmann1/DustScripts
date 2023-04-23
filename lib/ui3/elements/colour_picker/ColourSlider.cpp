@@ -7,7 +7,6 @@ class ColourSlider : Element, IStepHandler
 {
 	
 	float value;
-	float value_multiplier = 1;
 	float hue;
 	uint colour = 0xffffffff;
 	ColourSliderType type = S;

@@ -15,7 +15,7 @@ class BasicColourSwatch : Element
 		mouse_enabled = false;
 	}
 	
-	string element_type { get const override { return ColourSlider::TYPE_NAME; } }
+	string element_type { get const override { return BasicColourSwatch::TYPE_NAME; } }
 	
 	void _draw(Style@ style, DrawingContext@ ctx) override
 	{

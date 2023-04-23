@@ -3,6 +3,7 @@
 #include 'navigation.cpp';
 #include 'NavigationDirection.cpp';
 
+// TODO: Doesn't work with nested groups.
 class NavigationGroup : INavigable
 {
 	
