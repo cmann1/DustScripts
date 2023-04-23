@@ -9,6 +9,8 @@ class ColourSlider : Element, IStepHandler
 	float value;
 	float hue;
 	uint colour = 0xffffffff;
+	uint colour2 = 0xffffffff;
+	uint colour3 = 0xffffffff;
 	ColourSliderType type = S;
 	
 	Event change;
@@ -119,6 +121,31 @@ class ColourSlider : Element, IStepHandler
 				
 				clr1 = 0xffffffff;
 				clr2 = colour;
+			}
+				break;
+			case DuoColour:
+			{
+				clr1 = colour | 0xff000000;
+				clr2 = colour2 | 0xff000000;
+				
+				style.draw_quad(false,
+					x1, y1, x2, y1, x2, y2, x1, y2,
+					clr1, clr2, clr2, clr1);
+			}
+				break;
+			case TriColour:
+			{
+				clr1 = colour | 0xff000000;
+				clr2 = colour2 | 0xff000000;
+				const uint clr3 = colour3 | 0xff000000;
+				
+				const float mx = (x1 + x2) * 0.5;
+				style.draw_quad(false,
+					x1, y1, mx, y1, mx, y2, x1, y2,
+					clr1, clr2, clr2, clr1);
+				style.draw_quad(false,
+					mx, y1, x2, y1, x2, y2, mx, y2,
+					clr2, clr3, clr3, clr2);
 			}
 				break;
 			default:

@@ -8,5 +8,7 @@ enum ColourSliderType
 	G,
 	B,
 	A,
+	DuoColour,
+	TriColour,
 	
 }
