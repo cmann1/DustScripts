@@ -168,7 +168,11 @@ class ColourSlider : Element, IStepHandler
 	
 	private void update_value()
 	{
-		value = clamp01(mouse_x / _width);
+		const float new_value = clamp01(mouse_x / _width);
+		if(value == new_value)
+			return;
+		
+		value = new_value;
 		ui._dispatch_event(@change, EventType::CHANGE, this);
 	}
 	
