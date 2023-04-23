@@ -387,8 +387,8 @@ class Keyboard
 	private void navigate(const BlurAction type=BlurAction::None)
 	{
 		set_focus(cast<IKeyboardFocus@>(shift
-			? _navigable.previous_navigable(@_navigable)
-			: _navigable.next_navigable(@_navigable)), type);
+			? _navigable.previous_navigable(_navigable)
+			: _navigable.next_navigable(_navigable)), type);
 	}
 	
 	private string process_input_key(const int key)

@@ -1651,14 +1651,14 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		get const { return visible && !disabled; }
 	}
 	
-	INavigable@ previous_navigable(INavigable@ from)
+	INavigable@ previous_navigable(INavigable@ from, INavigable@ _initial=null)
 	{
-		return @_navigation_parent != null ? _navigation_parent.previous_navigable(@this) : null;
+		return @_navigation_parent != null ? _navigation_parent.previous_navigable(this, _initial) : null;
 	}
 	
-	INavigable@ next_navigable(INavigable@ from)
+	INavigable@ next_navigable(INavigable@ from, INavigable@ _initial=null)
 	{
-		return @_navigation_parent != null ? _navigation_parent.next_navigable(@this) : null;
+		return @_navigation_parent != null ? _navigation_parent.next_navigable(this, _initial) : null;
 	}
 	
 	// ///////////////////////////////////////////////////////////////////

@@ -13,8 +13,8 @@ interface INavigable
 	
 	NavigateOn navigate_on { get const; }
 	
-	INavigable@ previous_navigable(INavigable@ from);
+	INavigable@ previous_navigable(INavigable@ from, INavigable@ _initial=null);
 	
-	INavigable@ next_navigable(INavigable@ from);
+	INavigable@ next_navigable(INavigable@ from, INavigable@ _initial=null);
 	
 }

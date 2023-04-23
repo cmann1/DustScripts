@@ -1,6 +1,7 @@
 #include 'INavigable.cpp';
 #include 'NavigationGroupItem.cpp';
 #include 'navigation.cpp';
+#include 'NavigationDirection.cpp';
 
 class NavigationGroup : INavigable
 {
@@ -45,60 +46,105 @@ class NavigationGroup : INavigable
 		get const { return true; }
 	}
 	
-	INavigable@ previous_navigable(INavigable@ from)
+	INavigable@ previous_navigable(INavigable@ from, INavigable@ _initial=null) override
 	{
-		if(@from == null || @from.navigation_parent != @this)
-			return null;
-		
-		if(@from == @first_item.element)
-			return @_parent != null ? @_parent.previous_navigable(@this) : (wrap ? @last_item.element : null);
-		
-		NavigationGroupItem@ item = cast<NavigationGroupItem@>(elements_map[from.id]);
-		
-		if(@item == null)
-			return null;
-		
-		if(@item.previous == null && @_parent != null)
-			return @_parent.previous_navigable(@this);
-		
-		return check_next(item, -1);
+		return next_navigable(from, _initial, Backward);
 	}
 	
-	INavigable@ next_navigable(INavigable@ from)
+	INavigable@ next_navigable(INavigable@ from, INavigable@ _initial=null) override
 	{
-		if(@from == null || @from.navigation_parent != @this)
-			return null;
-		
-		if(@from == @last_item.element)
-			return @_parent != null ? @_parent.next_navigable(@this) : (wrap ? @first_item.element : null);
-		
-		NavigationGroupItem@ item = cast<NavigationGroupItem@>(elements_map[from.id]);
-		
-		if(@item == null)
-			return null;
-		
-		if(@item.next == null && @_parent != null)
-			return @_parent.next_navigable(@this);
-		
-		return check_next(item, 1);
+		return next_navigable(from, _initial, Forward);
 	}
 	
-	private INavigable@ check_next(NavigationGroupItem@ item, const int dir)
+	protected INavigable@ next_navigable(INavigable@ from, INavigable@ _initial, const NavigationDirection dir)
 	{
-		NavigationGroupItem@ from_item = item;
+		if(@from == null)
+			return null;
 		
-		do
+		// Came back to the navigable that initiated navigation.
+		// Unlikely to happen but check to prevent an infinite loop.
+		if(@_initial == @from)
+			return _initial;
+		
+		if(@_initial == null)
+			@_initial = from;
+		
+		NavigationGroupItem@ next = null;
+		NavigationGroupItem@ start_item = dir == Forward ? first_item : last_item;
+		
+		// Coming into this group from outside - move to the first
+		if(@from.navigation_parent != @this)
 		{
-			@item = (dir >= 0 ? item.next : item.previous);
-			if(@item.element != null && item.element.can_navigate_to)
-				return item.element;
+			if(@first_item == null)
+				return @_parent != null
+					? _parent.next_navigable(this, _initial, dir)
+					: null;
 			
-			if(@item.next == null)
-				return null;
+			@next = start_item;
 		}
-		while(@item != null && @item != @from_item);
+		// Navigating from the last element in this group.
+		else if(is_end(from, dir))
+		{
+			// Don't wrap so pass back up to parent.
+			if(!wrap)
+				return @_parent != null
+					? @_parent.next_navigable(this, _initial, dir)
+					: null;
+			
+			// Wrap to first element.
+			@next = start_item;
+		}
+		
+		if(@next == null)
+		{
+			@next = cast<NavigationGroupItem@>(elements_map[from.id]).sibling(dir);
+		}
+		
+		NavigationGroupItem@ start = null;
+		
+		// Elements may not be visible or be disabled. Keep looking until we reach the start again or a navigable element is found.
+		while(true)
+		{
+			// No navigable elements found, pass back up to parent.
+			if(@next == null || @next == @start)
+				return @_parent != null ? @_parent.next_navigable(this, _initial, dir) : null;
+			
+			if(next.element.can_navigate_to)
+				return next.element;
+			
+			// Assign start after first check above to prevent first element from returning on first iteration.
+			if(@start == @null)
+			{
+				@start = next;
+			}
+			
+			// Go to next and wrap if necessary.
+			@next = next.sibling(dir);
+			if(@next == null && wrap)
+			{
+				@next = start_item;
+			}
+		}
 		
 		return null;
+	}
+	
+	private bool is_end(INavigable@ item, NavigationDirection dir)
+	{
+		NavigationGroupItem@ check = dir == Forward ? last_item : first_item;
+		dir = dir == Forward ? Backward : Forward;
+		
+		while(@check != null)
+		{
+			if(@item == @check.element)
+				return true;
+			if(check.element.can_navigate_to)
+				return false;
+			
+			@check = check.sibling(dir);
+		}
+		
+		return false;
 	}
 	
 	void add_first(INavigable@ element)

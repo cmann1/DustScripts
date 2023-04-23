@@ -12,4 +12,9 @@ class NavigationGroupItem
 		@this.element = @element;
 	}
 	
+	NavigationGroupItem@ sibling(const NavigationDirection dir)
+	{
+		return dir == Forward ? next : previous;
+	}
+	
 }
