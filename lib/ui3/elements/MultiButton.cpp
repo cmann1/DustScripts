@@ -4,6 +4,7 @@
 #include '../events/Event.cpp';
 #include '../popups/PopupOptions.cpp';
 #include 'SingleContainer.cpp';
+#include 'Image.cpp';
 
 namespace MultiButton { const string TYPE_NAME = 'MultiButton'; }
 
@@ -14,15 +15,16 @@ class MultiButton : SingleContainer
 	
 	Event select;
 	
-	string selected_name { get const { return _selected_name; } }
-	Image@ selected_image { get { return @_selected_image; } }
-	
 	protected array<string> item_names;
-	protected array<Image@> images;
+	protected array<Element@> items;
 	protected array<string> tooltips;
 	protected string _selected_name;
-	protected Image@ _selected_image;
+	protected Element@ _selected_item;
 	protected int _selected_index = -1;
+	
+	string selected_name { get const { return _selected_name; } }
+	Image@ selected_image { get { return cast<Image@>(_selected_item); } }
+	Element@ selected_item { get { return _selected_item; } }
 	
 	MultiButton(UI@ ui)
 	{
@@ -37,9 +39,9 @@ class MultiButton : SingleContainer
 	
 	uint num_items { get const { return item_names.length; } }
 	
-	Image@ add(const string name, Image@ image, int index=-1)
+	Element@ add(const string name, Element@ item, const string &in tooltip='', int index=-1)
 	{
-		if(@image == null || item_names.find(name) != -1)
+		if(@item == null || item_names.find(name) != -1)
 			return null;
 		
 		int insert_index;
@@ -47,54 +49,63 @@ class MultiButton : SingleContainer
 		if(index == -1 || index >= int(item_names.length()))
 		{
 			item_names.insertLast(name);
-			images.insertLast(image);
-			tooltips.insertLast('');
+			items.insertLast(item);
+			tooltips.insertLast(tooltip);
 			insert_index = item_names.length() - 1;
 		}
 		else
 		{
 			item_names.insertAt(index, name);
-			images.insertAt(index, @image);
-			tooltips.insertAt(index, '');
+			items.insertAt(index, @item);
+			tooltips.insertAt(index, tooltip);
 			insert_index = index;
 		}
 		
-		if(@_selected_image == null)
+		if(@_selected_item == null)
 		{
 			selected_index = insert_index;
 		}
 		
-		return image;
+		return item;
+	}
+	
+	Label@ add_label(const string &in name, const string &in text, const string &in tooltip='', int index=-1)
+	{
+		Label@ label = Label(ui, text);
+		add(name, label, tooltip, index);
+		return label;
 	}
 	
 	Image@ add(
 		const string name, const string sprite_set, const string sprite_name, const float width=-1, const float height=-1,
 		const float offset_x=-0.5, const float offset_y=-0.5)
 	{
-		return add(name, Image(ui, sprite_set, sprite_name, width, height, offset_x, offset_y));
+		Image@ image = Image(ui, sprite_set, sprite_name, width, height, offset_x, offset_y);
+		add(name, image);
+		return image;
 	}
 	
-	Image@ remove(const string name)
+	Element@ remove(const string name)
 	{
 		const int index = item_names.find(name);
 		
 		if(index == -1)
 			return null;
 		
-		return _remove(index, images[index]);
+		return _remove(index, items[index]);
 	}
 	
-	Image@ remove(Image@ image)
+	Element@ remove(Element@ item)
 	{
-		if(@image == null)
+		if(@item == null)
 			return null;
 		
-		const int index = images.findByRef(@image);
+		const int index = items.findByRef(@item);
 		
 		if(index == -1)
 			return null;
 		
-		return _remove(index, image);
+		return _remove(index, item);
 	}
 	
 	void set_tooltip(const string tooltip, int index=-1)
@@ -113,12 +124,35 @@ class MultiButton : SingleContainer
 		update_tooltip();
 	}
 	
-	Image@ get_image(const int index)
+	/**
+	 * @brief Sets the font for all label items added to this MultiButton.
+	 * @param font
+	 * @param size
+	 */
+	void set_font(const string &in font, const uint size)
 	{
-		if(index < 0 || index >= int(images.length))
+		for(uint i = 0; i < items.length; i++)
+		{
+			Label@ label = cast<Label@>(items[i]);
+			if(@label != null)
+			{
+				label.set_font(font, size);
+				label.fit_to_contents();
+			}
+		}
+	}
+	
+	Element@ get_item(const int index)
+	{
+		if(index < 0 || index >= int(items.length))
 			return null;
 		
-		return images[index];
+		return items[index];
+	}
+	
+	Image@ get_image(const int index)
+	{
+		return cast<Image@>(get_item(index));
 	}
 	
 	int selected_index
@@ -129,7 +163,7 @@ class MultiButton : SingleContainer
 			if(value < 0)
 			{
 				_selected_index = -1;
-				@_selected_image = null;
+				@_selected_item = null;
 				_selected_name = '';
 				return;
 			}
@@ -144,10 +178,10 @@ class MultiButton : SingleContainer
 				return;
 			
 			_selected_index = value;
-			@_selected_image = images[value];
+			@_selected_item = items[value];
 			_selected_name = item_names[value];
 			
-			@content = _selected_image;
+			@content = _selected_item;
 			
 			if(auto_tooltips)
 			{
@@ -181,13 +215,13 @@ class MultiButton : SingleContainer
 			hovered, false, pressed, disabled);
 	}
 	
-	private Image@ _remove(const int index, Image@ image)
+	private Element@ _remove(const int index, Element@ item)
 	{
 		int new_index;
 		string new_name = '';
-		Image@ new_image = null;
+		Element@ new_item = null;
 		
-		if(@image == @_selected_image)
+		if(@item == @_selected_item)
 		{
 			if(num_children == 1)
 			{
@@ -198,22 +232,22 @@ class MultiButton : SingleContainer
 			{
 				const int next_index = index == num_children - 1 ? index - 1 : index + 1;
 				new_name = item_names[next_index];
-				@new_image = @images[next_index];
-				@content = @new_image;
+				@new_item = @items[next_index];
+				@content = @new_item;
 				new_index = next_index > index ? next_index - 1 : next_index;
 			}
 		}
 		
 		item_names.removeAt(index);
-		images.removeAt(index);
+		items.removeAt(index);
 		tooltips.removeAt(index);
 		
-		if(@new_image != null)
+		if(@new_item != null)
 		{
 			selected_index = new_index;
 		}
 		
-		return image;
+		return item;
 	}
 	
 	private void update_tooltip()
@@ -272,7 +306,7 @@ class MultiButton : SingleContainer
 	
 	void _mouse_click(EventInfo@ event) override
 	{
-		selected_index += 1;
+		selected_index += ui.has_input && ui.input.key_check_gvb(GVB::Shift) ? -1 : 1;
 	}
 	
 }
