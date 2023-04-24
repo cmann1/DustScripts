@@ -1752,7 +1752,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		////////////////////////////////////////
 		// Bakground
 		
-		const uint border_clr = style.get_interactive_element_border_colour(hovered, focused, focused, disabled);
+		const uint border_clr = style.get_interactive_element_border_colour(hovered && !ui.is_mouse_active, focused, focused, disabled);
 		
 		const uint bg_clr = style.get_interactive_element_background_colour(false, false, false, disabled, true);
 		const float inset = border_clr != 0 ? max(0.0, style.border_size) : 0;
@@ -2709,6 +2709,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 				do_drag_selection(ui.has_input && ui.input.key_check_gvb(GVB::Shift));
 				drag_selection = true;
 			}
+			@ui._active_mouse_element = this;
 		}
 		else if(_drag_scroll && event.button == ui.secondary_button)
 		{
@@ -2717,6 +2718,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 			drag_scroll_start_x = _scroll_x;
 			drag_scroll_start_y = _scroll_y;
 			busy_drag_scroll = true;
+			@ui._active_mouse_element = this;
 		}
 	}
 	
@@ -2724,14 +2726,22 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	{
 		if(event.button == ui.primary_button)
 		{
-			drag_selection = false;
-			double_click_start_index = -1;
-			double_click_end_index = -1;
+			if(drag_selection)
+			{
+				drag_selection = false;
+				double_click_start_index = -1;
+				double_click_end_index = -1;
+				ui._reset_active_mouse_element(this);
+			}
 		}
 		
 		if(event.button == ui.secondary_button)
 		{
-			busy_drag_scroll = false;
+			if(busy_drag_scroll)
+			{
+				busy_drag_scroll = false;
+				ui._reset_active_mouse_element(this);
+			}
 		}
 	}
 	

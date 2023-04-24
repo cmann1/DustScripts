@@ -521,7 +521,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		
 		if(@_active_mouse_element != null)
 		{
-			if(!mouse.primary_down || !contents.visible || !contents.contains(@_active_mouse_element))
+			if(!mouse.primary_down && !mouse.secondary_down || !contents.visible || !contents.contains(@_active_mouse_element))
 			{
 				@_active_mouse_element = null;
 			}
@@ -1246,6 +1246,14 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 		text_editable.text_editable_stop(@_text_box, event_type);
 		_text_box.accept.off(_text_box_accept_delegate);
 		@text_editable = null;
+	}
+	
+	void _reset_active_mouse_element(Element@ from)
+	{
+		if(@from == @_active_mouse_element)
+		{
+			@_active_mouse_element = null;
+		}
 	}
 	
 	// ///////////////////////////////////////////////////////////////////

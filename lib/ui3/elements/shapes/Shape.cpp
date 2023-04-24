@@ -37,10 +37,10 @@ abstract class Shape : Graphic
 	{
 		if(use_highlight_colour)
 		{
-			if((pressed || use_parent_hover && @parent != null && parent.pressed || @hover_delegate != null && hover_delegate.pressed))
+			if(pressed || use_parent_hover && @parent != null && parent.pressed || @hover_delegate != null && hover_delegate.pressed)
 				return ui.style.selected_highlight_border_clr;
 			
-			if(hovered || use_parent_hover && @parent != null && parent.hovered || @hover_delegate != null && hover_delegate.hovered)
+			if((hovered || use_parent_hover && @parent != null && parent.hovered || @hover_delegate != null && hover_delegate.hovered) && !ui.is_mouse_active)
 				return ui.style.highlight_border_clr;
 		}
 		

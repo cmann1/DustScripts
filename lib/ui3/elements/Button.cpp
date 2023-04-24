@@ -209,7 +209,7 @@ class Button : SingleContainer
 	{
 		style.draw_interactive_element(
 			x1, y1, x2, y2,
-			hovered || pressed,
+			(hovered && !ui.is_mouse_active) || pressed,
 			_selectable && selected,
 			pressed,
 			disabled,
