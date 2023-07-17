@@ -469,13 +469,13 @@ class Container : Element
 		}
 	}
 	
-	protected float layout_padding_left		{ get const { return @_layout != null ? _layout.padding_left: 0; } }
+	protected float layout_padding_left		{ get const { return @_layout != null && !is_nan(_layout.padding_left) ? _layout.padding_left: 0; } }
 	
-	protected float layout_padding_right	{ get const { return @_layout != null ? _layout.padding_right : 0; } }
+	protected float layout_padding_right	{ get const { return @_layout != null && !is_nan(_layout.padding_right) ? _layout.padding_right : 0; } }
 	
-	protected float layout_padding_top		{ get const { return @_layout != null ? _layout.padding_top: 0; } }
+	protected float layout_padding_top		{ get const { return @_layout != null && !is_nan(_layout.padding_top) ? _layout.padding_top: 0; } }
 	
-	protected float layout_padding_bottom	{ get const { return @_layout != null ? _layout.padding_bottom: 0; } }
+	protected float layout_padding_bottom	{ get const { return @_layout != null && !is_nan(_layout.padding_bottom) ? _layout.padding_bottom: 0; } }
 	
 	protected float layout_border_size		{ get const { return 0; } }
 	
