@@ -5,5 +5,6 @@ enum ControllerMode
 	IsPressed	= 1,
 	PosEdge		= 2,
 	NegEdge		= 3,
+	Advanced	= 4,
 	
 }
