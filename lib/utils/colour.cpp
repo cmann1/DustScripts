@@ -33,6 +33,29 @@ namespace colour
 			 uint(sb + (eb - sb) * t);
 	}
 	
+	uint blend(const uint rgba1, const uint rgba2)
+	{
+		const float a1 = (rgba1 >> 24) & 0xff;
+		const float r1 = (rgba1 >> 16) & 0xff;
+		const float g1 = (rgba1 >>  8) & 0xff;
+		const float b1 = (rgba1      ) & 0xff;
+
+		const float a2 = (rgba2 >> 24) & 0xff;
+		const float r2 = (rgba2 >> 16) & 0xff;
+		const float g2 = (rgba2 >>  8) & 0xff;
+		const float b2 = (rgba2      ) & 0xff;
+		
+		const float a = 255 - ((255 - a1) * (255 - a2) / 255.0);
+		const float r = (r1 * (255 - a2) + r2 * a2) / 255.0;
+		const float g = (g1 * (255 - a2) + g2 * a2) / 255.0;
+		const float b = (b1 * (255 - a2) + b2 * a2) / 255.0;
+		return
+			(uint(round(a)) << 24) |
+			(uint(round(r)) << 16) |
+			(uint(round(g)) << 8) |
+			(uint(round(b)));
+	}
+	
 }
 
 // See https://gist.github.com/mjackson/5311256 for functions if needed
