@@ -39,6 +39,9 @@ class Mouse
 	private float prev_x;
 	private float prev_y;
 	
+	private bool raw_left_down;
+	private bool raw_right_down;
+	private bool raw_middle_down;
 	private bool prev_left_down;
 	private bool prev_right_down;
 	private bool prev_middle_down;
@@ -103,9 +106,9 @@ class Mouse
 			? (state & 1 != 0) ? -1 : ((state & 2 != 0) ? 1 : 0)
 			: 0;
 		
-		left_down = (state & 0x4) != 0;
-		right_down = (state & 0x8) != 0;
-		middle_down = (state & 0x10) != 0;
+		raw_left_down = (state & 0x4) != 0;
+		raw_right_down = (state & 0x8) != 0;
+		raw_middle_down = (state & 0x10) != 0;
 		
 		if(!block_mouse)
 		{
@@ -122,6 +125,13 @@ class Mouse
 				middle_press = middle_down && !prev_middle_down;
 			}
 		}
+		
+		left_down = !block_mouse || left_down || left_press
+			? raw_left_down : false;
+		right_down = !block_mouse || right_down || right_press
+			? raw_right_down : false;
+		middle_down = !block_mouse || middle_down || middle_press
+			? raw_middle_down : false;
 		
 		if(@input != null)
 		{
