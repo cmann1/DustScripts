@@ -1,3 +1,4 @@
+/// A simple bezier curve consisting of two vertices, and two control points.
 class Bezier
 {
 	
@@ -10,15 +11,21 @@ class Bezier
 	[position,mode:world,layer:19,y:y4]
 	float x4; [hidden] float y4;
 	
-	int num_arcs = 10;
-	array<float> arc_lengths(num_arcs + 1);
+	/// Can be used to track whether this curve has been modified since the last call to `update`.
+	bool requires_update = true;
+	
+	// The approximate length of the curve. Call `update` before using.
 	float length;
 	
-	bool requires_update = true;
+	/// Controls the precision use to approximate the curve length when calling `update`.
+	int num_arcs = 10;
+	array<float> arc_lengths(num_arcs + 1);
 	
 	Bezier() {}
 	
-	Bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, int num_arcs=10)
+	Bezier(
+		const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4,
+		const int num_arcs=10)
 	{
 		this.x1 = x1;
 		this.y1 = y1;
@@ -31,6 +38,9 @@ class Bezier
 		this.num_arcs = num_arcs;
 	}
 	
+	/// Approximates the length of the curve. Make sure to call after making any changes.
+	/// Useful for getting points along the curve with uniform spacing using `mx` and `my`.
+	/// Use `num_arcs` to controll the accuracy.
 	void update()
 	{
 		arc_lengths[0] = 0;
@@ -56,7 +66,9 @@ class Bezier
 		requires_update = false;
 	}
 	
-	float x(float t)
+	/// Returns the x value at the given t value, where 0 >= t <= 1.
+	/// Use `mx` instead for a unforim distribution across the length of the curve.
+	float x(const float t)
 	{
 		const float t1 = 1 - t;
 		return (t1 * t1 * t1) * x1
@@ -65,7 +77,9 @@ class Bezier
 			+ (t * t * t) * x4;
     }
 
-    float y(float t)
+	/// Returns the y value at the given t value, where 0 >= t <= 1.
+	/// Use `my` instead for a unforim distribution across the length of the curve.
+    float y(const float t)
 	{
 		const float t1 = 1 - t;
 		return (t1 * t1 * t1) * y1
@@ -74,6 +88,22 @@ class Bezier
 			+ (t * t * t) * y4;
     }
 	
+	/// Same as `x` and `y` but returns both at the same time.
+	void get_pos(const float t, float &out x, float &out y)
+	{
+		const float t1 = 1 - t;
+		x = (t1 * t1 * t1) * x1
+			+ 3 * (t1 * t1) * t * x2
+			+ 3 * t1 * (t * t) * x3
+			+ (t * t * t) * x4;
+		y = (t1 * t1 * t1) * y1
+			+ 3 * (t1 * t1) * t * y2
+			+ 3 * t1 * (t * t) * y3
+			+ (t * t * t) * y4;
+	}
+	
+	/// Maps a distance along he curve to a t value.
+	/// Make sure to call `update` before using.
 	float map(float distance)
 	{
         int low = 0, high = num_arcs;
@@ -110,11 +140,15 @@ class Bezier
 			: (index + (distance - lengthBefore) / (arc_lengths[index + 1] - lengthBefore)) / num_arcs;
     }
 	
+	/// Returns the x value at the given distance along the curve.
+	/// Make sure to call `update` before using.
 	float mx(float distance)
 	{
         return x(map(distance));
     }
-
+	
+	/// Returns the y value at the given distance along the curve.
+	/// Make sure to call `update` before using.
     float my(float distance)
 	{
         return y(map(distance));
