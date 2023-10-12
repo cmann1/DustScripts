@@ -75,7 +75,7 @@ float lerp(float a, float b, float x)
 	return a * (1.0 - x) + b * x;
 }
 
-/// Current and target are in radians
+/** Current and target are in radians. */
 float shortest_angle(float current, float target)
 {
 	const float num = repeat(target - current, PI2);
@@ -87,13 +87,20 @@ float shortest_angle(float current, float target)
 //	return 2 * da % PI2 - da;
 }
 
-/// Current and target are in radians
+/** Current and target are in radians. */
 float shortest_angle_degrees(float current, float target)
 {
 	const float num = repeat(target - current, 360);
 	return num > 180
 		? num - 360
 		: num;
+}
+
+/** Returns the signed angle between two vectors in the range -PI ... PI.
+  * The vectors do not need to be normalised. */
+float angle_between(const float v1x, const float v1y, const float v2x, const float v2y)
+{
+	return -atan2(-v2y * v1x + v2x * v1y, v2x * v1x + v2y * v1y);
 }
 
 float repeat(const float t, const float length)
