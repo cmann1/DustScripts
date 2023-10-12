@@ -3,6 +3,7 @@ class Mouse
 	
 	bool hud = false;
 	int layer = 19;
+	int sub_layer = 0;
 	int player = 0;
 	bool scale_hud = false;
 	int double_click_period = 30;
@@ -50,10 +51,11 @@ class Mouse
 	private float right_double_click_timer;
 	private float middle_double_click_timer;
 	
-	Mouse(bool hud=true, int layer=19, int player=0)
+	Mouse(bool hud=true, int layer=19, int sub_layer=19, int player=0)
 	{
 		this.hud = hud;
 		this.layer = layer;
+		this.sub_layer = sub_layer;
 		this.player = player;
 		
 		@g = get_scene();
@@ -80,12 +82,14 @@ class Mouse
 		}
 		else
 		{
-			x = @input != null
-				? input.mouse_x_world(layer)
-				: g.mouse_x_world(player, layer);
-			y = @input != null
-				? input.mouse_y_world(layer)
-				: g.mouse_y_world(player, layer);
+			if(@input != null)
+			{
+				input.mouse_world(layer, sub_layer, x, y);
+			}
+			else
+			{
+				g.mouse_world(player, layer, sub_layer, x, y);
+			}
 		}
 		
 		delta_x = x - prev_x;
