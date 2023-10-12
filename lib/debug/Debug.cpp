@@ -27,6 +27,9 @@ class Debug
 	float text_shadow_ox = 2;
 	float text_shadow_oy = 2;
 	bool text_outline = false;
+	
+	/** If true lines printed last will be displayed on top. */
+	bool reversed_print = true;
 
 	private string _text_font = font::ENVY_BOLD;
 	private uint _text_size = 20;
@@ -210,7 +213,7 @@ class Debug
 			}
 		}
 		
-		DebugTextLine@ line = text_lines.last;
+		DebugTextLine@ line = reversed_print ? text_lines.last : text_lines.first;
 		float y = 0;
 		uint current_colour = 0;
 		float text_width = 0;
@@ -308,7 +311,7 @@ class Debug
 			
 			y += line.height + _text_line_spacing;
 			
-			@line = line.prev;
+			@line = reversed_print ? line.prev : line.next;
 		}
 		
 		/*
@@ -365,9 +368,10 @@ class Debug
 	 * Debug methods
 	 */
 	 
-	void print(string text, uint colour, int key, int frames = 120)
+	void print(const string text, const uint colour, const int key, const int frames = 120,
+		const bool bring_to_front=true)
 	{
-		print(text, colour, key + '', frames);
+		print(text, colour, key + '', frames, bring_to_front);
 	}
 	 
 	void print(string text, int key)
@@ -380,7 +384,9 @@ class Debug
 		print(text, 0xffffffff, key);
 	}
 	 
-	void print(string text, uint colour=0xffffffff, string key = '', int frames = 120)
+	void print(
+		const string text, const uint colour=0xffffffff, const string key = '', const int frames = 120,
+		const bool bring_to_front=true)
 	{
 		DebugTextLine@ line = null;
 		bool is_new;
@@ -392,8 +398,11 @@ class Debug
 			line.colour = colour;
 			line.frames = frames;
 			
-			text_lines.remove(line, false);
-			text_lines.insert(line, false);
+			if(bring_to_front)
+			{
+				text_lines.remove(line, false);
+				text_lines.insert(line, false);
+			}
 		}
 		else
 		{

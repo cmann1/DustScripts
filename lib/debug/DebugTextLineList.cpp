@@ -21,7 +21,7 @@ class DebugTextLineList
 	
 	void insert(DebugTextLine@ line, bool update_id_dict = true)
 	{
-//		puts('inserting: ' + line.text);
+		//puts('inserting: ' + line.text);
 		
 		if(max_lines == 0)
 			return;
@@ -34,12 +34,12 @@ class DebugTextLineList
 				id_count = 1;
 			
 			count = 1;
-//			puts('  first');
+			//puts('  first');
 		}
 		else
 		{
-//			puts('  old last: ' + last.text);
-//			puts('  new last: ' + line.text);
+			//puts('  old last: ' + last.text);
+			//puts('  new last: ' + line.text);
 			@last.next = line;
 			@line.prev = last;
 			@last = line;
@@ -63,7 +63,7 @@ class DebugTextLineList
 				
 				if(@first_transient != null)
 				{
-//					puts('  removing first: ' + first_transient.text);
+					//puts('  removing first: ' + first_transient.text);
 					remove(first_transient);
 				}
 			}
@@ -83,32 +83,32 @@ class DebugTextLineList
 			text_height += spacing;
 		}
 		
-//		debug_lines();
+		//debug_lines();
 	}
 
 	void remove(DebugTextLine@ line, bool release = true)
 	{
-//		puts('removing: ' + line.text);
+		//puts('removing: ' + line.text);
 		
 		if(@line.prev != null)
 		{
-//			puts('  remove from prev: ' + line.prev.text);
+			//puts('  remove from prev: ' + line.prev.text);
 			@line.prev.next = line.next;
 		}
 		else
 		{
-//			puts('  new first: ' + (@line.next != null ? line.next.text : 'null'));
+			//puts('  new first: ' + (@line.next != null ? line.next.text : 'null'));
 			@first = line.next;
 		}
 		
 		if(@line.next != null)
 		{
-//			puts('  remove from next: ' + line.next.text);
+			//puts('  remove from next: ' + line.next.text);
 			@line.next.prev = line.prev;
 		}
 		else
 		{
-//			puts('  new last: ' + (@line.prev != null ? line.prev.text : 'null'));
+			//puts('  new last: ' + (@line.prev != null ? line.prev.text : 'null'));
 			@last = line.prev;
 		}
 		
@@ -124,7 +124,7 @@ class DebugTextLineList
 			
 			release_line(line);
 			
-//			puts('  pool size: ' + pool_size);
+			//puts('  pool size: ' + pool_size);
 		}
 		
 		text_height -= line.height;
@@ -139,7 +139,7 @@ class DebugTextLineList
 		if(line.key != '')
 			id_count--;
 		
-//		debug_lines();
+		//debug_lines();
 	}
 	
 	void calculate_height()
