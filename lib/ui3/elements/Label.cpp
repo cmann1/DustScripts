@@ -144,7 +144,18 @@ class Label : Graphic
 		float dx = size * align_origin;
 		float dy = 0;
 		
-		dx += (is_transposed ? _height - size : _width - size) * align_origin;
+		if(!is_transposed)
+		{
+			const float padding_left	= is_nan(this._padding_left)	? ui.style.spacing : this._padding_left;
+			const float padding_right	= is_nan(this._padding_right)	? ui.style.spacing : this._padding_right;
+			dx += (_width - padding_left - padding_right - size) * align_origin;
+		}
+		else
+		{
+			const float padding_top		= is_nan(this._padding_top)		? ui.style.spacing : this._padding_top;
+			const float padding_bottom	= is_nan(this._padding_bottom)	? ui.style.spacing : this._padding_bottom;
+			dx += (_height - padding_top - padding_bottom - size) * align_origin;
+		}
 		
 		if(_rotation != 0)
 		{
