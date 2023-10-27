@@ -8,6 +8,8 @@ class DustblockCleaner
 	
 	/// If set will use this instead of the built in rand() method.
 	RandomStream@ rng;
+	/// If set will create emitter bursts using the built in particle burst API when blocks are cleared.
+	bool create_particles = true;
 	/// If set will create emitter bursts when blocks are cleared.
 	EmitterBurstManager@ emitter_bursts;
 	/// If true will play sounds when blocks are cleared.
@@ -182,16 +184,17 @@ class DustblockCleaner
 					x * 48 + 24, y * 48 + 24, 1, false, true);
 			}
 			
-			if(@emitter_bursts != null)
+			if(create_particles)
 			{
-				switch(sprite_set)
-				{
-					case 1: emitter_settings.emitter_id = 68; break;
-					case 2: emitter_settings.emitter_id = 67; break;
-					case 3: emitter_settings.emitter_id = 115; break;
-					case 4: emitter_settings.emitter_id = 104; break;
-					case 5: emitter_settings.emitter_id = 79; break;
-				}
+				g.add_particle_burst(
+					g.get_emitter_id('cleansed_fb_' + sprite_set),
+					x * 48 + 24, y * 48 + 24,
+					emitter_settings.size_x, emitter_settings.size_y,
+					emitter_settings.layer, emitter_settings.sub_layer);
+			}
+			else if(@emitter_bursts != null)
+			{
+				emitter_settings.emitter_id = g.get_emitter_id('cleansed_fb_' + sprite_set);
 				emitter_bursts.add(emitter_settings, x * 48 + 24, y * 48 + 24);
 			}
 		}

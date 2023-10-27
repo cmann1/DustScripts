@@ -7,11 +7,14 @@ class CameraDisconnectTrigger : trigger_base, EnterExitTrigger
 	
 	private script@ script;
 	private scripttrigger@ self;
+	private editor_api@ editor;
 	
 	void init(script@ s, scripttrigger@ self)
 	{
 		@this.script = s;
 		@this.self = self;
+		
+		@editor = get_editor_api();
 		
 		self.editor_colour_inactive(0x666b7254);
 		self.editor_colour_circle(0xff6b7254);
@@ -81,6 +84,8 @@ class CameraDisconnectTrigger : trigger_base, EnterExitTrigger
 	
 	void editor_draw(float)
 	{
+		if(@editor != null && !editor.triggers_visible())
+			return;
 		if(connect_node == 0)
 			return;
 		
