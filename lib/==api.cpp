@@ -144,6 +144,12 @@ hitbox@ create_hitbox(controllable@ owner, float activate_time, float x, float y
 
 canvas@ create_canvas(bool is_hud, int layer, int sub_layer);
 
+/* Create a fog_settings structure. */
+fog_setting@ create_fog_setting(bool with_sub_layers);
+
+/* Create a fog_setting structure from a fog trigger. */
+fog_setting@ create_fog_setting(entity@ trigger);
+
 /* Add a callback to receive all broadcasted messages with the given id. If id
  * is blank then this receiver will instead receive all messages. */
 void add_broadcast_receiver(string id, callback_base@ obj, string methName);
@@ -211,6 +217,10 @@ class script {
   /* Initialize any state variables here. */
   script();
 
+  /* Called when the main menu closes after any of the video settings have been
+   * changed. */
+  void on_video_settings_change();
+
   /* Called just prior to a checkpoint being saved. */
   void checkpoint_save();
 
@@ -225,10 +235,12 @@ class script {
   /* Called when a player is respawned during multiplayer. */
   void checkpoint_load(int player_index);
 
-  /* Called when an entity is added to the scene. */
+  /* Called when an entity is added to the scene. This is called when an entity
+   * is explictly added to the scene, or when it is loaded in. */
   void entity_on_add(entity@ e);
 
-  /* Called when an entity is removed from the scene. */
+  /* Called when an entity is removed from the scene. Unlike `entity_on_add`
+   * this is not called when an entity is unloaded. */
   void entity_on_remove(entity@ e);
 
   /* Called before the entity list to process has been constructed as an
@@ -263,6 +275,11 @@ class script {
    * effects outside of the draw calls it makes. */
   void draw(float sub_frame);
 
+  /* Called when the editor is loaded, but after sprites and sounds have been
+   * built, and after persisted fields have been loaded.  
+   * Called for both level and plugin scripts. */
+  void on_editor_start();
+
   /* Called each frame while in the editor instead of step/step_post. */
   void editor_step();
 
@@ -274,6 +291,16 @@ class script {
 
   /* Called when one of this script's variables is modified in the editor */
   void editor_var_changed(var_info@ info);
+
+  /* Called when an entity is placed in the editor. */
+  void editor_entity_on_create(entity@ e);
+
+  /* Called when an entity is added to the scene in the editor, either by being
+   * placed or loaded in. */
+  void editor_entity_on_add(entity@ e);
+
+  /* Called when an entity is removed from the scene in the editor. */
+  void editor_entity_on_remove(entity@ e);
 
   /* Spawn a player controllable. The following parameters will be set
    * in the passed message:
@@ -372,7 +399,7 @@ class script {
  *   type select menu.
  * [label:**TEXT**]
  *   Use **TEXT** for the variables label instead of the variable's name.
- * [tooltip:**TEXT**,delay:DELAY,font:STRING,size:INT,colour/color:COLOUR]
+ * [tooltip:**TEXT**,delay:DELAY,font:STRING,size:INT,colour/color:COLOUR,scale:FLOAT]
  *   Will display the tooltip **TEXT** after **DELAY** frames (default 20).
  *   Fields with a tooltip will be highlighted in blue.
  *   Optionaly the font, size, and colour can be set. For a list of
@@ -383,6 +410,8 @@ class script {
  * [option,VALUE1:OPTION1,VALUE2:OPTION2,...]
  *   Use a dropdown option menu. If the user selects **OPTIONk** the
  *   variable's value will be set to **VALUEk**.
+ *   For integer types unspecified values will auto increment
+ *   e.g. `A,B,10:C,D` is equivalent to `0:A,1:B,10:C,11:D`
  * [angle,MODE]
  *   Use to set an angle. **MODE** can be set to 'rad' or 'radian' to use
  *   radians otherwise it defaults to degrees.
@@ -393,11 +422,26 @@ class script {
  * [slider,min:MINVAL,max:MAXVAL,step:STEP]
  *   Use a slider element to set a value between **MINVAL** and **MAXVAL**
  *   uniformly distributed, or with a custom interval using **STEP**.
- * [position,mode:MODE,layer:LAYER,y:YPARAM]
+ * [position,mode:MODE,y:YPARAM]
  *   Use this annotation on an x-variable, naming the corresponding y
- *   **variable** as **YPARAM**. **MODE** can be "world" or "hud", defaulting
- *   to "world". **LAYER** is the layer to calculate the coordinates of from
- *   the user's mouse.
+ *   **variable** as **YPARAM**.
+ *   Use `Shift`, `Control`, and `Alt` to snap coordinates to increments of 48, 24, and 12
+ *   respectively.
+ * 
+ *   * **mode** Can be `world` (default) or `hud`.
+ *   * **layer** The layer to calculate the coordinates of from the user's mouse.
+ * 
+ *     * If **LAYER** is set to `selected`, the currently selected layer in the editor will be
+ *       used.
+ *     * A sublayer can optionally be specified with the format `LAYER.SUBLAYER`
+ *     * **LAYER** or **SUBLAYER** can point to a variable by prefixing with an equal sign, e.g.
+ *       `=layer_var_name.10` will read the layer value from a variable called `layer_var`,
+ *       and use a value of 10 for the sublayer.
+ *   * **snap:INCREMENT** If set forces a specific increment to snap the coordinates to.
+ *   * **round:TYPE** Can be `down`/`-1` or `up`/`1` to round down or up when snapping.
+ *   * **tiles** If present will return the tile index under the mouse.
+ *   * **relative** If present coordinates will be relative to the trigger/entity this property
+ *     belongs to.
  * [entity,TYPE,TYPE,...]
  *   | Use to select an entity id with the mouse.
  *   | An optional list of allowed types can be given. If no **TYPE** type is
@@ -546,28 +590,45 @@ class enemy_base {
 }
 
 class scene {
+  /* Returns the `Script FX Level` video setting. This is a custom option scripts can
+   * use to enable/disable custom visuals to improve performance.
+   * Possible values are:
+   *
+   *   :0: Off
+   *   :1: Low
+   *   :2: Medium
+   *   :3: High (default) */
+  int get_script_fx_level();
+
+  /* Returns the user's current video settings. */
+  void get_video_settings(bool &out disable_stars, bool &out disable_glass, bool &out disable_wind, bool &out disable_background, bool &out disable_midground, int &out script_fx_level, bool &out window_mode, bool &out low_res_mode);
+
   /* Get the current level name. */
   string map_name();
 
   /* Get the current level type. */
   int level_type();
 
-  /* Access the global flag to disable jump. */
+  /* Access the global flag to disable jump.
+   * For compatibility reasons these values are inverted. */
   bool jump_enabled();
 
   void jump_enabled(bool enabled);
 
-  /* Access the global flag to disable attack. */
+  /* Access the global flag to disable attack.
+   * For compatibility reasons these values are inverted. */
   bool attack_enabled();
 
   void attack_enabled(bool enabled);
 
-  /* Access the global flag to disable special. */
+  /* Access the global flag to disable special.
+   * For compatibility reasons these values are inverted. */
   bool special_enabled();
 
   void special_enabled(bool enabled);
 
-  /* Access the global flag to disable dash. */
+  /* Access the global flag to disable dash.
+   * For compatibility reasons these values are inverted. */
   bool dash_enabled();
 
   void dash_enabled(bool enabled);
@@ -794,16 +855,41 @@ class scene {
   /* Remove an entity from the scene. */
   void remove_entity(entity@ entity);
 
-  /* Access the visibility of each layer. */
+  /* Access the visibility of each layer.
+   * Note that this just returns sub-layer 0 if the layer has different sublayer
+   * values. */
   bool layer_visible(uint layer);
 
+  /* Sets the visibility of all sub layers for this layer. */
   void layer_visible(uint layer, bool visible);
 
+  /* Access the visibility of each sub layer.
+   * Note that hiding sub layer 10 also prevents sublayers 11-15 from rendering,
+   * so changing it is not recommended for the moment as the behaviour may
+   * change in the future. */
+  bool sub_layer_visible(uint layer, uint sub_layer);
+
+  void sub_layer_visible(uint layer, uint sub_layer, bool visible);
+
   /* Access the scaling factor of the layer. 1.0 is the standard foreground
-   * scale with lower values being used for the background. */
+   * scale with lower values being used for the background.
+   * Note that this just returns sub-layer 0 if the layer has different sublayer
+   * values. */
   float layer_scale(uint layer);
 
+  /* Sets the scale of all sub layers for this layer. */
   void layer_scale(uint layer, float scale);
+
+  /* Resets the scale for all sub layer on the given to its default value. */
+  void layer_scale_reset(uint layer);
+
+  /* Access the scaling factor of the sub layer. */
+  float sub_layer_scale(uint layer, uint sub_layer);
+
+  void sub_layer_scale(uint layer, uint sub_layer, float scale);
+
+  /* Resets the scale for the given sub layer to its default value. */
+  void sub_layer_scale_reset(uint layer, uint sub_layer);
 
   /* Reset the render order of the layers to the default. */
   void reset_layer_order();
@@ -951,6 +1037,10 @@ class scene {
    * given layer. */
   float mouse_y_world(int player, int layer);
 
+  /* Returns the coordinates of the mouse for the given player's camera in the
+   * given layer and sublayer. */
+  void mouse_world(int player, int layer, int sub_layer, float &out x, float &out y);
+
   /* Return the current HUD screen width in pixels. If scale is true this
    * always returns 1600. */
   float hud_screen_width(bool scale);
@@ -1044,6 +1134,28 @@ class scene {
    * during special events.
    */
   void clear_ghosts();
+
+  /* Returns the emitter type id for the given name,
+   * or -1 if it does not exist. */
+  int get_emitter_type_id(string name);
+
+  /* Create a particle burst. If the emitter type is not a burst emitter this
+   * does nothing. */
+  void add_particle_burst(uint id, float x, float y, float w, float h, uint layer, uint sub_layer);
+
+  /* Returns the number of defined emitter types. */
+  uint get_emitter_type_count();
+
+  /* Returns the number of defined particle types. */
+  uint get_particle_type_count();
+
+  /* Returns the emitter type with the given index, or null if the index is out
+   * of range. */
+  emitter_type@ get_emitter_type(uint index);
+
+  /* Returns the particle type with the given index, or null if the index is out
+   * of range. */
+  particle_type@ get_particle_type(uint index);
 
 }
 
@@ -1164,10 +1276,10 @@ class tileinfo {
   /* Each tile edge is represented by four bits. These are their meanings from
    * least significant bit to most significant bit.
    *
-   * 1 bit - indicates edge "priority"?
-   * 2 bit - whether to draw an edge cap on the left/top.
-   * 4 bit - whether to draw an edge cap on the right/bottom.
-   * 8 bit - indicates whether the edge has collision and can have filth.
+   *   :1 bit: indicates edge "priority"?
+   *   :2 bit: whether to draw an edge cap on the left/top.
+   *   :4 bit: whether to draw an edge cap on the right/bottom.
+   *   :8 bit: indicates whether the edge has collision and can have filth.
    */
   uint8 edge_top();
 
@@ -1199,9 +1311,9 @@ class tilefilth {
   /* Each tile filth value indicates if and what type of filth or spikes are
    * present on a given face of a tile.  These values should be:
    *
-   * 0: no filth/spikes
-   * 1-5: dust, leaves, trash, slime, virtual filth
-   * 9-13: mansion spikes, forest spikes, cones, wires, virtual spikes
+   *   :0: no filth/spikes
+   *   :1-5: dust, leaves, trash, slime, virtual filth
+   *   :9-13: mansion spikes, forest spikes, cones, wires, virtual spikes
    */
   uint8 top();
 
@@ -1222,10 +1334,10 @@ class tilefilth {
 }
 
 class camera {
-  /* Get the camera type.
-   *  | `player` - Free camera.
-   *  | `test` - The camera is attached to a path.
-   *  | `script` - The camera is being controlled by script. */
+  /* Get the camera type. See the `camera_types` enum. */
+  int get_type();
+
+  /* Deprecated - use :ref:`<method-camera-get_type>` instead. */
   string camera_type();
 
   /* A flag to disable the normal camera behavior. Set this to true if you wish
@@ -1245,10 +1357,43 @@ class camera {
    * to match the corresponding key's state: whether it's currently pressed, was
    * just pushed, or just released. fall_intent is always 0 with a non-standard
    * controller_mode because there is no corresponding key bind.
-   */
+   *
+   * Advanced mode provides standard buffering behaviour while also giving
+   * access to the down/pressed state of each input through the
+   * :ref:`camera::input_*<method-camera-input_x>` methods. */
   int controller_mode();
 
   void controller_mode(int controller_mode);
+
+  /* Get the raw left and right input states. The down and press states are
+   * stored in the 1 and 2 bits respectively.
+   * Always returns 0 if controller mode is not set to advanced. */
+  void input_x(int &out left, int &out right);
+
+  /* Get the raw x input state. The left and right states are store in the 1 and
+   * 2 bit respectively.
+   * Always returns 0 if controller mode is not set to advanced. */
+  int input_x();
+
+  /* Same as :ref:`<method-camera-input_x>`. */
+  void input_y(int &out up, int &out down);
+
+  /* Same as :ref:`<method-camera-input_x>` but for the up and down state. */
+  int input_y();
+
+  /* Same as the left or right value of :ref:`<method-camera-input_x>`. */
+  int input_dash();
+
+  int input_jump();
+
+  int input_light();
+
+  int input_heavy();
+
+  int input_taunt();
+
+  /* Returns true on the frame of the double tap for each direction input. */
+  void input_double_tap(bool &out left, bool &out right, bool &out up, bool &out down);
 
   /* Camera center coordinates. */
   float x();
@@ -1360,6 +1505,9 @@ class camera {
    * match the sizes used by the game. */
   void get_layer_draw_rect(float sub_frame, int layer, float &out left, float &out top, float &out width, float &out height);
 
+  /* Get the size of the world layer and sub layer. */
+  void get_layer_draw_rect(float sub_frame, int layer, int sub_layer, float &out left, float &out top, float &out width, float &out height);
+
   /* The camera rotation in degrees. */
   float rotation();
 
@@ -1398,6 +1546,29 @@ class camera {
    * from the current fog colour to this updated colour should take measured
    * in seconds. */
   void change_fog(fog_setting@ fog, float fog_time);
+
+  /* Change the fog colour directly from a fog trigger. If fog_time < 0 the
+   * trigger time will be used. */
+  void change_fog(entity@ trigger, float fog_time);
+
+  /* Change the music.
+   * `name` must be a valid music track name.
+   * `speed` controls the transition time measured in seconds. */
+  void change_music(string track_name, float volume, float speed);
+
+  /* Change the music directly from a music trigger.
+   * If `speed` < 0 the trigger time will be used. */
+  void change_music(entity@ trigger, float speed);
+
+  /* Change the ambience to a single track. All other track volumes will be set
+   * to 0.
+   * `name` must be a valid ambience track name.
+   * `speed` controls the transition time measured in seconds. */
+  void change_ambience(string track_name, float volume, float speed);
+
+  /* Change the ambience directly from a music trigger.
+   * If `speed` < 0 the trigger time will be used. */
+  void change_ambience(entity@ trigger, float speed);
 
 }
 
@@ -1499,7 +1670,7 @@ class camera_node : entity {
  * used to detect tile collisions and when the entity is clicked in the editor.
  * The hit collision is used to detect when an enemy is attacked. */
 class collision {
-  /* Access the hitbox of the collisio. */
+  /* Access the hitbox of the collision. */
   void rectangle(float top, float bottom, float left, float right);
 
   void rectangle(rectangle@ rect, float x_offset, float y_offset);
@@ -1586,6 +1757,10 @@ class entity {
   /* Attempt to recast this object as a dustman object. Returns null if
    * the entity is not a dustman object. */
   dustman@ as_dustman();
+
+  /* Attempt to recast this object as an AI controller object. Returns null if
+   * the entity is not an AI controller object. */
+  ai_controller@ as_ai_controller();
 
   /* Attempt to recast this object as a hitbox object. Returns null if
    * the entity is not a hitbox object. */
@@ -2043,6 +2218,9 @@ class controllable : hittable {
    * controller_entity(player). */
   int player_index();
 
+  /* Returns the AI controlling this entity. */
+  ai_controller@ ai_controller();
+
   /* Controls the type of dust this entity spread.
    * See :ref:`enum filth_types` for a list of possible values. */
   int filth_type();
@@ -2237,6 +2415,12 @@ class dustman : controllable {
 
 }
 
+class ai_controller : entity {
+}
+
+/* Note that for dust spread to work correctly after moving a hitbox
+ * :ref:`base_rectangle<method-entity-base_rectangle>` must be called after
+ * setting its position. */
 class hitbox : entity {
   controllable@ owner();
 
@@ -2457,8 +2641,6 @@ class scripttrigger : entity {
   /* Returns the class name of this trigger within its script. */
   string type_name();
 
-  bool editor_selected();
-
   /* Access the radius of the activation circle or square around this trigger.
    * If the trigger has a square shape then the square extends width() out in
    * each direction from the center of the trigger, i.e. it's side length is
@@ -2466,6 +2648,13 @@ class scripttrigger : entity {
   int radius();
 
   void radius(int radius);
+
+  /* Access the activation area height for rectangular triggers. Will be set to
+   * -1 for square triggers.
+   * Only applicable when `is_square` is true. */
+  int height();
+
+  void height(int height);
 
   /* Access if the trigger has a square or circle activation area. */
   bool square();
@@ -2501,6 +2690,16 @@ class scripttrigger : entity {
   /* Use after changing persistent variables via script to update values in the trigger script panel. */
   void editor_sync_vars_menu();
 
+  bool editor_selected();
+
+  /* Convenience for checking if triggers are visible in the editor
+   * without needing an editor instance. */
+  bool editor_triggers_visible();
+
+  /* Convenience for checking if cameras are visible in the editor
+   * without needing an editor instance. */
+  bool editor_cameras_visible();
+
 }
 
 /* Represents a generic script-backed enemy. */
@@ -2519,8 +2718,17 @@ class scriptenemy : controllable {
 
   void auto_physics(bool auto_physics);
 
-  /* Use after changing persistent variables via script to update values in the enemy script panel. */
+  /* Use after changing persistent variables via script to update values in the
+   * enemy script panel. */
   void editor_sync_vars_menu();
+
+  /* Convenience for checking if triggers are visible in the editor
+   * without needing an editor instance. */
+  bool editor_triggers_visible();
+
+  /* Convenience for checking if cameras are visible in the editor
+   * without needing an editor instance. */
+  bool editor_cameras_visible();
 
 }
 
@@ -2965,6 +3173,246 @@ class canvas {
 
 }
 
+/* Represents a global emitter type. */
+class emitter_type {
+  /* Returns the id of this emitter type. */
+  uint get_id();
+
+  /* Returns the name of this emitter type. */
+  string get_name();
+
+  /* Access whether this emitter type is a "burst" emitter.
+   * Burst emitters will automatically remove themselves from the scene after a
+   * short period of time. */
+  bool get_burst();
+
+  void set_burst(bool burst);
+
+  /* Returns the number of particle types added to this emitter type. */
+  uint get_particle_type_count();
+
+  /* Adds the given particle type to this emitter type. Returns the index of
+   * newly added particle type or -1 if the particle type was not valid. */
+  int add_particle_type(particle_type@ particle_type);
+
+  /* Adds the particle type with the given index to this emitter type. Returns
+   * the index of newly added particle type or -1 if the particle type was not
+   * valid. */
+  int add_particle_type(uint index);
+
+  /* Removes the particle type from this emitter type at the given index. */
+  void remove_particle_type_at(uint index);
+
+  /* Returns the particle type for this emitter type at the given index, or null
+   * if the index is invalid. */
+  particle_type@ get_particle_type_at(uint index);
+
+  /* Returns the density value and range for the particle type at the given
+   * index. */
+  void get_density(uint index, float &out value, float &out range);
+
+  /* Sets the density value and range for the particle type at the given
+   * index. */
+  void set_density(uint index, float value, float range);
+
+  /* Returns the speed value and range for the particle type at the given
+   * index. */
+  void get_speed(uint index, float &out value, float &out range);
+
+  /* Sets the speed value and range for the particle type at the given
+   * index. */
+  void set_speed(uint index, float value, float range);
+
+  /* Returns the direction value and range for the particle type at the given
+   * index. */
+  void get_direction(uint index, float &out value, float &out range);
+
+  /* Sets the direction value and range for the particle type at the given
+   * index. */
+  void set_direction(uint index, float value, float range);
+
+}
+
+/* Represents a global emitter particle type. */
+class particle_type {
+  /* Returns the number of sprites added to this particle type. */
+  uint get_sprite_count();
+
+  /* Returns the sprite name at the given index, or an empty string if the given
+   * index is invalid. */
+  string get_sprite_at(uint index);
+
+  /* Add a new sprite to this particle type. */
+  void add_sprite(string sprite);
+
+  /* Removes the sprite at the given index. */
+  void remove_sprite_at(uint index);
+
+  /* Removes all sprites for this particle type. */
+  void clear_sprites();
+
+  float get_frame();
+
+  void set_frame(float frame);
+
+  float get_frame_range();
+
+  void set_frame_range(float frame_range);
+
+  void get_frame(float &out value, float &out range);
+
+  void set_frame(float value, float range);
+
+  bool get_loop_animation();
+
+  void set_loop_animation(bool loop_animation);
+
+  float get_frame_speed();
+
+  void set_frame_speed(float frame_speed);
+
+  float get_frame_speed_range();
+
+  void set_frame_speed_range(float frame_speed_range);
+
+  void get_frame_speed(float &out value, float &out range);
+
+  void set_frame_speed(float value, float range);
+
+  float get_rotation_speed();
+
+  void set_rotation_speed(float rotation_speed);
+
+  float get_rotation_speed_range();
+
+  void set_rotation_speed_range(float rotation_speed_range);
+
+  void get_rotation_speed(float &out value, float &out range);
+
+  void set_rotation_speed(float value, float range);
+
+  float get_rotation();
+
+  void set_rotation(float rotation);
+
+  float get_rotation_range();
+
+  void set_rotation_range(float rotation_range);
+
+  void get_rotation(float &out value, float &out range);
+
+  void set_rotation(float value, float range);
+
+  bool get_flip_x();
+
+  void set_flip_x(bool flip_x);
+
+  bool get_flip_y();
+
+  void set_flip_y(bool flip_y);
+
+  float get_scale();
+
+  void set_scale(float scale);
+
+  float get_scale_range();
+
+  void set_scale_range(float scale_range);
+
+  void get_scale(float &out value, float &out range);
+
+  void set_scale(float value, float range);
+
+  float get_x_scale();
+
+  void set_x_scale(float x_scale);
+
+  float get_x_scale_range();
+
+  void set_x_scale_range(float x_scale_range);
+
+  void get_x_scale(float &out value, float &out range);
+
+  void set_x_scale(float value, float range);
+
+  float get_x_scale_end();
+
+  void set_x_scale_end(float x_scale_end);
+
+  float get_x_scale_end_range();
+
+  void set_x_scale_end_range(float x_scale_end_range);
+
+  void get_x_scale_end(float &out value, float &out range);
+
+  void set_x_scale_end(float value, float range);
+
+  float get_y_scale();
+
+  void set_y_scale(float y_scale);
+
+  float get_y_scale_range();
+
+  void set_y_scale_range(float y_scale_range);
+
+  void get_y_scale(float &out value, float &out range);
+
+  void set_y_scale(float value, float range);
+
+  float get_y_scale_end();
+
+  void set_y_scale_end(float y_scale_end);
+
+  float get_y_scale_end_range();
+
+  void set_y_scale_end_range(float y_scale_end_range);
+
+  void get_y_scale_end(float &out value, float &out range);
+
+  void set_y_scale_end(float value, float range);
+
+  float get_life();
+
+  void set_life(float life);
+
+  float get_life_range();
+
+  void set_life_range(float life_range);
+
+  void get_life(float &out value, float &out range);
+
+  void set_life(float value, float range);
+
+  float get_gravity();
+
+  void set_gravity(float gravity);
+
+  float get_gravity_direction();
+
+  void set_gravity_direction(float gravity_direction);
+
+  float get_x_friction();
+
+  void set_x_friction(float x_friction);
+
+  float get_y_friction();
+
+  void set_y_friction(float y_friction);
+
+  float get_wind_scale();
+
+  void set_wind_scale(float wind_scale);
+
+  float get_wind_scale_range();
+
+  void set_wind_scale_range(float wind_scale_range);
+
+  void get_wind_scale(float &out value, float &out range);
+
+  void set_wind_scale(float value, float range);
+
+}
+
 /* Definitions match those described in
  * http://www.cplusplus.com/reference/ctime/tm/
  */
@@ -2990,21 +3438,50 @@ class timedate {
 }
 
 class fog_setting {
-  /* Access the layer and sublayer fog colours. */
+  /* Copies the settings from the given camera. */
+  void copy_from(camera@ camera);
+
+  /* Copies the settings from the given fog trigger. Does nothing if the entity
+   * is null or not a fog trigger. */
+  void copy_from(entity@ trigger);
+
+  /* Copies the settings from the given fog_setting. */
+  void copy_from(fog_setting@ other);
+
+  /* Copies the settings from this settings object to the given fog trigger. */
+  void copy_to(entity@ trigger);
+
+  /* Access the layer and sublayer fog colours.
+   * `sublayer` is ignored if this ettings object does not have sub layers. */
   uint colour(uint layer, uint sublayer);
 
   void colour(uint layer, uint sublayer, uint colour);
 
+  /* Set the default sublayer colour. */
+  void default_colour(uint layer, uint colour);
+
+  /* Get the default sublayer colour. */
+  uint layer_colour(uint layer);
+
+  /* Set the colour for all sublayers on the given layer. */
   void layer_colour(uint layer, uint colour);
 
   /* Access the layer and sublayer fog percents. The percent for each
    * layer/sublayer indicates how to mix the fog colour with the graphics
    * on that layer. A percent of 0 ignores the fog colour and a percent
-   * of 1 replaces all colours in drawn graphics with the fog colour. */
+   * of 1 replaces all colours in drawn graphics with the fog colour.
+   * `sublayer` is ignored if this ettings object does not have sub layers. */
   float percent(uint layer, uint sublayer);
 
   void percent(uint layer, uint sublayer, float percent);
 
+  /* Set the default sublayer percent. */
+  void default_percent(uint layer, float percent);
+
+  /* Get the default sublayer percent. */
+  float layer_percent(uint layer);
+
+  /* Set the percent for all sublayers on the given layer. */
   void layer_percent(uint layer, float percent);
 
   /* Access where on the screen the screen the middle background colour
@@ -3044,6 +3521,11 @@ class fog_setting {
   float stars_bot();
 
   void stars_bot(float s_bot);
+
+  bool has_sub_layers();
+
+  /* Convert this fog_setting object between normal and sublayer. */
+  void has_sub_layers(bool has_sub_layers);
 
 }
 
@@ -3114,11 +3596,27 @@ class editor_api {
   /* Returns true if the given layer is visible and not locked. */
   bool check_layer_filter(int layer);
 
+  /* Returns true if the given sublayer is visible and not locked. */
+  bool check_layer_filter(int layer, int sub_layer);
+
+  /* Returns false if triggers are hidden in the editor. Triggers should check
+   * this during `editor_draw` to disable any editor related drawing. */
+  bool triggers_visible();
+
+  /* Returns false if cameras are hidden in the editor. */
+  bool cameras_visible();
+
   /* Returns the selected trigger. */
   entity@ get_selected_trigger();
 
+  /* Set the selected trigger. */
+  void set_selected_trigger(entity@ trigger);
+
   /* Returns the selected entity. */
   entity@ get_selected_entity();
+
+  /* Set the selected entity. */
+  void set_selected_entity(entity@ entity);
 
   /* Access whether the help menu is visible. */
   bool help_screen_vis();
@@ -3159,7 +3657,8 @@ class editor_api {
   /* Return the number of selected entities. */
   uint selected_entity_count();
 
-  /* Return the index-th selected entity or null if no entity exists at that index. */
+  /* Return the index-th selected entity or null if no entity exists at that
+   * index. */
   entity@ selected_entity(uint index);
 
   /* Return the number of selected props. */
@@ -3167,6 +3666,20 @@ class editor_api {
 
   /* Return the index-th selected prop or null if no prop exists at that index. */
   prop@ selected_prop(uint index);
+
+  /* Return the selected tile set, index, and palette used by the tile tool. */
+  void get_tile_sprite(int &out sprite_set, int &out sprite_tile, int &out sprite_palette);
+
+  /* Sets the selected tile set, index, and palette used by the tile tool. */
+  void set_tile_sprite(int sprite_set, int sprite_tile, int sprite_palette);
+
+  /* Return the selected prop set, group, index, and palette used by the
+   * prop tool. */
+  void get_prop(int &out prop_set, int &out prop_group, int &out prop_index, int &out prop_palette);
+
+  /* Sets the selected prop set, group, index, and palette used by the
+   * prop tool. */
+  void set_prop(int prop_set, int prop_group, int prop_index, int prop_palette);
 
 }
 
@@ -3206,6 +3719,9 @@ class input_api {
   /* Returns the y coordinate of the mouse for the given layer. */
   float mouse_y_world(int layer);
 
+  /* Returns the coordinates of the mouse for the given layer and sublayer. */
+  void mouse_world(int layer, int sub_layer, float &out x, float &out y);
+
   /* Return the current screen width in pixels. */
   float screen_width();
 
@@ -3230,6 +3746,14 @@ class input_api {
    */
   int mouse_state();
 
+  /* Converts the given global virtual button to a virtual key code.
+   * Returns -1 if gvb is not a valid button. */
+  int gvb_to_vk(const int gvb);
+
+  /* Converts the given virtual key code to a global virtual button.
+   * Returns -1 if the given key is not mapped to a virtual button. */
+  int vk_to_gvb(const int vk);
+
   /* Returns true if the key is currently pressed. vk should be a
    * virtual key keycode. See
    * https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes.
@@ -3243,6 +3767,9 @@ class input_api {
 
   /* Returns true if the key was released this frame. */
   bool key_check_released_vk(int vk);
+
+  /* Returns true if the key was double tapped. */
+  bool key_check_double(int vk);
 
   /* Returns true if the "global virtual button" is currently pressed.
    * Refer to the GLOBAL_VIRTUAL_BUTTON enum for options for this value.
