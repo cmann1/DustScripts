@@ -2,7 +2,8 @@
 
 void get_tile_quad(int shape,
 	float &out x1, float &out y1, float &out x2, float &out y2,
-	float &out x3, float &out y3, float &out x4, float &out y4)
+	float &out x3, float &out y3, float &out x4, float &out y4,
+	const float x=0, const float y=0)
 {
 	switch(shape)
 	{
@@ -133,4 +134,13 @@ void get_tile_quad(int shape,
 			x4 = 0; y4 = 48;
 			break;
 	}
+
+	x1 += x;
+	y1 += y;
+	x2 += x;
+	y2 += y;
+	x3 += x;
+	y3 += y;
+	x4 += x;
+	y4 += y;
 }
