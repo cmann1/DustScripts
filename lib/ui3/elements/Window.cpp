@@ -418,7 +418,6 @@ class Window : MoveableDialog
 			@_title_after.layout = @title_flow_layout;
 			_title_after.name = 'title_after';
 			Container::add_child(_title_after);
-			puts('create title_after');
 			validate_layout = true;
 		}
 		
@@ -554,11 +553,13 @@ class Window : MoveableDialog
 		{
 			if(@_buttons_left != null)
 			{
+				_buttons_left.width = _width - ui.style.spacing * 2;
 				_buttons_left.fit_to_contents(fit_min);
 			}
 			
 			if(@_buttons_right != null)
 			{
+				_buttons_right.width = _width - ui.style.spacing * 2;
 				_buttons_right.fit_to_contents(fit_min);
 			}
 			
@@ -846,12 +847,14 @@ class Window : MoveableDialog
 		{
 			if(layout_buttons_left)
 			{
+				_buttons_left.width = _width - ui.style.spacing * 2;
 				_buttons_left.fit_to_contents();
 				layout_buttons_left = false;
 			}
 			
 			if(layout_buttons_right)
 			{
+				_buttons_right.width = _width - ui.style.spacing * 2;
 				_buttons_right.fit_to_contents();
 				layout_buttons_right = false;
 			}
