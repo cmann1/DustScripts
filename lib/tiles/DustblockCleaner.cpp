@@ -187,14 +187,14 @@ class DustblockCleaner
 			if(create_particles)
 			{
 				g.add_particle_burst(
-					g.get_emitter_id('cleansed_fb_' + sprite_set),
+					g.get_emitter_type_id('cleansed_fb_' + sprite_set),
 					x * 48 + 24, y * 48 + 24,
 					emitter_settings.size_x, emitter_settings.size_y,
 					emitter_settings.layer, emitter_settings.sub_layer);
 			}
 			else if(@emitter_bursts != null)
 			{
-				emitter_settings.emitter_id = g.get_emitter_id('cleansed_fb_' + sprite_set);
+				emitter_settings.emitter_id = g.get_emitter_type_id('cleansed_fb_' + sprite_set);
 				emitter_bursts.add(emitter_settings, x * 48 + 24, y * 48 + 24);
 			}
 		}
