@@ -1,6 +1,7 @@
 #include '../lib/std.cpp';
 #include '../lib/tiles/common.cpp';
 #include '../lib/tiles/TileEdge.cpp';
+#include '../lib/tiles/TileShape.cpp';
 
 class script
 {
@@ -32,16 +33,19 @@ class TileBaseTrigger : trigger_base
 	[persist] bool run_continuous = false;
 	[persist] int layer = 19;
 	
-	bool run_prev = false;
+	private bool run_prev = false;
 	
 	[hidden] float prev_x = 0;
 	[hidden] float prev_y = 0;
 	
-	scene@ g;
-	scripttrigger @self;
+	protected scene@ g;
+	protected scripttrigger @self;
 	
 	protected bool run_tile = true;
 	protected bool run_filth = false;
+	
+	protected uint trigger_colour = 0xff6e007f;
+	protected uint trigger_colour_active = 0xffcc00ff;
 	
 	TileBaseTrigger()
 	{
@@ -53,6 +57,10 @@ class TileBaseTrigger : trigger_base
 		@this.self = self;
 		self.square(true);
 		run_prev = run;
+		
+		self.editor_colour_circle(trigger_colour);
+		self.editor_colour_inactive(trigger_colour);
+		self.editor_colour_active(trigger_colour_active);
 	}
 	
 	void _run()
@@ -396,6 +404,52 @@ class SetFilth: TileBaseTrigger
 		
 		result = filth;
 		return false;
+	}
+	
+}
+
+class RemoveHiddenTiles: TileBaseTrigger
+{
+	
+	[persist] bool ignore_transparent_tiles = true;
+	
+	RemoveHiddenTiles()
+	{
+		TileBaseTrigger();
+		trigger_colour = 0xffff3344;
+		trigger_colour_active = 0xffff55bb;
+	}
+	
+	void update_tile(int x, int y, tileinfo@ tile)
+	{
+		if(!tile.solid())
+			return;
+		
+		for(int i = layer + 1; i <= 20; i++)
+		{
+			tileinfo@ t= g.get_tile(x, y, i);
+			if(!t.solid() || t.type() != TileShape::Full || t.is_dustblock())
+				continue;
+			
+			if(ignore_transparent_tiles)
+			{
+				const uint8 set = t.sprite_set();
+				const uint8 sprite = t.sprite_tile();
+				if(
+					set == 0 && (sprite > 1) ||
+					set == 1 && (sprite >= 18 && sprite <= 20) ||
+					set == 2 && (sprite == 4 || sprite == 5 || sprite >= 10 && sprite <= 12) ||
+					set == 3 && (sprite == 3) ||
+					set == 4 && (sprite == 8) ||
+					set == 5 && (sprite == 1)
+				)
+					continue;
+			}
+			
+			tile.solid(false);
+			g.set_tile(x, y, layer, tile, false);
+			break;
+		}
 	}
 	
 }
