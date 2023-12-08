@@ -3,7 +3,7 @@
 class script
 {
 	
-	[persist] int layer = 22;
+	[persist] int layer = 21;
 	[persist] int sublayer = 22;
 	[colour,alpha] uint fill_clr = 0x33000000;
 	
@@ -66,7 +66,7 @@ class script
 				const float node2_y1 = py2 - h2 * 0.5;
 				const float node2_x2 = px2 + w2 * 0.5;
 				const float node2_y2 = py2 + h2 * 0.5;
-				g.draw_line_world(22, 22, px1, py1, px2, py2, 2 * zoom, fill_clr);
+				g.draw_line_world(layer, sublayer, px1, py1, px2, py2, 2 * zoom, fill_clr);
 				
 				// Node2 fully contained inside node1;
 				if(node2_x1 >= node1_x1 && node2_x2 <= node1_x2 && node2_y1 >= node1_y1 && node2_y2 <= node1_y2)
