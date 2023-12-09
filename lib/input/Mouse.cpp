@@ -124,9 +124,9 @@ class Mouse
 			}
 			else
 			{
-				left_press = left_down && !prev_left_down;
-				right_press = right_down && !prev_right_down;
-				middle_press = middle_down && !prev_middle_down;
+				left_press = raw_left_down && !prev_left_down;
+				right_press = raw_right_down && !prev_right_down;
+				middle_press = raw_middle_down && !prev_middle_down;
 			}
 		}
 		
