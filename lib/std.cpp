@@ -6,7 +6,7 @@ const float SCREEN_LEFT = -800;
 const float SCREEN_TOP = -450;
 const float SCREEN_RIGHT = 800;
 const float SCREEN_BOTTOM = 450;
-const float SCREEN_WIDTH_F = 1920.0 / 1080;
+const float SCREEN_RATIO = 1920.0 / 1080;
 
 const float MAX_FLOAT =  3.402823466e+38;
 const float MIN_FLOAT = -3.402823466e+38;
@@ -14,11 +14,6 @@ const float SMALLEST_FLOAT = 1.175494351e-38;
 
 const float NAN = fpFromIEEE(0x7fc00000);
 const float INFINITY = fpFromIEEE(0x7f800000);
-
-int tile_coord(float v)
-{
-	return int(floor(v * PIXEL2TILE));
-}
 
 string str(float x, const uint precision=3)
 {
@@ -129,31 +124,6 @@ int rand_range_unique(const int prev_val, const int min, const int max)
 {
 	const int range = max - min + 1;
 	return min + (prev_val - min + 1 + rand() % (range - 1)) % range;
-}
-
-float prng(const float seed)
-{
-	return fraction(abs(sin(seed * 12.9898) * 43758.5453));
-}
-float prng(const float seed, const float min, const float max)
-{
-	return min + (max - min) * fraction(abs(sin(seed * 12.9898) * 43758.5453));
-}
-float prng(const float seed, const float range)
-{
-	return range * (fraction(abs(sin(seed * 12.9898) * 43758.5453)) * 2.0 - 1.0);
-}
-float prng2(const float x, const float y)
-{
-  return fraction(abs(sin(x * 12.9898 + y * 78.233)) * 43758.5453);
-}
-float prng2(const float x, const float y, const float min, const float max)
-{
-	return min + (max - min) * fraction(abs(sin(x * 12.9898 + y * 78.233)) * 43758.5453);
-}
-float prng2(const float x, const float y, const float range)
-{
-	return range * (fraction(abs(sin(x * 12.9898 + y * 78.233)) * 43758.5453) * 2.0 - 1.0);
 }
 
 bool is_nan(const float x)

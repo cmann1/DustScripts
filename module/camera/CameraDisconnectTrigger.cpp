@@ -1,5 +1,8 @@
-#include 'EnterExitTrigger.cpp';
+#include '../../lib/triggers/EnterExitTrigger.cpp';
 
+/** Detaches the camera from the current node/path when the player enters.
+ * If `connect_node` is set, will attempt to connect the camera to the path the given node is on.
+ */
 class CameraDisconnectTrigger : trigger_base, EnterExitTrigger
 {
 	

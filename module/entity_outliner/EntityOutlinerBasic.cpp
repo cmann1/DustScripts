@@ -7,24 +7,24 @@
 class EntityOutlinerBasic
 {
 	
-	[text] bool enabled = true;
+	[persist] bool enabled = true;
 	[colour,alpha] uint colour = 0xffffffff;
-	[text] bool draw_double = true;
-	[text] bool outline_player = true;
-	[text] bool outline_prisms = true;
-	[text] bool scale_with_camera = false;
+	[persist] bool draw_double = true;
+	[persist] bool outline_player = true;
+	[persist] bool outline_prisms = true;
+	[persist] bool scale_with_camera = false;
 	
-	[text] int player_layer = 18;
-	[text] int player_sublayer = 9;
+	[persist] int player_layer = 18;
+	[persist] int player_sublayer = 9;
 	
-	[text] int enemy_layer = 18;
-	[text] int enemy_sublayer = 7;
+	[persist] int enemy_layer = 18;
+	[persist] int enemy_sublayer = 7;
 	
-	[text] int apple_layer = 18;
-	[text] int apple_sublayer = 6;
+	[persist] int apple_layer = 18;
+	[persist] int apple_sublayer = 6;
 	
-	[text] float offset_x = -2;
-	[text] float offset_y = 2;
+	[persist] float offset_x = -2;
+	[persist] float offset_y = 2;
 	
 	private scene@ g;
 	private camera@ cam;

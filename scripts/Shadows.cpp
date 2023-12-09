@@ -12,10 +12,10 @@ class script
 	controllable@ player;
 	
 	// !! DEBUG !!
-//	int debug_edges_size = 400;
-//	int debug_edges_count;
-//	array<float> edges_debug(debug_edges_size);
-//	textfield@ debug_text;
+	//int debug_edges_size = 400;
+	//int debug_edges_count;
+	//array<float> edges_debug(debug_edges_size);
+	//textfield@ debug_text;
 	
 	int facing_edges_size = 400;
 	int facing_edges_count;
@@ -39,11 +39,11 @@ class script
 		@g = get_scene();
 		
 		// !! DEBUG !!
-//		@debug_text = create_textfield();
-//		debug_text.align_vertical(-1);
-//		debug_text.align_horizontal(-1);
-//		debug_text.colour(0xFFFF0000);
-//		debug_text.set_font('ProximaNovaReg', 26);
+		//@debug_text = create_textfield();
+		//debug_text.align_vertical(-1);
+		//debug_text.align_horizontal(-1);
+		//debug_text.colour(0xFFFF0000);
+		//debug_text.set_font('ProximaNovaReg', 26);
 	}
 	
 	void checkpoint_load()
@@ -103,8 +103,8 @@ class script
 		float x1, y1, x2, y2;
 		
 		// !! DEBUG !!
-//		int debug_edges_count = 0;
-//		int debug_edges_size = this.debug_edges_size;
+		//int debug_edges_count = 0;
+		//int debug_edges_size = this.debug_edges_size;
 		
 		int facing_edges_count = 0;
 		int facing_edges_size = this.facing_edges_size;
@@ -125,11 +125,11 @@ class script
 					facing_edges.resize(facing_edges_size);
 				}
 				// !! DEBUG !!
-//				if(debug_edges_count + 16 > debug_edges_size)
-//				{
-//					debug_edges_size += 100;
-//					edges_debug.resize(debug_edges_size);
-//				}
+				//if(debug_edges_count + 16 > debug_edges_size)
+				//{
+				//	debug_edges_size += 100;
+				//	edges_debug.resize(debug_edges_size);
+				//}
 				
 				const int type = tile_info.type();
 				
@@ -153,8 +153,8 @@ class script
 					}
 					
 					// !! DEBUG !!
-//					edges_debug[debug_edges_count++] = x1; edges_debug[debug_edges_count++] = y1;
-//					edges_debug[debug_edges_count++] = x2; edges_debug[debug_edges_count++] = y2;
+					//edges_debug[debug_edges_count++] = x1; edges_debug[debug_edges_count++] = y1;
+					//edges_debug[debug_edges_count++] = x2; edges_debug[debug_edges_count++] = y2;
 				}
 				
 				if(tile_info.edge_right() & 0x8 != 0)
@@ -173,8 +173,8 @@ class script
 					}
 					
 					// !! DEBUG !!
-//					edges_debug[debug_edges_count++] = x1; edges_debug[debug_edges_count++] = y1;
-//					edges_debug[debug_edges_count++] = x2; edges_debug[debug_edges_count++] = y2;
+					//edges_debug[debug_edges_count++] = x1; edges_debug[debug_edges_count++] = y1;
+					//edges_debug[debug_edges_count++] = x2; edges_debug[debug_edges_count++] = y2;
 				}
 				
 				if(tile_info.edge_top() & 0x8 != 0)
@@ -193,8 +193,8 @@ class script
 					}
 					
 					// !! DEBUG !!
-//					edges_debug[debug_edges_count++] = x1; edges_debug[debug_edges_count++] = y1;
-//					edges_debug[debug_edges_count++] = x2; edges_debug[debug_edges_count++] = y2;
+					//edges_debug[debug_edges_count++] = x1; edges_debug[debug_edges_count++] = y1;
+					//edges_debug[debug_edges_count++] = x2; edges_debug[debug_edges_count++] = y2;
 				}
 				
 				if(tile_info.edge_bottom() & 0x8 != 0)
@@ -213,8 +213,8 @@ class script
 					}
 					
 					// !! DEBUG !!
-//					edges_debug[debug_edges_count++] = x1; edges_debug[debug_edges_count++] = y1;
-//					edges_debug[debug_edges_count++] = x2; edges_debug[debug_edges_count++] = y2;
+					//edges_debug[debug_edges_count++] = x1; edges_debug[debug_edges_count++] = y1;
+					//edges_debug[debug_edges_count++] = x2; edges_debug[debug_edges_count++] = y2;
 				}
 			}
 		}
@@ -223,11 +223,11 @@ class script
 		this.facing_edges_size = facing_edges_size;
 		
 		// !! DEBUG !!
-//		this.debug_edges_count = debug_edges_count;
-//		debug_text.text(
-//			'Edges tested: ' + (this.debug_edges_count / 4) + '\n' +
-//			'Edges drawn : ' + (this.facing_edges_count / 4) + '\n'
-//		);
+		//this.debug_edges_count = debug_edges_count;
+		//debug_text.text(
+		//	'Edges tested: ' + (this.debug_edges_count / 4) + '\n' +
+		//	'Edges drawn : ' + (this.facing_edges_count / 4) + '\n'
+		//);
 	}
 	
 	void draw(float sub_frame)
@@ -236,24 +236,24 @@ class script
 			return;
 			
 		// !! DEBUG !!
-//		for(int i = 0; i < debug_edges_count; i += 4)
-//		{
-//			const float x1 = edges_debug[i];
-//			const float y1 = edges_debug[i + 1];
-//			const float x2 = edges_debug[i + 2];
-//			const float y2 = edges_debug[i + 3];
-//			g.draw_line(21, 19, x1, y1, x2, y2, 3, 0xFFFF0000);
-//		}
+		//for(int i = 0; i < debug_edges_count; i += 4)
+		//{
+		//	const float x1 = edges_debug[i];
+		//	const float y1 = edges_debug[i + 1];
+		//	const float x2 = edges_debug[i + 2];
+		//	const float y2 = edges_debug[i + 3];
+		//	g.draw_line(21, 19, x1, y1, x2, y2, 3, 0xFFFF0000);
+		//}
 		
 		// !! DEBUG !!
-//		for(int i = 0; i < facing_edges_count; i += 4)
-//		{
-//			const float x1 = facing_edges[i];
-//			const float y1 = facing_edges[i + 1];
-//			const float x2 = facing_edges[i + 2];
-//			const float y2 = facing_edges[i + 3];
-//			g.draw_line(22, 20, x1, y1, x2, y2, 4, 0xFF0000FF);
-//		}
+		//for(int i = 0; i < facing_edges_count; i += 4)
+		//{
+		//	const float x1 = facing_edges[i];
+		//	const float y1 = facing_edges[i + 1];
+		//	const float x2 = facing_edges[i + 2];
+		//	const float y2 = facing_edges[i + 3];
+		//	g.draw_line(22, 20, x1, y1, x2, y2, 4, 0xFF0000FF);
+		//}
 		
 		const uint shadow_colour = this.shadow_colour;
 		const uint shadow_layer = this.shadow_layer;
@@ -279,20 +279,20 @@ class script
 				shadow_colour, shadow_colour, shadow_colour, shadow_colour);
 			
 			// !! DEBUG !!
-//			g.draw_line(22, 20, x1, y1, x1 + dx1 * dist, y1 + dy1 * dist, 1, 0xFF0000FF);
-//			g.draw_line(22, 20, x2, y2, x2 + dx2 * dist, y2 + dy2 * dist, 1, 0xFF0000FF);
+			//g.draw_line(22, 20, x1, y1, x1 + dx1 * dist, y1 + dy1 * dist, 1, 0xFF0000FF);
+			//g.draw_line(22, 20, x2, y2, x2 + dx2 * dist, y2 + dy2 * dist, 1, 0xFF0000FF);
 		}
 		
 		const uint shadow_transparent_colour = shadow_colour & 0xFFFFFF;
 		
 		if(light_radius > 0)
 		{
-			fill_circle_outside(g, shadow_layer, shadow_sublayer, light_x, light_y, light_radius, light_radius_segments, shadow_colour, shadow_colour);
-			fill_circle(g, shadow_layer, shadow_sublayer, light_x, light_y, light_radius, light_radius_segments, shadow_transparent_colour, shadow_colour);
+			drawing::fill_circle_outside(g, shadow_layer, shadow_sublayer, light_x, light_y, light_radius, light_radius_segments, shadow_colour, shadow_colour);
+			drawing::fill_circle(g, shadow_layer, shadow_sublayer, light_x, light_y, light_radius, light_radius_segments, shadow_transparent_colour, shadow_colour);
 		}
 		
 		// !! DEBUG !!
-//		debug_text.draw_hud(22, 22, SCREEN_LEFT + 10, SCREEN_TOP + 10, 1, 1, 0);
+		//debug_text.draw_hud(22, 22, SCREEN_LEFT + 10, SCREEN_TOP + 10, 1, 1, 0);
 	}
 	
 }

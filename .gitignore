@@ -3,8 +3,10 @@
 # Un-ignore all of subtree
 !.gitignore
 !README.md
-!/lib/
 !/ed/
+!/lib/
+!/module/
+!/scripts/
 !/shared/
 !/_templates/
 ed/adv_tools/

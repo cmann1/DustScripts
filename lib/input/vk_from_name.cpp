@@ -1,6 +1,7 @@
 namespace VK
 {
 	
+	/** Converts a string to a VK code. */
 	int from_name(const string &in name)
 	{
 		if(name == 'LeftButton') return 0x01;
@@ -190,6 +191,7 @@ namespace VK
 		return 0;
 	}
 	
+	/** Converts a VK code to a readable string. */
 	string to_name(const int vk)
 	{
 		switch(vk)

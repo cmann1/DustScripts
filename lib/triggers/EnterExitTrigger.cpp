@@ -1,4 +1,4 @@
-/// Tracks entities to provide enter and exit events for triggers.
+/** Tracks entities to provide enter and exit events for triggers. */
 mixin class EnterExitTrigger
 {
 	
@@ -8,7 +8,7 @@ mixin class EnterExitTrigger
 	protected int entities_enter_exit_list_count;
 	protected int entities_enter_exit_list_size;
 	
-	/// Must be called during normal trigger activation.
+	/** Must be called during normal trigger activation. */
 	void activate_enter_exit(controllable@ c)
 	{
 		if(!can_trigger_enter_exit(c))
@@ -34,7 +34,7 @@ mixin class EnterExitTrigger
 		on_trigger_enter(c);
 	}
 	
-	/// Must be called during normal trigger step.
+	/** Must be called during normal trigger step. */
 	void step_enter_exit()
 	{
 		for(int i = entities_enter_exit_list_count - 1; i >= 0 ; i--)
@@ -55,19 +55,19 @@ mixin class EnterExitTrigger
 		}
 	}
 	
-	/// Can be implemented to filter which entities will activate the trigger.
+	/** Can be implemented to filter which entities will activate the trigger. */
 	bool can_trigger_enter_exit(controllable@ c)
 	{
 		return true;
 	}
 	
-	/// Implement to receive events when entities enter the trigger for the first time.
+	/** Implement to receive events when entities enter the trigger for the first time. */
 	void on_trigger_enter(controllable@ c)
 	{
 		
 	}
 	
-	/// Implement to receive events when entities exit the trigger.
+	/** Implement to receive events when entities exit the trigger. */
 	void on_trigger_exit(controllable@ c)
 	{
 		

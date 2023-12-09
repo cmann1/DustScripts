@@ -5,7 +5,7 @@
 #include '../../lib/utils/colour.cpp';
 
 #include 'EntityOutlinerSettings.cpp';
-#include 'Triggers.cpp';
+#include 'triggers.cpp';
 
 class EntityOutliner : callback_base
 {

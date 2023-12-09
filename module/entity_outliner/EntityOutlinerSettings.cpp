@@ -5,36 +5,36 @@
 class EntityOutlinerSettings
 {
 	
-	[text] bool enabled = true;
+	[persist] bool enabled = true;
 	[colour,alpha] uint colour1 = 0xffffffff;
 	[colour,alpha] uint colour2 = 0xffffffff;
-	[text] bool draw_double = true;
-	[text] bool outline_player = true;
-	[text] bool outline_prisms = true;
-	[text] bool scale_with_camera = false;
+	[persist] bool draw_double = true;
+	[persist] bool outline_player = true;
+	[persist] bool outline_prisms = true;
+	[persist] bool scale_with_camera = false;
 	
-	[text] int player_layer1 = 18;
-	[text] int player_sublayer1 = 9;
-	[text|tooltip:'Settings for the second sprite when DrawDouble is on.\nLeave at -1 to use the same value as the first']
+	[persist] int player_layer1 = 18;
+	[persist] int player_sublayer1 = 9;
+	[persist|tooltip:'Settings for the second sprite when DrawDouble is on.\nLeave at -1 to use the same value as the first']
 	int player_layer2 = -1;
-	[text] int player_sublayer2 = -1;
+	[persist] int player_sublayer2 = -1;
 	
-	[text] int enemy_layer1 = 18;
-	[text] int enemy_sublayer1 = 7;
-	[text] int enemy_layer2 = -1;
-	[text] int enemy_sublayer2 = -1;
+	[persist] int enemy_layer1 = 18;
+	[persist] int enemy_sublayer1 = 7;
+	[persist] int enemy_layer2 = -1;
+	[persist] int enemy_sublayer2 = -1;
 	
-	[text] int apple_layer1 = 18;
-	[text] int apple_sublayer1 = 6;
-	[text] int apple_layer2 = -1;
-	[text] int apple_sublayer2 = -1;
+	[persist] int apple_layer1 = 18;
+	[persist] int apple_sublayer1 = 6;
+	[persist] int apple_layer2 = -1;
+	[persist] int apple_sublayer2 = -1;
 	
-	[text] float offset1_x = -2;
-	[text] float offset1_y = 2;
-	[text] float offset2_x = 2;
-	[text] float offset2_y = -2;
-	[text] float scale1 = 1;
-	[text] float scale2 = 1;
+	[persist] float offset1_x = -2;
+	[persist] float offset1_y = 2;
+	[persist] float offset2_x = 2;
+	[persist] float offset2_y = -2;
+	[persist] float scale1 = 1;
+	[persist] float scale2 = 1;
 	
 	float transition;
 	float t;

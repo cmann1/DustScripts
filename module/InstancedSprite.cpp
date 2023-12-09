@@ -1,26 +1,25 @@
-#include '../std.cpp';
-#include '../math/math.cpp';
-#include '../input/Mouse.cpp';
-#include '../enums/GVB.cpp';
+#include '../lib/std.cpp';
+#include '../lib/input/GVB.cpp';
+#include '../lib/input/Mouse.cpp';
+#include '../lib/math/math.cpp';
 
 class InstancedSprite : trigger_base
 {
 	
+	[persist] string set = 'script';
+	[persist] string sprite = '';
+	[persist] array<InstancedSpriteEntry> instances;
+	
 	scene@ g;
 	scripttrigger@ self;
 	
-	Mouse mouse(false);
-	editor_api@ editor;
-	SpriteInstance@ active = null;
-	bool dragging;
-	bool rotating;
-	float rotate_start;
-	
-	[text] string set = 'script';
-	[text] string sprite = '';
-	[text] array<SpriteInstance> instances;
-	
-	int instance_count = 0;
+	private Mouse mouse(false);
+	private editor_api@ editor;
+	private InstancedSpriteEntry@ active = null;
+	private bool dragging;
+	private bool rotating;
+	private float rotate_start;
+	private float drag_x, drag_y;
 	
 	sprites@ spr;
 	
@@ -33,16 +32,15 @@ class InstancedSprite : trigger_base
 	void init(script@ s, scripttrigger@ self)
 	{
 		@this.self = self;
-		instance_count = instances.length();
 		spr.add_sprite_set(set);
 		self.editor_handle_size(6);
 	}
 	
 	void draw(float sub_frame)
 	{
-		for(int i = 0; i < instance_count; i++)
+		for(uint i = 0; i < instances.length; i++)
 		{
-			SpriteInstance@ instance = @instances[i];
+			InstancedSpriteEntry@ instance = @instances[i];
 			spr.draw_world(instance.layer, instance.sub_layer, sprite, 0, 0, instance.x, instance.y, instance.rotation, instance.scale_x, instance.scale_y, 0xFFFFFFFF);
 		}
 	}
@@ -61,16 +59,15 @@ class InstancedSprite : trigger_base
 		
 		if(mouse.left_press && editor.key_check_gvb(GVB::Shift))
 		{
-			instance_count++;
-			instances.resize(instance_count);
-			@active = @instances[instance_count - 1];
+			instances.resize(instances.length + 1);
+			@active = @instances[instances.length - 1];
 			dragging = true;
 		}
 		
 		if(dragging)
 		{
-			active.x = mouse.x;
-			active.y = mouse.y;
+			active.x = mouse.x + drag_x;
+			active.y = mouse.y + drag_y;
 			
 			if(!mouse.left_down)
 			{
@@ -79,57 +76,57 @@ class InstancedSprite : trigger_base
 			}
 		}
 		
-		for(int i = int(instances.length()) - 1; i >= 0; i--)
+		for(int i = int(instances.length) - 1; i >= 0; i--)
 		{
-			SpriteInstance@ instance = @instances[i];
+			InstancedSpriteEntry@ instance = @instances[i];
 			const float x = instance.x;
 			const float y = instance.y;
 			
-			if(abs(x - mouse.x) <= 4 && abs(y - mouse.y) <= 4)
+			if(abs(x - mouse.x) > 4 || abs(y - mouse.y) > 4)
+				continue;
+			if(@active != null)
+				continue;
+			
+			if(mouse.left_press)
 			{
-				if(@active == null)
+				@active = instance;
+				dragging = true;
+				drag_x = x - mouse.x;
+				drag_y = y - mouse.y;
+			}
+			else if(mouse.middle_press)
+			{
+				if(editor.key_check_gvb(GVB::Alt))
 				{
-					if(mouse.left_press)
+					if(editor.key_check_gvb(GVB::Shift))
 					{
-						@active = instance;
-						dragging = true;
+						instance.scale_y = -instance.scale_y;
 					}
-					else if(mouse.middle_press)
+					else
 					{
-						if(editor.key_check_gvb(GVB::Alt))
-						{
-							if(editor.key_check_gvb(GVB::Shift))
-							{
-								instance.scale_y = -instance.scale_y;
-							}
-							else
-							{
-								instance.scale_x = -instance.scale_x;
-							}
-						}
-						else
-						{
-							rotate_start = atan2(y - mouse.y, x - mouse.x) * RAD2DEG - instance.rotation;
-							@active = instance;
-							rotating = true;
-						}
+						instance.scale_x = -instance.scale_x;
 					}
-					else if(mouse.right_press)
-					{
-						instances.removeAt(i);
-						instance_count--;
-					}
-					else if(mouse.scroll != 0)
-					{
-						if(!editor.key_check_gvb(GVB::Alt))
-						{
-							instance.layer = clamp(instance.layer + mouse.scroll, 0, 20);
-						}
-						else
-						{
-							instance.sub_layer = clamp(instance.sub_layer + mouse.scroll, 0, 24);
-						}
-					}
+				}
+				else
+				{
+					rotate_start = atan2(y - mouse.y, x - mouse.x) * RAD2DEG - instance.rotation;
+					@active = instance;
+					rotating = true;
+				}
+			}
+			else if(mouse.right_press)
+			{
+				instances.removeAt(i);
+			}
+			else if(mouse.scroll != 0)
+			{
+				if(!editor.key_check_gvb(GVB::Alt))
+				{
+					instance.layer = clamp(instance.layer + mouse.scroll, 0, 20);
+				}
+				else
+				{
+					instance.sub_layer = clamp(instance.sub_layer + mouse.scroll, 0, 24);
 				}
 			}
 		}
@@ -157,7 +154,7 @@ class InstancedSprite : trigger_base
 		
 		for(int i = int(instances.length()) - 1; i >= 0; i--)
 		{
-			SpriteInstance@ instance = @instances[i];
+			InstancedSpriteEntry@ instance = @instances[i];
 			const float x = instance.x;
 			const float y = instance.y;
 			
@@ -181,15 +178,15 @@ class InstancedSprite : trigger_base
 	
 }
 
-class SpriteInstance
+class InstancedSpriteEntry
 {
 	
 	[position,layer:19,y:y] float x = 0;
 	[hidden] float y = 0;
-	[text] int layer = 19;
-	[text] int sub_layer = 19;
+	[persist] int layer = 19;
+	[persist] int sub_layer = 19;
 	[angle] float rotation = 0;
-	[text] float scale_x = 1;
-	[text] float scale_y = 1;
+	[persist] float scale_x = 1;
+	[persist] float scale_y = 1;
 	
 }

@@ -1,5 +1,6 @@
 #include '../enums/AttackType.cpp';
 
+/** Returns the correct sprite name, frame, and facing based on the entity's state and attack state. */
 void get_entity_sprite_info(
 	controllable@ e, string &out sprite_name, uint &out frame, int &out face)
 {

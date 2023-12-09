@@ -1,27 +1,30 @@
 #include '../emitters/EmitterBurstManager.cpp';
 #include '../utils/RandomStream.cpp';
 
-/// Manages cleaning dustblocks similar to how it's done by the engine/dustman.
-/// Call clear on `cechkpoint_load` and `update` in step.
+/**
+ * Manages cleaning dustblocks similar to how it's done by the engine/dustman.
+ * Call `clear()` on `checkpoint_load` and `update()` in `step`.
+ */
 class DustblockCleaner
 {
 	
-	/// If set will use this instead of the built in rand() method.
+	/** If set will use this instead of the built in `rand()` method. */
 	RandomStream@ rng;
-	/// If set will create emitter bursts using the built in particle burst API when blocks are cleared.
+	/** If set will create emitter bursts using the built in particle burst API when blocks are cleared. */
 	bool create_particles = true;
-	/// If set will create emitter bursts when blocks are cleared.
+	/** If set will create emitter bursts when blocks are cleared. */
 	EmitterBurstManager@ emitter_bursts;
-	/// If true will play sounds when blocks are cleared.
+	/** If true will play sounds when blocks are cleared. */
 	bool play_sounds = true;
-	// If true only dusblocks can be cleared.
+	/** If true only dusblocks can be cleared. */
 	bool only_dustblocks = true;
-	/// Controls how quickly the timer for invisible cleared tiles runs down.
+	/** Controls how quickly the timer for invisible cleared tiles runs down. */
 	float clear_increment = 30;
 	
+	/** If `emitter_bursts` is set, can be used to control how particles are spawn. */
 	EmitterBurstSettings emitter_settings(
 		0, 18, 3, 48, 48, 12, 1);
-	
+
 	protected scene@ g;
 	
 	protected int pending_tiles_size = 32;
@@ -35,12 +38,17 @@ class DustblockCleaner
 		@this.g = g;
 	}
 	
+	/** Must be called on `checkpoint_load`. */
 	void clear()
 	{
 		pending_tiles_count = 0;
 		sound_count = 0;
 	}
 	
+	/** Clears all  tiles within th given rect, inclusive.
+	 * @param time See `clean_tile`.
+	 * @return The number of tiles queued for cleaning.
+	 */
 	int clean_rect(const float x1, const float y1, const float x2, const float y2, const float time = 0)
 	{
 		const int tx1 = int(floor(x1 / 48.0));
@@ -64,6 +72,10 @@ class DustblockCleaner
 		return clean_count;
 	}
 	
+	/** Clears all tiles within the given circle.
+	 * @param time See `clean_tile`.
+	 * @return The number of tiles queued for cleaning.
+	 */
 	int clean_circle(const float x, const float y, const float radius, const float time = 0)
 	{
 		const int tx1 = int(floor((x - radius) / 48.0));
@@ -94,9 +106,12 @@ class DustblockCleaner
 		return clean_count;
 	}
 	
-	/// `time` - How long the invisible tiles will persist before being removed.
-	///          Setting this to -1 will clear block immediatelly instead of at the end of the frame when time expires.
-	///          A value of 10 is the default used to clear dust blocks the player touches.
+	/** Clean a single tile. Usually `clean_rect` or `clean_circle` will be used instead.
+	 * @param time How long the invisible tiles will persist before being removed.
+	 *   Setting this to -1 will clear block immediatelly instead of at the end of the frame when time expires.
+	 *   A value of 10 is the default used to clear dust blocks the player touches.
+	 * @return True if 
+	 */
 	bool clean_tile(const int x, const int y, const float time = 0)
 	{
 		tileinfo@ tile = g.get_tile(x, y);
@@ -213,6 +228,7 @@ class DustblockCleaner
 		return true;
 	}
 	
+	/** Must be called during `step`. */
 	void update(const float time_scale)
 	{
 		sound_count = 0;
