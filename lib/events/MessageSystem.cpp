@@ -1,5 +1,12 @@
 funcdef void MessageHandler(const string &in, message@);
 
+interface IMessageSystemSource
+{
+	
+	MessageSystem@ get_message_system();
+	
+}
+
 /** Custom global message system. Needed because the built in messaging system
  * doesn't clear broadcast receivers when loading checkpoints.
  * This means that adding listeners e.g. in trigger `init` will cause a memory leak
