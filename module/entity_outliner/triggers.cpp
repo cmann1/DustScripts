@@ -32,9 +32,9 @@ class EntityOutlinerReset : trigger_base, EnterExitTrigger
 	void on_trigger_enter(controllable@ c)
 	{
 		message@ msg = create_message();
-		msg.set_entity('trigger', self.as_entity());
-		msg.set_int('player', c.player_index());
-		broadcast_message('EntityOutliner', msg);
+		msg.set_entity(EntityOutliner::StrTrigger, self.as_entity());
+		msg.set_int(EntityOutliner::StrPlayer, c.player_index());
+		broadcast_message(EntityOutliner::StrEntityOutliner, msg);
 		
 		if(only_once)
 		{
@@ -129,20 +129,20 @@ class EntityOutlinerSource : trigger_base, EnterExitTrigger
 			controllable@ c = entities_enter_exit_list[i];
 			float mx, my;
 			c.centre(mx, my);
-			const float t = 1 - clamp01((distance(mx, my, x, y) - min_radius) / (radius - min_radius));
+			const float t = 1 - clamp01((distance(mx, my, x, y) - min_radius) / abs(radius - min_radius));
 			const float offset = lerp(offset_min, offset_max, t);
 			const float angle = atan2(y - my, x - mx);
 			
-			msg.set_int('id', c.id());
-			msg.set_int('sub_layer', sub_layer);
-			msg.set_int('colour', colour);
-			msg.set_float('offset_x', cos(angle) * offset);
-			msg.set_float('offset_y', sin(angle) * offset);
-			msg.set_float('scale', scale);
-			msg.set_int('closest', 1);
-			msg.set_int('fade_global', fade_global ? 1 : 0);
-			msg.set_float('t', t);
-			broadcast_message('EntityOutlinerSource', msg);
+			msg.set_int(EntityOutliner::StrId, c.id());
+			msg.set_int(EntityOutliner::StrSubLayer, sub_layer);
+			msg.set_int(EntityOutliner::StrColour, colour);
+			msg.set_float(EntityOutliner::StrOffsetX, cos(angle) * offset);
+			msg.set_float(EntityOutliner::StrOffsetY, sin(angle) * offset);
+			msg.set_float(EntityOutliner::StrScale, scale);
+			msg.set_int(EntityOutliner::StrClosest, 1);
+			msg.set_int(EntityOutliner::StrFadeGlobal, fade_global ? 1 : 0);
+			msg.set_float(EntityOutliner::StrT, t);
+			broadcast_message(EntityOutliner::StrEntityOutlinerSource, msg);
 		}
 	}
 	

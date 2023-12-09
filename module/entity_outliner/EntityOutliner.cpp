@@ -56,8 +56,8 @@ class EntityOutliner : callback_base
 			settings[i] = defaults;
 		}
 		
-		add_broadcast_receiver('', this, EntityOutlinerBasic::StrOnMessage);
-		add_broadcast_receiver(EntityOutlinerBasic::StrEntityOutlinerEditor, this, EntityOutlinerBasic::StrOnEditorMessage);
+		add_broadcast_receiver('', this, EntityOutliner::StrOnMessage);
+		add_broadcast_receiver(EntityOutliner::StrEntityOutlinerEditor, this, EntityOutliner::StrOnEditorMessage);
 	}
 	
 	void checkpoint_load(camera@ cam)
@@ -153,7 +153,7 @@ class EntityOutliner : callback_base
 			
 			const string type_name = c.type_name();
 			
-			if(c.attack_state() != AttackType::Idle && type_name != EntityOutlinerBasic::StrEnemyStoneboss)
+			if(c.attack_state() != AttackType::Idle && type_name != EntityOutliner::StrEnemyStoneboss)
 			{
 				sprite_name = c.attack_sprite_index();
 				frame = uint(max(c.attack_timer(), 0.0));
@@ -180,7 +180,7 @@ class EntityOutliner : callback_base
 			const float x = lerp(c.prev_x(), c.x(), sub_frame) + draw_offset_x;
 			const float y = lerp(c.prev_y(), c.y(), sub_frame) + draw_offset_y;
 			
-			if(type_name == EntityOutlinerBasic::StrEnemyFlag)
+			if(type_name == EntityOutliner::StrEnemyFlag)
 			{
 				rotation = 0;
 				// TODO: Fix stun offset for flags (I think it requires being able to get draw offset1 and 2 separately)
@@ -190,14 +190,14 @@ class EntityOutliner : callback_base
 			int layer1, sublayer1;
 			int layer2, sublayer2;
 			
-			if(type_name == EntityOutlinerBasic::StrHittableApple)
+			if(type_name == EntityOutliner::StrHittableApple)
 			{
 				layer1 = settings.apple_layer1;
 				sublayer1 = settings.apple_sublayer1;
 				layer2 = settings.apple_layer2;
 				sublayer2 = settings.apple_sublayer2;
 			}
-			else if(type_name.substr(0, 5) == EntityOutlinerBasic::StrDust_)
+			else if(type_name.substr(0, 5) == EntityOutliner::StrDust_)
 			{
 				if(!settings.outline_player)
 					continue;
@@ -316,7 +316,7 @@ class EntityOutliner : callback_base
 				continue;
 			if(c.destroyed())
 				continue;
-			if(!settings.outline_prisms && c.type_name().substr(0, 14) == EntityOutlinerBasic::StrEnemyTutorial)
+			if(!settings.outline_prisms && c.type_name().substr(0, 14) == EntityOutliner::StrEnemyTutorial)
 				continue;
 			
 			entity_list[num_entities++].reset(c);
@@ -325,9 +325,9 @@ class EntityOutliner : callback_base
 	
 	void on_message(string id, message@ msg)
 	{
-		if(id == EntityOutlinerBasic::StrEntityOutlinerSource)
+		if(id == EntityOutliner::StrEntityOutlinerSource)
 		{
-			const int c_id = msg.get_int(EntityOutlinerBasic::StrId);
+			const int c_id = msg.get_int(EntityOutliner::StrId);
 			
 			for(int i = 0; i < num_entities; i++)
 			{
@@ -336,16 +336,16 @@ class EntityOutliner : callback_base
 					continue;
 				
 				// If true, these source settings will only be used if the are stronger/closer than other sources.
-				const bool closest = msg.get_int(EntityOutlinerBasic::StrClosest) == 1;
-				const float t = msg.get_float(EntityOutlinerBasic::StrT);
+				const bool closest = msg.get_int(EntityOutliner::StrClosest) == 1;
+				const float t = msg.get_float(EntityOutliner::StrT);
 				if(!closest || t >= data.t)
 				{
-					data.sub_layer = msg.get_int(EntityOutlinerBasic::StrSubLayer);
-					data.colour = uint(msg.get_int(EntityOutlinerBasic::StrColour));
-					data.offset_x = msg.get_float(EntityOutlinerBasic::StrOffsetX);
-					data.offset_y = msg.get_float(EntityOutlinerBasic::StrOffsetY);
-					data.scale = msg.get_float(EntityOutlinerBasic::StrScale);
-					data.fade_global = msg.get_int(EntityOutlinerBasic::StrFadeGlobal) == 1;
+					data.sub_layer = msg.get_int(EntityOutliner::StrSubLayer);
+					data.colour = uint(msg.get_int(EntityOutliner::StrColour));
+					data.offset_x = msg.get_float(EntityOutliner::StrOffsetX);
+					data.offset_y = msg.get_float(EntityOutliner::StrOffsetY);
+					data.scale = msg.get_float(EntityOutliner::StrScale);
+					data.fade_global = msg.get_int(EntityOutliner::StrFadeGlobal) == 1;
 					data.t = t;
 				}
 				break;
@@ -353,16 +353,16 @@ class EntityOutliner : callback_base
 			return;
 		}
 		
-		if(id != EntityOutlinerBasic::StrEntityOutliner)
+		if(id != EntityOutliner::StrEntityOutliner)
 			return;
 		
-		entity@ e = msg.get_entity(EntityOutlinerBasic::StrTriggerSelect);
+		entity@ e = msg.get_entity(EntityOutliner::StrTrigger);
 		scripttrigger@ st = @e != null ? e.as_scripttrigger() : null;
 		EntityOutlinerReset@ et = @st != null ? cast<EntityOutlinerReset@>(st.get_object()) : null;
 		if(@et == null)
 			return;
 		
-		const int player = msg.get_int(EntityOutlinerBasic::StrPlayer, -1);
+		const int player = msg.get_int(EntityOutliner::StrPlayer, -1);
 		if(player < 0 || player >= num_players)
 			return;
 		
@@ -394,11 +394,11 @@ class EntityOutliner : callback_base
 	
 	void on_editor_message(string id, message@ msg)
 	{
-		const string event = msg.get_string(EntityOutlinerBasic::StrEvent);
+		const string event = msg.get_string(EntityOutliner::StrEvent);
 		
-		if(event == EntityOutlinerBasic::StrTriggerSelect)
+		if(event == EntityOutliner::StrTriggerSelect)
 		{
-			entity@ e = msg.get_entity(EntityOutlinerBasic::StrTrigger);
+			entity@ e = msg.get_entity(EntityOutliner::StrTrigger);
 			scripttrigger@ st = @e != null ? e.as_scripttrigger() : null;
 			@selected_trigger = @st != null ? cast<EntityOutlinerTrigger@>(st.get_object()) : null;
 			
@@ -407,11 +407,11 @@ class EntityOutliner : callback_base
 				settings[0] = selected_trigger.outliner;
 			}
 		}
-		else if(event == EntityOutlinerBasic::StrTriggerDeselect)
+		else if(event == EntityOutliner::StrTriggerDeselect)
 		{
 			@selected_trigger = null;
 		}
-		else if(event == EntityOutlinerBasic::StrTriggerUpdate)
+		else if(event == EntityOutliner::StrTriggerUpdate)
 		{
 			if(@selected_trigger != null)
 			{
@@ -444,7 +444,7 @@ class ControllableOutlineData
 }
 
 /// String literals appear to be relatively expensive - caching them in constants seems to help.
-namespace EntityOutlinerBasic
+namespace EntityOutliner
 {
 	
 	const string StrEnemyStoneboss = 'enemy_stoneboss';
