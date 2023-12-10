@@ -1,3 +1,4 @@
+#include '../../debug/Debug.cpp'
 #include '../../drawing/common.cpp'
 #include '../../math/math.cpp';
 
