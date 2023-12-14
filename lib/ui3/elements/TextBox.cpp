@@ -1,6 +1,6 @@
-#include '../../enums/VK.cpp';
-#include '../../enums/GVB.cpp';
 #include '../../input/common.cpp';
+#include '../../input/VK.cpp';
+#include '../../input/GVB.cpp';
 #include '../../input/Keyboard.cpp';
 #include '../../string.cpp';
 #include '../utils/CharacterValidation.cpp';

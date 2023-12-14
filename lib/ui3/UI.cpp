@@ -2,7 +2,7 @@
 #include '../string.cpp';
 #include '../fonts.cpp';
 #include '../input/common.cpp';
-#include '../enums/GVB.cpp';
+#include '../input/GVB.cpp';
 #include '../input/Keyboard.cpp';
 #include '../input/IKeyboardFocusListener.cpp';
 #include '../math/math.cpp';

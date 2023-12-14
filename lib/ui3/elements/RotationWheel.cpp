@@ -1,5 +1,5 @@
 #include '../../math/math.cpp';
-#include '../../enums/VK.cpp';
+#include '../../input/VK.cpp';
 #include '../../string.cpp';
 #include 'LockedContainer.cpp';
 #include 'Image.cpp';

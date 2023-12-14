@@ -1,4 +1,4 @@
-#include '../enums/GVB.cpp';
+#include '../input/GVB.cpp';
 
 namespace input_api
 {

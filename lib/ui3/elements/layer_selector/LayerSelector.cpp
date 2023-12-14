@@ -1,5 +1,5 @@
 #include '../../../fonts.cpp';
-#include '../../../enums/GVB.cpp';
+#include '../../../input/GVB.cpp';
 #include '../../../math/math.cpp';
 #include '../../utils/GraphicAlign.cpp';
 #include '../../events/Event.cpp';

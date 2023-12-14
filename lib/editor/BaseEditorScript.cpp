@@ -2,11 +2,11 @@
 #include '../drawing/common.cpp';
 #include '../drawing/circle.cpp';
 #include '../drawing/Sprite.cpp';
+#include '../input/GVB.cpp';
 #include '../input/Mouse.cpp';
 #include '../fonts.cpp';
 #include '../math/math.cpp';
 #include '../layer.cpp';
-#include '../enums/GVB.cpp';
 #include 'IEditable.cpp';
 #include 'EditorMouseResult.cpp';
 #include 'draw/EditorArc.cpp';
