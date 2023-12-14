@@ -135,7 +135,7 @@ namespace string
 			while(text[end_index] == 48) // "0"
 				end_index--;
 			
-			while(text[end_index] == 46) // "."
+			while(text[end_index] == 46 || text[end_index] == 44) // "." or ","
 				end_index--;
 			
 			if(end_index == -1)
