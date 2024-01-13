@@ -129,10 +129,10 @@ class ScrollView : LockedContainer
 		const bool prev_scroll_vertical = @scrollbar_vertical != null && scrollbar_vertical._visible;
 		const bool prev_scroll_horizontal = @scrollbar_horizontal != null && scrollbar_horizontal._visible;
 		
-		const float padding_left	= is_nan(this.content_padding_left)		? ui.style.spacing : this.content_padding_left;
-		const float padding_right	= is_nan(this.content_padding_right)	? ui.style.spacing : this.content_padding_right;
-		const float padding_top		= is_nan(this.content_padding_top)		? ui.style.spacing : this.content_padding_top;
-		const float padding_bottom	= is_nan(this.content_padding_bottom)	? ui.style.spacing : this.content_padding_bottom;
+		const float padding_left	= layout_padding_left;
+		const float padding_right	= layout_padding_right;
+		const float padding_top		= layout_padding_top;
+		const float padding_bottom	= layout_padding_bottom;
 		const float padding_h		= padding_left + padding_right;
 		const float padding_v		= padding_top + padding_bottom;
 		
@@ -321,7 +321,7 @@ class ScrollView : LockedContainer
 		if(scroll && scrollbar_vertical._visible)
 		{
 			scrollbar_vertical.x = _content._x + _content._width;
-			scrollbar_vertical.y = ui.style.spacing;
+			scrollbar_vertical.y = layout_padding_top;
 			scrollbar_vertical.height = _content._height;
 		}
 		else
@@ -340,7 +340,7 @@ class ScrollView : LockedContainer
 		
 		if(scroll && scrollbar_horizontal._visible)
 		{
-			scrollbar_horizontal.x = ui.style.spacing;
+			scrollbar_horizontal.x = layout_padding_left;
 			scrollbar_horizontal.y = _content._y + _content._height;
 			scrollbar_horizontal.width = _content._width;
 		}
