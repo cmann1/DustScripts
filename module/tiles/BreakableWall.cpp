@@ -16,7 +16,8 @@ class BreakableWall : enemy_base, callback_base
 	[persist] int layer = -1;
 	[persist] int sublayer = -1;
 	
-	/** The main `script` must implement `IMessageSystemSource` for these events to work.
+	/** If the main `script` implements `IMessageSystemSource`, messages will be broadcast via the `MessageSystem`, otherwise
+	 * the built-in `broadcast_message` will be used.
 	 * If not blank broadcasts an event when hit for the first time. */
 	[persist] string first_hit_event = '';
 	/** If not blank broadcasts an event when a tile is destroyed. */
@@ -281,8 +282,6 @@ class BreakableWall : enemy_base, callback_base
 	
 	private void trigger_event(const string event, const string type, BreakableWallTile@ t=null)
 	{
-		if(@messages == null)
-			return;
 		if(event == '')
 			return;
 		
@@ -295,7 +294,14 @@ class BreakableWall : enemy_base, callback_base
 			msg.set_int('x', t.x);
 			msg.set_int('y', t.y);
 		}
-		messages.broadcast(event, msg);
+		if(@messages != null)
+		{
+			messages.broadcast(event, msg);
+		}
+		else
+		{
+			broadcast_message(event, msg);
+		}
 	}
 	
 	void editor_step()
