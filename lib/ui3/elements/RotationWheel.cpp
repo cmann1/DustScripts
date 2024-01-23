@@ -1,6 +1,6 @@
 #include '../../math/math.cpp';
 #include '../../input/VK.cpp';
-#include '../../string.cpp';
+#include '../../string/common.cpp';
 #include 'LockedContainer.cpp';
 #include 'Image.cpp';
 #include '../events/Event.cpp';

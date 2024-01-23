@@ -3,7 +3,7 @@
 #include '../TextAlign.cpp';
 #include '../../math/math.cpp';
 #include '../../utils/colour.cpp';
-#include '../../string.cpp';
+#include '../../string/common.cpp';
 #include '../events/Event.cpp';
 #include '../utils/Orientation.cpp';
 #include 'Button.cpp';

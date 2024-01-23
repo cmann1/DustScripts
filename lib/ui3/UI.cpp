@@ -1,11 +1,11 @@
 #include '../std.cpp';
-#include '../string.cpp';
 #include '../fonts.cpp';
 #include '../input/common.cpp';
 #include '../input/GVB.cpp';
 #include '../input/Keyboard.cpp';
 #include '../input/IKeyboardFocusListener.cpp';
 #include '../math/math.cpp';
+#include '../string/common.cpp';
 #include '../utils/colour.cpp';
 #include 'UIMouse.cpp';
 #include 'Style.cpp';

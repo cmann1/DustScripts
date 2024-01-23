@@ -2,7 +2,7 @@
 #include '../../input/VK.cpp';
 #include '../../input/GVB.cpp';
 #include '../../input/Keyboard.cpp';
-#include '../../string.cpp';
+#include '../../string/common.cpp';
 #include '../utils/CharacterValidation.cpp';
 #include '../../input/navigation/INavigable.cpp';
 #include '../utils/Overflow.cpp';

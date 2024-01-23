@@ -1,5 +1,5 @@
 #include '../std.cpp';
-#include '../string.cpp';
+#include '../string/common.cpp';
 
 namespace colour
 {

@@ -1,7 +1,6 @@
 #include '../input/common.cpp';
 #include '../input/GVB.cpp';
 #include '../input/VK.cpp';
-#include '../string.cpp';
 #include 'navigation/navigation.cpp';
 #include 'navigation/INavigable.cpp';
 #include 'IKeyboardFocusListener.cpp';
