@@ -103,11 +103,12 @@ class TileBaseTrigger : trigger_base
 		
 		const float sx = self.x();
 		const float sy = self.y();
-		const float r = self.radius();
-		const int x1 = int(floor((sx - r) / 48));
-		const int y1 = int(floor((sy - r) / 48));
-		const int x2 = int(floor((sx + r) / 48));
-		const int y2 = int(floor((sy + r) / 48));
+		const float w = self.radius();
+		const float h = self.height() != -1 ? float(self.height()) : w;
+		const int x1 = int(floor((sx - w) / 48));
+		const int y1 = int(floor((sy - w) / 48));
+		const int x2 = int(floor((sx + h) / 48));
+		const int y2 = int(floor((sy + h) / 48));
 		
 		for(int x = x1; x <= x2; x++)
 		{
