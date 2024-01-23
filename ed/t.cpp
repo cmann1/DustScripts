@@ -1,4 +1,5 @@
 #include '../lib/std.cpp';
+#include '../lib/math/math.cpp';
 #include '../lib/string/parse_range_list.cpp';
 #include '../lib/tiles/common.cpp';
 #include '../lib/tiles/TileEdge.cpp';
@@ -183,7 +184,7 @@ class TileBaseTrigger : trigger_base
 	
 	void activate(controllable @e) {}
 	
-	protected void parse_range(const string &in range_str, array<int>@ result_layers)
+	protected void parse_range(const string &in range_str, array<int>@ result_layers, int min_val=-0x7FFFFFFF, int max_val=0x7FFFFFFF)
 	{
 		parse_results.resize(0);
 		string::parse_range_list(range_str, @parse_results);
@@ -192,8 +193,8 @@ class TileBaseTrigger : trigger_base
 		for(uint i = 0; i < parse_results.length; i += 3)
 		{
 			const int flags = parse_results[i];
-			const int start_index = parse_results[i + 1];
-			const int end_index = parse_results[i + 2];
+			const int start_index = max(parse_results[i + 1], min_val);
+			const int end_index = min(parse_results[i + 2], max_val);
 			for(int j = start_index; j <= end_index; j++)
 			{
 				const int existing_index = result_layers.find(j);
@@ -233,7 +234,7 @@ class CopyTileEdges: TileBaseTrigger
 			return;
 		
 		parsed_target_layer = target_layer;
-		parse_range(target_layer, @target_layers);
+		parse_range(target_layer, @target_layers, 6, 20);
 	}
 	
 	void update_tile(int x, int y, tileinfo@ tile)
@@ -279,7 +280,7 @@ class MoveTiles: TileBaseTrigger
 			return;
 		
 		parsed_target_layer = target_layer;
-		parse_range(target_layer, @target_layers);
+		parse_range(target_layer, @target_layers, 6, 20);
 	}
 	
 	void update_tile(int x, int y, tileinfo@ tile)
