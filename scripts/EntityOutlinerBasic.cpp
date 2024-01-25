@@ -1,4 +1,4 @@
-#include '../map/entity_outliner/EntityOutlinerBasic.cpp';
+#include '../module/entity_outliner/EntityOutlinerBasic.cpp';
 
 class script : callback_base
 {
