@@ -343,8 +343,8 @@ class Container : Element
 					scroll_changed = true;
 				}
 				
-				_scroll_x = clamp(_scroll_x, -(scroll_max_x - _width), 0);
-				_scroll_y = clamp(_scroll_y, -(scroll_max_y - _height), 0);
+				_scroll_x = clamp(_scroll_x, -max(scroll_max_x - _width, 0.0), 0);
+				_scroll_y = clamp(_scroll_y, -max(scroll_max_y - _height, 0.0), 0);
 			}
 			
 			_scrolled_into_view = scroll_changed;
