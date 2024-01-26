@@ -317,7 +317,7 @@ class Scrollbar : Element, IStepHandler
 			? size * (_scroll_visible / scroll_width)
 			: ui.style.scrollbar_fixed_size));
 		position_max = size - thumb_size;
-		thumb_position = scroll_range > 0 ? position_max * ((_position - scroll_min) / scroll_range) : 0;
+		thumb_position = scroll_range > 0 ? position_max * clamp01((_position - scroll_min) / scroll_range) : 0;
 		
 		_position = clamp(_position, scroll_min, scroll_min + scroll_range);
 		update_position();

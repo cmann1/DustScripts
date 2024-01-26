@@ -1322,7 +1322,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	// Misc Utility
 	// ///////////////////////////////////////////////////////////////////
 	
-	/// Finds the start ore end of the next word from start_index in direction dir.
+	/// Finds the start or end of the next word from start_index in direction dir.
 	int find_word_boundary(const int start_index, int dir)
 	{
 		dir = dir >= 0 ? 1 : -1;
@@ -1654,7 +1654,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 			
 			if(character_widths[mid] < x)
 			{
-				left  = mid + 1;
+				left = mid + 1;
 			}
 			else if(character_widths[mid] > x)
 			{

@@ -108,18 +108,13 @@ class ScrollView : LockedContainer
 	{
 		// If the scrollbars are not always queued for layout, then on the first frame one becomes visible it will not be in the layout queue
 		// but will still be drawn on that frame. As a result the drawing which may depend on values calculated during layout will
-		// probably be incorrect and could cause the scrollbar to flash
+		// probably be incorrect and could cause the scrollbar to flash.
 		
 		if(@scrollbar_vertical != null)// && scrollbar_vertical.visible)
 			stack.push(scrollbar_vertical);
 			
 		if(@scrollbar_horizontal != null)// && scrollbar_horizontal.visible)
 			stack.push(scrollbar_horizontal);
-		
-		if(_content.validate_layout)
-		{
-			validate_layout = true;
-		}
 		
 		stack.push(_content);
 	}
@@ -186,6 +181,10 @@ class ScrollView : LockedContainer
 			}
 		}
 		
+		if(_content.validate_layout)
+		{
+			_revalidate = true;
+		}
 		if(validate_layout)
 		{
 			_content.validate_layout = true;
@@ -218,7 +217,9 @@ class ScrollView : LockedContainer
 				content_width -= scrollbar_vertical._width;
 				
 				if(@_content._layout != null)
+				{
 					_content._layout.padding_right = content_padding_right;
+				}
 			}
 		}
 		else if(prev_scroll_vertical)
@@ -226,7 +227,9 @@ class ScrollView : LockedContainer
 			scrollbar_vertical.visible = false;
 			
 			if(@_content._layout != null)
-					_content._layout.padding_right = 0;
+			{
+				_content._layout.padding_right = 0;
+			}
 		}
 		
 		if(needs_scroll_horizontal)
@@ -247,7 +250,9 @@ class ScrollView : LockedContainer
 				content_height -= scrollbar_horizontal._height;
 				
 				if(@_content._layout != null)
+				{
 					_content._layout.padding_bottom = content_padding_bottom;
+				}
 			}
 		}
 		else if(prev_scroll_horizontal)
@@ -255,7 +260,9 @@ class ScrollView : LockedContainer
 			scrollbar_horizontal.visible = false;
 			
 			if(@_content._layout != null)
+			{
 				_content._layout.padding_bottom = 0;
+			}
 		}
 		
 		if(needs_scroll_horizontal != prev_scroll_horizontal || needs_scroll_vertical != prev_scroll_vertical)
@@ -265,6 +272,7 @@ class ScrollView : LockedContainer
 			
 			_content.validate_layout = true;
 			_content._do_layout_internal(ctx);
+			_revalidate = true;
 		}
 		
 		update_vertical_scrollbar(needs_scroll_vertical);
@@ -278,12 +286,29 @@ class ScrollView : LockedContainer
 			previous_scroll_y = _content._scroll_y;
 		}
 		
-//		calculate_scroll_rect(false);
+		// With nested layouts where the children or children's children depends on the ScrollView to determine their
+		// size, the scroll rect may not be calculated correctly.
+		// This should probably be fixed somewhere else but as a kind of a hacky solution, just keep revalidating until the
+		// scroll rect doesn't change.
+		if(
+			prev_scroll_min_x != _content.scroll_min_x || prev_scroll_min_y != _content.scroll_min_y ||
+			prev_scroll_max_x != _content.scroll_max_x || prev_scroll_max_y != _content.scroll_max_y)
+		{
+			_revalidate = true;
+			prev_scroll_min_x = _content.scroll_min_x;
+			prev_scroll_min_y = _content.scroll_min_y;
+			prev_scroll_max_x = _content.scroll_max_x;
+			prev_scroll_max_y = _content.scroll_max_y;
+		}
 		
-//		ui.debug.rect(22, 22,
-//			_content.x1 + _content.scroll_min_x, _content.y1 + _content.scroll_min_y,
-//			_content.x1 + _content.scroll_max_x, _content.y1 + _content.scroll_max_y, 0, 1, 0xaa0000ff, true, 1);
+		//calculate_scroll_rect(false);
+		
+		//ui.debug.rect(22, 22,
+		//	_content.x1 + _content.scroll_min_x, _content.y1 + _content.scroll_min_y,
+		//	_content.x1 + _content.scroll_max_x, _content.y1 + _content.scroll_max_y, 0, 1, 0xaa0000ff, true, 1);
 	}
+	protected float prev_scroll_min_x, prev_scroll_min_y;
+	protected float prev_scroll_max_x, prev_scroll_max_y;
 	
 	protected void do_fit_contents(const bool fit_min) override
 	{
@@ -299,8 +324,8 @@ class ScrollView : LockedContainer
 		
 		// Not exactly sure where the content position is changed.
 		// But it affects the scroll rect calculation
-		_content._x=0;
-		_content._y=0;
+		_content._x = 0;
+		_content._y = 0;
 		_content._layout.padding_left	= EPSILON;
 		_content._layout.padding_top	= EPSILON;
 		_content._layout.padding_right	= EPSILON;

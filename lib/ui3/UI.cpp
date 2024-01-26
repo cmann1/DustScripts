@@ -1351,7 +1351,16 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 				if(element.validate_layout)
 				{
 					element._do_layout(ctx);
-					element.validate_layout = false;
+					
+					if(element._revalidate)
+					{
+						element.validate_layout = element._revalidate;
+						element._revalidate = false;
+					}
+					else
+					{
+						element.validate_layout = false;
+					}
 				}
 				
 				element._get_subtree_insets(ctx.inset_x1, ctx.inset_y1);
@@ -1927,7 +1936,7 @@ class UI : IKeyboardFocusListener, IGenericEventTarget
 						ctx.clipping_mode == ClippingMode::Inside &&
 						element.subtree_x1 >= ctx.x1 && element.subtree_x2 <= ctx.x2 &&
 						element.subtree_y1 >= ctx.y1 && element.subtree_y2 <= ctx.y2) ||
-					_disable_clipping
+					_disable_clipping || element.defer_clipping
 				)
 			)
 			{

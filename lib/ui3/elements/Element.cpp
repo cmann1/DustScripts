@@ -46,6 +46,9 @@ abstract class Element
 	float border_size = 0;
 	
 	int clip_contents = ClippingMode::None;
+	/** If true this element won't be clipped as a whole, instead deferring to child elements.
+	 *  Necessary e.g. for containers within ScrollViews. */
+	bool defer_clipping;
 	float alpha = 1;
 	float override_alpha = -1;
 	
@@ -72,6 +75,7 @@ abstract class Element
 	/// This element bounds including children
 	float subtree_x1, subtree_y1;
 	float subtree_x2, subtree_y2;
+	bool _revalidate;
 	
 	LayoutAnchor anchor_left(Left);
 	LayoutAnchor anchor_right(Right);
