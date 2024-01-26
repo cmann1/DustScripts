@@ -47,10 +47,15 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	protected string _allowed_characters = '';
 	protected array<bool> _allowed_characters_list;
 	
-	protected float padding_left;
-	protected float padding_right;
-	protected float padding_top;
-	protected float padding_bottom;
+	protected float _padding_left;
+	protected float _padding_right;
+	protected float _padding_top;
+	protected float _padding_bottom;
+	/// Adds extra padding to each saide to account for text asymmetry and selection padding.
+	protected float real_padding_left;
+	protected float real_padding_right;
+	protected float real_padding_top;
+	protected float real_padding_bottom;
 	
 	protected float _text_width;
 	protected float _text_height;
@@ -519,19 +524,71 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		}
 	}
 	
-	/// The scaling around the inside of the TextBox
+	/// The spacing around the inside of the TextBox
 	float padding
 	{
-		get const { return padding_left; }
+		get const { return _padding_left; }
 		set
 		{
-			if(padding_left == value)
+			if(_padding_left == value)
 				return;
 			
-			padding_left	= value;
-			padding_right	= value + 1;
-			padding_top		= value + ui.style.selection_padding_top;
-			padding_bottom	= value + ui.style.selection_padding_bottom + 1;
+			_padding_left	= value;
+			_padding_right	= value;
+			_padding_top	= value;
+			_padding_bottom	= value;
+			real_padding_left	= _padding_left;
+			real_padding_right	= _padding_right + 1;
+			real_padding_top	= _padding_top + ui.style.selection_padding_top;
+			real_padding_bottom	= _padding_bottom + ui.style.selection_padding_bottom + 1;
+		}
+	}
+	
+	float padding_left
+	{
+		get const { return _padding_left; }
+		set
+		{
+			if(_padding_left == value)
+				return;
+			_padding_left = value;
+			real_padding_left = _padding_left;
+		}
+	}
+	
+	float padding_right
+	{
+		get const { return _padding_right; }
+		set
+		{
+			if(_padding_right == value)
+				return;
+			_padding_right = value;
+			real_padding_right = _padding_right + 1;
+		}
+	}
+	
+	float padding_top
+	{
+		get const { return _padding_top; }
+		set
+		{
+			if(_padding_top == value)
+				return;
+			_padding_top = value;
+			real_padding_top = _padding_top + ui.style.selection_padding_top;
+		}
+	}
+	
+	float padding_bottom
+	{
+		get const { return _padding_bottom; }
+		set
+		{
+			if(_padding_bottom == value)
+				return;
+			_padding_bottom = value;
+			real_padding_bottom = _padding_bottom + ui.style.selection_padding_bottom + 1;
 		}
 	}
 	
@@ -582,6 +639,22 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	}
 	
 	bool has_focus { get const override { return focused; } }
+	
+	void get_padding(float &out left, float &out right, float &out top, float &out bottom)
+	{
+		left = _padding_left;
+		right = _padding_right;
+		top = _padding_top;
+		bottom = _padding_bottom;
+	}
+	
+	void set_padding(const float left, const float right, const float top, const float bottom)
+	{
+		_padding_left = left;
+		_padding_right = right;
+		_padding_top = top;
+		_padding_bottom = bottom;
+	}
 	
 	// ///////////////////////////////////////////////////////////////////
 	// Selection, Navigation
@@ -1383,15 +1456,15 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	/// taking the current scroll position into account.
 	void get_local_xy(const float global_x, const float global_y, float &out x, float &out y)
 	{
-		x = global_x - x1 - padding_left - _scroll_x;
-		y = global_y - y1 - padding_top  - _scroll_y;
+		x = global_x - x1 - real_padding_left - _scroll_x;
+		y = global_y - y1 - real_padding_top  - _scroll_y;
 	}
 	
 	/// Returns the global position from the given text coordinates taking the current scroll position into account.
 	void get_global_xy(const float local_x, const float local_y, float &out x, float &out y)
 	{
-		x = local_x + x1 + padding_left + _scroll_x;
-		y = local_y + y1 + padding_top  + _scroll_y;
+		x = local_x + x1 + real_padding_left + _scroll_x;
+		y = local_y + y1 + real_padding_top  + _scroll_y;
 	}
 	
 	/// Returns the whitespace at the beginning of the  given line
@@ -1476,7 +1549,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	{
 		if(!relative)
 		{
-			y = y - y1 - padding_top - _scroll_y;
+			y = y - y1 - real_padding_top - _scroll_y;
 		}
 		
 		return clamp(floor_int((y + _line_spacing * 0.25) / (unscaled_line_height * _text_scale + _line_spacing)), 0, _num_lines - 1);
@@ -1807,8 +1880,8 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		
 		const float x1 = this.x1;
 		const float y1 = this.y1 + (!_multi_line ? (view_height - line_height) * 0.5 : 0);
-		const float x = x1 + padding_left + scroll_x;
-		const float y = y1 + padding_top + scroll_y + first_visible_line * (line_height + _line_spacing);
+		const float x = x1 + real_padding_left + scroll_x;
+		const float y = y1 + real_padding_top + scroll_y + first_visible_line * (line_height + _line_spacing);
 		float line_y;
 		
 		////////////////////////////////////////
@@ -1842,9 +1915,9 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 				if(selection_x1 < view_width && selection_x2 > 0)
 				{
 					style.draw_rectangle(
-						x1 + padding_left + max(selection_x1, 0.0),
+						x1 + real_padding_left + max(selection_x1, 0.0),
 						line_y - style.selection_padding_top,
-						x1 + padding_left + min(selection_x2, view_width),
+						x1 + real_padding_left + min(selection_x2, view_width),
 						line_y + line_height + style.selection_padding_bottom,
 						0, select_clr);
 				}
@@ -1966,9 +2039,9 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 			if(caret_x >= 0 && caret_x <= view_width)
 			{
 				style.draw_rectangle(
-					caret_x + x1 + padding_left - style.caret_width * 0.5,
+					caret_x + x1 + real_padding_left - style.caret_width * 0.5,
 					caret_y - style.selection_padding_top,
-					caret_x + x1 + padding_left + style.caret_width * 0.5,
+					caret_x + x1 + real_padding_left + style.caret_width * 0.5,
 					caret_y + line_height + style.selection_padding_bottom,
 					0, style.selected_highlight_border_clr);
 			}
@@ -1976,7 +2049,7 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		
 		// Debug
 		
-		//line_y = y1 + dy + padding_top + scroll_y;
+		//line_y = y1 + dy + real_padding_top + scroll_y;
 		//
 		//for(int line_index = 0; line_index < _num_lines; line_index++)
 		//{
@@ -1985,8 +2058,8 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 		//}
 		//
 		//style.outline(
-		//	x1 + _scroll_x + padding_left, y1 + _scroll_y + padding_top,
-		//	x1 + _scroll_x + padding_left + text_width, y1 + _scroll_y + padding_top + text_height,
+		//	x1 + _scroll_x + real_padding_left, y1 + _scroll_y + real_padding_top,
+		//	x1 + _scroll_x + real_padding_left + text_width, y1 + _scroll_y + real_padding_top + text_height,
 		//	1, 0x9900ffff);
 	}
 	
@@ -2441,8 +2514,8 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	
 	protected void update_scrollbars()
 	{
-		float view_width  = _width  - padding_left - padding_right;
-		float view_height = _height - padding_top - padding_bottom;
+		float view_width  = _width  - real_padding_left - real_padding_right;
+		float view_height = _height - real_padding_top - real_padding_bottom;
 		
 		_scrollbar_vertical_visible		= ((_text_height > view_height && _scrollbar_vertical != Overflow::Never) || _scrollbar_vertical == Overflow::Always) &&
 		// If there isn't enough space to accommodate the scrollbar then don't show it
@@ -2529,8 +2602,8 @@ class TextBox : LockedContainer, IKeyboardFocus, IStepHandler, INavigable
 	
 	protected void get_view_size(float &out view_width, float &out view_height)
 	{
-		view_width  = _width  - padding_left - padding_right;
-		view_height = _height - padding_top - padding_bottom;
+		view_width  = _width  - real_padding_left - real_padding_right;
+		view_height = _height - real_padding_top - real_padding_bottom;
 		
 		if(_scrollbar_vertical_visible)
 		{
