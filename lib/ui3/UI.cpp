@@ -1,4 +1,5 @@
 #include '../std.cpp';
+#include '../debug/Debug.cpp';
 #include '../fonts.cpp';
 #include '../input/common.cpp';
 #include '../input/GVB.cpp';

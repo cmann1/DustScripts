@@ -2,7 +2,6 @@
 #include '../Container.cpp';
 #include '../Label.cpp';
 #include '../shapes/Arrow.cpp';
-#include '../../utils/IStepHandler.cpp';
 
 namespace Panel { const string TYPE_NAME = 'Panel'; }
 
