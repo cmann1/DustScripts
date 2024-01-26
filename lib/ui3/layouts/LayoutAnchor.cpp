@@ -86,7 +86,7 @@ class LayoutAnchor
 	}
 	
 	/**
-	 * @brief Anchors next_to the givven sibling with the given padding.
+	 * @brief Anchors next_to the given sibling with the given padding.
 	 * @param sibling The sibling to anchor to.
 	 * @param padding The amount of padding. Leave out to set to the default style spacing.
 	 * @return This anchor.

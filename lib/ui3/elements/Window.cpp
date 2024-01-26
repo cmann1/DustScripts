@@ -69,6 +69,8 @@ class Window : MoveableDialog
 	
 	string element_type { get const override { return Window::TYPE_NAME; } }
 	
+	bool is_open { get const { return open; } }
+	
 	void centre()
 	{
 		const float x = @parent != null ? parent._width  : ui.region_width;
