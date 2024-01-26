@@ -18,6 +18,7 @@ class Container : Element
 	float scroll_max_y;
 	/// If true, when a child element is focus it will be scrolled into v iew
 	bool autoscroll_on_focus = true;
+	bool auto_expand_x, auto_expand_y;
 	
 	Event scroll_change;
 	
@@ -364,9 +365,27 @@ class Container : Element
 			const float max_x = scroll_max_x;
 			const float max_y = scroll_max_y;
 			
+			if(auto_expand_x)
+			{
+				_width = 0;
+			}
+			if(auto_expand_y)
+			{
+				_height = 0;
+			}
+			
 			_layout.do_layout(@children,
 				0, 0, _width, _height,
 				scroll_min_x, scroll_min_y, scroll_max_x, scroll_max_y);
+			
+			if(auto_expand_x && _width < scroll_max_x)
+			{
+				_set_width = _width = scroll_max_x;
+			}
+			if(auto_expand_y && _height < scroll_max_y)
+			{
+				_set_height = _height = scroll_max_y;
+			}
 			
 			if(min_x != scroll_min_x || min_y != scroll_min_y || max_x != scroll_max_x || max_y != scroll_max_y)
 			{
