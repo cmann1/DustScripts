@@ -1,6 +1,7 @@
 #include '../UI.cpp';
 #include '../Style.cpp';
 #include '../TextAlign.cpp';
+#include '../utils/TextClipping.cpp';
 #include 'Graphic.cpp';
 
 namespace Label { const string TYPE_NAME = 'Label'; }
@@ -8,11 +9,18 @@ namespace Label { const string TYPE_NAME = 'Label'; }
 class Label : Graphic
 {
 	
+	TextClipping clipping = TextClipping::None;
+	
+	TextAlign _text_align_h = TextAlign::Left;
+	
 	protected bool _auto_size = false;
 	protected string _text;
 	protected string _font;
 	protected uint _size;
-	TextAlign _text_align_h = TextAlign::Left;
+	
+	protected bool is_clipped;
+	protected string clipped_text = '';
+	protected float clipped_text_width;
 	
 	Label(UI@ ui, const string text='', const bool auto_size=false, const string font='', const uint size=0)
 	{
@@ -118,6 +126,15 @@ class Label : Graphic
 		_align_h = GraphicAlign::Left;
 		
 		Graphic::_do_layout(ctx);
+		
+		if(clipping != TextClipping::None)
+		{
+			do_clipping();
+		}
+		else
+		{
+			is_clipped = false;
+		}
 	}
 	
 	void set_font(const string font, const uint size)
@@ -162,7 +179,7 @@ class Label : Graphic
 			rotate(dx, dy, _rotation * DEG2RAD, dx, dy);
 		}
 		
-		style.draw_text(_text,
+		style.draw_text(is_clipped ? clipped_text : _text,
 			ui._pixel_round(x1) + draw_x + dx - (_font != 'envy_bold' ? 1 : 0),
 			ui._pixel_round(y1) + draw_y + dy,
 			get_draw_colour(),
@@ -170,7 +187,7 @@ class Label : Graphic
 			_rotation, _text_align_h, TextAlign::Top, _font, _size);
 	}
 	
-	private void update_size()
+	protected void update_size()
 	{
 		ui.style.measure_text(_text, _font, _size, 1, 1, _graphic_width, _graphic_height);
 		validate_layout = true;
@@ -179,6 +196,62 @@ class Label : Graphic
 			return;
 		
 		fit_to_contents();
+	}
+	
+	protected void do_clipping()
+	{
+		if(_graphic_width * _scale_x <= _width)
+		{
+			is_clipped = false;
+			return;
+		}
+		
+		float max_width = _width;
+		
+		float ellipses_width = 0;
+		if(clipping == TextClipping::Ellipses)
+		{
+			float _;
+			ui.style.measure_text('...', _font, _size, _scale_x, _scale_y, ellipses_width, _);
+			max_width -= ellipses_width;
+		}
+		
+		int left = 0;
+		int right = int(_text.length());
+		is_clipped = true;
+		int mid = 0;
+		float _;
+		
+		while(right >= left)
+		{
+			mid = left + (right - left) / 2;
+			
+			const string txt = _text.substr(0, mid);
+			float w;
+			ui.style.measure_text(txt, _font, _size, _scale_x, _scale_y, w, _);
+			
+			if(w < max_width)
+			{
+				left = mid + 1;
+			}
+			else if(w > max_width)
+			{
+				right = mid - 1;
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		clipped_text = _text.substr(0, mid - 1);
+		
+		if(clipping == TextClipping::Ellipses)
+		{
+			clipped_text += '...';
+		}
+		
+		ui.style.measure_text(clipped_text, _font, _size, _scale_x, _scale_y, clipped_text_width, _);
 	}
 	
 	protected uint get_draw_colour() override

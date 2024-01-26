@@ -12,6 +12,11 @@ namespace Button { const string TYPE_NAME = 'Button'; }
 class Button : SingleContainer
 {
 	
+	float content_align_h = GraphicAlign::Centre;
+	bool constrain_content_dimensions = true;
+	DrawOption draw_background = DrawOption::Always;
+	DrawOption draw_border = DrawOption::Always;
+	
 	protected bool _selectable;
 	protected bool _user_selectable = true;
 	protected bool _selected;
@@ -19,9 +24,6 @@ class Button : SingleContainer
 	protected float _padding_right = NAN;
 	protected float _padding_top = NAN;
 	protected float _padding_bottom = NAN;
-	
-	DrawOption draw_background = DrawOption::Always;
-	DrawOption draw_border = DrawOption::Always;
 	
 	Event select;
 	
@@ -34,7 +36,7 @@ class Button : SingleContainer
 		init();
 	}
 	
-	Button(UI@ ui, const string text, const TextAlign text_align_h=TextAlign::Left)
+	Button(UI@ ui, const string text, const TextAlign text_align_h=TextAlign::Centre)
 	{
 		Label@ label = ui._label_pool.get(
 			ui, text, true,
@@ -195,8 +197,35 @@ class Button : SingleContainer
 		if(@_content == null)
 			return;
 		
-		_content._x = (_width  - _content._width)  * 0.5;
-		_content._y = (_height - _content._height) * 0.5;
+		const float x1 = layout_padding_left;
+		const float y1 = layout_padding_top;
+		const float max_width = max(_width - x1 - layout_padding_right, 0.0);
+		const float max_height = max(_height - y1 - layout_padding_bottom, 0.0);
+		
+		if(constrain_content_dimensions)
+		{
+			const float w1 = _content._width;
+			const float h1 = _content._height;
+			_content._width = _content._set_width;
+			_content._height = _content._set_height;
+			
+			if(_content._width > max_width)
+			{
+				_content._width = max_width;
+			}
+			if(_content._height > max_height)
+			{
+				_content._height = max_height;
+			}
+			
+			if(_content._width != w1 || _content._height != h1)
+			{
+				_content.invalidate_layout();
+			}
+		}
+		
+		_content._x = x1 + (max_width  - _content._width)  * content_align_h;
+		_content._y = y1 + (max_height - _content._height) * 0.5;
 		
 		if(pressed)
 		{
