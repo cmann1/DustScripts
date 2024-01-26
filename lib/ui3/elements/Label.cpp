@@ -34,8 +34,8 @@ class Label : Graphic
 		
 		sizing = ImageSize:: None;
 		
-		origin_x = 0.5;
-		origin_y = 0.5;
+		origin_x = 0;
+		origin_y = 0;
 		
 		this.text = text;
 		align_h = GraphicAlign::Left;
