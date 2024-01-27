@@ -51,6 +51,8 @@ abstract class Element
 	bool defer_clipping;
 	float alpha = 1;
 	float override_alpha = -1;
+	/** If true will signal to this element's parent layout that this element should e.g. start a new row/column in a flow layout. */
+	bool layout_break;
 	
 	float _x;
 	float _y;

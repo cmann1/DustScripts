@@ -214,6 +214,7 @@ class FlowLayout : Layout
 		current_cross_axis_size = 0;
 		axis_sizes_index = 0;
 		axis_end_indices_index = 0;
+		main_x = main_axis_start;
 		cross_x = cross_axis_start;
 		
 		float main_spacing;

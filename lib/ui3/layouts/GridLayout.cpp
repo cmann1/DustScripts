@@ -141,6 +141,7 @@ class GridLayout : Layout
 		float row_size = 0;
 		float total_column_size = 0;
 		float total_row_size = 0;
+		bool pending_break = false;
 		
 		float final_column_width = column_width;
 		float final_row_height = row_height;
@@ -161,12 +162,12 @@ class GridLayout : Layout
 			}
 		}
 		
+		Element@ element = is_reversed
+			? elements[column_start_index + num_columns - 1]
+			: elements[0];
+		
 		for(int i = 0; i < num_children; i++)
 		{
-			Element@ element = is_reversed
-				? elements[column_start_index + num_columns - column_index - 1]
-				: elements[i];
-			
 			if(!element._visible)
 				continue;
 			
@@ -187,7 +188,20 @@ class GridLayout : Layout
 			
 			column_size += el_column_size;
 			
-			if(++column_index == num_columns)
+			if(i + 1 < num_children)
+			{
+				@element = is_reversed
+					? elements[column_start_index + num_columns - (column_index + 1) - 1]
+					: elements[i + 1];
+				
+				if(element.layout_break)
+				{
+					pending_break = true;
+				}
+			}
+			
+			
+			if(++column_index == num_columns || pending_break)
 			{
 				column_start_index = i + 1;
 				column_size = 0;
@@ -196,6 +210,13 @@ class GridLayout : Layout
 				total_row_size += row_size;
 				row_size = 0;
 				row_index++;
+				
+				if(row_index >= int(row_sizes.size()))
+				{
+					row_sizes.insertLast(0);
+				}
+				
+				pending_break = false;
 			}
 		}
 		
@@ -275,12 +296,14 @@ class GridLayout : Layout
 		float row_y = cross_axis_start;
 		bool first_element_placed = false;
 		
+		pending_break = false;
+		
+		@element = is_reversed
+			? elements[column_start_index + num_columns - 1]
+			: elements[0];
+		
 		for(int i = 0; i < num_children; i++)
 		{
-			Element@ element = is_reversed
-				? elements[column_start_index + num_columns - column_index - 1]
-				: elements[i];
-			
 			if(!element._visible)
 				continue;
 			
@@ -373,7 +396,19 @@ class GridLayout : Layout
 			
 			column_x += column_size + column_spacing;
 			
-			if(++column_index == num_columns)
+			if(i + 1 < num_children)
+			{
+				@element = is_reversed
+					? elements[column_start_index + num_columns - (column_index + 1) - 1]
+					: elements[i + 1];
+				
+				if(element.layout_break)
+				{
+					pending_break = true;
+				}
+			}
+			
+			if(++column_index == num_columns || pending_break)
 			{
 				column_start_index = i + 1;
 				column_x = main_axis_start;
@@ -384,6 +419,8 @@ class GridLayout : Layout
 				
 				if(dynamic_row_height && row_index < num_rows)
 					row_size = row_sizes[row_index];
+				
+				pending_break = false;
 			}
 		}
 		
