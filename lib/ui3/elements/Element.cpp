@@ -53,6 +53,7 @@ abstract class Element
 	float override_alpha = -1;
 	/** If true will signal to this element's parent layout that this element should e.g. start a new row/column in a flow layout. */
 	bool layout_break;
+	float layout_grow = 0;
 	
 	float _x;
 	float _y;

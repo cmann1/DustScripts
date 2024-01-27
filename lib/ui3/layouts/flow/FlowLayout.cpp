@@ -267,8 +267,18 @@ class FlowLayout : Layout
 				}
 			}
 			
-			const float el_main_size  = max(0.0, is_horizontal ? element._set_width  : element._set_height);
+			float el_main_size = max(0.0, is_horizontal ? element._set_width  : element._set_height);
 			const float el_cross_size = max(0.0, is_horizontal ? element._set_height : element._set_width);
+			
+			if(element.layout_grow > 0)
+			{
+				el_main_size += max(main_axis_end - current_main_axis_size, 0.0);
+				if(is_horizontal)
+					element._width = el_main_size;
+				else
+					element._height = el_main_size;
+			}
+			
 			const float main_x_final = max(0.0, is_reversed ? (main_axis_end - main_x + main_axis_start - el_main_size) : main_x);
 			float cross_x_final = cross_x;
 			
