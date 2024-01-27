@@ -47,4 +47,15 @@ abstract class Shape : Graphic
 		return _has_colour ? _colour : ui.style.text_clr;
 	}
 	
+	protected void draw_init(float &out x, float &out y, float &out size_x, float &out size_y, float &out draw_scale_x, float &out draw_scale_y)
+	{
+		draw_scale_x = is_transposed ? this.draw_scale_y : this.draw_scale_x;
+		draw_scale_y = is_transposed ? this.draw_scale_x : this.draw_scale_y;
+		
+		size_x = _graphic_width  * draw_scale_x * 0.5;
+		size_y = _graphic_height * draw_scale_y * 0.5;
+		x = ui._pixel_floor(x1 + draw_x + size_x);
+		y = ui._pixel_floor(y1 + draw_y + size_y);
+	}
+	
 }

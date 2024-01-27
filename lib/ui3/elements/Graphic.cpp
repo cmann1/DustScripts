@@ -60,6 +60,11 @@ abstract class Graphic : Element
 		set { if(_rotation == value) return; _rotation = value; validate_layout = true; }
 	}
 	
+	float scale
+	{
+		set { if(_scale_x == value && _scale_y == value) return; _scale_x = _scale_y = value; validate_layout = true; }
+	}
+	
 	float scale_x
 	{
 		get const { return _scale_x; }
