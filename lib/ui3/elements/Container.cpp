@@ -320,33 +320,30 @@ class Container : Element
 		{
 			bool scroll_changed = false;
 			
-			if(@_scroll_into_view.parent == @this)
+			if(_scroll_into_view.x1 < x1)
 			{
-				if(_scroll_x + _scroll_into_view._x < 0)
-				{
-					_scroll_x = -_scroll_into_view._x;
-					scroll_changed = true;
-				}
-				else if(_scroll_x + _scroll_into_view._x + _scroll_into_view._width > _width)
-				{
-					_scroll_x = _width - (_scroll_into_view._x + _scroll_into_view._width);
-					scroll_changed = true;
-				}
-				
-				if(_scroll_y + _scroll_into_view._y < 0)
-				{
-					_scroll_y = -_scroll_into_view._y;
-					scroll_changed = true;
-				}
-				else if(_scroll_y + _scroll_into_view._y + _scroll_into_view._height > _height)
-				{
-					_scroll_y = _height - (_scroll_into_view._y + _scroll_into_view._height);
-					scroll_changed = true;
-				}
-				
-				_scroll_x = clamp(_scroll_x, -max(scroll_max_x - _width, 0.0), 0);
-				_scroll_y = clamp(_scroll_y, -max(scroll_max_y - _height, 0.0), 0);
+				_scroll_x = ceil(_scroll_x - (_scroll_into_view.x1 - x1));
+				scroll_changed = true;
 			}
+			else if(_scroll_into_view.x2 > x2)
+			{
+				_scroll_x = floor(_scroll_x - (_scroll_into_view.x2 - x2));
+				scroll_changed = true;
+			}
+			
+			if(_scroll_into_view.y1 < y1)
+			{
+				_scroll_y = ceil(_scroll_y - (_scroll_into_view.y1 - y1));
+				scroll_changed = true;
+			}
+			else if(_scroll_into_view.y2 > y2)
+			{
+				_scroll_y = floor(_scroll_y - (_scroll_into_view.y2 - y2));
+				scroll_changed = true;
+			}
+			
+			_scroll_x = clamp(_scroll_x, -max(scroll_max_x - _width, 0.0), 0);
+			_scroll_y = clamp(_scroll_y, -max(scroll_max_y - _height, 0.0), 0);
 			
 			_scrolled_into_view = scroll_changed;
 			@_scroll_into_view = null;

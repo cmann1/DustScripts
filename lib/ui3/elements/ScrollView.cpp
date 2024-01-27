@@ -33,6 +33,9 @@ class ScrollView : LockedContainer
 	protected Scrollbar@ scrollbar_horizontal;
 	protected Scrollbar@ scrollbar_vertical;
 	
+	protected float prev_scroll_min_x, prev_scroll_min_y;
+	protected float prev_scroll_max_x, prev_scroll_max_y;
+	
 	ScrollView(UI@ ui)
 	{
 		super(ui);
@@ -284,6 +287,15 @@ class ScrollView : LockedContainer
 			
 			previous_scroll_x = _content._scroll_x;
 			previous_scroll_y = _content._scroll_y;
+			
+			if(@scrollbar_vertical != null)
+			{
+				scrollbar_vertical.invalidate_layout();
+			}
+			if(@scrollbar_horizontal != null)
+			{
+				scrollbar_horizontal.invalidate_layout();
+			}
 		}
 		
 		// With nested layouts where the children or children's children depends on the ScrollView to determine their
@@ -307,8 +319,6 @@ class ScrollView : LockedContainer
 		//	_content.x1 + _content.scroll_min_x, _content.y1 + _content.scroll_min_y,
 		//	_content.x1 + _content.scroll_max_x, _content.y1 + _content.scroll_max_y, 0, 1, 0xaa0000ff, true, 1);
 	}
-	protected float prev_scroll_min_x, prev_scroll_min_y;
-	protected float prev_scroll_max_x, prev_scroll_max_y;
 	
 	protected void do_fit_contents(const bool fit_min) override
 	{
