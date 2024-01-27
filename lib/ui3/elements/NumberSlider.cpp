@@ -23,6 +23,8 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 	bool drag_normalised = true;
 	bool drag_relative = true;
 	bool editable = true;
+	float fill_min_value = NAN;
+	float fill_max_value = NAN;
 	
 	bool show_fill;
 	uint fill_colour = 0x00000000;
@@ -365,6 +367,8 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 			x1, y1, x2, y2,
 			false, false, false, disabled);
 		
+		const float min_value = !is_nan(fill_min_value) ? fill_min_value : this.min_value;
+		const float max_value = !is_nan(fill_max_value) ? fill_max_value : this.max_value;
 		if(show_fill && !is_nan(min_value) && !is_nan(max_value) && !busy_editing)
 		{
 			const float border_size = style.normal_border_clr != 0 && style.border_size > 0 ? style.border_size : 0;
@@ -398,13 +402,13 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 			{
 				style.draw_rectangle(
 					x1, y1,
-					x1 + (x2 - x1) * (_value - min_value) / (max_value - min_value), y2,
+					x1 + (x2 - x1) * clamp01((_value - min_value) / (max_value - min_value)), y2,
 					0, clr);
 			}
 			else
 			{
 				style.draw_rectangle(
-					x1, y2 - (y2 - y1) * (_value - min_value) / (max_value - min_value),
+					x1, y2 - (y2 - y1) * clamp01((_value - min_value) / (max_value - min_value)),
 					x2, y2,
 					0, clr);
 			}
@@ -431,6 +435,9 @@ class NumberSlider : LockedContainer, IStepHandler, ITextEditable
 	
 	protected float get_mouse_normalised_value()
 	{
+		const float min_value = !is_nan(fill_min_value) ? fill_min_value : this.min_value;
+		const float max_value = !is_nan(fill_max_value) ? fill_max_value : this.max_value;
+		
 		if(is_nan(min_value) || is_nan(max_value))
 		{
 			return _value;

@@ -444,6 +444,11 @@ class Style
 			c4 = set_alpha(c4);
 		}
 		
+		//puts('--');
+		//puts(ui._pixel_ceil(x1), ui._pixel_ceil(y1));
+		//puts(ui._pixel_ceil(x2), ui._pixel_ceil(y2));
+		//puts(ui._pixel_ceil(x3), ui._pixel_ceil(y3));
+		//puts(ui._pixel_ceil(x4), ui._pixel_ceil(y4));
 		c.draw_quad(
 			is_glass,
 			ui._pixel_ceil(x1), ui._pixel_ceil(y1),
