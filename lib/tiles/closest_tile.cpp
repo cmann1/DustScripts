@@ -3,17 +3,19 @@
 #include '../drawing/common.cpp';
 #include 'closest_point_on_tile.cpp';
 
-bool closest_tile(scene@ g, float x, float y, float radius, uint layer, int &out tile_x, int &out tile_y, float &out out_x, float &out out_y, float &out normal_x, float &out normal_y)
+bool closest_tile(
+	scene@ g, float x, float y, float radius, uint layer, int &out tile_x, int &out tile_y,
+	float &out out_x, float &out out_y, float &out normal_x, float &out normal_y)
 {
 	int start_x = floor_int((x - radius - 1) * PIXEL2TILE);
 	int start_y = floor_int((y - radius - 1) * PIXEL2TILE);
 	int end_x = ceil_int((x + radius + 1) * PIXEL2TILE);
 	int end_y = ceil_int((y + radius + 1) * PIXEL2TILE);
 	
-//	outline_rect(g,
-//		start_x * TILE2PIXEL, start_y * TILE2PIXEL,
-//		end_x * TILE2PIXEL, end_y * TILE2PIXEL,
-//		layer, 24, 1);
+	//outline_rect(g,
+	//	start_x * TILE2PIXEL, start_y * TILE2PIXEL,
+	//	end_x * TILE2PIXEL, end_y * TILE2PIXEL,
+	//	layer, 24, 1);
 	
 	float closest_dist = MAX_FLOAT;
 	bool found_tile = false;
@@ -30,12 +32,12 @@ bool closest_tile(scene@ g, float x, float y, float radius, uint layer, int &out
 			const int tile_type = tile.type();
 			float check_normal_x, check_normal_y;
 			
-//			if(point_in_tile(x, y, tx, ty, tile_type, check_normal_x, check_normal_y, layer))
-//				continue;
+			//if(point_in_tile(x, y, tx, ty, tile_type, check_normal_x, check_normal_y, layer))
+			//	continue;
 				
 			float check_x, check_y;
 			
-			if(!closest_point_on_tile(x, y, tx, ty, tile_type, @tile, check_x, check_y, check_normal_x, check_normal_y))
+			if(closest_point_on_tile(x, y, tx, ty, tile_type, @tile, check_x, check_y, check_normal_x, check_normal_y) == -1)
 				continue;
 			
 			float check_dist = dist_sqr(x, y, check_x, check_y);
