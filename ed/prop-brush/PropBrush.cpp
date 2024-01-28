@@ -56,9 +56,9 @@ class script
 	{
 		@g = get_scene();
 		@sprite = create_sprites();
-    
-    brushes.resize(1);
-    brushes[0].props.resize(1);
+		
+		brushes.resize(1);
+		brushes[0].props.resize(1);
 	}
 	
 	void start()
@@ -421,7 +421,7 @@ class script
 						tile_x, tile_y,
 						2, off_alpha | 0xff00ff);
 					
-					drawing::circle(g, tile_x, tile_y, brush_radius, 32, mouse_layer, 24, thickness, off_alpha | (colour & 0xffffff));
+					drawing::circle(g, mouse_layer, 24, tile_x, tile_y, brush_radius, 32, thickness, off_alpha | (colour & 0xffffff));
 				}
 			}
 			
@@ -431,16 +431,16 @@ class script
 			}
 			
 			// Draw tail
-//			g.draw_line(
-//				mouse_layer, 24,
-//				mouse_x, mouse_y,
-//				tail_x, tail_y,
-//				1, alpha | 0x0000ff);
+			//g.draw_line(
+			//	mouse_layer, 24,
+			//	mouse_x, mouse_y,
+			//	tail_x, tail_y,
+			//	1, alpha | 0x0000ff);
 			
 			float cursor_x = drag_size == DragSizeState::Off ? mouse_x : drag_size_x;
 			float cursor_y = drag_size == DragSizeState::Off ? mouse_y : drag_size_y;
 			
-			drawing::circle(g, cursor_x, cursor_y, real_radius, 32, mouse_layer, 24, thickness, colour);
+			drawing::circle(g, mouse_layer, 24, cursor_x, cursor_y, real_radius, 32, thickness, colour);
 			
 			g.draw_line(
 				mouse_layer, 24,
