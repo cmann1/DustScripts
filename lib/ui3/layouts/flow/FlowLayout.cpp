@@ -90,6 +90,7 @@ class FlowLayout : Layout
 		float current_cross_axis_size = 0;
 		int num_axis_elements = 0;
 		int num_visible_elements = 0;
+		int first_index = -1;
 		
 		for(int i = 0; i < num_children; i++)
 		{
@@ -97,6 +98,9 @@ class FlowLayout : Layout
 			
 			if(!element._visible)
 				continue;
+			
+			if(first_index == -1)
+				first_index = i;
 			
 			num_visible_elements++;
 			
@@ -208,8 +212,8 @@ class FlowLayout : Layout
 		}
 		
 		int i = 0;
-		int prev_axis_index = 0;
-		int next_axis_index = 0;
+		int prev_axis_index = first_index;
+		int next_axis_index = first_index;
 		current_main_axis_size = 0;
 		current_cross_axis_size = 0;
 		axis_sizes_index = 0;
@@ -225,9 +229,10 @@ class FlowLayout : Layout
 		{
 			Element@ element = elements[i];
 			
-			while(!element._visible && i < num_children)
+			if(!element._visible)
 			{
-				@element = elements[++i];
+				i++;
+				continue;
 			}
 			
 			// Start a new row/column
@@ -236,7 +241,7 @@ class FlowLayout : Layout
 				main_x = main_axis_start;
 				cross_x += current_cross_axis_size;
 				
-				if(i > 0)
+				if(i > first_index)
 					cross_x += spacing;
 				
 				prev_axis_index = next_axis_index;

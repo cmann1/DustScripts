@@ -542,7 +542,9 @@ class Style
 					: (selected || active) ? selected_bg_clr : (highlighted ? highlight_bg_clr : normal_bg_clr));
 	}
 	
-	uint get_interactive_element_border_colour(const bool highlighted, const bool selected, const bool active, const bool disabled, bool draw_border=true, bool draw_border_selected_only=false)
+	uint get_interactive_element_border_colour(
+		const bool highlighted, const bool selected, const bool active, const bool disabled,
+		bool draw_border=true, bool draw_border_selected_only=false)
 	{
 		if(draw_border_selected_only && !selected)
 			return 0;
@@ -562,7 +564,6 @@ class Style
 		bool draw_background=true, bool draw_border=true, bool draw_border_selected_only=false)
 	{
 		const uint border_clr = get_interactive_element_border_colour(highlighted, selected, active, disabled, draw_border, draw_border_selected_only);
-		
 		const float border_size = selected ? selected_border_size : this.border_size;
 		
 		// Fill/bg
