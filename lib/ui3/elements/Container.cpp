@@ -74,7 +74,7 @@ class Container : Element
 	
 	bool add_child(Element@ child, int index=-1)
 	{
-		if(child is null || @child == @this || @child.parent == @this)
+		if(@child == null || @child == @this || @child.parent == @this)
 			return false;
 		
 		if(@child.parent != null)
@@ -110,7 +110,7 @@ class Container : Element
 	
 	protected bool _remove_child_internal(Element@ child)
 	{
-		if(child is null or @child.parent != @this)
+		if(@child == null or @child.parent != @this)
 			return false;
 		
 		int index = children.findByRef(child);
@@ -201,6 +201,11 @@ class Container : Element
 	
 	void clear()
 	{
+		for(int i = 0; i < num_children; i++)
+		{
+			@children[i].parent = null;
+		}
+		
 		children.resize(0);
 		num_children = 0;
 		validate_layout = true;
