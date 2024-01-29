@@ -19,14 +19,14 @@ class PlayShape : Shape
 		this.shape = shape;
 	}
 	
-	string element_type { get const override { return Cross::TYPE_NAME; } }
+	string element_type { get const override { return PlayShape::TYPE_NAME; } }
 	
 	protected void init() override
 	{
 		_width  = _set_width  = 12;
 		_height = _set_height = 14;
 		_graphic_width  = 12;
-		_graphic_height = 12;
+		_graphic_height = 14;
 	}
 	
 	void _draw(Style@ style, DrawingContext@ ctx)
