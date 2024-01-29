@@ -224,17 +224,7 @@ class Checkbox : Element
 	
 	protected void on_label_press(EventInfo@ event)
 	{
-		if(event.button != ui.primary_button)
-			return;
-		
-		if(toggle_on_press)
-		{
-			checked = _state != CheckboxState::On;
-		}
-		else
-		{
-			@ui._active_mouse_element = @this;
-		}
+		_mouse_press(event);
 	}
 	
 	protected void on_label_click(EventInfo@ event)
