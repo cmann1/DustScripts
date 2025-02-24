@@ -8,6 +8,11 @@ const float SCREEN_RIGHT = 800;
 const float SCREEN_BOTTOM = 450;
 const float SCREEN_RATIO = 1920.0 / 1080;
 
+const int MAX_INT = 2147483647;
+const int MIN_INT = -2147483648;
+
+const uint MAX_UINT = 4294967295;
+
 const float MAX_FLOAT =  3.402823466e+38;
 const float MIN_FLOAT = -3.402823466e+38;
 const float SMALLEST_FLOAT = 1.175494351e-38;
