@@ -1,7 +1,21 @@
+#include "math.cpp"
+
+Vec2 round(const Vec2 &in v)
+{
+	return Vec2(round(v.x), round(v.y));
+}
+
+float dot(const Vec2 &in v1, const Vec2 &in v2)
+{
+	return dot(v1.x, v1.y, v2.x, v2.y);
+}
+
 class Vec2
 {
 	
 	float x, y;
+	
+	Vec2() {}
 	
 	Vec2(float x=0, float y=0)
 	{
@@ -15,12 +29,12 @@ class Vec2
 		y = e.y();
 	}
 	
-	float magnitude()
+	float magnitude() const
 	{
 		return sqrt(x * x + y * y);
 	}
 	
-	float sqr_magnitude()
+	float sqr_magnitude() const
 	{
 		return x * x + y * y;
 	}
@@ -40,9 +54,67 @@ class Vec2
 		}
 	}
 	
-	bool opEquals(const Vec2 &in other)
+	Vec2 opNeg() const
 	{
-		return x == other.x && y == other.y;
+		return Vec2(-x, -y);
+	}
+	
+	Vec2 opAdd(const Vec2 &in other) const
+	{
+		return Vec2(
+			x + other.x,
+			y + other.y
+		);
+	}
+	
+	Vec2 opSub(const Vec2 &in other) const
+	{
+		return Vec2(
+			x - other.x,
+			y - other.y
+		);
+	}
+	
+	Vec2 opMul(const Vec2 &in other) const
+	{
+		return Vec2(
+			x * other.x,
+			y * other.y
+		);
+	}
+	
+	Vec2 opMul_r(float value) const
+	{
+		return Vec2(
+			x * value,
+			y * value
+		);
+	}
+	
+	Vec2 opMul(float value) const
+	{
+		return Vec2(
+			x * value,
+			y * value
+		);
+	}
+	
+	Vec2 opDiv(float value) const
+	{
+		return Vec2(
+			x / value,
+			y / value
+		);
+	}
+	
+	bool opEquals(const Vec2 &in other) const
+	{
+		return x == other.x and y == other.y;
+	}
+	
+	string opConv() const
+	{
+		return "Vec2(" + formatFloat(x) + "," + formatFloat(y) + ")";
 	}
 	
 	Vec2@ opDivAssign(const float &in v)
