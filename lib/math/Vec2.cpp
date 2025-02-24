@@ -1,3 +1,4 @@
+#include "IntVec2.cpp"
 #include "math.cpp"
 
 Vec2 round(const Vec2 &in v)
@@ -21,6 +22,12 @@ class Vec2
 	{
 		this.x = x;
 		this.y = y;
+	}
+	
+	Vec2(const IntVec2 &in v)
+	{
+		this.x = v.x;
+		this.y = v.y;
 	}
 	
 	Vec2(entity@ &in e)
