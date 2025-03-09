@@ -241,3 +241,17 @@ float orientation(const float x1, const float y1, const float x2, const float y2
 	// 	cross_product_z(b_x, b_y, c_x, c_y) +
 	// 	cross_product_z(c_x, c_y, a_x, a_y);
 }
+
+/** Returns the (non-negative) greatest common divisor of a and b. */
+uint gcd(int a_, int b_)
+{
+	uint a = a_ > 0 ? a_ : -a_;
+	uint b = b_ > 0 ? b_ : -b_;
+	while(b > 0)
+	{
+		uint r = a % b;
+		a = b;
+		b = r;
+	}
+	return a;
+}
