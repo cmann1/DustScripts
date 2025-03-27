@@ -515,9 +515,6 @@ class trigger_base {
   /* Called when the trigger is stepped while in editor mode. */
   void editor_step();
   
-  /* Called when one of this trigger's variables is modified in the editor */
-  void editor_var_changed(var_info@ info);
-  
   /* Do drawing related to the script trigger. */
   void draw(float sub_frame);
   
@@ -985,7 +982,7 @@ class scene {
    */
   bool stop_persistent_stream(string name);
 
-  /* Returns the specified persitent sound if it is playing, or null otherwise. */
+  /* Returns the specified persistent sound if it is playing, or null otherwise. */
   audio@ get_persistent_stream(string name);
 
   /* Overrides the built in sound named "sound" with "override_sound".
@@ -3680,6 +3677,36 @@ class editor_api {
   /* Sets the selected prop set, group, index, and palette used by the
    * prop tool. */
   void set_prop(int prop_set, int prop_group, int prop_index, int prop_palette);
+
+  /* Sets the prop scale as an index in the range -24 ... 24. */
+  void set_prop_scale_index(int scale);
+
+  int get_prop_scale_index();
+
+  /* Sets the prop scale. */
+  void set_prop_scale(float scale);
+
+  float get_prop_scale();
+
+  /* Sets the prop flip. */
+  void set_prop_flip(float flip_x, float flip_y);
+
+  void get_prop_flip(float &out flip_x, float &out flip_y);
+
+  /* Sets the prop horizontal flip. */
+  void set_prop_flip_x(float flip);
+
+  float get_prop_flip_x();
+
+  /* Sets the prop vertical flip. */
+  void set_prop_flip_y(float flip);
+
+  float get_prop_flip_y();
+
+  /* Sets the prop tool rotation */
+  void set_prop_rotation(float rotation);
+
+  float get_prop_rotation();
 
 }
 
